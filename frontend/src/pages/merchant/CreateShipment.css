@@ -1,0 +1,192 @@
+.dashboard{
+  display:flex;
+  background:#f8fafc;
+}
+
+.shipment-content{
+  margin-left:280px;
+  width:100%;
+  min-height:100vh;
+  padding:30px;
+}
+
+/* Header */
+
+.page-header{
+  background:white;
+  padding:30px;
+  border-radius:24px;
+  border:1px solid #e5e7eb;
+
+  margin-bottom:25px;
+
+  box-shadow:
+    0 8px 20px rgba(0,0,0,.05);
+}
+
+.page-header h1{
+  font-size:48px;
+  color:#111827;
+  margin-bottom:5px;
+}
+
+.page-header p{
+  color:#64748b;
+}
+
+/* Form */
+
+.shipment-form{
+  display:flex;
+  flex-direction:column;
+  gap:20px;
+}
+
+.form-card{
+  background:white;
+
+  padding:25px;
+
+  border-radius:24px;
+
+  border:1px solid #e5e7eb;
+
+  box-shadow:
+    0 8px 20px rgba(0,0,0,.05);
+}
+
+.form-card h2{
+  margin-bottom:20px;
+  color:#111827;
+}
+
+/* Grid */
+
+.grid-2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:15px;
+  margin-bottom:15px;
+}
+
+.grid-4{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:15px;
+}
+
+/* Inputs */
+
+input,
+textarea{
+  width:100%;
+
+  padding:14px;
+
+  border:1px solid #d1d5db;
+
+  border-radius:12px;
+
+  outline:none;
+}
+
+input:focus,
+textarea:focus{
+  border-color:#f97316;
+}
+
+textarea{
+  height:120px;
+  resize:none;
+  margin-bottom:15px;
+}
+
+/* Courier */
+
+.courier-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:15px;
+}
+
+.courier-card{
+  border:2px solid #e5e7eb;
+
+  padding:20px;
+
+  border-radius:16px;
+
+  cursor:pointer;
+
+  display:flex;
+  justify-content:space-between;
+
+  font-weight:600;
+
+  transition:.3s;
+}
+
+.courier-card:hover{
+  border-color:#f97316;
+  background:#fff7ed;
+}
+
+/* Buttons */
+
+.action-buttons{
+  display:flex;
+  justify-content:flex-end;
+  gap:15px;
+}
+
+.draft-btn{
+  background:#e5e7eb;
+  color:#111827;
+}
+
+.submit-btn{
+  background:#f97316;
+  color:white;
+}
+
+.draft-btn,
+.submit-btn{
+  border:none;
+
+  padding:14px 22px;
+
+  border-radius:12px;
+
+  display:flex;
+  align-items:center;
+  gap:10px;
+
+  cursor:pointer;
+
+  font-weight:600;
+}
+
+.submit-btn:hover{
+  background:#ea580c;
+}
+
+/* Mobile */
+
+@media(max-width:768px){
+
+  .shipment-content{
+    margin-left:0;
+    padding:20px;
+  }
+
+  .grid-2,
+  .grid-4,
+  .courier-grid{
+    grid-template-columns:1fr;
+  }
+
+  .action-buttons{
+    flex-direction:column;
+  }
+
+}

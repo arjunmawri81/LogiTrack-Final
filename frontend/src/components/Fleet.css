@@ -1,0 +1,105 @@
+.fleet {
+  padding: 100px 8%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+  background: #0f172a;
+  color: white;
+}
+
+.fleet span {
+  color: #f97316;
+  font-weight: 600;
+  letter-spacing: 2px;
+}
+
+.fleet h2 {
+  font-size: 46px;
+  margin: 20px 0;
+}
+
+.fleet p {
+  color: #cbd5e1;
+  line-height: 1.8;
+}
+
+.fleet-image img {
+  width: 100%;
+  height: 500px;
+  object-fit: cover;
+  border-radius: 20px;
+}
+
+.fleet-stats {
+  display: flex;
+  gap: 50px;
+  margin-top: 35px;
+}
+
+.fleet-stats h3 {
+  color: #f97316;
+  font-size: 32px;
+}
+
+.fleet-stats p {
+  color: #cbd5e1;
+}
+
+/* Tablet */
+
+@media (max-width: 992px) {
+
+  .fleet {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .fleet h2 {
+    font-size: 38px;
+  }
+}
+
+/* Mobile */
+
+@media (max-width: 768px) {
+
+  .fleet {
+    padding: 70px 5%;
+  }
+
+  .fleet h2 {
+    font-size: 32px;
+  }
+
+  .fleet-image img {
+    height: 350px;
+  }
+
+  .fleet-stats {
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+}
+
+/* Small Mobile */
+
+@media (max-width: 480px) {
+
+  .fleet h2 {
+    font-size: 26px;
+  }
+
+  .fleet-image img {
+    height: 250px;
+  }
+
+  .fleet-stats {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .fleet-stats h3 {
+    font-size: 24px;
+  }
+}

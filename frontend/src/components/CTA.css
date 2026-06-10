@@ -1,0 +1,68 @@
+.cta {
+  background: linear-gradient(
+    135deg,
+    #f97316,
+    #ea580c
+  );
+
+  padding: 100px 8%;
+  text-align: center;
+}
+
+.cta-content {
+  max-width: 900px;
+  margin: auto;
+  color: white;
+}
+
+.cta-content span {
+  letter-spacing: 2px;
+  font-weight: 600;
+}
+
+.cta-content h2 {
+  font-size: 56px;
+  margin: 20px 0;
+}
+
+.cta-content p {
+  font-size: 18px;
+  opacity: 0.9;
+}
+
+.cta-buttons {
+  margin-top: 35px;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.cta-primary {
+  background: white;
+  color: #f97316;
+  border: none;
+  padding: 15px 35px;
+  border-radius: 50px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cta-secondary {
+  background: transparent;
+  color: white;
+  border: 2px solid white;
+  padding: 15px 35px;
+  border-radius: 50px;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .cta-content h2 {
+    font-size: 36px;
+  }
+
+  .cta-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+}
