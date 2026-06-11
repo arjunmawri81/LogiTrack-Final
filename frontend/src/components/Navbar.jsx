@@ -36,13 +36,15 @@ const Navbar = () => {
         <div className="logo">
           <Link to="/">
             <span className="logo-icon">📦</span>
-            <span className="logo-text">Logi<span>Track</span></span>
+            <span className="logo-text">
+              Logi<span>Track</span>
+            </span>
           </Link>
         </div>
 
         {/* Mobile Menu Toggle */}
-        <div 
-          className={`menu-toggle ${menuOpen ? "active" : ""}`} 
+        <div
+          className={`menu-toggle ${menuOpen ? "active" : ""}`}
           onClick={() => setMenuOpen(!menuOpen)}
         >
           <span></span>
@@ -56,8 +58,8 @@ const Navbar = () => {
             <ul>
               {navLinks.map((link) => (
                 <li key={link.path}>
-                  <Link 
-                    to={link.path} 
+                  <Link
+                    to={link.path}
                     className={location.pathname === link.path ? "active" : ""}
                     onClick={() => setMenuOpen(false)}
                   >
@@ -69,12 +71,16 @@ const Navbar = () => {
           </nav>
 
           <div className="nav-actions">
+            {/*
             <Link to="/login">
               <button className="login-btn">Sign In</button>
             </Link>
+
             <Link to="/register">
               <button className="register-btn">Get Started</button>
             </Link>
+            */}
+
             <button className="quote-btn">
               <span>📊</span> Get Quote
             </button>
