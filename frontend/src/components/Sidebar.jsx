@@ -38,125 +38,110 @@ const Sidebar = () => {
           <>
             <li>
               <NavLink to="/admin/dashboard" className={({ isActive }) => isActive ? "active" : ""}>
-                <FaHome />
-                <span>Dashboard</span>
+                <FaHome /> <span>Dashboard</span>
               </NavLink>
             </li>
             <li>
               <NavLink to="/admin/users" className={({ isActive }) => isActive ? "active" : ""}>
-                <FaUser />
-                <span>Users</span>
+                <FaUser /> <span>Users</span>
               </NavLink>
             </li>
             <li>
               <NavLink to="/admin/merchants" className={({ isActive }) => isActive ? "active" : ""}>
-                <FaBox />
-                <span>Merchants</span>
+                <FaBox /> <span>Merchants</span>
               </NavLink>
             </li>
             <li>
               <NavLink to="/admin/orders" className={({ isActive }) => isActive ? "active" : ""}>
-                <FaClipboardList />
-                <span>Orders</span>
+                <FaClipboardList /> <span>Orders</span>
               </NavLink>
             </li>
             <li>
               <NavLink to="/admin/shipments" className={({ isActive }) => isActive ? "active" : ""}>
-                <FaTruck />
-                <span>Shipments</span>
+                <FaTruck /> <span>Shipments</span>
               </NavLink>
             </li>
             <li>
               <NavLink to="/admin/couriers" className={({ isActive }) => isActive ? "active" : ""}>
-                <FaTruck />
-                <span>Couriers</span>
+                <FaTruck /> <span>Couriers</span>
               </NavLink>
             </li>
             <li>
               <NavLink to="/admin/pricing" className={({ isActive }) => isActive ? "active" : ""}>
-                <FaWallet />
-                <span>Pricing</span>
+                <FaWallet /> <span>Pricing</span>
               </NavLink>
             </li>
             <li>
               <NavLink to="/admin/revenue" className={({ isActive }) => isActive ? "active" : ""}>
-                <FaChartBar />
-                <span>Revenue</span>
+                <FaChartBar /> <span>Revenue</span>
               </NavLink>
             </li>
             <li>
               <NavLink to="/admin/reports" className={({ isActive }) => isActive ? "active" : ""}>
-                <FaFileInvoice />
-                <span>Reports</span>
+                <FaFileInvoice /> <span>Reports</span>
               </NavLink>
             </li>
             <li>
               <NavLink to="/admin/settings" className={({ isActive }) => isActive ? "active" : ""}>
-                <FaCog />
-                <span>Settings</span>
+                <FaCog /> <span>Settings</span>
               </NavLink>
             </li>
           </>
         ) : (
           <>
             <li>
-              <NavLink to="/dashboard" className={({ isActive }) => isActive ? "active" : ""}>
-                <FaHome />
-                <span>Dashboard</span>
+              <NavLink to="/merchant/dashboard" className={({ isActive }) => isActive ? "active" : ""}>
+                <FaHome /> <span>Dashboard</span>
               </NavLink>
             </li>
             <li>
-              <NavLink to="/orders" className={({ isActive }) => isActive ? "active" : ""}>
-                <FaClipboardList />
-                <span>Orders</span>
+              <NavLink to="/merchant/orders" className={({ isActive }) => isActive ? "active" : ""}>
+                <FaClipboardList /> <span>Orders</span>
               </NavLink>
             </li>
             <li>
-              <NavLink to="/create-shipment" className={({ isActive }) => isActive ? "active" : ""}>
-                <FaBox />
-                <span>Create Shipment</span>
+              <NavLink to="/merchant/create-shipment" className={({ isActive }) => isActive ? "active" : ""}>
+                <FaBox /> <span>Create Shipment</span>
               </NavLink>
             </li>
             <li>
-              <NavLink to="/shipments" className={({ isActive }) => isActive ? "active" : ""}>
-                <FaTruck />
-                <span>Shipments</span>
+              <NavLink to="/merchant/shipments" className={({ isActive }) => isActive ? "active" : ""}>
+                <FaTruck /> <span>Shipments</span>
               </NavLink>
             </li>
             <li>
-              <NavLink to="/tracking" className={({ isActive }) => isActive ? "active" : ""}>
-                <FaTruck />
-                <span>Tracking</span>
+              <NavLink to="/merchant/tracking" className={({ isActive }) => isActive ? "active" : ""}>
+                <FaTruck /> <span>Tracking</span>
               </NavLink>
             </li>
             <li>
-              <NavLink to="/wallet" className={({ isActive }) => isActive ? "active" : ""}>
-                <FaWallet />
-                <span>Wallet</span>
+              <NavLink to="/merchant/wallet" className={({ isActive }) => isActive ? "active" : ""}>
+                <FaWallet /> <span>Wallet</span>
               </NavLink>
             </li>
             <li>
-              <NavLink to="/billing" className={({ isActive }) => isActive ? "active" : ""}>
-                <FaFileInvoice />
-                <span>Billing</span>
+              <NavLink to="/merchant/billing" className={({ isActive }) => isActive ? "active" : ""}>
+                <FaFileInvoice /> <span>Billing</span>
               </NavLink>
             </li>
             <li>
-              <NavLink to="/reports" className={({ isActive }) => isActive ? "active" : ""}>
-                <FaChartBar />
-                <span>Reports</span>
+              <NavLink to="/merchant/serviceability" className={({ isActive }) => isActive ? "active" : ""}>
+                <FaTruck /> <span>Serviceability</span>
               </NavLink>
             </li>
             <li>
-              <NavLink to="/profile" className={({ isActive }) => isActive ? "active" : ""}>
-                <FaUser />
-                <span>Profile</span>
+              <NavLink to="/merchant/reports" className={({ isActive }) => isActive ? "active" : ""}>
+                <FaChartBar /> <span>Reports</span>
               </NavLink>
             </li>
             <li>
-              <NavLink to="/settings" className={({ isActive }) => isActive ? "active" : ""}>
-                <FaCog />
-                <span>Settings</span>
+              <NavLink to="/merchant/profile" className={({ isActive }) => isActive ? "active" : ""}>
+                <FaUser /> <span>Profile</span>
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/merchant/settings" className={({ isActive }) => isActive ? "active" : ""}>
+                <FaCog /> <span>Settings</span>
               </NavLink>
             </li>
           </>

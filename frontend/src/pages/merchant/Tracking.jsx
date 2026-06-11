@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import api from "../../services/api";
-import "./Tracking.css";
+import { FaSearch, FaTruck } from "react-icons/fa";
 
 const Tracking = () => {
   const [awb, setAwb] = useState("");
@@ -9,143 +9,68 @@ const Tracking = () => {
   const [loading, setLoading] = useState(false);
 
   const handleTrack = async () => {
-    if (!awb) {
-      alert("Please enter AWB number");
-      return;
-    }
-
+    if (!awb) { alert("Please enter AWB number"); return; }
     try {
       setLoading(true);
-
-      const response = await api.get(
-        `/tracking/${awb}`
-      );
-
-      setShipment(response.data.shipment);
+      const res = await api.get(`/tracking/${awb}`);
+      setShipment(res.data.shipment);
     } catch (error) {
       setShipment(null);
+      alert(error?.response?.data?.message || "Shipment Not Found");
+    } finally { setLoading(false); }
+  };
 
-      alert(
-        error?.response?.data?.message ||
-          "Shipment Not Found"
-      );
-    } finally {
-      setLoading(false);
-    }
+  const s = {
+    container: { display: "flex", background: "#f8fafc", minHeight: "100vh", fontFamily: "'Inter', sans-serif" },
+    main: { flex: 1, padding: "30px", maxWidth: "800px", margin: "0 auto" },
+    card: { background: "#ffffff", padding: "30px", borderRadius: "16px", border: "1px solid #e2e8f0", marginBottom: "20px" },
+    input: { width: "100%", padding: "12px 15px", borderRadius: "8px", border: "1px solid #cbd5e1", fontSize: "16px", marginBottom: "15px", outline: "none" },
+    btn: { background: "#f97316", color: "#fff", padding: "12px 24px", borderRadius: "8px", border: "none", fontWeight: "600", cursor: "pointer", width: "100%" }
   };
 
   return (
-    <div className="dashboard">
-      <Sidebar />
+    <div style={s.container}>
+      <div style={{ width: "280px", flexShrink: 0 }}><Sidebar /></div>
 
-      <div className="tracking-container">
-        <h1>Track Shipment</h1>
+      <main style={s.main}>
+        <h1 style={{ fontSize: "28px", color: "#0f172a", marginBottom: "20px" }}>Track Shipment</h1>
 
-        {/* INPUT BOX */}
-        <div className="tracking-card">
-          <input
-            type="text"
-            placeholder="Enter AWB Number (e.g. AWB12345678)"
-            value={awb}
-            onChange={(e) =>
-              setAwb(e.target.value)
-            }
-          />
-
-          <button
-            onClick={handleTrack}
-            disabled={loading}
-          >
-            {loading
-              ? "Tracking..."
-              : "Track Shipment"}
-          </button>
+        {/* Tracking Input */}
+        <div style={s.card}>
+          <div style={{ display: "flex", gap: "10px", alignItems: "center", marginBottom: "15px" }}>
+            <FaTruck style={{ color: "#f97316", fontSize: "24px" }} />
+            <span style={{ fontWeight: "700", color: "#1e293b" }}>Enter AWB Details</span>
+          </div>
+          <input type="text" placeholder="AWB Number (e.g. AWB12345678)" value={awb} onChange={(e) => setAwb(e.target.value)} style={s.input} />
+          <button onClick={handleTrack} disabled={loading} style={s.btn}>{loading ? "Tracking..." : "Track Shipment"}</button>
         </div>
 
-        {/* RESULT */}
+        {/* Results */}
         {shipment && (
-          <div className="tracking-result">
-            <h2>Shipment Details</h2>
-
-            <div className="status-box">
-              <p>
-                <strong>AWB:</strong>{" "}
-                {shipment.awb}
-              </p>
-
-              <p>
-                <strong>Courier:</strong>{" "}
-                {shipment.courier}
-              </p>
-
-              <p>
-                <strong>Status:</strong>{" "}
-                <span
-                  style={{
-                    padding:
-                      "5px 10px",
-                    borderRadius:
-                      "999px",
-                    background:
-                      shipment.status ===
-                      "DELIVERED"
-                        ? "#dcfce7"
-                        : shipment.status ===
-                          "IN_TRANSIT"
-                        ? "#dbeafe"
-                        : "#fef3c7",
-                    color:
-                      shipment.status ===
-                      "DELIVERED"
-                        ? "#15803d"
-                        : shipment.status ===
-                          "IN_TRANSIT"
-                        ? "#2563eb"
-                        : "#d97706",
-                    fontWeight: "600",
-                  }}
-                >
-                  {shipment.status}
-                </span>
-              </p>
-
-              <p>
-                <strong>Created:</strong>{" "}
-                {new Date(
-                  shipment.createdAt
-                ).toLocaleDateString()}
-              </p>
-
-              {/* Order Info */}
-              <p>
-                <strong>Customer:</strong>{" "}
-                {shipment.orderId
-                  ?.customerName || "N/A"}
-              </p>
-
-              <p>
-                <strong>Phone:</strong>{" "}
-                {shipment.orderId
-                  ?.customerPhone || "N/A"}
-              </p>
+          <div style={s.card}>
+            <h2 style={{ fontSize: "18px", marginBottom: "20px", borderBottom: "2px solid #f1f5f9", paddingBottom: "10px" }}>Shipment Details</h2>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+              {[
+                { l: "AWB", v: shipment.awb },
+                { l: "Courier", v: shipment.courier },
+                { l: "Status", v: shipment.status, isStatus: true },
+                { l: "Customer", v: shipment.orderId?.customerName },
+                { l: "Phone", v: shipment.orderId?.customerPhone }
+              ].map((item, i) => (
+                <div key={i}>
+                  <p style={{ margin: 0, fontSize: "12px", color: "#64748b", textTransform: "uppercase" }}>{item.l}</p>
+                  {item.isStatus ? (
+                    <span style={{ background: "#dcfce7", color: "#166534", padding: "4px 10px", borderRadius: "999px", fontSize: "12px", fontWeight: "600" }}>{item.v}</span>
+                  ) : (
+                    <p style={{ margin: "5px 0 0 0", fontWeight: "600", color: "#1e293b" }}>{item.v || "N/A"}</p>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         )}
-
-        {/* EMPTY STATE */}
-        {!shipment && !loading && (
-          <p
-            style={{
-              marginTop: "20px",
-              color: "#64748b",
-            }}
-          >
-            Enter AWB number to track shipment
-          </p>
-        )}
-      </div>
+      </main>
     </div>
   );
 };
-
 export default Tracking;

@@ -15,6 +15,7 @@ import "./Admin.css";
 
 const Shipments = () => {
   const [shipments, setShipments] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     fetchShipments();
@@ -22,31 +23,29 @@ const Shipments = () => {
 
   const fetchShipments = async () => {
     try {
-      const response = await api.get(
-        "/admin/shipments"
-      );
-
-      setShipments(
-        response.data.shipments || []
-      );
+      const response = await api.get("/admin/shipments");
+      setShipments(response.data.shipments || []);
     } catch (error) {
       console.log(error);
     }
   };
 
-  const deliveredCount = shipments.filter(
+  const filteredShipments = shipments.filter(
     (shipment) =>
-      shipment.status === "DELIVERED"
+      shipment.awb?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      shipment.courier?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const deliveredCount = shipments.filter(
+    (shipment) => shipment.status === "DELIVERED"
   ).length;
 
   const transitCount = shipments.filter(
-    (shipment) =>
-      shipment.status === "IN_TRANSIT"
+    (shipment) => shipment.status === "IN_TRANSIT"
   ).length;
 
   const failedCount = shipments.filter(
-    (shipment) =>
-      shipment.status === "RTO"
+    (shipment) => shipment.status === "RTO"
   ).length;
 
   return (
@@ -58,18 +57,12 @@ const Shipments = () => {
 
         <div className="page-header">
           <div>
-            <h1 className="page-title">
-              🚚 Shipments Management
-            </h1>
-
-            <p className="page-subtitle">
-              Monitor and manage all shipments
-            </p>
+            <h1 className="page-title">🚚 Shipments Management</h1>
+            <p className="page-subtitle">Monitor and manage all shipments</p>
           </div>
         </div>
 
         {/* Stats */}
-
         <div className="courier-stats">
           <div className="courier-stat-card">
             <FaTruck className="stat-icon blue" />
@@ -96,8 +89,17 @@ const Shipments = () => {
           </div>
         </div>
 
-        {/* Table */}
+        {/* Search */}
+        <div className="search-box">
+          <input
+            type="text"
+            placeholder="Search AWB or Courier..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
 
+        {/* Table */}
         <div className="admin-table-section">
           <h2>Shipment List</h2>
 
@@ -113,58 +115,42 @@ const Shipments = () => {
             </thead>
 
             <tbody>
-              {shipments.length > 0 ? (
-                shipments.map(
-                  (shipment) => (
-                    <tr key={shipment._id}>
-                      <td>
-                        {shipment.awb}
-                      </td>
-
-                      <td>
-                        {
-                          shipment.courier
+              {filteredShipments.length > 0 ? (
+                filteredShipments.map((shipment) => (
+                  <tr key={shipment._id}>
+                    <td>{shipment.awb}</td>
+                    <td>{shipment.courier}</td>
+                    <td>
+                      <span
+                        className={
+                          shipment.status === "DELIVERED"
+                            ? "active"
+                            : shipment.status === "IN_TRANSIT"
+                            ? "processing"
+                            : "pending"
                         }
-                      </td>
-
-                      <td>
-                        <span
-                          className={
-                            shipment.status ===
-                            "DELIVERED"
-                              ? "active"
-                              : "pending"
-                          }
-                        >
-                          {
-                            shipment.status
-                          }
-                        </span>
-                      </td>
-
-                      <td>
-                        {new Date(
-                          shipment.createdAt
-                        ).toLocaleDateString()}
-                      </td>
-
-                      <td>
-                        <button className="admin-btn">
-                          <FaEye />
-                        </button>
-                      </td>
-                    </tr>
-                  )
-                )
+                      >
+                        {shipment.status}
+                      </span>
+                    </td>
+                    <td>{new Date(shipment.createdAt).toLocaleDateString()}</td>
+                    <td>
+                      <button
+                        className="admin-btn"
+                        onClick={() =>
+                          alert(
+                            `AWB: ${shipment.awb}\nCourier: ${shipment.courier}\nStatus: ${shipment.status}`
+                          )
+                        }
+                      >
+                        <FaEye />
+                      </button>
+                    </td>
+                  </tr>
+                ))
               ) : (
                 <tr>
-                  <td
-                    colSpan="5"
-                    style={{
-                      textAlign:
-                        "center",
-                    }}
-                  >
+                  <td colSpan="5" style={{ textAlign: "center" }}>
                     No Shipments Found
                   </td>
                 </tr>

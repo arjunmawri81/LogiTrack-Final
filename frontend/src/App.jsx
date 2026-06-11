@@ -26,6 +26,8 @@ import MerchantReports from "./pages/merchant/Reports";
 import Profile from "./pages/merchant/Profile";
 import Settings from "./pages/merchant/Settings";
 import CreateOrder from "./pages/merchant/CreateOrder";
+import Serviceability from "./pages/merchant/Serviceability";
+import RateCalculator from "./pages/merchant/RateCalculator";
 
 // ======================
 // ADMIN PAGES
@@ -72,286 +74,43 @@ function App() {
         <Route path="/register" element={<Register />} />
 
         {/* ================= MERCHANT ================= */}
-        <Route
-          path="/merchant/dashboard"
-          element={
-            <MerchantRoute>
-              <Dashboard />
-            </MerchantRoute>
-          }
-        />
-
-        <Route
-          path="/merchant/orders"
-          element={
-            <MerchantRoute>
-              <Orders />
-            </MerchantRoute>
-          }
-        />
-
-        <Route
-          path="/merchant/create-shipment"
-          element={
-            <MerchantRoute>
-              <CreateShipment />
-            </MerchantRoute>
-          }
-        />
-
-        <Route
-          path="/merchant/shipments"
-          element={
-            <MerchantRoute>
-              <Shipments />
-            </MerchantRoute>
-          }
-        />
-
-        <Route
-          path="/merchant/tracking"
-          element={
-            <MerchantRoute>
-              <Tracking />
-            </MerchantRoute>
-          }
-        />
-
-        <Route
-          path="/merchant/wallet"
-          element={
-            <MerchantRoute>
-              <Wallet />
-            </MerchantRoute>
-          }
-        />
-
-        <Route
-          path="/merchant/billing"
-          element={
-            <MerchantRoute>
-              <Billing />
-            </MerchantRoute>
-          }
-        />
-
-        <Route
-          path="/merchant/reports"
-          element={
-            <MerchantRoute>
-              <MerchantReports />
-            </MerchantRoute>
-          }
-        />
-
-        <Route
-          path="/merchant/profile"
-          element={
-            <MerchantRoute>
-              <Profile />
-            </MerchantRoute>
-          }
-        />
-
-        <Route
-          path="/merchant/settings"
-          element={
-            <MerchantRoute>
-              <Settings />
-            </MerchantRoute>
-          }
-        />
-
-              <Route
-        path="/merchant/create-order"
-        element={
-          <MerchantRoute>
-            <CreateOrder />
-          </MerchantRoute>
-        }
-/>
+        <Route path="/merchant/dashboard" element={<MerchantRoute><Dashboard /></MerchantRoute>} />
+        <Route path="/merchant/orders" element={<MerchantRoute><Orders /></MerchantRoute>} />
+        <Route path="/merchant/create-shipment" element={<MerchantRoute><CreateShipment /></MerchantRoute>} />
+        <Route path="/merchant/shipments" element={<MerchantRoute><Shipments /></MerchantRoute>} />
+        <Route path="/merchant/tracking" element={<MerchantRoute><Tracking /></MerchantRoute>} />
+        <Route path="/merchant/wallet" element={<MerchantRoute><Wallet /></MerchantRoute>} />
+        <Route path="/merchant/billing" element={<MerchantRoute><Billing /></MerchantRoute>} />
+        <Route path="/merchant/reports" element={<MerchantRoute><MerchantReports /></MerchantRoute>} />
+        <Route path="/merchant/profile" element={<MerchantRoute><Profile /></MerchantRoute>} />
+        <Route path="/merchant/settings" element={<MerchantRoute><Settings /></MerchantRoute>} />
+        <Route path="/merchant/create-order" element={<MerchantRoute><CreateOrder /></MerchantRoute>} />
+        <Route path="/merchant/serviceability" element={<MerchantRoute><Serviceability /></MerchantRoute>} />
+        <Route path="/merchant/rate-calculator" element={<MerchantRoute><RateCalculator /></MerchantRoute>} />
 
         {/* ================= ADMIN ================= */}
-        <Route
-          path="/admin/dashboard"
-          element={
-            <AdminRoute>
-              <AdminDashboard />
-            </AdminRoute>
-          }
-        />
-
-        <Route
-          path="/admin/users"
-          element={
-            <AdminRoute>
-              <Users />
-            </AdminRoute>
-          }
-        />
-
-        <Route
-          path="/admin/merchants"
-          element={
-            <AdminRoute>
-              <Merchants />
-            </AdminRoute>
-          }
-        />
-
-        <Route
-          path="/admin/orders"
-          element={
-            <AdminRoute>
-              <AdminOrders />
-            </AdminRoute>
-          }
-        />
-
-        <Route
-          path="/admin/shipments"
-          element={
-            <AdminRoute>
-              <AdminShipments />
-            </AdminRoute>
-          }
-        />
-
-        <Route
-          path="/admin/couriers"
-          element={
-            <AdminRoute>
-              <Couriers />
-            </AdminRoute>
-          }
-        />
-
-        <Route
-          path="/admin/pricing"
-          element={
-            <AdminRoute>
-              <Pricing />
-            </AdminRoute>
-          }
-        />
-
-        <Route
-          path="/admin/revenue"
-          element={
-            <AdminRoute>
-              <AdminRevenue />
-            </AdminRoute>
-          }
-        />
-
-        <Route
-          path="/admin/reports"
-          element={
-            <AdminRoute>
-              <AdminReports />
-            </AdminRoute>
-          }
-        />
-
-        <Route
-          path="/admin/settings"
-          element={
-            <AdminRoute>
-              <AdminSettings />
-            </AdminRoute>
-          }
-        />
+        <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+        <Route path="/admin/users" element={<AdminRoute><Users /></AdminRoute>} />
+        <Route path="/admin/merchants" element={<AdminRoute><Merchants /></AdminRoute>} />
+        <Route path="/admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>} />
+        <Route path="/admin/shipments" element={<AdminRoute><AdminShipments /></AdminRoute>} />
+        <Route path="/admin/couriers" element={<AdminRoute><Couriers /></AdminRoute>} />
+        <Route path="/admin/pricing" element={<AdminRoute><Pricing /></AdminRoute>} />
+        <Route path="/admin/revenue" element={<AdminRoute><AdminRevenue /></AdminRoute>} />
+        <Route path="/admin/reports" element={<AdminRoute><AdminReports /></AdminRoute>} />
+        <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
 
         {/* ================= SUPER ADMIN ================= */}
-        <Route
-          path="/superadmin/dashboard"
-          element={
-            <SuperAdminRoute>
-              <SuperAdminDashboard />
-            </SuperAdminRoute>
-          }
-        />
-
-        <Route
-          path="/superadmin/admins"
-          element={
-            <SuperAdminRoute>
-              <AdminManagement />
-            </SuperAdminRoute>
-          }
-        />
-
-        <Route
-          path="/superadmin/users"
-          element={
-            <SuperAdminRoute>
-              <UserManagement />
-            </SuperAdminRoute>
-          }
-        />
-
-        <Route
-          path="/superadmin/orders"
-          element={
-            <SuperAdminRoute>
-              <OrderManagement />
-            </SuperAdminRoute>
-          }
-        />
-
-        <Route
-          path="/superadmin/merchants"
-          element={
-            <SuperAdminRoute>
-              <MerchantManagement />
-            </SuperAdminRoute>
-          }
-        />
-
-        <Route
-          path="/superadmin/commission"
-          element={
-            <SuperAdminRoute>
-              <Commission />
-            </SuperAdminRoute>
-          }
-        />
-
-        <Route
-          path="/superadmin/revenue"
-          element={
-            <SuperAdminRoute>
-              <Revenue />
-            </SuperAdminRoute>
-          }
-        />
-
-        <Route
-          path="/superadmin/api-monitoring"
-          element={
-            <SuperAdminRoute>
-              <ApiMonitoring />
-            </SuperAdminRoute>
-          }
-        />
-
-        <Route
-          path="/superadmin/audit-logs"
-          element={
-            <SuperAdminRoute>
-              <AuditLogs />
-            </SuperAdminRoute>
-          }
-        />
-
-        <Route
-          path="/superadmin/settings"
-          element={
-            <SuperAdminRoute>
-              <SuperAdminSettings />
-            </SuperAdminRoute>
-          }
-        />
+        <Route path="/superadmin/dashboard" element={<SuperAdminRoute><SuperAdminDashboard /></SuperAdminRoute>} />
+        <Route path="/superadmin/admins" element={<SuperAdminRoute><AdminManagement /></SuperAdminRoute>} />
+        <Route path="/superadmin/users" element={<SuperAdminRoute><UserManagement /></SuperAdminRoute>} />
+        <Route path="/superadmin/orders" element={<SuperAdminRoute><OrderManagement /></SuperAdminRoute>} />
+        <Route path="/superadmin/merchants" element={<SuperAdminRoute><MerchantManagement /></SuperAdminRoute>} />
+        <Route path="/superadmin/commission" element={<SuperAdminRoute><Commission /></SuperAdminRoute>} />
+        <Route path="/superadmin/revenue" element={<SuperAdminRoute><Revenue /></SuperAdminRoute>} />
+        <Route path="/superadmin/api-monitoring" element={<SuperAdminRoute><ApiMonitoring /></SuperAdminRoute>} />
+        <Route path="/superadmin/audit-logs" element={<SuperAdminRoute><AuditLogs /></SuperAdminRoute>} />
+        <Route path="/superadmin/settings" element={<SuperAdminRoute><SuperAdminSettings /></SuperAdminRoute>} />
 
         {/* ================= 404 ================= */}
         <Route path="*" element={<NotFound />} />

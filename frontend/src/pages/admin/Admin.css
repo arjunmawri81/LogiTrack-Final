@@ -569,3 +569,10 @@
     break-inside: avoid;
   }
 }
+
+.processing {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 4px 10px;
+  border-radius: 20px;
+}

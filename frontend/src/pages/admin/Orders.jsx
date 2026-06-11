@@ -25,6 +25,34 @@ const Orders = () => {
     }
   };
 
+  const deleteOrder = async (id) => {
+    try {
+      const confirmDelete = window.confirm("Are you sure?");
+
+      if (!confirmDelete) return;
+
+      await api.delete(`/orders/${id}`);
+
+      alert("Order Deleted Successfully");
+
+      fetchOrders();
+    } catch (error) {
+      alert(error?.response?.data?.message || "Delete Failed");
+    }
+  };
+
+  const updateStatus = async (id, status) => {
+    try {
+      await api.patch(`/orders/${id}/status`, {
+        status,
+      });
+
+      fetchOrders();
+    } catch (error) {
+      alert(error?.response?.data?.message || "Status Update Failed");
+    }
+  };
+
   const filteredOrders = orders.filter(
     (order) =>
       order.customerName
@@ -82,12 +110,10 @@ const Orders = () => {
         </p>
 
         {/* Stats */}
-
         <div
           style={{
             display: "grid",
-            gridTemplateColumns:
-              "repeat(3,1fr)",
+            gridTemplateColumns: "repeat(3,1fr)",
             gap: "20px",
             marginBottom: "25px",
           }}
@@ -109,7 +135,6 @@ const Orders = () => {
         </div>
 
         {/* Search */}
-
         <div
           style={{
             background: "#fff",
@@ -121,16 +146,11 @@ const Orders = () => {
           }}
         >
           <FaSearch />
-
           <input
             type="text"
             placeholder="Search Orders..."
             value={searchTerm}
-            onChange={(e) =>
-              setSearchTerm(
-                e.target.value
-              )
-            }
+            onChange={(e) => setSearchTerm(e.target.value)}
             style={{
               border: "none",
               outline: "none",
@@ -141,7 +161,6 @@ const Orders = () => {
         </div>
 
         {/* Table */}
-
         <div
           style={{
             background: "#fff",
@@ -152,8 +171,7 @@ const Orders = () => {
           <table
             style={{
               width: "100%",
-              borderCollapse:
-                "collapse",
+              borderCollapse: "collapse",
             }}
           >
             <thead>
@@ -169,64 +187,48 @@ const Orders = () => {
             </thead>
 
             <tbody>
-              {filteredOrders.length >
-              0 ? (
-                filteredOrders.map(
-                  (order) => (
-                    <tr
-                      key={order._id}
-                    >
-                      <td>
-                        {
-                          order.orderNumber
+              {filteredOrders.length > 0 ? (
+                filteredOrders.map((order) => (
+                  <tr key={order._id}>
+                    <td>{order.orderNumber}</td>
+                    <td>{order.customerName}</td>
+                    <td>{order.customerPhone}</td>
+                    <td>₹{order.amount}</td>
+                    <td>
+                      <select
+                        value={order.status}
+                        onChange={(e) =>
+                          updateStatus(order._id, e.target.value)
                         }
-                      </td>
-
-                      <td>
-                        {
-                          order.customerName
-                        }
-                      </td>
-
-                      <td>
-                        {
-                          order.customerPhone
-                        }
-                      </td>
-
-                      <td>
-                        ₹{order.amount}
-                      </td>
-
-                      <td>
-                        {order.status}
-                      </td>
-
-                      <td>
-                        {new Date(
-                          order.createdAt
-                        ).toLocaleDateString()}
-                      </td>
-
-                      <td>
-                        <button>
-                          <FaEye />
-                        </button>
-                      </td>
-                    </tr>
-                  )
-                )
+                      >
+                        <option value="PENDING">PENDING</option>
+                        <option value="PROCESSING">PROCESSING</option>
+                        <option value="SHIPPED">SHIPPED</option>
+                        <option value="DELIVERED">DELIVERED</option>
+                        <option value="CANCELLED">CANCELLED</option>
+                      </select>
+                    </td>
+                    <td>{new Date(order.createdAt).toLocaleDateString()}</td>
+                    <td>
+                      <button
+                        onClick={() => deleteOrder(order._id)}
+                        style={{
+                          background: "#ef4444",
+                          color: "#fff",
+                          border: "none",
+                          padding: "8px 12px",
+                          borderRadius: "8px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))
               ) : (
                 <tr>
-                  <td
-                    colSpan="7"
-                    style={{
-                      textAlign:
-                        "center",
-                      padding:
-                        "20px",
-                    }}
-                  >
+                  <td colSpan="7" style={{ textAlign: "center", padding: "20px" }}>
                     No Orders Found
                   </td>
                 </tr>

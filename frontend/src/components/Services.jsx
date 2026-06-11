@@ -8,7 +8,6 @@ function Services() {
 
   return (
     <section className="services-section">
-
       <div className="services-title">
         <span>OUR SERVICES</span>
         <h2>Comprehensive Logistics Solutions</h2>
@@ -27,21 +26,14 @@ function Services() {
       </div>
 
       <div className="service-content">
-
         <div className="service-text">
           <h3>{servicesData[active].title}</h3>
-
           <p>{servicesData[active].description}</p>
-
-          <button className="learn-btn">
-            Learn More
-          </button>
+          <button className="learn-btn">Learn More</button>
         </div>
-
         <div className="service-image">
           <img src={serviceImg} alt="service" />
         </div>
-
       </div>
     </section>
   );
