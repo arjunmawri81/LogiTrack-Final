@@ -14,17 +14,60 @@ const shipmentSchema = new mongoose.Schema(
       required: true,
     },
 
+    // AWB
     awb: {
       type: String,
       unique: true,
       required: true,
     },
 
+    // Courier
     courier: {
       type: String,
       required: true,
     },
 
+    // Label & Tracking
+    barcode: {
+      type: String,
+      default: "",
+    },
+
+    qrCode: {
+      type: String,
+      default: "",
+    },
+
+    labelUrl: {
+      type: String,
+      default: "",
+    },
+
+    // Pickup
+    pickupDate: {
+      type: Date,
+      default: null,
+    },
+
+    deliveryDate: {
+      type: Date,
+      default: null,
+    },
+
+    // Tracking Timeline
+    trackingEvents: [
+      {
+        status: String,
+        location: String,
+        remark: String,
+        timestamp: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
+
+    // Status
     status: {
       type: String,
       enum: [
@@ -34,6 +77,8 @@ const shipmentSchema = new mongoose.Schema(
         "OUT_FOR_DELIVERY",
         "DELIVERED",
         "RTO",
+        "RETURNED",
+        "CANCELLED",
       ],
       default: "PENDING",
     },
@@ -43,4 +88,7 @@ const shipmentSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("Shipment", shipmentSchema);
+module.exports = mongoose.model(
+  "Shipment",
+  shipmentSchema
+);

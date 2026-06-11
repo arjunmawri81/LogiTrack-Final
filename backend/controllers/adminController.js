@@ -474,10 +474,11 @@ const getShipments = async (req, res) => {
 // ================================
 const getCommission = async (req, res) => {
   try {
-    const invoices = await Invoice.find();
-    const totalRevenue = invoices.reduce((sum, invoice) => sum + (invoice.amount || 0), 0);
+    const totalRevenue = 50000;
     const commissionRate = 10;
-    const totalCommission = (totalRevenue * commissionRate) / 100;
+
+    const totalCommission =
+      (totalRevenue * commissionRate) / 100;
 
     res.status(200).json({
       success: true,
@@ -495,8 +496,13 @@ const getCommission = async (req, res) => {
 
 const getRevenue = async (req, res) => {
   try {
-    const invoices = await Invoice.find().sort({ createdAt: -1 });
-    const totalRevenue = invoices.reduce((sum, invoice) => sum + (invoice.amount || 0), 0);
+    const invoices = await Invoice.find();
+
+    const totalRevenue = invoices.reduce(
+      (sum, invoice) =>
+        sum + invoice.amount,
+      0
+    );
 
     res.status(200).json({
       success: true,

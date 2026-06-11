@@ -1,5 +1,6 @@
 const Shipment = require("../models/Shipment");
 const Order = require("../models/Order");
+const QRCode = require("qrcode");
 
 // ===============================
 // GENERATE UNIQUE AWB
@@ -38,7 +39,6 @@ const createShipment = async (req, res) => {
       });
     }
 
-    // validate order ownership
     const order = await Order.findOne({
       _id: orderId,
       merchantId: req.user.id,
@@ -59,6 +59,13 @@ const createShipment = async (req, res) => {
       courier,
       awb,
       status: "PENDING",
+      trackingEvents: [
+        {
+          status: "PENDING",
+          location: "Warehouse",
+          remark: "Shipment Created",
+        },
+      ],
     });
 
     return res.status(201).json({
@@ -99,7 +106,7 @@ const getShipments = async (req, res) => {
 };
 
 // ===============================
-// TRACK SINGLE SHIPMENT (IMPORTANT)
+// TRACK SINGLE SHIPMENT
 // ===============================
 const trackShipment = async (req, res) => {
   try {
@@ -130,7 +137,7 @@ const trackShipment = async (req, res) => {
 };
 
 // ===============================
-// UPDATE STATUS (FOR FUTURE TRACKING)
+// UPDATE SHIPMENT STATUS
 // ===============================
 const updateShipmentStatus = async (req, res) => {
   try {
@@ -147,6 +154,17 @@ const updateShipmentStatus = async (req, res) => {
     }
 
     shipment.status = status;
+
+    shipment.trackingEvents.push({
+      status,
+      location: "System Update",
+      remark: `Shipment status changed to ${status}`,
+    });
+
+    if (status === "DELIVERED") {
+      shipment.deliveryDate = new Date();
+    }
+
     await shipment.save();
 
     return res.status(200).json({
@@ -162,9 +180,115 @@ const updateShipmentStatus = async (req, res) => {
   }
 };
 
+// ===============================
+// SCHEDULE PICKUP
+// ===============================
+const schedulePickup = async (req, res) => {
+  try {
+    const shipment = await Shipment.findById(req.params.id);
+
+    if (!shipment) {
+      return res.status(404).json({
+        success: false,
+        message: "Shipment not found",
+      });
+    }
+
+    shipment.pickupDate = new Date();
+
+    shipment.trackingEvents.push({
+      status: "PICKUP_SCHEDULED",
+      location: "Warehouse",
+      remark: "Pickup Scheduled",
+    });
+
+    await shipment.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Pickup Scheduled Successfully",
+      shipment,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ===============================
+// GENERATE QR CODE
+// ===============================
+const generateShipmentQR = async (req, res) => {
+  try {
+    const shipment = await Shipment.findById(req.params.id);
+
+    if (!shipment) {
+      return res.status(404).json({
+        success: false,
+        message: "Shipment not found",
+      });
+    }
+
+    const qrCode = await QRCode.toDataURL(
+      shipment.awb
+    );
+
+    shipment.qrCode = qrCode;
+
+    await shipment.save();
+
+    res.status(200).json({
+      success: true,
+      qrCode,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ===============================
+// TRACKING TIMELINE
+// ===============================
+const getTrackingTimeline = async (
+  req,
+  res
+) => {
+  try {
+    const shipment = await Shipment.findById(
+      req.params.id
+    );
+
+    if (!shipment) {
+      return res.status(404).json({
+        success: false,
+        message: "Shipment not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      timeline:
+        shipment.trackingEvents || [],
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createShipment,
   getShipments,
   trackShipment,
   updateShipmentStatus,
+  schedulePickup,
+  generateShipmentQR,
+  getTrackingTimeline,
 };

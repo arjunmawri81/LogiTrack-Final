@@ -133,7 +133,7 @@ const registerUser = async (req, res) => {
       upiId: upiId || "",
       role: userRole,
       kycStatus: userKycStatus,
-      isApproved: false,
+      isApproved: true,
       isBlocked: false,
       isActive: true,
       walletBalance: 0,
@@ -156,7 +156,7 @@ const registerUser = async (req, res) => {
     res.status(201).json({
       success: true,
       message: userRole === "MERCHANT" 
-        ? "Registration successful! Please wait for admin approval." 
+        ? "Registration successful! Your account is approved." 
         : `${userRole} Registered Successfully`,
       user: userResponse
     });
@@ -213,14 +213,6 @@ const loginUser = async (req, res) => {
       return res.status(403).json({
         success: false,
         message: "Your account is inactive. Please contact admin.",
-      });
-    }
-
-    if (user.role === "MERCHANT" && !user.isApproved) {
-      return res.status(403).json({
-        success: false,
-        message: "Your account is pending admin approval. Please wait for verification.",
-        kycStatus: user.kycStatus
       });
     }
 
