@@ -14,196 +14,212 @@ const MerchantManagement = () => {
       const res = await api.get("/admin/merchants");
       setMerchants(res.data.merchants || []);
     } catch (error) {
-      console.log(error);
+      console.error("Error retrieving merchant data directory:", error);
     }
+  };
+
+  // Base font framework rule across all page elements
+  const fontStyle = {
+    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
   };
 
   return (
     <SuperAdminLayout>
-      {/* HEADER */}
-      <div style={{ marginBottom: "30px" }}>
-        <h1
-          style={{
-            fontSize: "56px",
-            fontWeight: "800",
-            color: "#111827",
-            marginBottom: "10px",
-          }}
-        >
-          Merchant Management
-        </h1>
-
-        <p
-          style={{
-            color: "#64748b",
-            fontSize: "17px",
-          }}
-        >
-          Manage registered merchants and business accounts
-        </p>
-      </div>
-
-      {/* STATS CARD */}
-      <div
-        style={{
-          width: "350px",
-          background:
-            "linear-gradient(135deg,#f97316,#ea580c)",
-          borderRadius: "20px",
-          padding: "22px",
-          color: "#ffffff",
-          marginBottom: "30px",
-          boxShadow:
-            "0 12px 25px rgba(249,115,22,.20)",
-        }}
-      >
-        <div
-          style={{
-            fontSize: "15px",
-            fontWeight: "500",
-            marginBottom: "10px",
-          }}
-        >
-          Total Merchants
+      <div style={{ ...fontStyle, maxWidth: "1400px", margin: "0 auto", padding: "10px" }}>
+        
+        {/* HEADER SECTION */}
+        <div style={{ borderBottom: "1px solid #f1f5f9", paddingBottom: "20px", marginBottom: "30px" }}>
+          <h1
+            style={{
+              fontSize: "32px",
+              fontWeight: "800",
+              color: "#0f172a",
+              margin: "0 0 6px 0",
+              letterSpacing: "-0.025em",
+            }}
+          >
+            Merchant Management
+          </h1>
+          <p style={{ color: "#64748b", fontSize: "14px", margin: 0, fontWeight: "500" }}>
+            Manage registered merchants and business accounts
+          </p>
         </div>
 
+        {/* STATS CARD */}
         <div
           style={{
-            fontSize: "42px",
-            fontWeight: "800",
-            lineHeight: "1",
+            width: "300px",
+            background: "linear-gradient(135deg, #c2410c, #ea580c)",
+            borderRadius: "16px",
+            padding: "24px",
+            color: "#ffffff",
+            marginBottom: "35px",
+            boxShadow: "0 10px 25px -5px rgba(234, 88, 12, 0.15), 0 8px 10px -6px rgba(234, 88, 12, 0.15)",
           }}
         >
-          {merchants.length}
+          <div
+            style={{
+              fontSize: "12px",
+              fontWeight: "600",
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+              color: "#ffedd5",
+              marginBottom: "12px",
+            }}
+          >
+            Total Merchants
+          </div>
+          <div
+            style={{
+              fontSize: "38px",
+              fontWeight: "800",
+              lineHeight: "1",
+              letterSpacing: "-0.03em",
+            }}
+          >
+            {merchants.length}
+          </div>
         </div>
-      </div>
 
-      {/* TABLE CARD */}
-      <div
-        style={{
-          background: "#ffffff",
-          borderRadius: "24px",
-          padding: "25px",
-          boxShadow:
-            "0 10px 25px rgba(15,23,42,.06)",
-          overflowX: "auto",
-        }}
-      >
-        <h2
+        {/* MERCHANT DIRECTORY GRID TABLE */}
+        <div
           style={{
-            color: "#111827",
-            marginBottom: "20px",
-            fontSize: "22px",
-            fontWeight: "700",
-          }}
-        >
-          Merchant Directory
-        </h2>
-
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "separate",
-            borderSpacing: "0",
             background: "#ffffff",
             borderRadius: "16px",
-            overflow: "hidden",
-            border: "1px solid #e5e7eb",
+            padding: "24px",
+            overflowX: "auto",
+            border: "1px solid #f1f5f9",
+            boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05)",
           }}
         >
-          <thead>
-            <tr
-              style={{
-                background: "#f8fafc",
-              }}
-            >
-              <th style={thStyle}>Company</th>
-              <th style={thStyle}>Merchant</th>
-              <th style={thStyle}>GST Number</th>
-              <th style={thStyle}>PAN Number</th>
-              <th style={thStyle}>Address</th>
-            </tr>
-          </thead>
+          <h2
+            style={{
+              color: "#0f172a",
+              margin: "0 0 20px 0",
+              fontSize: "18px",
+              fontWeight: "700",
+              letterSpacing: "-0.02em",
+            }}
+          >
+            Merchant Directory
+          </h2>
 
-          <tbody>
-            {merchants.length > 0 ? (
-              merchants.map((merchant) => (
-                <tr
-                  key={merchant._id}
-                  style={{
-                    background: "#ffffff",
-                  }}
-                >
-                  <td style={tdStyle}>
-                    {merchant.companyName || "N/A"}
-                  </td>
+          <table
+            style={{
+              width: "100%",
+              borderCollapse: "separate",
+              borderSpacing: "0",
+              background: "#ffffff",
+              borderRadius: "12px",
+              overflow: "hidden",
+              border: "1px solid #e2e8f0",
+            }}
+          >
+            <thead>
+              <tr>
+                <th style={thStyle}>Company</th>
+                <th style={thStyle}>Merchant</th>
+                <th style={thStyle}>GST Number</th>
+                <th style={thStyle}>PAN Number</th>
+                <th style={{ ...thStyle, width: "30%" }}>Address</th>
+              </tr>
+            </thead>
 
-                  <td style={tdStyle}>
-                    <span
-                      style={{
-                        background: "#eff6ff",
-                        color: "#2563eb",
-                        padding: "7px 14px",
-                        borderRadius: "999px",
-                        fontWeight: "600",
-                        fontSize: "13px",
-                        display: "inline-block",
+            <tbody>
+              {merchants.length > 0 ? (
+                merchants.map((merchant) => (
+                  <tr key={merchant._id} style={{ background: "#ffffff" }}>
+                    
+                    <td style={{ ...tdStyle, fontWeight: "600", color: "#0f172a" }}>
+                      {merchant.companyName || "—"}
+                    </td>
+
+                    <td style={tdStyle}>
+                      <span
+                        style={{
+                          background: "#eff6ff",
+                          color: "#1e40af",
+                          padding: "6px 14px",
+                          borderRadius: "999px",
+                          fontWeight: "600",
+                          fontSize: "12px",
+                          display: "inline-block",
+                          letterSpacing: "0.02em",
+                        }}
+                      >
+                        {merchant.userId?.name || "N/A"}
+                      </span>
+                    </td>
+
+                    <td style={{ ...tdStyle, fontFamily: "monospace", letterSpacing: "0.05em", color: "#475569" }}>
+                      {merchant.gstNumber || "—"}
+                    </td>
+
+                    <td style={{ ...tdStyle, fontFamily: "monospace", letterSpacing: "0.05em", color: "#475569" }}>
+                      {merchant.panNumber || "—"}
+                    </td>
+
+                    {/* Multi-device clean text wrapping protection */}
+                    <td 
+                      style={{ 
+                        ...tdStyle, 
+                        color: "#64748b",
+                        maxWidth: "280px",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis"
                       }}
+                      title={merchant.address}
                     >
-                      {merchant.userId?.name || "N/A"}
-                    </span>
-                  </td>
+                      {merchant.address || "—"}
+                    </td>
 
-                  <td style={tdStyle}>
-                    {merchant.gstNumber || "N/A"}
-                  </td>
-
-                  <td style={tdStyle}>
-                    {merchant.panNumber || "N/A"}
-                  </td>
-
-                  <td style={tdStyle}>
-                    {merchant.address || "N/A"}
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan="5"
+                    style={{
+                      textAlign: "center",
+                      padding: "48px 0",
+                      color: "#94a3b8",
+                      background: "#ffffff",
+                      fontSize: "14px",
+                      fontWeight: "500",
+                    }}
+                  >
+                    No Merchants Found
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td
-                  colSpan="5"
-                  style={{
-                    textAlign: "center",
-                    padding: "40px",
-                    color: "#64748b",
-                    background: "#ffffff",
-                    fontSize: "15px",
-                  }}
-                >
-                  No Merchants Found
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              )}
+            </tbody>
+          </table>
+        </div>
+
       </div>
     </SuperAdminLayout>
   );
 };
 
+// Structural CSS Definitions for Table Columns
 const thStyle = {
-  padding: "18px 24px",
+  padding: "16px 24px",
   textAlign: "left",
-  color: "#111827",
-  fontWeight: "700",
-  fontSize: "14px",
+  color: "#475569",
+  fontWeight: "600",
+  fontSize: "13px",
+  textTransform: "uppercase",
+  letterSpacing: "0.05em",
   background: "#f8fafc",
-  borderBottom: "2px solid #e5e7eb",
+  borderBottom: "1px solid #e2e8f0",
 };
 
 const tdStyle = {
   padding: "18px 24px",
-  color: "#374151",
+  color: "#334155",
   fontSize: "14px",
+  fontWeight: "500",
   borderBottom: "1px solid #f1f5f9",
 };
 

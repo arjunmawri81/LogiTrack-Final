@@ -1,260 +1,145 @@
-/* ==========================================
-   SUPER ADMIN SIDEBAR - PREMIUM SaaS
-========================================== */
-
+/* BASE SYSTEM ROOT STYLING */
 .sidebar {
-  width: 260px;
+  width: 280px; /* Sidebar width ko thoda increase kiya taaki tight na lage */
   height: 100vh;
-
   position: fixed;
   top: 0;
   left: 0;
-
-  background: linear-gradient(
-    180deg,
-    #ffffff 0%,
-    #f8fafc 100%
-  );
-
-  padding: 24px;
-
-  overflow-y: auto;
-
-  box-shadow:
-    8px 0 30px rgba(15,23,42,.06);
-
-  z-index: 1000;
+  background-color: #0f172a; /* Premium Slate Dark */
+  color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  border-right: 1px solid #1e293b;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  z-index: 100;
 }
 
-/* ==========================================
-   HEADER
-========================================== */
-
+/* BRAND LOGO HEADER SETUP */
 .sidebar-header {
-  padding-bottom: 25px;
-  margin-bottom: 25px;
-
-  border-bottom: 1px solid #e5e7eb;
+  padding: 32px 24px 24px 24px; /* Top cushioning badha di */
 }
 
 .logo {
   margin: 0;
-
-  color: #f97316;
-
-  font-size: 42px;
-  font-weight: 900;
-
-  letter-spacing: -1.5px;
+  font-size: 26px; /* Font size improved from 22px */
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.03em;
 }
 
 .logo-subtitle {
-  color: #64748b;
-
-  font-size: 15px;
-  font-weight: 500;
-
-  margin-top: 4px;
+  font-size: 12px; /* Text scaling optimized */
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #38bdf8; /* Vibrant Cyan Info Glow */
+  letter-spacing: 0.06em;
+  display: block;
+  margin-top: 6px;
 }
 
-/* ==========================================
-   PROFILE CARD
-========================================== */
-
+/* PROFILE WIDGET DESIGN BLOCK */
 .sidebar-profile {
+  padding: 18px 20px; /* Padding expanded */
   display: flex;
   align-items: center;
   gap: 14px;
-
-  background: #ffffff;
-
-  padding: 18px;
-
-  border-radius: 20px;
-
-  border: 1px solid #e5e7eb;
-
-  box-shadow:
-    0 8px 25px rgba(15,23,42,.05);
-
-  margin-bottom: 30px;
+  background-color: #1e293b;
+  margin: 10px 20px 24px 20px; /* Surrounding margins clean kiye */
+  border-radius: 14px;
 }
 
 .avatar {
-  width: 56px;
-  height: 56px;
-
+  width: 46px; /* Avatar layout enlarged */
+  height: 46px;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
   border-radius: 50%;
-
-  background: linear-gradient(
-    135deg,
-    #ff7b1c,
-    #f97316
-  );
-
-  color: white;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
-  font-size: 24px;
-  font-weight: 800;
-
-  box-shadow:
-    0 10px 20px rgba(249,115,22,.25);
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+  flex-shrink: 0;
 }
 
 .profile-info h4 {
   margin: 0;
-
-  color: #111827;
-
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 15px; /* Text visibility raised */
+  font-weight: 600;
+  color: #ffffff;
+  line-height: 1.2;
 }
 
 .profile-info span {
-  color: #64748b;
-
-  font-size: 14px;
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 500;
+  display: block;
+  margin-top: 2px;
 }
 
-/* ==========================================
-   MENU
-========================================== */
-
+/* NAVIGATION MENU TRACKS */
 .sidebar-menu {
   list-style: none;
-  padding: 0;
+  padding: 0 16px;
   margin: 0;
+  flex-grow: 1;
+  overflow-y: auto;
 }
 
 .sidebar-menu li {
-  margin-bottom: 10px;
+  margin-bottom: 6px; /* Elements ke beech breathability space add kiya */
 }
 
 .sidebar-menu a {
-  text-decoration: none;
-
   display: flex;
   align-items: center;
-  gap: 14px;
-
-  padding: 14px 18px;
-
-  border-radius: 16px;
-
-  color: #334155;
-
-  font-size: 16px;
-  font-weight: 600;
-
-  transition: all .3s ease;
+  gap: 16px; /* Icons aur labels ka gap setup clear kiya */
+  padding: 14px 20px; /* Links row area increase kiya */
+  color: #94a3b8;
+  text-decoration: none;
+  font-size: 15px; /* "Chota text" issue resolved by scaling up */
+  font-weight: 550;
+  border-radius: 10px;
+  transition: all 0.2s ease-in-out;
 }
 
-.sidebar-menu a svg {
-  font-size: 18px;
-}
-
-/* Hover */
-
+/* NAVLINK STATES (HOVER & ACTIVE) */
 .sidebar-menu a:hover {
-  background: #ffffff;
-
-  color: #f97316;
-
-  box-shadow:
-    0 8px 20px rgba(15,23,42,.05);
-
-  transform: translateX(4px);
+  background-color: rgba(30, 41, 59, 0.8);
+  color: #ffffff;
 }
-
-/* Active */
 
 .sidebar-menu a.active {
-  background: linear-gradient(
-    135deg,
-    #ff7b1c,
-    #f97316
-  );
-
-  color: #ffffff;
-
-  box-shadow:
-    0 15px 30px rgba(249,115,22,.30);
+  background: linear-gradient(90deg, #ff6b00, #ff8c3a) !important; /* Premium Crisp Orange Gradient */
+  color: #ffffff !important;
+  font-weight: 700;
+  box-shadow: 0 4px 15px rgba(255, 107, 0, 0.25);
 }
 
 .sidebar-menu a.active svg {
-  color: white;
+  color: #ffffff !important;
 }
 
-/* ==========================================
-   LOGOUT
-========================================== */
-
+/* LOGOUT COMPONENT CONFIG */
 .logout-section {
-  margin-top: 30px;
-
-  padding-top: 25px;
-
-  border-top: 1px solid #e5e7eb;
-
+  margin: 20px;
+  padding: 16px 20px;
+  border-top: 1px solid #1e293b;
   display: flex;
   align-items: center;
-  gap: 12px;
-
-  background: #fff5f5;
-
-  border-radius: 14px;
-
-  padding: 14px 16px;
-
-  color: #ef4444;
-
-  font-size: 16px;
+  gap: 16px;
+  color: #fca5a5; /* Soft Coral Red */
+  font-size: 15px;
   font-weight: 600;
-
+  border-radius: 10px;
   cursor: pointer;
-
-  transition: .3s;
+  transition: all 0.2s ease;
 }
 
 .logout-section:hover {
-  background: #fee2e2;
-
-  color: #dc2626;
-
-  transform: translateX(4px);
-}
-
-/* ==========================================
-   SCROLLBAR
-========================================== */
-
-.sidebar::-webkit-scrollbar {
-  width: 6px;
-}
-
-.sidebar::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 20px;
-}
-
-.sidebar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-/* ==========================================
-   MOBILE
-========================================== */
-
-@media (max-width: 768px) {
-  .sidebar {
-    width: 240px;
-  }
-
-  .logo {
-    font-size: 34px;
-  }
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
 }

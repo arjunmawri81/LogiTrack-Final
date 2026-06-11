@@ -19,223 +19,220 @@ const ApiMonitoring = () => {
     },
   ];
 
+  // Base font framework rule across all page elements
+  const fontStyle = {
+    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+  };
+
   return (
     <SuperAdminLayout>
-      {/* HEADER */}
-      <div style={{ marginBottom: "30px" }}>
-        <h1
+      <div style={{ ...fontStyle, maxWidth: "1400px", margin: "0 auto", padding: "10px" }}>
+        
+        {/* HEADER SECTION */}
+        <div style={{ borderBottom: "1px solid #f1f5f9", paddingBottom: "20px", marginBottom: "30px" }}>
+          <h1
+            style={{
+              fontSize: "32px",
+              fontWeight: "800",
+              color: "#0f172a",
+              margin: "0 0 6px 0",
+              letterSpacing: "-0.025em",
+            }}
+          >
+            API Monitoring
+          </h1>
+          <p style={{ color: "#64748b", fontSize: "14px", margin: 0, fontWeight: "500" }}>
+            Monitor API health, response time and failures
+          </p>
+        </div>
+
+        {/* METRICS & PERFORMANCE KPI CARDS */}
+        <div
           style={{
-            fontSize: "44px",
-            fontWeight: "800",
-            color: "#111827",
-            marginBottom: "8px",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+            gap: "20px",
+            marginBottom: "35px",
           }}
         >
-          API Monitoring
-        </h1>
-
-        <p
-          style={{
-            color: "#64748b",
-            fontSize: "15px",
-          }}
-        >
-          Monitor API health, response time and failures
-        </p>
-      </div>
-
-      {/* KPI CARDS */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns:
-            "repeat(auto-fit,minmax(280px,1fr))",
-          gap: "20px",
-          marginBottom: "30px",
-        }}
-      >
-        <div style={cardBlue}>
-          <div style={cardLabel}>
-            Total APIs
+          {/* TOTAL API ENDPOINTS CONTROL */}
+          <div style={cardBlue}>
+            <div style={{ ...cardLabel, color: "#93c5fd" }}>
+              Total APIs
+            </div>
+            <div style={cardValue}>
+              12
+            </div>
           </div>
 
-          <div style={cardValue}>
-            12
+          {/* ACTIVE SYSTEM METRIC CARD */}
+          <div style={cardGreen}>
+            <div style={{ ...cardLabel, color: "#a7f3d0" }}>
+              Healthy APIs
+            </div>
+            <div style={cardValue}>
+              10
+            </div>
+          </div>
+
+          {/* OUTAGE TRACKER CARD */}
+          <div style={cardRed}>
+            <div style={{ ...cardLabel, color: "#fca5a5" }}>
+              Failed APIs
+            </div>
+            <div style={cardValue}>
+              2
+            </div>
           </div>
         </div>
 
-        <div style={cardGreen}>
-          <div style={cardLabel}>
-            Healthy APIs
-          </div>
-
-          <div style={cardValue}>
-            10
-          </div>
-        </div>
-
-        <div style={cardRed}>
-          <div style={cardLabel}>
-            Failed APIs
-          </div>
-
-          <div style={cardValue}>
-            2
-          </div>
-        </div>
-      </div>
-
-      {/* TABLE */}
-      <div
-        style={{
-          background: "#ffffff",
-          borderRadius: "20px",
-          padding: "20px",
-          overflowX: "auto",
-          boxShadow:
-            "0 8px 20px rgba(15,23,42,.05)",
-        }}
-      >
-        <h2
+        {/* LIVE INFRASTRUCTURE STATUS DATAGRID */}
+        <div
           style={{
-            color: "#111827",
-            marginBottom: "20px",
-            fontSize: "22px",
-            fontWeight: "700",
-          }}
-        >
-          API Status Report
-        </h2>
-
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "separate",
-            borderSpacing: "0",
             background: "#ffffff",
             borderRadius: "16px",
-            overflow: "hidden",
-            border: "1px solid #e5e7eb",
+            padding: "24px",
+            overflowX: "auto",
+            border: "1px solid #f1f5f9",
+            boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05)",
           }}
         >
-          <thead>
-            <tr
-              style={{
-                background: "#f8fafc",
-              }}
-            >
-              <th style={thStyle}>
-                API Name
-              </th>
+          <h2
+            style={{
+              color: "#0f172a",
+              margin: "0 0 20px 0",
+              fontSize: "18px",
+              fontWeight: "700",
+              letterSpacing: "-0.02em",
+            }}
+          >
+            API Status Report
+          </h2>
 
-              <th style={thStyle}>
-                Status
-              </th>
+          <table
+            style={{
+              width: "100%",
+              borderCollapse: "separate",
+              borderSpacing: "0",
+              background: "#ffffff",
+              borderRadius: "12px",
+              overflow: "hidden",
+              border: "1px solid #e2e8f0",
+            }}
+          >
+            <thead>
+              <tr>
+                <th style={thStyle}>API Name</th>
+                <th style={thStyle}>Status</th>
+                <th style={thStyle}>Response Time</th>
+              </tr>
+            </thead>
 
-              <th style={thStyle}>
-                Response Time
-              </th>
-            </tr>
-          </thead>
+            <tbody>
+              {apis.map((api, index) => (
+                <tr key={index} style={{ background: "#ffffff" }}>
+                  
+                  <td style={{ ...tdStyle, fontWeight: "600", color: "#0f172a" }}>
+                    {api.name}
+                  </td>
 
-          <tbody>
-            {apis.map((api, index) => (
-              <tr key={index}>
-                <td style={tdStyle}>
-                  {api.name}
-                </td>
+                  <td style={tdStyle}>
+                    <span
+                      style={{
+                        background: api.status === "Active" ? "#dcfce7" : "#fee2e2",
+                        color: api.status === "Active" ? "#166534" : "#991b1b",
+                        padding: "6px 14px",
+                        borderRadius: "999px",
+                        fontSize: "12px",
+                        fontWeight: "600",
+                        display: "inline-block",
+                        letterSpacing: "0.02em",
+                      }}
+                    >
+                      {api.status}
+                    </span>
+                  </td>
 
-                <td style={tdStyle}>
-                  <span
-                    style={{
-                      background:
-                        api.status === "Active"
-                          ? "#dcfce7"
-                          : "#fee2e2",
-                      color:
-                        api.status === "Active"
-                          ? "#15803d"
-                          : "#dc2626",
-                      padding: "7px 14px",
-                      borderRadius: "999px",
-                      fontSize: "13px",
+                  <td 
+                    style={{ 
+                      ...tdStyle, 
+                      fontFamily: "monospace", 
+                      fontSize: "14px",
                       fontWeight: "600",
-                      display: "inline-block",
+                      color: api.response === "Timeout" ? "#b91c1c" : "#475569" 
                     }}
                   >
-                    {api.status}
-                  </span>
-                </td>
+                    {api.response}
+                  </td>
 
-                <td style={tdStyle}>
-                  {api.response}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
       </div>
     </SuperAdminLayout>
   );
 };
 
+// Fixed CSS Styling Specifications
 const cardLabel = {
-  fontSize: "14px",
-  fontWeight: "500",
-  opacity: "0.9",
-  marginBottom: "10px",
+  fontSize: "12px",
+  fontWeight: "600",
+  textTransform: "uppercase",
+  letterSpacing: "0.05em",
+  marginBottom: "12px",
 };
 
 const cardValue = {
-  fontSize: "42px",
+  fontSize: "38px",
   fontWeight: "800",
   lineHeight: "1",
+  letterSpacing: "-0.03em",
 };
 
 const cardBlue = {
-  background:
-    "linear-gradient(135deg,#2563eb,#1d4ed8)",
-  borderRadius: "20px",
-  padding: "22px",
-  color: "#fff",
-  boxShadow:
-    "0 12px 25px rgba(37,99,235,.18)",
+  background: "linear-gradient(135deg, #1e40af, #1d4ed8)",
+  borderRadius: "16px",
+  padding: "24px",
+  color: "#ffffff",
+  boxShadow: "0 10px 25px -5px rgba(29, 78, 216, 0.15), 0 8px 10px -6px rgba(29, 78, 216, 0.15)",
 };
 
 const cardGreen = {
-  background:
-    "linear-gradient(135deg,#22c55e,#16a34a)",
-  borderRadius: "20px",
-  padding: "22px",
-  color: "#fff",
-  boxShadow:
-    "0 12px 25px rgba(34,197,94,.18)",
+  background: "linear-gradient(135deg, #065f46, #10b981)",
+  borderRadius: "16px",
+  padding: "24px",
+  color: "#ffffff",
+  boxShadow: "0 10px 25px -5px rgba(16, 185, 129, 0.15), 0 8px 10px -6px rgba(16, 185, 129, 0.15)",
 };
 
 const cardRed = {
-  background:
-    "linear-gradient(135deg,#ef4444,#dc2626)",
-  borderRadius: "20px",
-  padding: "22px",
-  color: "#fff",
-  boxShadow:
-    "0 12px 25px rgba(239,68,68,.18)",
+  background: "linear-gradient(135deg, #991b1b, #ef4444)",
+  borderRadius: "16px",
+  padding: "24px",
+  color: "#ffffff",
+  boxShadow: "0 10px 25px -5px rgba(239, 68, 68, 0.15), 0 8px 10px -6px rgba(239, 68, 68, 0.15)",
 };
 
 const thStyle = {
-  padding: "18px 24px",
+  padding: "16px 24px",
   textAlign: "left",
-  color: "#111827",
-  fontWeight: "700",
-  fontSize: "14px",
+  color: "#475569",
+  fontWeight: "600",
+  fontSize: "13px",
+  textTransform: "uppercase",
+  letterSpacing: "0.05em",
   background: "#f8fafc",
-  borderBottom: "2px solid #e5e7eb",
+  borderBottom: "1px solid #e2e8f0",
 };
 
 const tdStyle = {
   padding: "18px 24px",
-  color: "#374151",
+  color: "#334155",
   fontSize: "14px",
+  fontWeight: "500",
   borderBottom: "1px solid #f1f5f9",
 };
 

@@ -1,273 +1,185 @@
-/* =========================
-   SIDEBAR
-========================= */
+/* ===== ADMIN SIDEBAR - SUPERADMIN SAME DESIGN ===== */
 
-.sidebar{
-  width:280px;
-  height:100vh;
-
-  position:fixed;
-  left:0;
-  top:0;
-
-  display:flex;
-  flex-direction:column;
-
-  padding:24px;
-
-  background:#ffffff;
-
-  border-right:1px solid #e5e7eb;
-
-  overflow-y:auto;
-
-  box-shadow:
-    4px 0 20px rgba(0,0,0,.05);
-
-  z-index:1000;
+.sidebar {
+  width: 280px;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-color: #0f172a;
+  color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #1e293b;
+  font-family: 'Inter', sans-serif;
+  z-index: 100;
 }
 
-/* =========================
-   HEADER
-========================= */
-
-.sidebar-header{
-  padding-bottom:25px;
-  border-bottom:1px solid #e5e7eb;
+.sidebar-header {
+  padding: 32px 24px 24px 24px;
+  border-bottom: 1px solid #1e293b;
 }
 
-.logo{
-  color:#f97316;
-  font-size:36px;
-  font-weight:700;
-  margin-bottom:5px;
-  letter-spacing:-1px;
+.logo {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.5px;
 }
 
-.logo-subtitle{
-  color:#64748b;
-  font-size:14px;
-  font-weight:500;
+.logo-subtitle {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #f97316;
+  letter-spacing: 0.06em;
+  display: block;
+  margin-top: 6px;
 }
 
-/* =========================
-   PROFILE
-========================= */
-
-.sidebar-profile{
-  display:flex;
-  align-items:center;
-  gap:14px;
-
-  margin:24px 0;
-
-  padding:16px;
-
-  background:#f8fafc;
-
-  border:1px solid #e5e7eb;
-
-  border-radius:18px;
-
-  transition:.3s;
+.sidebar-profile {
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background-color: #1e293b;
+  margin: 16px 20px;
+  border-radius: 14px;
 }
 
-.sidebar-profile:hover{
-  transform:translateY(-2px);
-
-  box-shadow:
-    0 8px 20px rgba(0,0,0,.06);
+.avatar {
+  width: 46px;
+  height: 46px;
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: white;
 }
 
-.avatar{
-  width:55px;
-  height:55px;
-
-  border-radius:50%;
-
-  background:linear-gradient(
-    135deg,
-    #f97316,
-    #ea580c
-  );
-
-  color:white;
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-
-  font-size:18px;
-  font-weight:700;
-
-  box-shadow:
-    0 8px 18px rgba(249,115,22,.25);
+.profile-info h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
 }
 
-.profile-info h4{
-  margin:0;
-  color:#111827;
-  font-size:16px;
-  font-weight:700;
+.profile-info span {
+  font-size: 11px;
+  color: #94a3b8;
+  display: block;
+  margin-top: 2px;
 }
 
-.profile-info span{
-  color:#64748b;
-  font-size:13px;
+.sidebar-menu {
+  list-style: none;
+  padding: 0 16px;
+  margin: 0;
+  flex-grow: 1;
 }
 
-/* =========================
-   MENU
-========================= */
-
-.sidebar-menu{
-  list-style:none;
-  padding:0;
-  margin:0;
-  flex:1;
+.sidebar-menu li {
+  margin-bottom: 4px;
 }
 
-.sidebar-menu li{
-  margin-bottom:8px;
+.sidebar-menu a {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  color: #94a3b8;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 10px;
+  transition: all 0.2s;
 }
 
-.sidebar-menu a{
-  display:flex;
-  align-items:center;
-  gap:14px;
-
-  text-decoration:none;
-
-  padding:14px 18px;
-
-  color:#374151;
-
-  border-radius:14px;
-
-  font-size:15px;
-  font-weight:600;
-
-  transition:all .3s ease;
+.sidebar-menu a svg {
+  font-size: 18px;
+  min-width: 20px;
 }
 
-.sidebar-menu a svg{
-  font-size:18px;
+.sidebar-menu a:hover {
+  background-color: rgba(249, 115, 22, 0.1);
+  color: #f97316;
 }
 
-.sidebar-menu a:hover{
-  background:#fff7ed;
-  color:#f97316;
-
-  transform:translateX(5px);
+/* 🔥 ORANGE GRADIENT FOR ACTIVE LINK 🔥 */
+.sidebar-menu a.active {
+  background: linear-gradient(90deg, #f97316, #ea580c) !important;
+  color: white !important;
+  font-weight: 600 !important;
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3) !important;
 }
 
-/* =========================
-   ACTIVE MENU
-========================= */
-
-.sidebar-menu a.active{
-  background:linear-gradient(
-    135deg,
-    #f97316,
-    #ea580c
-  );
-
-  color:white;
-
-  box-shadow:
-    0 10px 20px rgba(249,115,22,.25);
+.sidebar-menu a.active svg {
+  color: white !important;
 }
 
-.sidebar-menu a.active svg{
-  color:white;
+.logout-section {
+  margin: 16px 20px 24px 20px;
+  padding: 12px 16px;
+  border-top: 1px solid #1e293b;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: all 0.2s;
 }
 
-/* =========================
-   LOGOUT
-========================= */
-
-.logout-section{
-  margin-top:15px;
-
-  padding-top:20px;
-
-  border-top:1px solid #e5e7eb;
+.logout-section a {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: #fca5a5;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
 }
 
-.logout-section a{
-  display:flex;
-  align-items:center;
-  gap:12px;
-
-  text-decoration:none;
-
-  padding:14px 18px;
-
-  border-radius:14px;
-
-  color:#ef4444;
-
-  font-size:15px;
-  font-weight:600;
-
-  transition:.3s;
+.logout-section:hover {
+  background-color: rgba(239, 68, 68, 0.1);
 }
 
-.logout-section a:hover{
-  background:#fef2f2;
-  transform:translateX(5px);
+.logout-section:hover a {
+  color: #ef4444;
 }
 
-/* =========================
-   SCROLLBAR
-========================= */
-
-.sidebar::-webkit-scrollbar{
-  width:6px;
-}
-
-.sidebar::-webkit-scrollbar-track{
-  background:transparent;
-}
-
-.sidebar::-webkit-scrollbar-thumb{
-  background:#cbd5e1;
-  border-radius:20px;
-}
-
-.sidebar::-webkit-scrollbar-thumb:hover{
-  background:#94a3b8;
-}
-
-/* =========================
-   MOBILE
-========================= */
-
-@media(max-width:768px){
-
-  .sidebar{
-    width:100%;
-    height:auto;
-
-    position:relative;
-
-    padding:20px;
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 70px;
   }
-
-  .sidebar-header{
-    text-align:center;
+  
+  .logo, .logo-subtitle, .profile-info, .sidebar-menu a span, .logout-section a span {
+    display: none;
   }
-
-  .sidebar-profile{
-    justify-content:center;
+  
+  .sidebar-profile {
+    justify-content: center;
+    padding: 12px;
+    margin: 16px 12px;
   }
-
-  .sidebar-menu a{
-    justify-content:center;
+  
+  .sidebar-menu a {
+    justify-content: center;
+    padding: 12px;
   }
-
-  .logout-section a{
-    justify-content:center;
+  
+  .sidebar-menu a svg {
+    margin: 0;
   }
-
+  
+  .logout-section {
+    justify-content: center;
+    padding: 12px;
+    margin: 16px 12px;
+  }
+  
+  .logout-section a {
+    justify-content: center;
+  }
 }
