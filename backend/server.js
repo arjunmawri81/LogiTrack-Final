@@ -29,13 +29,13 @@ const app = express();
 // CORS
 // ================================
 app.use(
-cors({
-origin: [
-"http://localhost:5173",
-"https://logi-track-final.vercel.app",
-],
-credentials: true,
-})
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://logi-track-final.vercel.app",
+    ],
+    credentials: true,
+  })
 );
 
 // ================================
@@ -48,10 +48,10 @@ app.use(express.urlencoded({ extended: true }));
 // HEALTH CHECK
 // ================================
 app.get("/", (req, res) => {
-res.json({
-success: true,
-message: "LogiTrack Backend Running 🚀",
-});
+  res.json({
+    success: true,
+    message: "LogiTrack Backend Running 🚀",
+  });
 });
 
 // ================================
@@ -76,10 +76,10 @@ app.use("/api/rto", rtoRoutes);
 // 404 HANDLER
 // ================================
 app.use((req, res) => {
-res.status(404).json({
-success: false,
-message: "Route Not Found",
-});
+  res.status(404).json({
+    success: false,
+    message: "Route Not Found",
+  });
 });
 
 // ================================
@@ -87,10 +87,8 @@ message: "Route Not Found",
 // ================================
 const PORT = process.env.PORT || 5000;
 
-if (process.env.NODE_ENV !== "production") {
 app.listen(PORT, () => {
-console.log(`🚀 Server Running On Port ${PORT}`);
+  console.log(`🚀 Server Running On Port ${PORT}`);
 });
-}
 
 module.exports = app;
