@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
   {
+    // Basic Details
     name: {
       type: String,
       required: true,
@@ -14,11 +15,6 @@ const userSchema = new mongoose.Schema(
     },
 
     phone: {
-      type: String,
-      default: "",
-    },
-
-    gstNumber: {
       type: String,
       default: "",
     },
@@ -36,6 +32,95 @@ const userSchema = new mongoose.Schema(
       required: true,
     },
 
+    // Business Details
+    gstNumber: {
+      type: String,
+      default: "",
+    },
+
+    panNumber: {
+      type: String,
+      default: "",
+    },
+
+    businessType: {
+      type: String,
+      default: "",
+    },
+
+    businessCategory: {
+      type: String,
+      default: "",
+    },
+
+    yearOfEstablishment: {
+      type: String,
+      default: "",
+    },
+
+    website: {
+      type: String,
+      default: "",
+    },
+
+    // Address Details
+    address: {
+      type: String,
+      default: "",
+    },
+
+    city: {
+      type: String,
+      default: "",
+    },
+
+    state: {
+      type: String,
+      default: "",
+    },
+
+    pincode: {
+      type: String,
+      default: "",
+    },
+
+    landmark: {
+      type: String,
+      default: "",
+    },
+
+    // Bank Details
+    accountHolderName: {
+      type: String,
+      default: "",
+    },
+
+    accountNumber: {
+      type: String,
+      default: "",
+    },
+
+    ifscCode: {
+      type: String,
+      default: "",
+    },
+
+    bankName: {
+      type: String,
+      default: "",
+    },
+
+    branchName: {
+      type: String,
+      default: "",
+    },
+
+    upiId: {
+      type: String,
+      default: "",
+    },
+
+    // User Role
     role: {
       type: String,
       enum: [
@@ -48,6 +133,13 @@ const userSchema = new mongoose.Schema(
       default: "MERCHANT",
     },
 
+    // Approval & KYC
+    kycStatus: {
+      type: String,
+      enum: ["PENDING", "APPROVED", "REJECTED"],
+      default: "PENDING",
+    },
+
     isApproved: {
       type: Boolean,
       default: false,
@@ -58,6 +150,7 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
 
+    // Wallet
     walletBalance: {
       type: Number,
       default: 0,

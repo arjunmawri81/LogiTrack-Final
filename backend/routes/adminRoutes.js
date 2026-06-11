@@ -1,140 +1,181 @@
 const express = require("express");
 const router = express.Router();
 
-const authMiddleware = require("../middleware/authMiddleware");
-const authorize = require("../middleware/roleMiddleware");
+const {
+  authMiddleware,
+  authorizeRoles,
+} = require("../middleware/authMiddleware");
 
 const {
   getDashboardStats,
   getUsers,
-  getOrders,
-  getShipments,
+  getUserById,
+  updateUserStatus,
+  deleteUser,
+
+  getMerchants,
+  getPendingMerchants,
+  getApprovedMerchants,
+  approveMerchant,
+  rejectMerchant,
+  blockMerchant,
+  unblockMerchant,
+  deleteMerchant,
 
   createAdmin,
   getAllAdmins,
   deleteAdmin,
 
-  getMerchants,
-  approveMerchant,
-  blockMerchant,
-  deleteMerchant,
+  getOrders,
+  getShipments,
 
   getCommission,
   getRevenue,
 } = require("../controllers/adminController");
 
-// ===============================
-// DASHBOARD
-// ===============================
+// Dashboard
 router.get(
   "/dashboard",
   authMiddleware,
-  authorize("ADMIN", "SUPER_ADMIN"),
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
   getDashboardStats
 );
 
-// ===============================
-// USERS
-// ===============================
+// Users
 router.get(
   "/users",
   authMiddleware,
-  authorize("ADMIN", "SUPER_ADMIN"),
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
   getUsers
 );
 
-// ===============================
-// ORDERS
-// ===============================
 router.get(
-  "/orders",
+  "/users/:id",
   authMiddleware,
-  authorize("ADMIN", "SUPER_ADMIN"),
-  getOrders
-);
-
-// ===============================
-// SHIPMENTS
-// ===============================
-router.get(
-  "/shipments",
-  authMiddleware,
-  authorize("ADMIN", "SUPER_ADMIN"),
-  getShipments
-);
-
-// ===============================
-// ADMIN MANAGEMENT
-// ===============================
-router.post(
-  "/create-admin",
-  authMiddleware,
-  authorize("SUPER_ADMIN"),
-  createAdmin
-);
-
-router.get(
-  "/all-admins",
-  authMiddleware,
-  authorize("SUPER_ADMIN"),
-  getAllAdmins
-);
-
-router.delete(
-  "/delete-admin/:id",
-  authMiddleware,
-  authorize("SUPER_ADMIN"),
-  deleteAdmin
-);
-
-// ===============================
-// MERCHANT MANAGEMENT
-// ===============================
-router.get(
-  "/merchants",
-  authMiddleware,
-  authorize("SUPER_ADMIN"),
-  getMerchants
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
+  getUserById
 );
 
 router.put(
-  "/merchant/approve/:id",
+  "/users/:id/status",
   authMiddleware,
-  authorize("SUPER_ADMIN"),
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
+  updateUserStatus
+);
+
+router.delete(
+  "/users/:id",
+  authMiddleware,
+  authorizeRoles("SUPER_ADMIN"),
+  deleteUser
+);
+
+// Merchants
+router.get(
+  "/merchants",
+  authMiddleware,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
+  getMerchants
+);
+
+router.get(
+  "/merchants/pending",
+  authMiddleware,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
+  getPendingMerchants
+);
+
+router.get(
+  "/merchants/approved",
+  authMiddleware,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
+  getApprovedMerchants
+);
+
+router.put(
+  "/merchants/:id/approve",
+  authMiddleware,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
   approveMerchant
 );
 
 router.put(
-  "/merchant/block/:id",
+  "/merchants/:id/reject",
   authMiddleware,
-  authorize("SUPER_ADMIN"),
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
+  rejectMerchant
+);
+
+router.put(
+  "/merchants/:id/block",
+  authMiddleware,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
   blockMerchant
 );
 
-router.delete(
-  "/merchant/:id",
+router.put(
+  "/merchants/:id/unblock",
   authMiddleware,
-  authorize("SUPER_ADMIN"),
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
+  unblockMerchant
+);
+
+router.delete(
+  "/merchants/:id",
+  authMiddleware,
+  authorizeRoles("SUPER_ADMIN"),
   deleteMerchant
 );
 
-// ===============================
-// COMMISSION
-// ===============================
+// Admin Management
+router.post(
+  "/admins",
+  authMiddleware,
+  authorizeRoles("SUPER_ADMIN"),
+  createAdmin
+);
+
+router.get(
+  "/admins",
+  authMiddleware,
+  authorizeRoles("SUPER_ADMIN"),
+  getAllAdmins
+);
+
+router.delete(
+  "/admins/:id",
+  authMiddleware,
+  authorizeRoles("SUPER_ADMIN"),
+  deleteAdmin
+);
+
+// Orders & Shipments
+router.get(
+  "/orders",
+  authMiddleware,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
+  getOrders
+);
+
+router.get(
+  "/shipments",
+  authMiddleware,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
+  getShipments
+);
+
+// Revenue & Commission
 router.get(
   "/commission",
   authMiddleware,
-  authorize("SUPER_ADMIN"),
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
   getCommission
 );
 
-// ===============================
-// REVENUE
-// ===============================
 router.get(
   "/revenue",
   authMiddleware,
-  authorize("SUPER_ADMIN"),
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
   getRevenue
 );
 
