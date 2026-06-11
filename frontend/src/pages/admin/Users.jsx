@@ -30,12 +30,32 @@ const Users = () => {
     }
   };
 
+  const deleteUser = async (id) => {
+    try {
+      const confirmDelete = window.confirm("Are you sure?");
+
+      if (!confirmDelete) return;
+
+      await api.delete(`/admin/users/${id}`);
+
+      alert("User Deleted");
+
+      fetchUsers();
+    } catch (error) {
+      alert(error?.response?.data?.message || "Delete Failed");
+    }
+  };
+
   const totalAdmins = users.filter(
     (user) => user.role === "ADMIN" || user.role === "SUPER_ADMIN"
   ).length;
 
   const totalMerchants = users.filter(
     (user) => user.role === "MERCHANT"
+  ).length;
+
+  const pendingUsers = users.filter(
+    (user) => user.role === "MERCHANT" && !user.isApproved
   ).length;
 
   // Filter users based on search
@@ -45,7 +65,7 @@ const Users = () => {
     user.role?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Inline styles matching Dashboard with WHITE TABLE
+  // Inline styles
   const styles = {
     container: {
       display: "flex",
@@ -119,7 +139,6 @@ const Users = () => {
       fontSize: "14px",
       background: "transparent"
     },
-    // Table Section - WHITE BACKGROUND
     tableContainer: {
       background: "white",
       borderRadius: "20px",
@@ -160,7 +179,7 @@ const Users = () => {
     td: {
       padding: "18px 20px",
       borderBottom: "1px solid #f1f5f9",
-      color: "#1e293b",
+      color: "#166534",
       fontSize: "14px",
       background: "white"
     },
@@ -200,9 +219,7 @@ const Users = () => {
       padding: "5px 14px",
       borderRadius: "30px",
       fontSize: "12px",
-      fontWeight: "600",
-      background: "#dcfce7",
-      color: "#166534"
+      fontWeight: "600"
     },
     actionGroup: {
       display: "flex",
@@ -249,7 +266,6 @@ const Users = () => {
           <p style={styles.headerSubtitle}>Manage platform users, admins and merchants</p>
         </div>
 
-        {/* Stats Cards */}
         <div style={styles.statsGrid}>
           <div style={{ ...styles.statCard, borderLeftColor: "#3b82f6" }}>
             <div style={styles.statLabel}>Total Users</div>
@@ -265,11 +281,10 @@ const Users = () => {
           </div>
           <div style={{ ...styles.statCard, borderLeftColor: "#ef4444" }}>
             <div style={styles.statLabel}>Pending Users</div>
-            <h2 style={styles.statValue}>0</h2>
+            <h2 style={styles.statValue}>{pendingUsers}</h2>
           </div>
         </div>
 
-        {/* Search Box */}
         <div style={styles.searchBox}>
           <FaSearch color="#94a3b8" size={16} />
           <input
@@ -281,7 +296,6 @@ const Users = () => {
           />
         </div>
 
-        {/* Users Table - WHITE BACKGROUND */}
         <div style={styles.tableContainer}>
           <div style={styles.tableHeader}>
             <h3 style={styles.tableTitle}>User List</h3>
@@ -316,7 +330,15 @@ const Users = () => {
                         <span style={getRoleStyle(user.role)}>{user.role}</span>
                       </td>
                       <td style={styles.td}>
-                        <span style={styles.statusBadge}>Active</span>
+                        <span
+                          style={{
+                            ...styles.statusBadge,
+                            background: user.isBlocked ? "#fee2e2" : "#dcfce7",
+                            color: user.isBlocked ? "#dc2626" : "#166534",
+                          }}
+                        >
+                          {user.isBlocked ? "Blocked" : "Active"}
+                        </span>
                       </td>
                       <td style={styles.td}>
                         <div style={styles.actionGroup}>
@@ -326,7 +348,11 @@ const Users = () => {
                           <button style={styles.actionBtn} title="Edit">
                             <FaEdit size={13} />
                           </button>
-                          <button style={styles.actionBtn} title="Delete">
+                          <button
+                            style={styles.actionBtn}
+                            title="Delete"
+                            onClick={() => deleteUser(user._id)}
+                          >
                             <FaTrash size={13} />
                           </button>
                         </div>

@@ -1,16 +1,31 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
+import api from "../../services/api";
 import { FaUsers, FaTruck, FaRupeeSign, FaBox } from "react-icons/fa";
 
 const Dashboard = () => {
-  // Static data - single source of truth
-  const [stats] = useState({ 
-    totalUsers: 3, 
-    totalOrders: 1, 
-    totalShipments: 2, 
-    totalRevenue: 500 
+  // Stats state initialized to 0
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalOrders: 0,
+    totalShipments: 0,
+    totalRevenue: 0,
   });
+
+  // Fetch dashboard data from API
+  useEffect(() => {
+    fetchDashboard();
+  }, []);
+
+  const fetchDashboard = async () => {
+    try {
+      const response = await api.get("/admin/dashboard");
+      setStats(response.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const styles = {
     container: {
@@ -19,17 +34,16 @@ const Dashboard = () => {
       backgroundColor: "#f1f5f9",
       fontFamily: "'Inter', sans-serif"
     },
-   // MainContent style mein "width" property hata do
-mainContent: {
-  flex: 1,
-  marginLeft: "280px",  // Ye add karo
-  display: "flex",
-  flexDirection: "column",
-  overflowY: "auto",
-  overflowX: "hidden",
-  padding: "20px 30px",
-  minWidth: 0
-},
+    mainContent: {
+      flex: 1,
+      marginLeft: "280px",
+      display: "flex",
+      flexDirection: "column",
+      overflowY: "auto",
+      overflowX: "hidden",
+      padding: "20px 30px",
+      minWidth: 0
+    },
     headerBlock: {
       marginBottom: "30px"
     },
@@ -123,7 +137,7 @@ mainContent: {
           </p>
         </div>
 
-        {/* 4 Cards - Only Once */}
+        {/* 4 Cards */}
         <div style={styles.cardsGrid}>
           <div style={{ ...styles.card, background: "linear-gradient(135deg, #1e40af, #1d4ed8)" }}>
             <div style={styles.cardTop}>
@@ -158,7 +172,7 @@ mainContent: {
           </div>
         </div>
 
-        {/* Platform Overview - Only Once */}
+        {/* Platform Overview */}
         <div style={styles.overviewBox}>
           <h2 style={styles.overviewTitle}>Platform Overview</h2>
           <div style={styles.statsGrid}>

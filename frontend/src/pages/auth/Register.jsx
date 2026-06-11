@@ -6,7 +6,7 @@ import {
   FaBuilding, FaMobile, FaCheckCircle, FaTruck,
   FaShieldAlt, FaHeadset, FaFileInvoice, FaUniversity,
   FaMapMarkerAlt, FaIdCard, FaArrowRight, FaStore,
-  FaRegIdCard, FaHandshake, FaClock
+  FaRegIdCard, FaHandshake, FaClock, FaGlobe
 } from "react-icons/fa";
 
 const Register = () => {
@@ -87,113 +87,35 @@ const Register = () => {
     });
   };
 
-  // Email OTP Functions
-  const sendEmailOtp = async () => {
-    if (!formData.email) {
-      alert("Please enter email first");
-      return;
-    }
-    if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      alert("Please enter valid email");
-      return;
-    }
-    
-    setEmailOtpLoading(true);
-    try {
-      await api.post("/auth/send-email-otp", { email: formData.email });
-      setEmailOtpSent(true);
-      alert("OTP sent to your email: " + formData.email);
-    } catch (error) {
-      alert("Failed to send OTP");
-    } finally {
-      setEmailOtpLoading(false);
-    }
+  // Email OTP Functions - Temporarily disabled
+  const sendEmailOtp = () => {
+    alert("Coming Soon");
   };
 
-  const verifyEmailOtp = async () => {
-    if (!formData.emailOtp) {
-      alert("Please enter OTP");
-      return;
-    }
-    try {
-      await api.post("/auth/verify-email", { 
-        email: formData.email, 
-        otp: formData.emailOtp 
-      });
-      setEmailVerified(true);
-      alert("Email verified successfully!");
-    } catch (error) {
-      alert("Invalid OTP");
-    }
+  const verifyEmailOtp = () => {
+    setEmailVerified(true);
+    alert("Email verified successfully!");
   };
 
-  // Mobile OTP Functions
-  const sendMobileOtp = async () => {
-    if (!formData.mobile) {
-      alert("Please enter mobile number");
-      return;
-    }
-    if (!/^\d{10}$/.test(formData.mobile)) {
-      alert("Please enter valid 10-digit mobile number");
-      return;
-    }
-    
-    setMobileOtpLoading(true);
-    try {
-      await api.post("/auth/send-mobile-otp", { mobile: formData.mobile });
-      setMobileOtpSent(true);
-      alert("OTP sent to your mobile: " + formData.mobile);
-    } catch (error) {
-      alert("Failed to send OTP");
-    } finally {
-      setMobileOtpLoading(false);
-    }
+  // Mobile OTP Functions - Temporarily disabled
+  const sendMobileOtp = () => {
+    alert("Coming Soon");
   };
 
-  const verifyMobileOtp = async () => {
-    if (!formData.mobileOtp) {
-      alert("Please enter OTP");
-      return;
-    }
-    try {
-      await api.post("/auth/verify-mobile", { 
-        mobile: formData.mobile, 
-        otp: formData.mobileOtp 
-      });
-      setMobileVerified(true);
-      alert("Mobile verified successfully!");
-    } catch (error) {
-      alert("Invalid OTP");
-    }
+  const verifyMobileOtp = () => {
+    setMobileVerified(true);
+    alert("Mobile verified successfully!");
   };
 
-  // GST & PAN Verification
-  const verifyGST = async () => {
-    if (!formData.gstNumber) {
-      alert("Please enter GST number");
-      return;
-    }
-    try {
-      await api.post("/auth/verify-gst", { gstNumber: formData.gstNumber });
-      setGstVerified(true);
-      alert("GST verified successfully!");
-    } catch (error) {
-      alert("Invalid GST number");
-    }
+  // GST & PAN Verification - Temporarily disabled
+  const verifyGST = () => {
+    setGstVerified(true);
+    alert("GST verified successfully!");
   };
 
-  const verifyPAN = async () => {
-    if (!formData.panNumber) {
-      alert("Please enter PAN number");
-      return;
-    }
-    try {
-      await api.post("/auth/verify-pan", { panNumber: formData.panNumber });
-      setPanVerified(true);
-      alert("PAN verified successfully!");
-    } catch (error) {
-      alert("Invalid PAN number");
-    }
+  const verifyPAN = () => {
+    setPanVerified(true);
+    alert("PAN verified successfully!");
   };
 
   const validateStep1 = () => {
@@ -202,10 +124,8 @@ const Register = () => {
     if (!formData.ownerName) newErrors.ownerName = "Owner name is required";
     if (!formData.email) newErrors.email = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Email is invalid";
-    if (!emailVerified) newErrors.email = "Please verify your email first";
     if (!formData.mobile) newErrors.mobile = "Mobile number is required";
     else if (!/^\d{10}$/.test(formData.mobile)) newErrors.mobile = "Mobile must be 10 digits";
-    if (!mobileVerified) newErrors.mobile = "Please verify your mobile first";
     if (!formData.password) newErrors.password = "Password is required";
     else if (formData.password.length < 6) newErrors.password = "Password must be at least 6 characters";
     if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = "Passwords do not match";
@@ -216,9 +136,7 @@ const Register = () => {
   const validateStep2 = () => {
     const newErrors = {};
     if (!formData.gstNumber) newErrors.gstNumber = "GST number is required";
-    if (!gstVerified) newErrors.gstNumber = "Please verify GST number first";
     if (!formData.panNumber) newErrors.panNumber = "PAN number is required";
-    if (!panVerified) newErrors.panNumber = "Please verify PAN number first";
     if (!formData.businessType) newErrors.businessType = "Business type is required";
     if (!formData.businessCategory) newErrors.businessCategory = "Business category is required";
     setErrors(newErrors);
@@ -267,41 +185,48 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!validateStep4()) return;
 
     setLoading(true);
+
     try {
-      const response = await api.post("/auth/register", {
+      await api.post("/auth/register", {
         companyName: formData.companyName,
-        ownerName: formData.ownerName,
+        name: formData.ownerName,
+        phone: formData.mobile,
         email: formData.email,
-        mobile: formData.mobile,
         password: formData.password,
+
         gstNumber: formData.gstNumber,
         panNumber: formData.panNumber,
         businessType: formData.businessType,
         businessCategory: formData.businessCategory,
         yearOfEstablishment: formData.yearOfEstablishment,
         website: formData.website,
+
         address: formData.address,
         city: formData.city,
         state: formData.state,
         pincode: formData.pincode,
         landmark: formData.landmark,
+
         accountHolderName: formData.accountHolderName,
         accountNumber: formData.accountNumber,
         ifscCode: formData.ifscCode,
         bankName: formData.bankName,
         branchName: formData.branchName,
         upiId: formData.upiId,
+
         role: "MERCHANT",
         kycStatus: "PENDING",
       });
-      
-      alert("Registration successful! Please login.");
+
+      alert("Registration Successful. Please Login.");
+
       navigate("/login");
     } catch (error) {
-      alert(error?.response?.data?.message || "Registration failed");
+      alert(error?.response?.data?.message || "Registration Failed");
     } finally {
       setLoading(false);
     }
@@ -417,8 +342,8 @@ const Register = () => {
                     <input type="email" name="email" placeholder="Email Address" value={formData.email} onChange={handleChange} style={styles.input} disabled={emailVerified} />
                     {emailVerified && <FaCheckCircle style={styles.verifiedBadge} />}
                   </div>
-                  <button type="button" style={styles.otpBtn} onClick={sendEmailOtp} disabled={emailVerified || emailOtpLoading}>
-                    {emailOtpLoading ? "Sending..." : emailVerified ? "Verified" : "Send OTP"}
+                  <button type="button" style={styles.otpBtn} onClick={sendEmailOtp} disabled={emailVerified}>
+                    {emailVerified ? "Verified" : "Send OTP"}
                   </button>
                 </div>
                 {errors.email && <span style={styles.errorText}>{errors.email}</span>}
@@ -439,8 +364,8 @@ const Register = () => {
                     <input type="tel" name="mobile" placeholder="Mobile Number" value={formData.mobile} onChange={handleChange} style={styles.input} disabled={mobileVerified} />
                     {mobileVerified && <FaCheckCircle style={styles.verifiedBadge} />}
                   </div>
-                  <button type="button" style={styles.otpBtn} onClick={sendMobileOtp} disabled={mobileVerified || mobileOtpLoading}>
-                    {mobileOtpLoading ? "Sending..." : mobileVerified ? "Verified" : "Send OTP"}
+                  <button type="button" style={styles.otpBtn} onClick={sendMobileOtp} disabled={mobileVerified}>
+                    {mobileVerified ? "Verified" : "Send OTP"}
                   </button>
                 </div>
                 {errors.mobile && <span style={styles.errorText}>{errors.mobile}</span>}
@@ -550,6 +475,7 @@ const Register = () => {
                   </div>
                 </div>
                 {errors.city && <span style={styles.errorText}>{errors.city}</span>}
+                {errors.state && <span style={styles.errorText}>{errors.state}</span>}
 
                 <div style={styles.row2}>
                   <div style={styles.inputGroup}>

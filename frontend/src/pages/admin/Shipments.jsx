@@ -1,4 +1,8 @@
+import { useEffect, useState } from "react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
+import AdminTopbar from "../../components/admin/AdminTopbar";
+import api from "../../services/api";
+
 import {
   FaTruck,
   FaCheckCircle,
@@ -10,13 +14,47 @@ import {
 import "./Admin.css";
 
 const Shipments = () => {
+  const [shipments, setShipments] = useState([]);
+
+  useEffect(() => {
+    fetchShipments();
+  }, []);
+
+  const fetchShipments = async () => {
+    try {
+      const response = await api.get(
+        "/admin/shipments"
+      );
+
+      setShipments(
+        response.data.shipments || []
+      );
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const deliveredCount = shipments.filter(
+    (shipment) =>
+      shipment.status === "DELIVERED"
+  ).length;
+
+  const transitCount = shipments.filter(
+    (shipment) =>
+      shipment.status === "IN_TRANSIT"
+  ).length;
+
+  const failedCount = shipments.filter(
+    (shipment) =>
+      shipment.status === "RTO"
+  ).length;
+
   return (
     <div className="admin-dashboard">
       <AdminSidebar />
 
       <div className="admin-content">
-
-        {/* Header */}
+        <AdminTopbar />
 
         <div className="page-header">
           <div>
@@ -33,41 +71,37 @@ const Shipments = () => {
         {/* Stats */}
 
         <div className="courier-stats">
-
           <div className="courier-stat-card">
             <FaTruck className="stat-icon blue" />
             <h4>Total Shipments</h4>
-            <h2>2</h2>
+            <h2>{shipments.length}</h2>
           </div>
 
           <div className="courier-stat-card">
             <FaCheckCircle className="stat-icon green" />
             <h4>Delivered</h4>
-            <h2>1</h2>
+            <h2>{deliveredCount}</h2>
           </div>
 
           <div className="courier-stat-card">
             <FaClock className="stat-icon orange" />
             <h4>In Transit</h4>
-            <h2>1</h2>
+            <h2>{transitCount}</h2>
           </div>
 
           <div className="courier-stat-card">
             <FaTimesCircle className="stat-icon red" />
-            <h4>Failed</h4>
-            <h2>0</h2>
+            <h4>Failed / RTO</h4>
+            <h2>{failedCount}</h2>
           </div>
-
         </div>
 
         {/* Table */}
 
         <div className="admin-table-section">
-
           <h2>Shipment List</h2>
 
           <table className="admin-table">
-
             <thead>
               <tr>
                 <th>AWB</th>
@@ -79,51 +113,65 @@ const Shipments = () => {
             </thead>
 
             <tbody>
+              {shipments.length > 0 ? (
+                shipments.map(
+                  (shipment) => (
+                    <tr key={shipment._id}>
+                      <td>
+                        {shipment.awb}
+                      </td>
 
-              <tr>
-                <td>AWB60462817</td>
-                <td>DTDC</td>
+                      <td>
+                        {
+                          shipment.courier
+                        }
+                      </td>
 
-                <td>
-                  <span className="active">
-                    Delivered
-                  </span>
-                </td>
+                      <td>
+                        <span
+                          className={
+                            shipment.status ===
+                            "DELIVERED"
+                              ? "active"
+                              : "pending"
+                          }
+                        >
+                          {
+                            shipment.status
+                          }
+                        </span>
+                      </td>
 
-                <td>09-Jun-2026</td>
+                      <td>
+                        {new Date(
+                          shipment.createdAt
+                        ).toLocaleDateString()}
+                      </td>
 
-                <td>
-                  <button className="admin-btn">
-                    <FaEye />
-                  </button>
-                </td>
-              </tr>
-
-              <tr>
-                <td>AWB60462818</td>
-                <td>Delhivery</td>
-
-                <td>
-                  <span className="pending">
-                    In Transit
-                  </span>
-                </td>
-
-                <td>09-Jun-2026</td>
-
-                <td>
-                  <button className="admin-btn">
-                    <FaEye />
-                  </button>
-                </td>
-              </tr>
-
+                      <td>
+                        <button className="admin-btn">
+                          <FaEye />
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                )
+              ) : (
+                <tr>
+                  <td
+                    colSpan="5"
+                    style={{
+                      textAlign:
+                        "center",
+                    }}
+                  >
+                    No Shipments Found
+                  </td>
+                </tr>
+              )}
             </tbody>
-
           </table>
-
         </div>
-
       </div>
     </div>
   );

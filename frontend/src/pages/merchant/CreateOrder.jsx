@@ -9,8 +9,28 @@ const CreateOrder = () => {
   const [formData, setFormData] = useState({
     customerName: "",
     customerPhone: "",
+    customerEmail: "",
     customerAddress: "",
+    city: "",
+    state: "",
+    pincode: "",
+
+    productName: "",
+    sku: "",
+    quantity: "",
+
+    weight: "",
+    length: "",
+    breadth: "",
+    height: "",
+
+    paymentMode: "PREPAID",
+
     amount: "",
+    shippingCharge: "",
+
+    courierPartner: "",
+    notes: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -67,10 +87,9 @@ const CreateOrder = () => {
       >
         <h1
           style={{
-            fontSize: "42px",
+            fontSize: "36px",
             fontWeight: "800",
-            color: "#111827",
-            marginBottom: "8px",
+            marginBottom: "10px",
           }}
         >
           Create Order
@@ -82,7 +101,7 @@ const CreateOrder = () => {
             marginBottom: "25px",
           }}
         >
-          Add a new customer order
+          Create a new shipment order
         </p>
 
         <div
@@ -90,12 +109,18 @@ const CreateOrder = () => {
             background: "#fff",
             padding: "30px",
             borderRadius: "20px",
-            maxWidth: "800px",
+            maxWidth: "1000px",
             boxShadow:
               "0 10px 25px rgba(15,23,42,.06)",
           }}
         >
           <form onSubmit={handleSubmit}>
+            {/* CUSTOMER DETAILS */}
+
+            <h2 style={sectionTitle}>
+              Customer Details
+            </h2>
+
             <input
               type="text"
               name="customerName"
@@ -116,6 +141,21 @@ const CreateOrder = () => {
               style={inputStyle}
             />
 
+            <input
+              type="email"
+              name="customerEmail"
+              placeholder="Customer Email"
+              value={formData.customerEmail}
+              onChange={handleChange}
+              style={inputStyle}
+            />
+
+            {/* ADDRESS */}
+
+            <h2 style={sectionTitle}>
+              Address Details
+            </h2>
+
             <textarea
               name="customerAddress"
               placeholder="Customer Address"
@@ -124,9 +164,132 @@ const CreateOrder = () => {
               required
               style={{
                 ...inputStyle,
-                minHeight: "120px",
+                minHeight: "100px",
               }}
             />
+
+            <input
+              type="text"
+              name="city"
+              placeholder="City"
+              value={formData.city}
+              onChange={handleChange}
+              style={inputStyle}
+            />
+
+            <input
+              type="text"
+              name="state"
+              placeholder="State"
+              value={formData.state}
+              onChange={handleChange}
+              style={inputStyle}
+            />
+
+            <input
+              type="text"
+              name="pincode"
+              placeholder="Pincode"
+              value={formData.pincode}
+              onChange={handleChange}
+              style={inputStyle}
+            />
+
+            {/* PRODUCT */}
+
+            <h2 style={sectionTitle}>
+              Product Details
+            </h2>
+
+            <input
+              type="text"
+              name="productName"
+              placeholder="Product Name"
+              value={formData.productName}
+              onChange={handleChange}
+              style={inputStyle}
+            />
+
+            <input
+              type="text"
+              name="sku"
+              placeholder="SKU"
+              value={formData.sku}
+              onChange={handleChange}
+              style={inputStyle}
+            />
+
+            <input
+              type="number"
+              name="quantity"
+              placeholder="Quantity"
+              value={formData.quantity}
+              onChange={handleChange}
+              style={inputStyle}
+            />
+
+            {/* PACKAGE */}
+
+            <h2 style={sectionTitle}>
+              Package Details
+            </h2>
+
+            <input
+              type="number"
+              name="weight"
+              placeholder="Weight (kg)"
+              value={formData.weight}
+              onChange={handleChange}
+              style={inputStyle}
+            />
+
+            <input
+              type="number"
+              name="length"
+              placeholder="Length"
+              value={formData.length}
+              onChange={handleChange}
+              style={inputStyle}
+            />
+
+            <input
+              type="number"
+              name="breadth"
+              placeholder="Breadth"
+              value={formData.breadth}
+              onChange={handleChange}
+              style={inputStyle}
+            />
+
+            <input
+              type="number"
+              name="height"
+              placeholder="Height"
+              value={formData.height}
+              onChange={handleChange}
+              style={inputStyle}
+            />
+
+            {/* PAYMENT */}
+
+            <h2 style={sectionTitle}>
+              Payment & Shipping
+            </h2>
+
+            <select
+              name="paymentMode"
+              value={formData.paymentMode}
+              onChange={handleChange}
+              style={inputStyle}
+            >
+              <option value="PREPAID">
+                PREPAID
+              </option>
+
+              <option value="COD">
+                COD
+              </option>
+            </select>
 
             <input
               type="number"
@@ -138,18 +301,59 @@ const CreateOrder = () => {
               style={inputStyle}
             />
 
+            <input
+              type="number"
+              name="shippingCharge"
+              placeholder="Shipping Charge"
+              value={formData.shippingCharge}
+              onChange={handleChange}
+              style={inputStyle}
+            />
+
+            <select
+              name="courierPartner"
+              value={formData.courierPartner}
+              onChange={handleChange}
+              style={inputStyle}
+            >
+              <option value="">
+                Select Courier
+              </option>
+
+              <option value="DTDC">
+                DTDC
+              </option>
+
+              <option value="Delhivery">
+                Delhivery
+              </option>
+
+              <option value="XpressBees">
+                XpressBees
+              </option>
+            </select>
+
+            {/* NOTES */}
+
+            <h2 style={sectionTitle}>
+              Additional Notes
+            </h2>
+
+            <textarea
+              name="notes"
+              placeholder="Notes"
+              value={formData.notes}
+              onChange={handleChange}
+              style={{
+                ...inputStyle,
+                minHeight: "100px",
+              }}
+            />
+
             <button
               type="submit"
               disabled={loading}
-              style={{
-                background: "#f97316",
-                color: "#fff",
-                border: "none",
-                padding: "14px 24px",
-                borderRadius: "12px",
-                cursor: "pointer",
-                fontWeight: "600",
-              }}
+              style={buttonStyle}
             >
               {loading
                 ? "Creating..."
@@ -162,6 +366,12 @@ const CreateOrder = () => {
   );
 };
 
+const sectionTitle = {
+  marginBottom: "15px",
+  marginTop: "25px",
+  color: "#111827",
+};
+
 const inputStyle = {
   width: "100%",
   padding: "14px",
@@ -170,6 +380,17 @@ const inputStyle = {
   border: "1px solid #e5e7eb",
   outline: "none",
   fontSize: "15px",
+};
+
+const buttonStyle = {
+  background: "#f97316",
+  color: "#fff",
+  border: "none",
+  padding: "14px 24px",
+  borderRadius: "12px",
+  cursor: "pointer",
+  fontWeight: "600",
+  marginTop: "20px",
 };
 
 export default CreateOrder;
