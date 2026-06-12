@@ -8,6 +8,10 @@ import {
   FaChartBar,
   FaCog,
   FaSignOutAlt,
+  FaClipboardList,
+  FaBox,
+  FaExclamationTriangle,
+  FaUndo,
 } from "react-icons/fa";
 
 import "./AdminSidebar.css";
@@ -15,33 +19,24 @@ import "./AdminSidebar.css";
 const AdminSidebar = () => {
   return (
     <div className="admin-sidebar">
-
       {/* Logo */}
-
       <div className="admin-brand">
         <h2>LogiTrack</h2>
-        <span>Super Admin Panel</span>
+        <span>Admin Panel</span>
       </div>
 
       {/* Profile */}
-
       <div className="admin-profile">
-
-        <div className="profile-avatar">
-          AS
-        </div>
+        <div className="profile-avatar">AS</div>
 
         <div className="profile-info">
           <h4>Arjun Singh</h4>
           <span>Administrator</span>
         </div>
-
       </div>
 
       {/* Menu */}
-
       <ul className="admin-menu">
-
         <li>
           <NavLink to="/admin/dashboard">
             <FaHome />
@@ -64,6 +59,20 @@ const AdminSidebar = () => {
         </li>
 
         <li>
+          <NavLink to="/admin/orders">
+            <FaClipboardList />
+            <span>Orders</span>
+          </NavLink>
+        </li>
+
+        <li>
+          <NavLink to="/admin/shipments">
+            <FaBox />
+            <span>Shipments</span>
+          </NavLink>
+        </li>
+
+        <li>
           <NavLink to="/admin/couriers">
             <FaTruck />
             <span>Couriers</span>
@@ -71,9 +80,30 @@ const AdminSidebar = () => {
         </li>
 
         <li>
+          <NavLink to="/admin/ndr">
+            <FaExclamationTriangle />
+            <span>NDR</span>
+          </NavLink>
+        </li>
+
+        <li>
+          <NavLink to="/admin/rto">
+            <FaUndo />
+            <span>RTO</span>
+          </NavLink>
+        </li>
+
+        <li>
           <NavLink to="/admin/pricing">
             <FaRupeeSign />
             <span>Pricing</span>
+          </NavLink>
+        </li>
+
+        <li>
+          <NavLink to="/admin/cod">
+            <FaRupeeSign />
+            <span>COD</span>
           </NavLink>
         </li>
 
@@ -97,20 +127,15 @@ const AdminSidebar = () => {
             <span>Settings</span>
           </NavLink>
         </li>
-
       </ul>
 
       {/* Logout */}
-
       <div className="logout-section">
-
         <NavLink to="/login">
           <FaSignOutAlt />
           <span>Logout</span>
         </NavLink>
-
       </div>
-
     </div>
   );
 };

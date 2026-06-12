@@ -130,6 +130,16 @@ const Sidebar = () => {
               </NavLink>
             </li>
             <li>
+              <NavLink
+                to="/merchant/rate-calculator"
+                className={({ isActive }) =>
+                  isActive ? "active" : ""
+                }
+              >
+                <FaWallet /> <span>Rate Calculator</span>
+              </NavLink>
+            </li>
+            <li>
               <NavLink to="/merchant/reports" className={({ isActive }) => isActive ? "active" : ""}>
                 <FaChartBar /> <span>Reports</span>
               </NavLink>

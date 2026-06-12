@@ -44,6 +44,8 @@ const Login = () => {
         navigate("/admin/dashboard");
       } else if (user.role === "MERCHANT") {
         navigate("/merchant/dashboard");
+      } else if (user.role === "STAFF") {
+        navigate("/staff/dashboard");
       } else if (user.role === "COURIER") {
         navigate("/courier/dashboard");
       } else if (user.role === "WAREHOUSE") {

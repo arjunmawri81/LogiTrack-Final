@@ -42,6 +42,9 @@ import AdminReports from "./pages/admin/Reports";
 import AdminSettings from "./pages/admin/Settings";
 import AdminOrders from "./pages/admin/Orders";
 import AdminShipments from "./pages/admin/Shipments";
+import NDR from "./pages/admin/NDR";
+import RTO from "./pages/admin/RTO";
+import COD from "./pages/admin/COD";
 
 // ======================
 // SUPER ADMIN PAGES
@@ -63,6 +66,22 @@ import SuperAdminSettings from "./pages/superadmin/Settings";
 import MerchantRoute from "./routes/MerchantRoute";
 import AdminRoute from "./routes/AdminRoute";
 import SuperAdminRoute from "./routes/SuperAdminRoute";
+import StaffRoute from "./routes/StaffRoute";
+import WarehouseRoute from "./routes/WarehouseRoute";
+
+// ======================
+// STAFF & WAREHOUSE PAGES
+// ======================
+import StaffDashboard from "./pages/staff/Dashboard";
+import StaffOrders from "./pages/staff/Orders";
+import StaffShipments from "./pages/staff/Shipments";
+import StaffTracking from "./pages/staff/Tracking";
+
+import WarehouseDashboard from "./pages/warehouse/Dashboard";
+import WarehouseOrders from "./pages/warehouse/Orders";
+import Manifest from "./pages/warehouse/Manifest";
+import PickupSheet from "./pages/warehouse/PickupSheet";
+import DispatchCenter from "./pages/warehouse/DispatchCenter";
 
 function App() {
   return (
@@ -99,6 +118,9 @@ function App() {
         <Route path="/admin/revenue" element={<AdminRoute><AdminRevenue /></AdminRoute>} />
         <Route path="/admin/reports" element={<AdminRoute><AdminReports /></AdminRoute>} />
         <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
+        <Route path="/admin/ndr" element={<AdminRoute><NDR /></AdminRoute>} />
+        <Route path="/admin/rto" element={<AdminRoute><RTO /></AdminRoute>} />
+        <Route path="/admin/cod" element={<AdminRoute><COD /></AdminRoute>} />
 
         {/* ================= SUPER ADMIN ================= */}
         <Route path="/superadmin/dashboard" element={<SuperAdminRoute><SuperAdminDashboard /></SuperAdminRoute>} />
@@ -111,6 +133,19 @@ function App() {
         <Route path="/superadmin/api-monitoring" element={<SuperAdminRoute><ApiMonitoring /></SuperAdminRoute>} />
         <Route path="/superadmin/audit-logs" element={<SuperAdminRoute><AuditLogs /></SuperAdminRoute>} />
         <Route path="/superadmin/settings" element={<SuperAdminRoute><SuperAdminSettings /></SuperAdminRoute>} />
+
+        {/* ================= STAFF ================= */}
+        <Route path="/staff/dashboard" element={<StaffRoute><StaffDashboard /></StaffRoute>} />
+        <Route path="/staff/orders" element={<StaffRoute><StaffOrders /></StaffRoute>} />
+        <Route path="/staff/shipments" element={<StaffRoute><StaffShipments /></StaffRoute>} />
+        <Route path="/staff/tracking" element={<StaffRoute><StaffTracking /></StaffRoute>} />
+
+        {/* ================= WAREHOUSE ================= */}
+        <Route path="/warehouse/dashboard" element={<WarehouseRoute><WarehouseDashboard /></WarehouseRoute>} />
+        <Route path="/warehouse/orders" element={<WarehouseRoute><WarehouseOrders /></WarehouseRoute>} />
+        <Route path="/warehouse/manifest" element={<WarehouseRoute><Manifest /></WarehouseRoute>} />
+        <Route path="/warehouse/pickup-sheet" element={<WarehouseRoute><PickupSheet /></WarehouseRoute>} />
+        <Route path="/warehouse/dispatch" element={<WarehouseRoute><DispatchCenter /></WarehouseRoute>} />
 
         {/* ================= 404 ================= */}
         <Route path="*" element={<NotFound />} />
