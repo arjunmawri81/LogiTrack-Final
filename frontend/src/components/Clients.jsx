@@ -1,28 +1,33 @@
 import "./Clients.css";
 
 function Clients() {
-  const clients = [
-    "Amazon",
-    "Flipkart",
-    "Myntra",
-    "Nykaa",
-    "Samsung",
-    "Boat",
-    "Lenskart",
-    "Meesho",
+  const couriers = [
+    "Delhivery",
+    "Blue Dart",
+    "DTDC",
+    "XpressBees",
+    "Ecom Express",
+    "Ekart",
+    "Shadowfax",
+    "India Post",
   ];
 
   return (
     <section className="clients">
       <div className="clients-heading">
-        <span>TRUSTED PARTNERS</span>
-        <h2>Brands That Trust Us</h2>
+        <span>COURIER PARTNERS</span>
+        <h2>Integrated Shipping Network</h2>
+
+        <p>
+          Ship with multiple courier partners from a single platform and
+          choose the best shipping option based on cost, speed and delivery performance.
+        </p>
       </div>
 
       <div className="clients-grid">
-        {clients.map((client, index) => (
+        {couriers.map((courier, index) => (
           <div className="client-card" key={index}>
-            {client}
+            {courier}
           </div>
         ))}
       </div>

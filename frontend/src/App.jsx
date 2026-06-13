@@ -5,6 +5,10 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 // ======================
 import Home from "./pages/public/Home";
 import NotFound from "./pages/public/NotFound";
+import PublicTracking from "./pages/public/Tracking";
+import About from "./pages/public/About";
+import Services from "./pages/public/Services";
+import Contact from "./pages/public/Contact";
 
 // ======================
 // AUTH PAGES
@@ -17,7 +21,7 @@ import Register from "./pages/auth/Register";
 // ======================
 import Dashboard from "./pages/merchant/Dashboard";
 import Orders from "./pages/merchant/Orders";
-import OrderDetails from "./pages/merchant/OrderDetails"; // Imported
+import OrderDetails from "./pages/merchant/OrderDetails";
 import CreateShipment from "./pages/merchant/CreateShipment";
 import Shipments from "./pages/merchant/Shipments";
 import Tracking from "./pages/merchant/Tracking";
@@ -62,15 +66,6 @@ import AuditLogs from "./pages/superadmin/AuditLogs";
 import SuperAdminSettings from "./pages/superadmin/Settings";
 
 // ======================
-// ROUTE PROTECTION
-// ======================
-import MerchantRoute from "./routes/MerchantRoute";
-import AdminRoute from "./routes/AdminRoute";
-import SuperAdminRoute from "./routes/SuperAdminRoute";
-import StaffRoute from "./routes/StaffRoute";
-import WarehouseRoute from "./routes/WarehouseRoute";
-
-// ======================
 // STAFF & WAREHOUSE PAGES
 // ======================
 import StaffDashboard from "./pages/staff/Dashboard";
@@ -84,12 +79,25 @@ import Manifest from "./pages/warehouse/Manifest";
 import PickupSheet from "./pages/warehouse/PickupSheet";
 import DispatchCenter from "./pages/warehouse/DispatchCenter";
 
+// ======================
+// ROUTE PROTECTION
+// ======================
+import MerchantRoute from "./routes/MerchantRoute";
+import AdminRoute from "./routes/AdminRoute";
+import SuperAdminRoute from "./routes/SuperAdminRoute";
+import StaffRoute from "./routes/StaffRoute";
+import WarehouseRoute from "./routes/WarehouseRoute";
+
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         {/* ================= PUBLIC ================= */}
         <Route path="/" element={<Home />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/services" element={<Services />} />
+        <Route path="/tracking" element={<PublicTracking />} />
+        <Route path="/contact" element={<Contact />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 

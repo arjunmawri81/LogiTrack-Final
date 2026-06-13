@@ -1,37 +1,57 @@
-/* ===== PROFESSIONAL NAVBAR CSS ===== */
+/* =========================
+   NAVBAR
+========================= */
 
 .navbar {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
+  width: 100%;
+
   z-index: 1000;
+
   padding: 20px 0;
+
   transition: all 0.3s ease;
+
   background: transparent;
 }
 
 .navbar.scrolled {
   background: rgba(15, 23, 42, 0.95);
-  backdrop-filter: blur(10px);
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
   padding: 12px 0;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
+
+/* =========================
+   CONTAINER
+========================= */
 
 .container {
   max-width: 1400px;
   margin: 0 auto;
+
   padding: 0 40px;
+
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
 }
 
-/* Logo */
+/* =========================
+   LOGO
+========================= */
+
 .logo a {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+
   text-decoration: none;
 }
 
@@ -42,7 +62,9 @@
 .logo-text {
   font-size: 24px;
   font-weight: 800;
+
   color: #ffffff;
+
   letter-spacing: -0.5px;
 }
 
@@ -50,19 +72,28 @@
   color: #f97316;
 }
 
-/* Mobile Menu Toggle (Hamburger) */
+/* =========================
+   MENU TOGGLE
+========================= */
+
 .menu-toggle {
   display: none;
+
   flex-direction: column;
-  cursor: pointer;
+
   gap: 5px;
+
+  cursor: pointer;
+
   z-index: 1001;
 }
 
 .menu-toggle span {
   width: 25px;
   height: 2px;
+
   background: #ffffff;
+
   transition: all 0.3s ease;
 }
 
@@ -78,46 +109,57 @@
   transform: rotate(-45deg) translate(7px, -7px);
 }
 
-/* Navigation Wrapper */
+/* =========================
+   NAVIGATION
+========================= */
+
 .nav-wrapper {
   display: flex;
   align-items: center;
   gap: 40px;
 }
 
-/* Navigation Menu */
 nav ul {
   display: flex;
+  align-items: center;
+
   gap: 32px;
+
   list-style: none;
+
   margin: 0;
   padding: 0;
 }
 
 nav ul li a {
+  position: relative;
+
   text-decoration: none;
+
   color: #ffffff;
+
   font-size: 15px;
   font-weight: 500;
+
   transition: all 0.3s ease;
+
   padding: 8px 0;
-  position: relative;
 }
 
 nav ul li a::after {
-  content: '';
+  content: "";
+
   position: absolute;
-  bottom: 0;
+
   left: 0;
+  bottom: 0;
+
   width: 0;
   height: 2px;
-  background: #f97316;
-  transition: width 0.3s ease;
-}
 
-nav ul li a:hover::after,
-nav ul li a.active::after {
-  width: 100%;
+  background: #f97316;
+
+  transition: width 0.3s ease;
 }
 
 nav ul li a:hover,
@@ -125,164 +167,182 @@ nav ul li a.active {
   color: #f97316;
 }
 
-/* Nav Actions Buttons */
+nav ul li a:hover::after,
+nav ul li a.active::after {
+  width: 100%;
+}
+
+/* =========================
+   BUTTONS
+========================= */
+
 .nav-actions {
   display: flex;
+  align-items: center;
   gap: 12px;
 }
 
 .login-btn {
-  padding: 8px 20px;
+  padding: 10px 22px;
+
   background: transparent;
+
   border: 1px solid rgba(255, 255, 255, 0.3);
+
+  border-radius: 10px;
+
   color: #ffffff;
-  border-radius: 8px;
+
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
+
   cursor: pointer;
+
   transition: all 0.3s ease;
 }
 
 .login-btn:hover {
   border-color: #f97316;
+
   color: #f97316;
 }
 
 .register-btn {
-  padding: 8px 20px;
-  background: linear-gradient(135deg, #f97316, #ea580c);
+  padding: 10px 22px;
+
   border: none;
+
+  border-radius: 10px;
+
+  background: linear-gradient(
+    135deg,
+    #f97316,
+    #ea580c
+  );
+
   color: #ffffff;
-  border-radius: 8px;
+
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
+
   cursor: pointer;
+
   transition: all 0.3s ease;
 }
 
 .register-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3);
+
+  box-shadow: 0 8px 20px rgba(249, 115, 22, 0.35);
 }
 
-.quote-btn {
-  padding: 8px 20px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #ffffff;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.3s ease;
-}
+/* =========================
+   TABLET
+========================= */
 
-.quote-btn:hover {
-  background: rgba(249, 115, 22, 0.2);
-  border-color: #f97316;
-}
-
-/* ===== RESPONSIVE DESIGN ===== */
-
-/* Tablet */
 @media (max-width: 1024px) {
   .container {
     padding: 0 24px;
   }
-  
+
   nav ul {
-    gap: 24px;
+    gap: 22px;
   }
-  
-  .nav-actions {
-    gap: 8px;
-  }
-  
-  .login-btn, .register-btn, .quote-btn {
-    padding: 6px 16px;
+
+  .login-btn,
+  .register-btn {
+    padding: 8px 18px;
     font-size: 13px;
   }
 }
 
-/* Mobile */
+/* =========================
+   MOBILE
+========================= */
+
 @media (max-width: 768px) {
   .menu-toggle {
     display: flex;
   }
-  
+
   .nav-wrapper {
     position: fixed;
+
     top: 0;
     right: -100%;
-    width: 70%;
+
+    width: 80%;
     height: 100vh;
+
     background: #0f172a;
+
     flex-direction: column;
     justify-content: center;
     align-items: center;
+
     gap: 40px;
+
     transition: right 0.3s ease;
-    z-index: 1000;
-    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3);
+
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.35);
   }
-  
+
   .nav-wrapper.active {
     right: 0;
   }
-  
+
   nav ul {
     flex-direction: column;
-    align-items: center;
-    gap: 32px;
+    gap: 28px;
   }
-  
+
   nav ul li a {
     font-size: 18px;
   }
-  
+
   .nav-actions {
     flex-direction: column;
+
     width: 80%;
-    gap: 12px;
   }
-  
-  .login-btn, .register-btn, .quote-btn {
-    padding: 12px;
+
+  .login-btn,
+  .register-btn {
     width: 100%;
-    text-align: center;
-    justify-content: center;
+
+    padding: 12px;
   }
-  
+
   .navbar.scrolled {
     background: #0f172a;
   }
-  
+
   .logo-text {
     font-size: 20px;
   }
 }
 
-/* Small Mobile */
+/* =========================
+   SMALL MOBILE
+========================= */
+
 @media (max-width: 480px) {
   .container {
     padding: 0 16px;
   }
-  
+
   .nav-wrapper {
     width: 85%;
   }
-  
+
   .logo-text {
     font-size: 18px;
   }
-  
+
   .logo-icon {
     font-size: 22px;
   }
-  
+
   nav ul li a {
     font-size: 16px;
   }

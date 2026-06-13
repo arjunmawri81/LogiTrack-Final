@@ -4,25 +4,25 @@ function CTA() {
   return (
     <section className="cta">
       <div className="cta-content">
-        <span>GET STARTED TODAY</span>
+        <span>START SHIPPING TODAY</span>
 
         <h2>
-          Ready To Move Your
-          Cargo Faster?
+          Ready To Ship Smarter?
         </h2>
 
         <p>
-          Partner with LogiTrack for secure, reliable and
-          nationwide logistics solutions.
+          Manage orders, compare courier rates, generate AWBs,
+          track shipments and handle returns from a single
+          logistics platform.
         </p>
 
         <div className="cta-buttons">
           <button className="cta-primary">
-            Get Quote
+            Start Shipping
           </button>
 
           <button className="cta-secondary">
-            Contact Us
+            Track Shipment
           </button>
         </div>
       </div>

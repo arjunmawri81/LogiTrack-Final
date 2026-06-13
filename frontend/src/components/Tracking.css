@@ -1,7 +1,8 @@
 .tracking-section {
-  margin-top: -80px;
+  margin-top: -30px;
   position: relative;
   z-index: 10;
+  padding: 0 20px;
 }
 
 .tracking-card {
@@ -66,7 +67,6 @@
 /* Tablet */
 
 @media (max-width: 768px) {
-
   .tracking-card {
     padding: 30px 20px;
   }
@@ -92,9 +92,9 @@
 /* Mobile */
 
 @media (max-width: 480px) {
-
   .tracking-section {
-    margin-top: -50px;
+    margin-top: -20px;
+    padding: 0 12px;
   }
 
   .tracking-card {

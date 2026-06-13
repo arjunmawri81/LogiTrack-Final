@@ -1,27 +1,39 @@
 const servicesData = [
   {
     id: 1,
-    title: "Road Freight",
+    title: "Multi-Courier Integration",
     description:
-      "Reliable road transportation network across India with fast delivery and secure cargo handling.",
+      "Connect with leading courier partners like Delhivery, DTDC, Blue Dart, XpressBees, Ecom Express and more from a single dashboard.",
   },
   {
     id: 2,
-    title: "Air Freight",
+    title: "Real-Time Shipment Tracking",
     description:
-      "Express air cargo solutions for urgent shipments and time-sensitive deliveries.",
+      "Track every shipment in real time with live status updates, courier synchronization, delivery milestones and shipment history.",
   },
   {
     id: 3,
-    title: "Warehousing",
+    title: "COD & Billing Management",
     description:
-      "Modern storage facilities with inventory management and secure operations.",
+      "Manage COD collections, settlements, invoices, wallet transactions and payment reconciliation from one platform.",
   },
   {
     id: 4,
-    title: "Last Mile Delivery",
+    title: "NDR, Returns & RTO",
     description:
-      "Efficient last-mile delivery ensuring customer satisfaction and quick turnaround.",
+      "Reduce failed deliveries with NDR management, automate customer follow-ups and efficiently handle returns and RTO shipments.",
+  },
+  {
+    id: 5,
+    title: "Warehouse Management",
+    description:
+      "Manage receiving, packing, dispatch, shipment handovers and fulfillment operations with integrated warehouse workflows.",
+  },
+  {
+    id: 6,
+    title: "Analytics & Reports",
+    description:
+      "Gain business insights through shipment analytics, courier performance reports, revenue tracking and delivery success metrics.",
   },
 ];
 

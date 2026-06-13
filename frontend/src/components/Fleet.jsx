@@ -5,31 +5,35 @@ function Fleet() {
   return (
     <section className="fleet">
       <div className="fleet-content">
-        <span className="section-tag">OUR NETWORK</span>
-        <h2>Powerful Fleet Network Across The Country</h2>
+        <span className="section-tag">
+          HOW IT WORKS
+        </span>
+
+        <h2>
+          One Platform.
+          <br />
+          Complete Shipping Control.
+        </h2>
+
         <p>
-          Our extensive transportation network ensures secure and on-time 
-          delivery to every destination.
+          Manage orders, create shipments, compare courier rates,
+          generate AWBs, track deliveries, handle COD settlements,
+          returns and warehouse operations from a single dashboard.
         </p>
 
-        <div className="fleet-stats">
-          <div className="stat-item">
-            <h3>500+</h3>
-            <p>Vehicles</p>
-          </div>
-          <div className="stat-item">
-            <h3>150+</h3>
-            <p>Cities</p>
-          </div>
-          <div className="stat-item">
-            <h3>24/7</h3>
-            <p>Support</p>
-          </div>
-        </div>
+        <p>
+          Whether you're a growing eCommerce seller or an enterprise
+          business, LogiTrack helps streamline logistics operations
+          with real-time visibility, automated shipping workflows,
+          and centralized logistics management.
+        </p>
       </div>
 
       <div className="fleet-image">
-        <img src={fleet} alt="Fleet" />
+        <img
+          src={fleet}
+          alt="LogiTrack Shipping Platform"
+        />
       </div>
     </section>
   );

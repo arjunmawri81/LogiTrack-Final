@@ -1,62 +1,164 @@
 :root {
   --primary: #f97316;
+  --primary-dark: #ea580c;
   --bg-light: #ffffff;
+  --section-bg: #f8fafc;
   --text-main: #111827;
   --text-muted: #64748b;
+  --border: #e2e8f0;
 }
 
+/* ===== SECTION ===== */
+
 .clients {
-  padding: 5rem 8%;
-  background-color: #f8fafc;
+  padding: 100px 20px;
+  background: var(--section-bg);
   text-align: center;
+}
+
+.clients-heading {
+  max-width: 800px;
+  margin: 0 auto 60px;
 }
 
 .clients-heading span {
   color: var(--primary);
   font-weight: 700;
-  letter-spacing: 0.15em;
+  letter-spacing: 3px;
   text-transform: uppercase;
-  font-size: 0.85rem;
+  font-size: 14px;
 }
 
 .clients-heading h2 {
-  font-size: 2.5rem;
-  margin: 1rem 0 3rem;
+  font-size: clamp(2rem, 4vw, 3rem);
+  margin: 15px 0;
   color: var(--text-main);
+  font-weight: 800;
 }
+
+.clients-heading p {
+  color: var(--text-muted);
+  font-size: 17px;
+  line-height: 1.8;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+/* ===== GRID ===== */
 
 .clients-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 25px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 24px;
+
   max-width: 1200px;
   margin: 0 auto;
 }
 
-/* Active/Highlight Look */
+/* ===== CARD ===== */
+
 .client-card {
   background: var(--bg-light);
-  padding: 2.5rem 1.5rem;
-  border-radius: 1rem;
-  /* Hamesha dikhne wala professional border */
-  border: 2px solid #e2e8f0; 
+
+  padding: 35px 20px;
+
+  border-radius: 18px;
+  border: 2px solid var(--border);
+
+  font-size: 20px;
   font-weight: 700;
-  font-size: 1.25rem;
   color: var(--text-main);
-  
-  /* Hamesha shadow taaki card "active" lage */
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+
   transition: all 0.3s ease;
+
+  box-shadow:
+    0 4px 6px rgba(0, 0, 0, 0.03),
+    0 10px 15px rgba(0, 0, 0, 0.03);
 }
 
-/* Jab koi hover kare to thoda aur focus aaye */
 .client-card:hover {
   border-color: var(--primary);
+
   color: var(--primary);
-  transform: translateY(-5px);
-  box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.2);
+
+  transform: translateY(-6px);
+
+  box-shadow:
+    0 12px 24px rgba(249, 115, 22, 0.15),
+    0 6px 12px rgba(249, 115, 22, 0.08);
 }
 
-@media (max-width: 600px) {
-  .clients-grid { grid-template-columns: 1fr 1fr; }
+/* ===== TABLET ===== */
+
+@media (max-width: 768px) {
+  .clients {
+    padding: 80px 16px;
+  }
+
+  .clients-heading {
+    margin-bottom: 40px;
+  }
+
+  .clients-heading h2 {
+    font-size: 32px;
+  }
+
+  .clients-heading p {
+    font-size: 15px;
+  }
+
+  .clients-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .client-card {
+    font-size: 16px;
+    padding: 25px 15px;
+  }
+}
+
+/* ===== MOBILE ===== */
+
+@media (max-width: 480px) {
+  .clients {
+    padding: 70px 14px;
+  }
+
+  .clients-heading span {
+    font-size: 12px;
+    letter-spacing: 2px;
+  }
+
+  .clients-heading h2 {
+    font-size: 28px;
+  }
+
+  .clients-heading p {
+    font-size: 14px;
+  }
+
+  .clients-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .client-card {
+    font-size: 17px;
+    padding: 20px;
+    border-radius: 14px;
+  }
+}
+
+/* ===== SMALL MOBILE ===== */
+
+@media (max-width: 360px) {
+  .clients-heading h2 {
+    font-size: 24px;
+  }
+
+  .client-card {
+    font-size: 15px;
+    padding: 18px;
+  }
 }

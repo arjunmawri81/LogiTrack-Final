@@ -9,8 +9,13 @@ function Services() {
   return (
     <section className="services-section">
       <div className="services-title">
-        <span>OUR SERVICES</span>
-        <h2>Comprehensive Logistics Solutions</h2>
+        <span>PLATFORM FEATURES</span>
+        <h2>Everything You Need To Manage Shipping</h2>
+        <p>
+          Simplify logistics operations with multi-courier integration,
+          shipment tracking, warehouse management, billing, COD handling,
+          NDR resolution and powerful analytics.
+        </p>
       </div>
 
       <div className="service-tabs">
@@ -28,11 +33,19 @@ function Services() {
       <div className="service-content">
         <div className="service-text">
           <h3>{servicesData[active].title}</h3>
+
           <p>{servicesData[active].description}</p>
-          <button className="learn-btn">Learn More</button>
+
+          <button className="learn-btn">
+            Explore Feature
+          </button>
         </div>
+
         <div className="service-image">
-          <img src={serviceImg} alt="service" />
+          <img
+            src={serviceImg}
+            alt={servicesData[active].title}
+          />
         </div>
       </div>
     </section>
