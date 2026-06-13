@@ -127,6 +127,7 @@ const userSchema = new mongoose.Schema(
         "SUPER_ADMIN",
         "ADMIN",
         "MERCHANT",
+        "STAFF",
         "COURIER",
         "WAREHOUSE",
       ],

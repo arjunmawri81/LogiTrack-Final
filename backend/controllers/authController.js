@@ -91,7 +91,14 @@ const registerUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Role Management
-    const allowedRoles = ["SUPER_ADMIN", "ADMIN", "MERCHANT", "COURIER", "WAREHOUSE"];
+    const allowedRoles = [
+      "SUPER_ADMIN",
+      "ADMIN",
+      "MERCHANT",
+      "STAFF",
+      "COURIER",
+      "WAREHOUSE"
+    ];
     const userRole = allowedRoles.includes(role) ? role : "MERCHANT";
 
     // Company name validation for merchants

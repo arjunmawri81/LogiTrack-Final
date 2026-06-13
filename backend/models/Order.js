@@ -135,15 +135,13 @@ const orderSchema = new mongoose.Schema(
   }
 );
 
-orderSchema.pre("save", function (next) {
+orderSchema.pre("save", function () {
   if (!this.orderNumber) {
     this.orderNumber =
       "ORD" +
       Date.now() +
       Math.floor(1000 + Math.random() * 9000);
   }
-
-  next();
 });
 
 module.exports = mongoose.model("Order", orderSchema);

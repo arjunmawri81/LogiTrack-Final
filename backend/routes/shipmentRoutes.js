@@ -11,71 +11,47 @@ const {
   schedulePickup,
   generateShipmentQR,
   getTrackingTimeline,
+  generateLabel,
 } = require("../controllers/shipmentController");
 
 // ===============================
 // CREATE SHIPMENT
 // ===============================
-router.post(
-  "/",
-  authMiddleware,
-  createShipment
-);
+router.post("/", authMiddleware, createShipment);
 
 // ===============================
 // GET ALL SHIPMENTS
 // ===============================
-router.get(
-  "/",
-  authMiddleware,
-  getShipments
-);
+router.get("/", authMiddleware, getShipments);
 
 // ===============================
 // TRACK SHIPMENT BY AWB
-// Example:
-// /api/shipments/track/AWB123456
 // ===============================
-router.get(
-  "/track/:id",
-  authMiddleware,
-  trackShipment
-);
+router.get("/track/:id", authMiddleware, trackShipment);
 
 // ===============================
 // UPDATE SHIPMENT STATUS
 // ===============================
-router.patch(
-  "/:id/status",
-  authMiddleware,
-  updateShipmentStatus
-);
+router.patch("/:id/status", authMiddleware, updateShipmentStatus);
 
 // ===============================
 // SCHEDULE PICKUP
 // ===============================
-router.post(
-  "/:id/pickup",
-  authMiddleware,
-  schedulePickup
-);
+router.post("/:id/pickup", authMiddleware, schedulePickup);
+
+// ===============================
+// GENERATE SHIPPING LABEL PDF
+// ===============================
+router.get("/:id/label", authMiddleware, generateLabel);
 
 // ===============================
 // GENERATE QR CODE
 // ===============================
-router.get(
-  "/:id/qr",
-  authMiddleware,
-  generateShipmentQR
-);
+router.get("/:id/qr", authMiddleware, generateShipmentQR);
 
 // ===============================
 // GET TRACKING TIMELINE
 // ===============================
-router.get(
-  "/:id/timeline",
-  authMiddleware,
-  getTrackingTimeline
-);
+router.get("/:id/timeline", authMiddleware, getTrackingTimeline);
 
 module.exports = router;

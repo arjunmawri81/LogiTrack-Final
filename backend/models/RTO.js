@@ -19,17 +19,34 @@ const rtoSchema = new mongoose.Schema(
       required: true,
     },
 
+    returnAwb: {
+      type: String,
+      default: "",
+    },
+
+    remarks: {
+      type: String,
+      default: "",
+    },
+
     status: {
       type: String,
       enum: [
         "INITIATED",
         "IN_TRANSIT",
-        "RECEIVED",
+        "OUT_FOR_RETURN",
+        "RECEIVED_AT_WAREHOUSE",
+        "COMPLETED",
       ],
       default: "INITIATED",
     },
 
     receivedDate: {
+      type: Date,
+      default: null,
+    },
+
+    completedDate: {
       type: Date,
       default: null,
     },
@@ -39,7 +56,4 @@ const rtoSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model(
-  "RTO",
-  rtoSchema
-);
+module.exports = mongoose.model("RTO", rtoSchema);

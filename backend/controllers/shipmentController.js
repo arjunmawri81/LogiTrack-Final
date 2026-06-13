@@ -1,6 +1,8 @@
 const Shipment = require("../models/Shipment");
 const Order = require("../models/Order");
 const QRCode = require("qrcode");
+const PDFDocument = require("pdfkit");
+const bwipjs = require("bwip-js");
 
 // ===============================
 // GENERATE UNIQUE AWB
@@ -155,6 +157,12 @@ const updateShipmentStatus = async (req, res) => {
 
     shipment.status = status;
 
+    const order = await Order.findById(shipment.orderId);
+    if (order) {
+      order.status = status;
+      await order.save();
+    }
+
     shipment.trackingEvents.push({
       status,
       location: "System Update",
@@ -195,9 +203,10 @@ const schedulePickup = async (req, res) => {
     }
 
     shipment.pickupDate = new Date();
+    shipment.status = "READY_FOR_PICKUP";
 
     shipment.trackingEvents.push({
-      status: "PICKUP_SCHEDULED",
+      status: "READY_FOR_PICKUP",
       location: "Warehouse",
       remark: "Pickup Scheduled",
     });
@@ -218,25 +227,24 @@ const schedulePickup = async (req, res) => {
 };
 
 // ===============================
-// GENERATE QR CODE
+// GENERATE QR CODE (SECURED)
 // ===============================
 const generateShipmentQR = async (req, res) => {
   try {
-    const shipment = await Shipment.findById(req.params.id);
+    const shipment = await Shipment.findOne({
+      _id: req.params.id,
+      merchantId: req.user.id,
+    });
 
     if (!shipment) {
       return res.status(404).json({
         success: false,
-        message: "Shipment not found",
+        message: "Shipment not found or unauthorized",
       });
     }
 
-    const qrCode = await QRCode.toDataURL(
-      shipment.awb
-    );
-
+    const qrCode = await QRCode.toDataURL(shipment.awb);
     shipment.qrCode = qrCode;
-
     await shipment.save();
 
     res.status(200).json({
@@ -252,16 +260,66 @@ const generateShipmentQR = async (req, res) => {
 };
 
 // ===============================
+// GENERATE PDF LABEL (SECURED)
+// ===============================
+const generateLabel = async (req, res) => {
+  try {
+    const shipment = await Shipment.findOne({
+      _id: req.params.id,
+      merchantId: req.user.id,
+    }).populate("orderId");
+
+    if (!shipment) {
+      return res.status(404).json({
+        success: false,
+        message: "Shipment not found or unauthorized",
+      });
+    }
+
+    const doc = new PDFDocument({ size: "A6", margin: 20 });
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `inline; filename=${shipment.awb}.pdf`);
+
+    doc.pipe(res);
+
+    doc.fontSize(18).text("LOGITRACK SHIPPING LABEL", { align: "center" });
+    doc.moveDown();
+    
+    doc.fontSize(12).text(`AWB: ${shipment.awb}`);
+    doc.text(`Courier: ${shipment.courier}`);
+    doc.moveDown();
+    
+    doc.text(`Customer: ${shipment.orderId.customerName}`);
+    doc.text(`Phone: ${shipment.orderId.customerPhone}`);
+    doc.text(`Address: ${shipment.orderId.customerAddress}`);
+    doc.text(`Order No: ${shipment.orderId.orderNumber}`);
+    doc.text(`Payment: ${shipment.orderId.paymentMode}`);
+    doc.text(`Amount: ₹${shipment.orderId.amount}`);
+    doc.moveDown();
+
+    const barcodeBuffer = await bwipjs.toBuffer({
+      bcid: "code128",
+      text: shipment.awb,
+      scale: 3,
+      height: 10,
+    });
+
+    doc.image(barcodeBuffer, { width: 180 });
+    doc.end();
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ===============================
 // TRACKING TIMELINE
 // ===============================
-const getTrackingTimeline = async (
-  req,
-  res
-) => {
+const getTrackingTimeline = async (req, res) => {
   try {
-    const shipment = await Shipment.findById(
-      req.params.id
-    );
+    const shipment = await Shipment.findById(req.params.id);
 
     if (!shipment) {
       return res.status(404).json({
@@ -272,8 +330,7 @@ const getTrackingTimeline = async (
 
     res.status(200).json({
       success: true,
-      timeline:
-        shipment.trackingEvents || [],
+      timeline: shipment.trackingEvents || [],
     });
   } catch (error) {
     res.status(500).json({
@@ -291,4 +348,5 @@ module.exports = {
   schedulePickup,
   generateShipmentQR,
   getTrackingTimeline,
+  generateLabel,
 };

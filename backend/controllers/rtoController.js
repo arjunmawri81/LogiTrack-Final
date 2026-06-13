@@ -10,6 +10,7 @@ const createRTO = async (req, res) => {
 
     res.status(201).json({
       success: true,
+      message: "RTO Created Successfully",
       rto,
     });
   } catch (error) {
@@ -41,16 +42,11 @@ const getRTOs = async (req, res) => {
 };
 
 // Update RTO Status
-const updateRTOStatus = async (
-  req,
-  res
-) => {
+const updateRTOStatus = async (req, res) => {
   try {
-    const { status } = req.body;
+    const { status, remarks } = req.body;
 
-    const rto = await RTO.findById(
-      req.params.id
-    );
+    const rto = await RTO.findById(req.params.id);
 
     if (!rto) {
       return res.status(404).json({
@@ -61,15 +57,23 @@ const updateRTOStatus = async (
 
     rto.status = status;
 
-    if (status === "RECEIVED") {
-      rto.receivedDate =
-        new Date();
+    if (remarks) {
+      rto.remarks = remarks;
+    }
+
+    if (status === "RECEIVED_AT_WAREHOUSE") {
+      rto.receivedDate = new Date();
+    }
+
+    if (status === "COMPLETED") {
+      rto.completedDate = new Date();
     }
 
     await rto.save();
 
     res.status(200).json({
       success: true,
+      message: "RTO Status Updated Successfully",
       rto,
     });
   } catch (error) {
