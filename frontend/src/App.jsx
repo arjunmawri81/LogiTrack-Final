@@ -17,6 +17,7 @@ import Register from "./pages/auth/Register";
 // ======================
 import Dashboard from "./pages/merchant/Dashboard";
 import Orders from "./pages/merchant/Orders";
+import OrderDetails from "./pages/merchant/OrderDetails"; // Imported
 import CreateShipment from "./pages/merchant/CreateShipment";
 import Shipments from "./pages/merchant/Shipments";
 import Tracking from "./pages/merchant/Tracking";
@@ -95,6 +96,8 @@ function App() {
         {/* ================= MERCHANT ================= */}
         <Route path="/merchant/dashboard" element={<MerchantRoute><Dashboard /></MerchantRoute>} />
         <Route path="/merchant/orders" element={<MerchantRoute><Orders /></MerchantRoute>} />
+        <Route path="/merchant/orders/:id" element={<MerchantRoute><OrderDetails /></MerchantRoute>} />
+        <Route path="/merchant/create-order" element={<MerchantRoute><CreateOrder /></MerchantRoute>} />
         <Route path="/merchant/create-shipment" element={<MerchantRoute><CreateShipment /></MerchantRoute>} />
         <Route path="/merchant/shipments" element={<MerchantRoute><Shipments /></MerchantRoute>} />
         <Route path="/merchant/tracking" element={<MerchantRoute><Tracking /></MerchantRoute>} />
@@ -103,7 +106,6 @@ function App() {
         <Route path="/merchant/reports" element={<MerchantRoute><MerchantReports /></MerchantRoute>} />
         <Route path="/merchant/profile" element={<MerchantRoute><Profile /></MerchantRoute>} />
         <Route path="/merchant/settings" element={<MerchantRoute><Settings /></MerchantRoute>} />
-        <Route path="/merchant/create-order" element={<MerchantRoute><CreateOrder /></MerchantRoute>} />
         <Route path="/merchant/serviceability" element={<MerchantRoute><Serviceability /></MerchantRoute>} />
         <Route path="/merchant/rate-calculator" element={<MerchantRoute><RateCalculator /></MerchantRoute>} />
 

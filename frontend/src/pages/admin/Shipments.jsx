@@ -8,7 +8,6 @@ import {
   FaCheckCircle,
   FaClock,
   FaTimesCircle,
-  FaEye,
 } from "react-icons/fa";
 
 import "./Admin.css";
@@ -30,28 +29,28 @@ const Shipments = () => {
     }
   };
 
+  const updateShipmentStatus = async (id, status) => {
+    try {
+      await api.patch(`/shipments/${id}/status`, { status });
+      fetchShipments();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const filteredShipments = shipments.filter(
     (shipment) =>
       shipment.awb?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       shipment.courier?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const deliveredCount = shipments.filter(
-    (shipment) => shipment.status === "DELIVERED"
-  ).length;
-
-  const transitCount = shipments.filter(
-    (shipment) => shipment.status === "IN_TRANSIT"
-  ).length;
-
-  const failedCount = shipments.filter(
-    (shipment) => shipment.status === "RTO"
-  ).length;
+  const deliveredCount = shipments.filter((s) => s.status === "DELIVERED").length;
+  const transitCount = shipments.filter((s) => s.status === "IN_TRANSIT").length;
+  const failedCount = shipments.filter((s) => s.status === "RTO" || s.status === "NDR").length;
 
   return (
     <div className="admin-dashboard">
       <AdminSidebar />
-
       <div className="admin-content">
         <AdminTopbar />
 
@@ -66,30 +65,26 @@ const Shipments = () => {
         <div className="courier-stats">
           <div className="courier-stat-card">
             <FaTruck className="stat-icon blue" />
-            <h4>Total Shipments</h4>
+            <h4>Total</h4>
             <h2>{shipments.length}</h2>
           </div>
-
           <div className="courier-stat-card">
             <FaCheckCircle className="stat-icon green" />
             <h4>Delivered</h4>
             <h2>{deliveredCount}</h2>
           </div>
-
           <div className="courier-stat-card">
             <FaClock className="stat-icon orange" />
-            <h4>In Transit</h4>
+            <h4>Transit</h4>
             <h2>{transitCount}</h2>
           </div>
-
           <div className="courier-stat-card">
             <FaTimesCircle className="stat-icon red" />
-            <h4>Failed / RTO</h4>
+            <h4>Failed/RTO</h4>
             <h2>{failedCount}</h2>
           </div>
         </div>
 
-        {/* Search */}
         <div className="search-box">
           <input
             type="text"
@@ -99,60 +94,46 @@ const Shipments = () => {
           />
         </div>
 
-        {/* Table */}
         <div className="admin-table-section">
           <h2>Shipment List</h2>
-
           <table className="admin-table">
             <thead>
               <tr>
                 <th>AWB</th>
+                <th>Order No</th>
                 <th>Courier</th>
                 <th>Status</th>
-                <th>Date</th>
-                <th>Action</th>
+                <th>Pickup Date</th>
+                <th>Delivery Date</th>
+                <th>Actions</th>
               </tr>
             </thead>
-
             <tbody>
               {filteredShipments.length > 0 ? (
                 filteredShipments.map((shipment) => (
                   <tr key={shipment._id}>
                     <td>{shipment.awb}</td>
+                    <td>{shipment.orderId?.orderNumber || "N/A"}</td>
                     <td>{shipment.courier}</td>
                     <td>
-                      <span
-                        className={
-                          shipment.status === "DELIVERED"
-                            ? "active"
-                            : shipment.status === "IN_TRANSIT"
-                            ? "processing"
-                            : "pending"
-                        }
-                      >
+                      <span className={`status-badge ${shipment.status?.toLowerCase()}`}>
                         {shipment.status}
                       </span>
                     </td>
-                    <td>{new Date(shipment.createdAt).toLocaleDateString()}</td>
-                    <td>
-                      <button
-                        className="admin-btn"
-                        onClick={() =>
-                          alert(
-                            `AWB: ${shipment.awb}\nCourier: ${shipment.courier}\nStatus: ${shipment.status}`
-                          )
-                        }
-                      >
-                        <FaEye />
-                      </button>
+                    <td>{shipment.pickupDate ? new Date(shipment.pickupDate).toLocaleDateString() : "---"}</td>
+                    <td>{shipment.deliveryDate ? new Date(shipment.deliveryDate).toLocaleDateString() : "---"}</td>
+                    <td className="action-buttons">
+                      <button onClick={() => updateShipmentStatus(shipment._id, "IN_TRANSIT")}>Transit</button>
+                      <button onClick={() => updateShipmentStatus(shipment._id, "OUT_FOR_DELIVERY")}>OFD</button>
+                      <button onClick={() => updateShipmentStatus(shipment._id, "DELIVERED")}>Delivered</button>
+                      <button onClick={() => updateShipmentStatus(shipment._id, "NDR")}>NDR</button>
+                      <button onClick={() => updateShipmentStatus(shipment._id, "RTO")}>RTO</button>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="5" style={{ textAlign: "center" }}>
-                    No Shipments Found
-                  </td>
+                  <td colSpan="7" style={{ textAlign: "center" }}>No Shipments Found</td>
                 </tr>
               )}
             </tbody>
