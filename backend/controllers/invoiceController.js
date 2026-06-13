@@ -6,9 +6,7 @@ const Invoice = require("../models/Invoice");
 // ================================
 const downloadInvoice = async (req, res) => {
   try {
-    const invoice = await Invoice.findById(
-      req.params.id
-    )
+    const invoice = await Invoice.findById(req.params.id)
       .populate("merchantId")
       .populate("orderId");
 
@@ -23,10 +21,7 @@ const downloadInvoice = async (req, res) => {
       margin: 50,
     });
 
-    res.setHeader(
-      "Content-Type",
-      "application/pdf"
-    );
+    res.setHeader("Content-Type", "application/pdf");
 
     res.setHeader(
       "Content-Disposition",
@@ -55,66 +50,44 @@ const downloadInvoice = async (req, res) => {
     // Invoice Details
     doc.fontSize(12);
 
-    doc.text(
-      `Invoice Number: ${invoice.invoiceNumber}`
-    );
-
+    doc.text(`Invoice Number: ${invoice.invoiceNumber}`);
     doc.text(
       `Invoice Date: ${invoice.createdAt.toDateString()}`
     );
-
-    doc.text(
-      `Status: ${invoice.status}`
-    );
+    doc.text(`Status: ${invoice.status}`);
 
     doc.moveDown();
 
-    // Merchant
-    doc.fontSize(14).text(
-      "Merchant Details"
-    );
-
+    // Merchant Details
+    doc.fontSize(14).text("Merchant Details");
     doc.moveDown(0.5);
 
     doc.fontSize(12);
 
     doc.text(
-      `Name: ${
-        invoice.merchantId?.name || "-"
-      }`
+      `Name: ${invoice.merchantId?.name || "-"}`
     );
 
     doc.text(
-      `Email: ${
-        invoice.merchantId?.email || "-"
-      }`
+      `Email: ${invoice.merchantId?.email || "-"}`
     );
 
     doc.moveDown();
 
-    // Charges
-    doc.fontSize(14).text(
-      "Billing Details"
-    );
-
+    // Billing Details
+    doc.fontSize(14).text("Billing Details");
     doc.moveDown(0.5);
 
     doc.fontSize(12);
 
+    doc.text(`Base Amount: ₹${invoice.amount}`);
+
     doc.text(
-      `Base Amount: ₹${invoice.amount}`
+      `Tax Amount: ₹${invoice.taxAmount || 0}`
     );
 
     doc.text(
-      `Tax Amount: ₹${
-        invoice.taxAmount || 0
-      }`
-    );
-
-    doc.text(
-      `Shipping Charge: ₹${
-        invoice.shippingCharge || 0
-      }`
+      `Shipping Charge: ₹${invoice.shippingCharge || 0}`
     );
 
     doc.moveDown();
@@ -122,7 +95,7 @@ const downloadInvoice = async (req, res) => {
     doc.fontSize(16);
 
     doc.text(
-      `Total Amount: ₹${invoice.totalAmount}`
+      `Total Amount: ₹${invoice.totalAmount || 0}`
     );
 
     doc.moveDown(2);
@@ -138,6 +111,89 @@ const downloadInvoice = async (req, res) => {
 
     doc.end();
   } catch (error) {
+    console.log("DOWNLOAD INVOICE ERROR =>", error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ================================
+// GET ALL INVOICES
+// ================================
+const getInvoices = async (req, res) => {
+  try {
+    console.log(
+      "REQ USER ID =>",
+      req.user.id
+    );
+
+    const invoices = await Invoice.find({
+      merchantId: req.user.id,
+    })
+      .populate("orderId")
+      .sort({ createdAt: -1 });
+
+    console.log(
+      "INVOICES FOUND =>",
+      invoices.length
+    );
+
+    res.status(200).json({
+      success: true,
+      count: invoices.length,
+      invoices,
+    });
+  } catch (error) {
+    console.log("GET INVOICES ERROR =>", error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ================================
+// GET INVOICE SUMMARY
+// ================================
+const getInvoiceSummary = async (req, res) => {
+  try {
+    const invoices = await Invoice.find({
+      merchantId: req.user.id,
+    });
+
+    const totalInvoices = invoices.length;
+
+    const paidInvoices = invoices.filter(
+      (i) => i.status === "PAID"
+    ).length;
+
+    const pendingInvoices = invoices.filter(
+      (i) => i.status === "PENDING"
+    ).length;
+
+    const totalRevenue = invoices.reduce(
+      (sum, invoice) =>
+        sum + (invoice.totalAmount || 0),
+      0
+    );
+
+    res.status(200).json({
+      success: true,
+      totalInvoices,
+      paidInvoices,
+      pendingInvoices,
+      totalRevenue,
+    });
+  } catch (error) {
+    console.log(
+      "GET INVOICE SUMMARY ERROR =>",
+      error
+    );
+
     res.status(500).json({
       success: false,
       message: error.message,
@@ -147,4 +203,6 @@ const downloadInvoice = async (req, res) => {
 
 module.exports = {
   downloadInvoice,
+  getInvoices,
+  getInvoiceSummary,
 };

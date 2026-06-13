@@ -79,14 +79,14 @@ const invoiceSchema = new mongoose.Schema(
   }
 );
 
-// Auto Calculate Total
-invoiceSchema.pre("save", function (next) {
+// ================================
+// AUTO CALCULATE TOTAL AMOUNT
+// ================================
+invoiceSchema.pre("save", function () {
   this.totalAmount =
     Number(this.amount || 0) +
     Number(this.taxAmount || 0) +
     Number(this.shippingCharge || 0);
-
-  next();
 });
 
 module.exports = mongoose.model(

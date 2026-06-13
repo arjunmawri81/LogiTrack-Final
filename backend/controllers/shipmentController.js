@@ -1,5 +1,6 @@
 const Shipment = require("../models/Shipment");
 const Order = require("../models/Order");
+const Invoice = require("../models/Invoice");
 const QRCode = require("qrcode");
 const PDFDocument = require("pdfkit");
 const bwipjs = require("bwip-js");
@@ -32,6 +33,8 @@ const generateAWB = async () => {
 // ===============================
 const createShipment = async (req, res) => {
   try {
+    console.log("REQ USER =>", req.user);
+
     const { orderId, courier } = req.body;
 
     if (!orderId || !courier) {
@@ -70,15 +73,36 @@ const createShipment = async (req, res) => {
       ],
     });
 
+    const invoice = await Invoice.create({
+      invoiceNumber:
+        "INV" +
+        Date.now() +
+        Math.floor(Math.random() * 1000),
+
+      merchantId: req.user.id,
+      orderId: order._id,
+      shipmentId: shipment._id,
+      amount: order.amount || 0,
+      taxAmount: 18,
+      shippingCharge: 50,
+      paymentMethod: order.paymentMode || "COD",
+      status: "PAID",
+    });
+
+    console.log("INVOICE CREATED =>", invoice);
+
     return res.status(201).json({
       success: true,
       message: "Shipment Created Successfully",
       shipment,
     });
   } catch (error) {
+    console.log("SHIPMENT ERROR =>", error);
+
     return res.status(500).json({
       success: false,
       message: error.message,
+      stack: error.stack,
     });
   }
 };
