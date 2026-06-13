@@ -34,10 +34,12 @@ const rechargeWallet = async (req, res) => {
   try {
     const { amount } = req.body;
 
-    if (!amount || isNaN(amount) || Number(amount) <= 0) {
+    // Improved Recharge Validation
+    const rechargeAmount = Number(amount);
+    if (!rechargeAmount || rechargeAmount <= 0) {
       return res.status(400).json({
         success: false,
-        message: "Please enter a valid amount",
+        message: "Invalid amount",
       });
     }
 
@@ -51,12 +53,13 @@ const rechargeWallet = async (req, res) => {
       });
     }
 
-    wallet.balance += Number(amount);
+    wallet.balance += rechargeAmount;
 
     wallet.transactions.push({
-      amount: Number(amount),
+      amount: rechargeAmount,
       type: "CREDIT",
       description: "Wallet Recharge",
+      createdAt: new Date(), // Ensure timestamp is recorded
     });
 
     await wallet.save();
@@ -111,8 +114,8 @@ const debitWallet = async (req, res) => {
     wallet.transactions.push({
       amount: Number(amount),
       type: "DEBIT",
-      description:
-        description || "Wallet Debit",
+      description: description || "Wallet Debit",
+      createdAt: new Date(),
     });
 
     await wallet.save();
@@ -139,9 +142,13 @@ const getTransactions = async (req, res) => {
       merchantId: req.user.id,
     });
 
+    // Transactions sorted by newest first
     res.status(200).json({
       success: true,
-      transactions: wallet?.transactions || [],
+      transactions:
+        wallet?.transactions?.sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        ) || [],
     });
   } catch (error) {
     res.status(500).json({
@@ -182,8 +189,7 @@ const getWalletSummary = async (req, res) => {
       balance: wallet.balance,
       totalCredit,
       totalDebit,
-      totalTransactions:
-        wallet.transactions.length,
+      totalTransactions: wallet.transactions.length,
     });
   } catch (error) {
     res.status(500).json({

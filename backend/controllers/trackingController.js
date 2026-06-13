@@ -3,9 +3,10 @@ const Shipment = require("../models/Shipment");
 // Get Shipment Tracking
 const getTracking = async (req, res) => {
   try {
-    const shipment = await Shipment.findById(
-      req.params.id
-    );
+    const shipment = await Shipment.findOne({
+      awb: req.params.id,
+      merchantId: req.user.id,
+    }).populate("orderId");
 
     if (!shipment) {
       return res.status(404).json({
@@ -27,19 +28,11 @@ const getTracking = async (req, res) => {
 };
 
 // Update Shipment Status
-const updateShipmentStatus = async (
-  req,
-  res
-) => {
+const updateShipmentStatus = async (req, res) => {
   try {
     const { status } = req.body;
 
-    const shipment =
-      await Shipment.findByIdAndUpdate(
-        req.params.id,
-        { status },
-        { new: true }
-      );
+    const shipment = await Shipment.findById(req.params.id);
 
     if (!shipment) {
       return res.status(404).json({
@@ -47,6 +40,17 @@ const updateShipmentStatus = async (
         message: "Shipment Not Found",
       });
     }
+
+    shipment.status = status;
+
+    shipment.trackingEvents.push({
+      status,
+      location: "System Update",
+      remark: `Shipment status changed to ${status}`,
+      timestamp: new Date(),
+    });
+
+    await shipment.save();
 
     res.status(200).json({
       success: true,

@@ -26,6 +26,8 @@ router.get("/", authMiddleware, getShipments);
 
 // ===============================
 // TRACK SHIPMENT BY AWB
+// Example:
+// GET /api/shipments/track/AWB123456
 // ===============================
 router.get("/track/:id", authMiddleware, trackShipment);
 

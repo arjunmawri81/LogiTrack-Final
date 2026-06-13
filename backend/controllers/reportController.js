@@ -29,11 +29,10 @@ const getDashboardStats = async (req, res) => {
       merchantId,
     });
 
-    const deliveredShipments =
-      await Shipment.countDocuments({
-        merchantId,
-        status: "DELIVERED",
-      });
+    const deliveredShipments = await Shipment.countDocuments({
+      merchantId,
+      status: "DELIVERED",
+    });
 
     // NDR
     const totalNDR = await NDR.countDocuments({
@@ -55,9 +54,9 @@ const getDashboardStats = async (req, res) => {
       merchantId,
     });
 
+    // Replaced amount with totalAmount
     const totalRevenue = invoices.reduce(
-      (sum, invoice) =>
-        sum + (invoice.amount || 0),
+      (sum, invoice) => sum + (invoice.totalAmount || 0),
       0
     );
 
@@ -68,37 +67,30 @@ const getDashboardStats = async (req, res) => {
     });
 
     const codRevenue = codOrders.reduce(
-      (sum, order) =>
-        sum + (order.amount || 0),
+      (sum, order) => sum + (order.amount || 0),
       0
     );
 
     res.status(200).json({
       success: true,
-
       orders: {
         totalOrders,
         pendingOrders,
         deliveredOrders,
       },
-
       shipments: {
         totalShipments,
         deliveredShipments,
       },
-
       ndr: {
         totalNDR,
       },
-
       rto: {
         totalRTO,
       },
-
       wallet: {
         balance: wallet?.balance || 0,
       },
-
       revenue: {
         totalRevenue,
         codRevenue,
