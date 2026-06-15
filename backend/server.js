@@ -25,28 +25,25 @@ connectDB();
 
 const app = express();
 
-// ================================
+// ====================================
 // CORS
-// ================================
+// ====================================
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "https://logi-track-final.vercel.app",
-    ],
+    origin: true,
     credentials: true,
   })
 );
 
-// ================================
+// ====================================
 // MIDDLEWARE
-// ================================
+// ====================================
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ================================
+// ====================================
 // HEALTH CHECK
-// ================================
+// ====================================
 app.get("/", (req, res) => {
   res.json({
     success: true,
@@ -54,9 +51,9 @@ app.get("/", (req, res) => {
   });
 });
 
-// ================================
+// ====================================
 // API ROUTES
-// ================================
+// ====================================
 app.use("/api/auth", authRoutes);
 app.use("/api/merchant", merchantRoutes);
 app.use("/api/orders", orderRoutes);
@@ -72,9 +69,9 @@ app.use("/api/cod", codRoutes);
 app.use("/api/ndr", ndrRoutes);
 app.use("/api/rto", rtoRoutes);
 
-// ================================
+// ====================================
 // 404 HANDLER
-// ================================
+// ====================================
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -82,9 +79,21 @@ app.use((req, res) => {
   });
 });
 
-// ================================
+// ====================================
+// GLOBAL ERROR HANDLER
+// ====================================
+app.use((err, req, res, next) => {
+  console.error("ERROR =>", err);
+
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || "Internal Server Error",
+  });
+});
+
+// ====================================
 // SERVER
-// ================================
+// ====================================
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
