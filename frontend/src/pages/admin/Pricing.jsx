@@ -8,6 +8,7 @@ import {
   FaEdit,
   FaPlus,
   FaTrash,
+  FaSearch,
 } from "react-icons/fa";
 
 const Pricing = () => {
@@ -21,7 +22,7 @@ const Pricing = () => {
     { courier: "Shadowfax", code: "SF", weightSlab: "2 Kg", basePrice: 88, margin: 9, finalPrice: 97 },
   ];
 
-  // Inline styles matching Dashboard
+  // Updated styles matching admin theme
   const styles = {
     container: {
       display: "flex",
@@ -35,34 +36,27 @@ const Pricing = () => {
       padding: "20px 30px",
       overflowX: "auto"
     },
-    welcomeSection: {
-      background: "linear-gradient(135deg, #7c3aed, #5b21b6)",
-      borderRadius: "20px",
-      padding: "24px 30px",
-      marginBottom: "30px",
-      color: "white"
-    },
-    welcomeTitle: {
-      fontSize: "24px",
-      fontWeight: "700",
-      margin: "0 0 8px 0"
-    },
-    welcomeSubtitle: {
-      fontSize: "14px",
-      opacity: 0.9,
-      margin: 0
-    },
+    // Header Section - Simple like Orders page
     headerBlock: {
       marginBottom: "25px",
       display: "flex",
       justifyContent: "space-between",
-      alignItems: "center"
+      alignItems: "center",
+      background: "white",
+      padding: "20px 24px",
+      borderRadius: "12px",
+      border: "1px solid #eef2f6"
+    },
+    headerLeft: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "4px"
     },
     headerTitle: {
-      fontSize: "22px",
+      fontSize: "20px",
       fontWeight: "700",
       color: "#0f172a",
-      margin: "0 0 6px 0"
+      margin: 0
     },
     headerSubtitle: {
       fontSize: "13px",
@@ -70,33 +64,35 @@ const Pricing = () => {
       margin: 0
     },
     addButton: {
-      background: "linear-gradient(135deg, #7c3aed, #5b21b6)",
+      background: "#3b82f6",
       color: "white",
       border: "none",
       padding: "10px 20px",
-      borderRadius: "12px",
+      borderRadius: "8px",
       fontSize: "13px",
       fontWeight: "600",
       cursor: "pointer",
       display: "flex",
       alignItems: "center",
       gap: "8px",
-      transition: "transform 0.2s"
+      transition: "all 0.2s",
+      whiteSpace: "nowrap"
     },
+    // Stats Cards - White with blue accents
     statsGrid: {
       display: "grid",
       gridTemplateColumns: "repeat(4, 1fr)",
       gap: "20px",
-      marginBottom: "30px"
+      marginBottom: "25px"
     },
     statCard: {
       background: "white",
       padding: "20px",
-      borderRadius: "16px",
+      borderRadius: "12px",
       display: "flex",
       alignItems: "center",
       justifyContent: "space-between",
-      boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05)",
+      border: "1px solid #eef2f6",
       transition: "transform 0.2s, box-shadow 0.2s",
       cursor: "pointer"
     },
@@ -125,77 +121,64 @@ const Pricing = () => {
       alignItems: "center",
       justifyContent: "center"
     },
-    // Performance/Margin Section
-    marginBox: {
+    // Search + Filters Row - White card
+    filterContainer: {
       background: "white",
-      borderRadius: "20px",
-      padding: "24px",
-      marginBottom: "30px",
+      padding: "16px 20px",
+      borderRadius: "12px",
       border: "1px solid #eef2f6",
-      boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05)"
-    },
-    marginTitle: {
-      fontSize: "18px",
-      fontWeight: "700",
-      color: "#0f172a",
-      margin: "0 0 20px 0"
-    },
-    progressItem: {
-      marginBottom: "20px"
-    },
-    progressHeader: {
+      marginBottom: "25px",
       display: "flex",
-      justifyContent: "space-between",
-      marginBottom: "8px",
-      fontSize: "14px",
-      fontWeight: "600",
-      color: "#334155"
+      alignItems: "center",
+      gap: "16px",
+      flexWrap: "wrap"
     },
-    progressBar: {
-      background: "#f1f5f9",
-      height: "8px",
-      borderRadius: "99px",
-      overflow: "hidden"
-    },
-    progressFill: {
-      background: "linear-gradient(90deg, #7c3aed, #5b21b6)",
-      height: "100%",
-      borderRadius: "99px",
-      transition: "width 0.3s ease"
-    },
-    // Table Section - WHITE BACKGROUND
-    tableContainer: {
-      background: "white",
-      borderRadius: "20px",
-      boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05)",
-      overflow: "hidden",
-      border: "1px solid #eef2f6"
-    },
-    tableHeader: {
-      padding: "20px 24px",
-      borderBottom: "1px solid #eef2f6",
-      background: "white",
+    searchWrapper: {
+      flex: 1,
+      minWidth: "200px",
+      position: "relative",
       display: "flex",
-      justifyContent: "space-between",
       alignItems: "center"
     },
-    tableTitle: {
-      fontSize: "18px",
-      fontWeight: "700",
-      color: "#0f172a",
-      margin: 0
+    searchIcon: {
+      position: "absolute",
+      left: "12px",
+      color: "#94a3b8",
+      fontSize: "14px"
+    },
+    searchInput: {
+      width: "100%",
+      padding: "10px 12px 10px 38px",
+      borderRadius: "8px",
+      border: "1px solid #e2e8f0",
+      fontSize: "13px",
+      color: "#334155",
+      background: "#f8fafc",
+      transition: "all 0.2s",
+      outline: "none"
     },
     filterGroup: {
       display: "flex",
-      gap: "10px"
+      gap: "10px",
+      flexWrap: "wrap"
     },
     filterSelect: {
-      padding: "8px 12px",
-      borderRadius: "10px",
+      padding: "10px 14px",
+      borderRadius: "8px",
       border: "1px solid #e2e8f0",
-      background: "white",
+      background: "#f8fafc",
       fontSize: "13px",
-      color: "#334155"
+      color: "#334155",
+      outline: "none",
+      minWidth: "150px",
+      cursor: "pointer"
+    },
+    // Table Container - White background
+    tableContainer: {
+      background: "white",
+      borderRadius: "12px",
+      border: "1px solid #eef2f6",
+      overflow: "hidden"
     },
     tableWrapper: {
       overflowX: "auto"
@@ -207,7 +190,7 @@ const Pricing = () => {
     },
     th: {
       textAlign: "left",
-      padding: "16px 20px",
+      padding: "14px 20px",
       background: "#f8fafc",
       color: "#475569",
       fontSize: "12px",
@@ -217,7 +200,7 @@ const Pricing = () => {
       borderBottom: "1px solid #eef2f6"
     },
     td: {
-      padding: "18px 20px",
+      padding: "16px 20px",
       borderBottom: "1px solid #f1f5f9",
       color: "#1e293b",
       fontSize: "14px",
@@ -229,15 +212,15 @@ const Pricing = () => {
       gap: "12px"
     },
     courierAvatar: {
-      width: "40px",
-      height: "40px",
-      background: "linear-gradient(135deg, #7c3aed, #5b21b6)",
-      borderRadius: "12px",
+      width: "38px",
+      height: "38px",
+      background: "#3b82f6",
+      borderRadius: "8px",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
       color: "white",
-      fontSize: "12px",
+      fontSize: "11px",
       fontWeight: "700"
     },
     courierName: {
@@ -245,7 +228,7 @@ const Pricing = () => {
       color: "#0f172a"
     },
     priceCell: {
-      fontWeight: "700",
+      fontWeight: "600",
       color: "#0f172a"
     },
     marginCell: {
@@ -253,34 +236,61 @@ const Pricing = () => {
       color: "#10b981"
     },
     finalPriceCell: {
-      fontWeight: "800",
-      color: "#7c3aed",
-      fontSize: "16px"
+      fontWeight: "700",
+      color: "#3b82f6",
+      fontSize: "15px"
     },
     weightBadge: {
       display: "inline-block",
-      padding: "5px 12px",
-      borderRadius: "8px",
+      padding: "4px 12px",
+      borderRadius: "6px",
       fontSize: "12px",
-      fontWeight: "600",
+      fontWeight: "500",
       background: "#f1f5f9",
       color: "#475569"
     },
     actionGroup: {
       display: "flex",
-      gap: "8px"
+      gap: "6px"
     },
     actionBtn: {
       background: "white",
       border: "1px solid #e2e8f0",
-      padding: "8px 12px",
-      borderRadius: "10px",
+      padding: "6px 10px",
+      borderRadius: "6px",
       cursor: "pointer",
       color: "#64748b",
       transition: "all 0.2s",
       display: "inline-flex",
       alignItems: "center",
-      gap: "6px"
+      gap: "6px",
+      fontSize: "13px"
+    },
+    actionBtnEdit: {
+      background: "#eff6ff",
+      border: "1px solid #bfdbfe",
+      padding: "6px 10px",
+      borderRadius: "6px",
+      cursor: "pointer",
+      color: "#3b82f6",
+      transition: "all 0.2s",
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "6px",
+      fontSize: "13px"
+    },
+    actionBtnDelete: {
+      background: "#fef2f2",
+      border: "1px solid #fecaca",
+      padding: "6px 10px",
+      borderRadius: "6px",
+      cursor: "pointer",
+      color: "#ef4444",
+      transition: "all 0.2s",
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "6px",
+      fontSize: "13px"
     }
   };
 
@@ -290,34 +300,36 @@ const Pricing = () => {
       <div style={styles.mainContent}>
         <AdminTopbar />
 
-        {/* Welcome Section */}
-        <div style={styles.welcomeSection}>
-          <h1 style={styles.welcomeTitle}>💰 Pricing Management</h1>
-          <p style={styles.welcomeSubtitle}>
-            Manage courier rates, margins and shipping slabs across all partners
-          </p>
-        </div>
-
-        {/* Header with Add Button */}
+        {/* Header Section - Simple like Orders page */}
         <div style={styles.headerBlock}>
-          <div>
-            <h1 style={styles.headerTitle}>💲 Pricing Management</h1>
-            <p style={styles.headerSubtitle}>Manage courier rates, margins and shipping slabs</p>
+          <div style={styles.headerLeft}>
+            <h1 style={styles.headerTitle}>Pricing Management</h1>
+            <p style={styles.headerSubtitle}>Manage courier pricing rules and shipping rates</p>
           </div>
           <button style={styles.addButton}>
             <FaPlus size={14} /> Add Pricing Rule
           </button>
         </div>
 
-        {/* Stats Cards */}
+        {/* Stats Cards - Updated labels */}
         <div style={styles.statsGrid}>
+          <div style={styles.statCard}>
+            <div style={styles.statInfo}>
+              <div style={styles.statLabel}>Total Pricing Rules</div>
+              <h2 style={styles.statValue}>24</h2>
+            </div>
+            <div style={{ ...styles.statIconWrapper, background: "#eff6ff" }}>
+              <FaTruck color="#3b82f6" size={22} />
+            </div>
+          </div>
+
           <div style={styles.statCard}>
             <div style={styles.statInfo}>
               <div style={styles.statLabel}>Courier Partners</div>
               <h2 style={styles.statValue}>8</h2>
             </div>
-            <div style={{ ...styles.statIconWrapper, background: "#dbeafe" }}>
-              <FaTruck color="#3b82f6" size={22} />
+            <div style={{ ...styles.statIconWrapper, background: "#fef3c7" }}>
+              <FaTruck color="#f59e0b" size={22} />
             </div>
           </div>
 
@@ -326,93 +338,55 @@ const Pricing = () => {
               <div style={styles.statLabel}>Weight Slabs</div>
               <h2 style={styles.statValue}>24</h2>
             </div>
-            <div style={{ ...styles.statIconWrapper, background: "#fef3c7" }}>
-              <FaWeightHanging color="#f59e0b" size={22} />
+            <div style={{ ...styles.statIconWrapper, background: "#f0fdf4" }}>
+              <FaWeightHanging color="#22c55e" size={22} />
             </div>
           </div>
 
           <div style={styles.statCard}>
             <div style={styles.statInfo}>
-              <div style={styles.statLabel}>Avg Shipping Rate</div>
+              <div style={styles.statLabel}>Average Shipping Cost</div>
               <h2 style={styles.statValue}>₹58</h2>
             </div>
-            <div style={{ ...styles.statIconWrapper, background: "#dcfce7" }}>
-              <FaRupeeSign color="#10b981" size={22} />
-            </div>
-          </div>
-
-          <div style={styles.statCard}>
-            <div style={styles.statInfo}>
-              <div style={styles.statLabel}>Avg Margin</div>
-              <h2 style={styles.statValue}>12%</h2>
-            </div>
-            <div style={{ ...styles.statIconWrapper, background: "#fee2e2" }}>
-              <FaPercentage color="#ef4444" size={22} />
+            <div style={{ ...styles.statIconWrapper, background: "#fefce8" }}>
+              <FaRupeeSign color="#eab308" size={22} />
             </div>
           </div>
         </div>
 
-        {/* Margin Overview Section */}
-        <div style={styles.marginBox}>
-          <h2 style={styles.marginTitle}>📈 Margin Overview</h2>
-          <div style={styles.progressItem}>
-            <div style={styles.progressHeader}>
-              <span>DTDC Margin Usage</span>
-              <span>78%</span>
-            </div>
-            <div style={styles.progressBar}>
-              <div style={{ ...styles.progressFill, width: "78%" }} />
-            </div>
+        {/* Search + Filters Row */}
+        <div style={styles.filterContainer}>
+          <div style={styles.searchWrapper}>
+            <FaSearch style={styles.searchIcon} />
+            <input
+              type="text"
+              placeholder="Search courier..."
+              style={styles.searchInput}
+            />
           </div>
-          <div style={styles.progressItem}>
-            <div style={styles.progressHeader}>
-              <span>Delhivery Margin Usage</span>
-              <span>91%</span>
-            </div>
-            <div style={styles.progressBar}>
-              <div style={{ ...styles.progressFill, width: "91%" }} />
-            </div>
-          </div>
-          <div style={styles.progressItem}>
-            <div style={styles.progressHeader}>
-              <span>Blue Dart Margin Usage</span>
-              <span>65%</span>
-            </div>
-            <div style={styles.progressBar}>
-              <div style={{ ...styles.progressFill, width: "65%" }} />
-            </div>
-          </div>
-          <div style={styles.progressItem}>
-            <div style={styles.progressHeader}>
-              <span>XpressBees Margin Usage</span>
-              <span>82%</span>
-            </div>
-            <div style={styles.progressBar}>
-              <div style={{ ...styles.progressFill, width: "82%" }} />
-            </div>
+          <div style={styles.filterGroup}>
+            <select style={styles.filterSelect}>
+              <option value="">All Couriers</option>
+              <option>DTDC</option>
+              <option>Delhivery</option>
+              <option>Blue Dart</option>
+              <option>XpressBees</option>
+              <option>Ecom Express</option>
+              <option>Shadowfax</option>
+            </select>
+            <select style={styles.filterSelect}>
+              <option value="">All Weight Slabs</option>
+              <option>500 gm</option>
+              <option>1 Kg</option>
+              <option>2 Kg</option>
+              <option>3 Kg</option>
+              <option>5 Kg</option>
+            </select>
           </div>
         </div>
 
-        {/* Pricing Table - WHITE BACKGROUND */}
+        {/* Pricing Table - White background */}
         <div style={styles.tableContainer}>
-          <div style={styles.tableHeader}>
-            <h3 style={styles.tableTitle}>Courier Pricing Matrix</h3>
-            <div style={styles.filterGroup}>
-              <select style={styles.filterSelect}>
-                <option>All Couriers</option>
-                <option>DTDC</option>
-                <option>Delhivery</option>
-                <option>Blue Dart</option>
-                <option>XpressBees</option>
-              </select>
-              <select style={styles.filterSelect}>
-                <option>All Weight Slabs</option>
-                <option>500 gm</option>
-                <option>1 Kg</option>
-                <option>2 Kg</option>
-              </select>
-            </div>
-          </div>
           <div style={styles.tableWrapper}>
             <table style={styles.table}>
               <thead>
@@ -450,11 +424,11 @@ const Pricing = () => {
                     </td>
                     <td style={styles.td}>
                       <div style={styles.actionGroup}>
-                        <button style={styles.actionBtn} title="Edit">
-                          <FaEdit size={13} />
+                        <button style={styles.actionBtnEdit} title="Edit">
+                          <FaEdit size={13} /> Edit
                         </button>
-                        <button style={styles.actionBtn} title="Delete">
-                          <FaTrash size={13} />
+                        <button style={styles.actionBtnDelete} title="Delete">
+                          <FaTrash size={13} /> Delete
                         </button>
                       </div>
                     </td>

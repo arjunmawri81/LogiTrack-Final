@@ -32,15 +32,11 @@ const Dashboard = () => {
         totalOrders: data.orders?.totalOrders || 0,
         pendingOrders: data.orders?.pendingOrders || 0,
         deliveredOrders: data.orders?.deliveredOrders || 0,
-
         totalShipments: data.shipments?.totalShipments || 0,
         deliveredShipments: data.shipments?.deliveredShipments || 0,
-
         totalNDR: data.ndr?.totalNDR || 0,
         totalRTO: data.rto?.totalRTO || 0,
-
         walletBalance: data.wallet?.balance || 0,
-
         totalRevenue: data.revenue?.totalRevenue || 0,
         codRevenue: data.revenue?.codRevenue || 0,
       });
@@ -58,10 +54,37 @@ const Dashboard = () => {
     btn: { background: "#f97316", color: "white", padding: "12px 24px", borderRadius: "12px", border: "none", fontWeight: "600", cursor: "pointer" },
     grid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "20px", marginBottom: "35px" },
     card: (bg) => ({ background: bg, padding: "24px", borderRadius: "16px", color: "white", boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)" }),
-    tableContainer: { background: "#ffffff", padding: "24px", borderRadius: "16px", border: "1px solid #e2e8f0" },
-    table: { width: "100%", borderCollapse: "collapse" },
-    th: { textAlign: "left", padding: "16px", color: "#64748b", fontSize: "13px", textTransform: "uppercase", borderBottom: "2px solid #f1f5f9" },
-    td: { padding: "16px", borderBottom: "1px solid #f1f5f9", fontWeight: "600", color: "#334155" }
+    
+    // New summary cards grid
+    summaryGrid: {
+      display: "grid",
+      gridTemplateColumns: "repeat(4, 1fr)",
+      gap: "20px",
+      marginTop: "25px"
+    },
+    summaryCard: {
+      background: "#ffffff",
+      padding: "20px",
+      borderRadius: "16px",
+      border: "1px solid #e2e8f0",
+      boxShadow: "0 1px 3px rgba(0,0,0,0.08)"
+    },
+    summaryLabel: {
+      fontSize: "14px",
+      fontWeight: "500",
+      color: "#64748b",
+      margin: "0 0 8px 0"
+    },
+    summaryValue: {
+      fontSize: "28px",
+      fontWeight: "700",
+      color: "#0f172a",
+      margin: 0
+    },
+    summaryIcon: {
+      fontSize: "24px",
+      marginBottom: "12px"
+    }
   };
 
   return (
@@ -111,35 +134,28 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div style={s.tableContainer}>
-          <h2 style={{ fontSize: "18px", color: "#0f172a", marginBottom: "20px" }}>System Summary</h2>
-          <table style={s.table}>
-            <thead>
-              <tr>
-                <th style={s.th}>Metric</th>
-                <th style={s.th}>Value</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[
-                { label: "Total Orders", val: stats.totalOrders },
-                { label: "Pending Orders", val: stats.pendingOrders },
-                { label: "Delivered Orders", val: stats.deliveredOrders },
-                { label: "Total Shipments", val: stats.totalShipments },
-                { label: "Delivered Shipments", val: stats.deliveredShipments },
-                { label: "Total NDR", val: stats.totalNDR },
-                { label: "Total RTO", val: stats.totalRTO },
-                { label: "Wallet Balance", val: `₹${stats.walletBalance}` },
-                { label: "COD Revenue", val: `₹${stats.codRevenue}` },
-                { label: "Total Revenue", val: `₹${stats.totalRevenue}` },
-              ].map((row, i) => (
-                <tr key={i}>
-                  <td style={s.td}>{row.label}</td>
-                  <td style={{ ...s.td, color: "#0f172a" }}>{row.val}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {/* New White Professional Summary Cards */}
+        <div style={s.summaryGrid}>
+          <div style={s.summaryCard}>
+            <div style={s.summaryIcon}>📋</div>
+            <p style={s.summaryLabel}>Pending Orders</p>
+            <h3 style={s.summaryValue}>{stats.pendingOrders}</h3>
+          </div>
+          <div style={s.summaryCard}>
+            <div style={s.summaryIcon}>✅</div>
+            <p style={s.summaryLabel}>Delivered Orders</p>
+            <h3 style={s.summaryValue}>{stats.deliveredOrders}</h3>
+          </div>
+          <div style={s.summaryCard}>
+            <div style={s.summaryIcon}>🚚</div>
+            <p style={s.summaryLabel}>Delivered Shipments</p>
+            <h3 style={s.summaryValue}>{stats.deliveredShipments}</h3>
+          </div>
+          <div style={s.summaryCard}>
+            <div style={s.summaryIcon}>💰</div>
+            <p style={s.summaryLabel}>Total Revenue</p>
+            <h3 style={s.summaryValue}>₹{stats.totalRevenue}</h3>
+          </div>
         </div>
       </main>
     </div>

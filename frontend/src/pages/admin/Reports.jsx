@@ -7,14 +7,12 @@ import {
   FaTruck,
   FaRupeeSign,
   FaStore,
-  FaDownload,
-  FaUsers,
   FaCalendarAlt,
-  FaChartBar,
   FaFilePdf,
   FaFileExcel,
   FaEye,
   FaPrint,
+  FaPlus,
 } from "react-icons/fa";
 
 const Reports = () => {
@@ -40,42 +38,6 @@ const Reports = () => {
     }
   };
 
-  // Report data
-  const reportsList = [
-    { 
-      name: "User Report", 
-      value: stats.totalUsers, 
-      unit: "Users",
-      icon: <FaUsers size={14} />,
-      color: "#3b82f6",
-      bg: "#dbeafe"
-    },
-    { 
-      name: "Shipment Report", 
-      value: stats.totalShipments, 
-      unit: "Shipments",
-      icon: <FaTruck size={14} />,
-      color: "#f59e0b",
-      bg: "#fef3c7"
-    },
-    { 
-      name: "Revenue Report", 
-      value: `₹${stats.totalRevenue}`, 
-      unit: "Revenue",
-      icon: <FaRupeeSign size={14} />,
-      color: "#10b981",
-      bg: "#dcfce7"
-    },
-    { 
-      name: "Order Report", 
-      value: stats.totalOrders, 
-      unit: "Orders",
-      icon: <FaStore size={14} />,
-      color: "#ef4444",
-      bg: "#fee2e2"
-    },
-  ];
-
   // Detailed reports
   const detailedReports = [
     { id: 1, name: "Monthly Revenue Report", date: "June 2026", type: "Financial", size: "1.2 MB", status: "Ready" },
@@ -85,7 +47,6 @@ const Reports = () => {
     { id: 5, name: "Merchant Settlement", date: "May 2026", type: "Financial", size: "943 KB", status: "Ready" },
   ];
 
-  // Inline styles
   const styles = {
     container: {
       display: "flex",
@@ -99,52 +60,39 @@ const Reports = () => {
       padding: "20px 30px",
       overflowX: "auto"
     },
-    welcomeSection: {
-      background: "linear-gradient(135deg, #2563eb, #1d4ed8)",
-      borderRadius: "20px",
-      padding: "24px 30px",
-      marginBottom: "30px",
-      color: "white"
-    },
-    welcomeTitle: {
-      fontSize: "24px",
-      fontWeight: "700",
-      margin: "0 0 8px 0"
-    },
-    welcomeSubtitle: {
-      fontSize: "14px",
-      opacity: 0.9,
-      margin: 0
-    },
     headerBlock: {
       marginBottom: "25px",
       display: "flex",
       justifyContent: "space-between",
-      alignItems: "center"
+      alignItems: "center",
+      flexWrap: "wrap",
+      gap: "15px"
     },
     headerTitle: {
       fontSize: "22px",
       fontWeight: "700",
       color: "#0f172a",
-      margin: "0 0 6px 0"
+      margin: 0
     },
     headerSubtitle: {
       fontSize: "13px",
       color: "#64748b",
-      margin: 0
+      margin: "4px 0 0 0"
     },
     filterGroup: {
       display: "flex",
-      gap: "10px"
+      gap: "10px",
+      flexWrap: "wrap"
     },
     filterSelect: {
       padding: "8px 16px",
-      borderRadius: "12px",
+      borderRadius: "10px",
       border: "1px solid #e2e8f0",
       background: "white",
       fontSize: "13px",
       color: "#334155",
-      cursor: "pointer"
+      cursor: "pointer",
+      outline: "none"
     },
     statsGrid: {
       display: "grid",
@@ -155,13 +103,12 @@ const Reports = () => {
     statCard: {
       background: "white",
       padding: "20px",
-      borderRadius: "16px",
+      borderRadius: "16px",  // Changed from 12px to 16px
       display: "flex",
       alignItems: "center",
       justifyContent: "space-between",
-      boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05)",
-      transition: "transform 0.2s, box-shadow 0.2s",
-      cursor: "pointer"
+      boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+      border: "1px solid #eef2f6"
     },
     statInfo: {
       flex: 1
@@ -171,7 +118,7 @@ const Reports = () => {
       fontWeight: "600",
       textTransform: "uppercase",
       color: "#64748b",
-      marginBottom: "8px",
+      marginBottom: "6px",
       letterSpacing: "0.5px"
     },
     statValue: {
@@ -181,100 +128,51 @@ const Reports = () => {
       margin: 0
     },
     statIconWrapper: {
-      width: "48px",
-      height: "48px",
-      borderRadius: "12px",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center"
-    },
-    // Reports Section
-    reportsBox: {
-      background: "white",
-      borderRadius: "20px",
-      padding: "24px",
-      marginBottom: "30px",
-      border: "1px solid #eef2f6",
-      boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05)"
-    },
-    reportsTitle: {
-      fontSize: "18px",
-      fontWeight: "700",
-      color: "#0f172a",
-      margin: "0 0 20px 0"
-    },
-    reportItem: {
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      padding: "16px 0",
-      borderBottom: "1px solid #f1f5f9"
-    },
-    reportInfo: {
-      display: "flex",
-      alignItems: "center",
-      gap: "12px"
-    },
-    reportIcon: {
-      width: "40px",
-      height: "40px",
-      borderRadius: "12px",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center"
-    },
-    reportName: {
-      fontWeight: "600",
-      color: "#0f172a"
-    },
-    downloadBtn: {
-      background: "linear-gradient(135deg, #2563eb, #1d4ed8)",
-      color: "white",
-      border: "none",
-      padding: "8px 16px",
+      width: "44px",
+      height: "44px",
       borderRadius: "10px",
-      fontSize: "12px",
-      fontWeight: "500",
-      cursor: "pointer",
       display: "flex",
       alignItems: "center",
-      gap: "8px",
-      transition: "transform 0.2s"
+      justifyContent: "center",
+      flexShrink: 0
     },
-    // Table Section - WHITE BACKGROUND
+    // Table Section
     tableContainer: {
       background: "white",
-      borderRadius: "20px",
-      boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05)",
+      borderRadius: "16px",  // Changed from 12px to 16px
+      boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
       overflow: "hidden",
       border: "1px solid #eef2f6"
     },
     tableHeader: {
-      padding: "20px 24px",
+      padding: "16px 24px",
       borderBottom: "1px solid #eef2f6",
       background: "white",
       display: "flex",
       justifyContent: "space-between",
-      alignItems: "center"
+      alignItems: "center",
+      flexWrap: "wrap",
+      gap: "10px"
     },
     tableTitle: {
-      fontSize: "18px",
-      fontWeight: "700",
+      fontSize: "16px",
+      fontWeight: "600",
       color: "#0f172a",
       margin: 0
     },
     generateBtn: {
-      background: "#f1f5f9",
+      background: "#3b82f6",
       border: "none",
-      padding: "8px 16px",
-      borderRadius: "10px",
+      padding: "8px 18px",
+      borderRadius: "8px",
       cursor: "pointer",
       fontSize: "13px",
       fontWeight: "500",
       display: "flex",
       alignItems: "center",
       gap: "8px",
-      color: "#475569"
+      color: "#fff",
+      transition: "all 0.2s"
     },
     tableWrapper: {
       overflowX: "auto"
@@ -286,17 +184,17 @@ const Reports = () => {
     },
     th: {
       textAlign: "left",
-      padding: "16px 20px",
+      padding: "12px 20px",
       background: "#f8fafc",
-      color: "#475569",
-      fontSize: "12px",
+      color: "#64748b",
+      fontSize: "11px",
       fontWeight: "600",
       textTransform: "uppercase",
       letterSpacing: "0.5px",
       borderBottom: "1px solid #eef2f6"
     },
     td: {
-      padding: "18px 20px",
+      padding: "14px 20px",
       borderBottom: "1px solid #f1f5f9",
       color: "#1e293b",
       fontSize: "14px",
@@ -304,30 +202,26 @@ const Reports = () => {
     },
     statusBadge: {
       display: "inline-block",
-      padding: "5px 14px",
-      borderRadius: "30px",
+      padding: "4px 12px",
+      borderRadius: "20px",
       fontSize: "12px",
-      fontWeight: "600"
+      fontWeight: "500"
     },
     actionGroup: {
       display: "flex",
-      gap: "8px"
+      gap: "6px"
     },
     actionBtn: {
       background: "white",
       border: "1px solid #e2e8f0",
-      padding: "8px 12px",
-      borderRadius: "10px",
+      padding: "6px 10px",
+      borderRadius: "8px",
       cursor: "pointer",
       color: "#64748b",
       transition: "all 0.2s",
       display: "inline-flex",
       alignItems: "center",
       gap: "6px"
-    },
-    valueCell: {
-      fontWeight: "700",
-      color: "#0f172a"
     }
   };
 
@@ -337,28 +231,28 @@ const Reports = () => {
       <div style={styles.mainContent}>
         <AdminTopbar />
 
-        {/* Welcome Section */}
-        <div style={styles.welcomeSection}>
-          <h1 style={styles.welcomeTitle}>📊 Reports Center</h1>
-          <p style={styles.welcomeSubtitle}>
-            Generate, download and analyze business reports and analytics
-          </p>
-        </div>
-
-        {/* Header with Filters */}
+        {/* Header */}
         <div style={styles.headerBlock}>
           <div>
             <h1 style={styles.headerTitle}>Reports & Analytics</h1>
             <p style={styles.headerSubtitle}>Generate and download business reports</p>
           </div>
           <div style={styles.filterGroup}>
-            <select style={styles.filterSelect} value={selectedReport} onChange={(e) => setSelectedReport(e.target.value)}>
+            <select 
+              style={styles.filterSelect} 
+              value={selectedReport} 
+              onChange={(e) => setSelectedReport(e.target.value)}
+            >
               <option value="all">All Reports</option>
               <option value="financial">Financial Reports</option>
               <option value="operations">Operations Reports</option>
               <option value="analytics">Analytics Reports</option>
             </select>
-            <select style={styles.filterSelect} value={dateRange} onChange={(e) => setDateRange(e.target.value)}>
+            <select 
+              style={styles.filterSelect} 
+              value={dateRange} 
+              onChange={(e) => setDateRange(e.target.value)}
+            >
               <option value="daily">Daily</option>
               <option value="weekly">Weekly</option>
               <option value="monthly">Monthly</option>
@@ -373,74 +267,50 @@ const Reports = () => {
           <div style={styles.statCard}>
             <div style={styles.statInfo}>
               <div style={styles.statLabel}>Total Users</div>
-              <h2 style={styles.statValue}>{stats.totalUsers}</h2>
+              <h2 style={styles.statValue}>{stats.totalUsers || 0}</h2>
             </div>
             <div style={{ ...styles.statIconWrapper, background: "#dbeafe" }}>
-              <FaFileInvoice color="#3b82f6" size={22} />
+              <FaFileInvoice color="#3b82f6" size={20} />
             </div>
           </div>
 
           <div style={styles.statCard}>
             <div style={styles.statInfo}>
               <div style={styles.statLabel}>Total Shipments</div>
-              <h2 style={styles.statValue}>{stats.totalShipments}</h2>
+              <h2 style={styles.statValue}>{stats.totalShipments || 0}</h2>
             </div>
             <div style={{ ...styles.statIconWrapper, background: "#fef3c7" }}>
-              <FaTruck color="#f59e0b" size={22} />
+              <FaTruck color="#f59e0b" size={20} />
             </div>
           </div>
 
           <div style={styles.statCard}>
             <div style={styles.statInfo}>
               <div style={styles.statLabel}>Total Revenue</div>
-              <h2 style={styles.statValue}>₹{stats.totalRevenue}</h2>
+              <h2 style={styles.statValue}>₹{(stats.totalRevenue || 0).toLocaleString()}</h2>
             </div>
             <div style={{ ...styles.statIconWrapper, background: "#dcfce7" }}>
-              <FaRupeeSign color="#10b981" size={22} />
+              <FaRupeeSign color="#10b981" size={20} />
             </div>
           </div>
 
           <div style={styles.statCard}>
             <div style={styles.statInfo}>
               <div style={styles.statLabel}>Total Orders</div>
-              <h2 style={styles.statValue}>{stats.totalOrders}</h2>
+              <h2 style={styles.statValue}>{stats.totalOrders || 0}</h2>
             </div>
             <div style={{ ...styles.statIconWrapper, background: "#fee2e2" }}>
-              <FaStore color="#ef4444" size={22} />
+              <FaStore color="#ef4444" size={20} />
             </div>
           </div>
         </div>
 
-        {/* Available Reports */}
-        <div style={styles.reportsBox}>
-          <h2 style={styles.reportsTitle}>📋 Available Reports</h2>
-          {reportsList.map((report, index) => (
-            <div style={styles.reportItem} key={index}>
-              <div style={styles.reportInfo}>
-                <div style={{ ...styles.reportIcon, background: report.bg, color: report.color }}>
-                  {report.icon}
-                </div>
-                <div>
-                  <div style={styles.reportName}>{report.name}</div>
-                  <div style={{ fontSize: "12px", color: "#64748b" }}>{report.unit} Summary</div>
-                </div>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-                <div style={{ fontWeight: "700", color: "#0f172a" }}>{report.value}</div>
-                <button style={styles.downloadBtn}>
-                  <FaDownload size={12} /> Download
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Generated Reports Table - WHITE BACKGROUND */}
+        {/* Generated Reports Table - Main Section */}
         <div style={styles.tableContainer}>
           <div style={styles.tableHeader}>
             <h3 style={styles.tableTitle}>Generated Reports</h3>
             <button style={styles.generateBtn}>
-              <FaFilePdf size={14} /> Generate New Report
+              <FaPlus size={12} /> Generate New
             </button>
           </div>
           <div style={styles.tableWrapper}>
@@ -460,18 +330,30 @@ const Reports = () => {
                   <tr key={report.id}>
                     <td style={styles.td}>
                       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                        <FaFileInvoice color={report.type === "Financial" ? "#10b981" : report.type === "Operations" ? "#f59e0b" : "#3b82f6"} size={16} />
+                        <FaFileInvoice 
+                          color={
+                            report.type === "Financial" ? "#10b981" : 
+                            report.type === "Operations" ? "#f59e0b" : "#3b82f6"
+                          } 
+                          size={14} 
+                        />
                         <span style={{ fontWeight: "500" }}>{report.name}</span>
                       </div>
                     </td>
                     <td style={styles.td}>
                       <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                        <FaCalendarAlt size={12} color="#94a3b8" />
+                        <FaCalendarAlt size={11} color="#94a3b8" />
                         {report.date}
                       </div>
                     </td>
                     <td style={styles.td}>
-                      <span style={{ background: "#f1f5f9", padding: "4px 10px", borderRadius: "8px", fontSize: "12px" }}>
+                      <span style={{ 
+                        background: "#f1f5f9", 
+                        padding: "3px 10px", 
+                        borderRadius: "6px", 
+                        fontSize: "12px",
+                        color: "#475569"
+                      }}>
                         {report.type}
                       </span>
                     </td>
@@ -488,16 +370,16 @@ const Reports = () => {
                     <td style={styles.td}>
                       <div style={styles.actionGroup}>
                         <button style={styles.actionBtn} title="View Report">
-                          <FaEye size={13} />
+                          <FaEye size={12} />
                         </button>
                         <button style={styles.actionBtn} title="Download PDF">
-                          <FaFilePdf size={13} color="#ef4444" />
+                          <FaFilePdf size={12} color="#ef4444" />
                         </button>
                         <button style={styles.actionBtn} title="Download Excel">
-                          <FaFileExcel size={13} color="#10b981" />
+                          <FaFileExcel size={12} color="#10b981" />
                         </button>
                         <button style={styles.actionBtn} title="Print">
-                          <FaPrint size={13} />
+                          <FaPrint size={12} />
                         </button>
                       </div>
                     </td>
@@ -505,24 +387,6 @@ const Reports = () => {
                 ))}
               </tbody>
             </table>
-          </div>
-        </div>
-
-        {/* Summary Cards */}
-        <div style={{ ...styles.reportsBox, marginTop: "30px", marginBottom: "0" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px" }}>
-            <div>
-              <div style={{ fontSize: "12px", color: "#64748b", marginBottom: "8px" }}>Total Reports Generated</div>
-              <div style={{ fontSize: "28px", fontWeight: "800", color: "#0f172a" }}>24</div>
-            </div>
-            <div>
-              <div style={{ fontSize: "12px", color: "#64748b", marginBottom: "8px" }}>This Month</div>
-              <div style={{ fontSize: "28px", fontWeight: "800", color: "#0f172a" }}>8</div>
-            </div>
-            <div>
-              <div style={{ fontSize: "12px", color: "#64748b", marginBottom: "8px" }}>Last Download</div>
-              <div style={{ fontSize: "14px", fontWeight: "600", color: "#0f172a" }}>Today, 10:30 AM</div>
-            </div>
           </div>
         </div>
 

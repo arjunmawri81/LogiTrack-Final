@@ -56,22 +56,14 @@ const Tracking = () => {
   const styles = {
     container: {
       display: "flex",
-      flexDirection: "column",
-      background: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)",
+      background: "#f8fafc",
       minHeight: "100vh",
       fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
     },
-    sidebarWrapper: {
-      width: "100%",
-      flexShrink: 0
-    },
     main: {
       flex: 1,
-      padding: "24px 20px",
-      width: "100%",
-      maxWidth: "100%",
-      margin: "0 auto",
-      boxSizing: "border-box"
+      padding: "30px",
+      boxSizing: "border-box",
     },
     pageHeader: {
       marginBottom: "28px"
@@ -329,27 +321,54 @@ const Tracking = () => {
   const desktopStyles = `
     @media (min-width: 768px) {
       .tracking-container {
-        flex-direction: row !important;
+        display: flex !important;
       }
+
       .sidebar-wrapper {
         width: 280px !important;
+        flex-shrink: 0;
       }
+
       .tracking-main {
-        padding: 32px 40px !important;
-        max-width: 900px !important;
+        flex: 1 !important;
+        padding: 30px !important;
       }
+
       .info-grid {
         gap: 28px !important;
       }
+      
       .timeline-item:last-child {
         border-bottom: none !important;
       }
     }
 
+    @media (max-width: 768px) {
+      .tracking-container {
+        flex-direction: column !important;
+      }
+
+      .tracking-main {
+        width: 100% !important;
+        padding: 20px !important;
+      }
+
+      .info-grid {
+        grid-template-columns: 1fr !important;
+      }
+
+      .cardHeader {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 10px;
+      }
+    }
+
     @media (min-width: 1024px) {
       .tracking-main {
-        max-width: 1000px !important;
+        padding: 40px !important;
       }
+      
       .info-grid {
         grid-template-columns: repeat(4, 1fr) !important;
       }
@@ -374,7 +393,7 @@ const Tracking = () => {
     <>
       <style>{desktopStyles}</style>
       <div className="tracking-container" style={styles.container}>
-        <div className="sidebar-wrapper" style={styles.sidebarWrapper}>
+        <div className="sidebar-wrapper">
           <Sidebar />
         </div>
 
@@ -425,7 +444,6 @@ const Tracking = () => {
                 </div>
               </div>
 
-              {/* Desktop: 4 columns, Mobile: 2 columns */}
               <div className="info-grid" style={styles.infoGrid}>
                 <div style={styles.infoItem}>
                   <div style={styles.infoLabel}>

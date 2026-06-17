@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import api from "../../services/api";
-import { FaTruck, FaSearch, FaDownload, FaTimes, FaBox, FaEye, FaQrcode } from "react-icons/fa";
+import { FaTruck, FaSearch, FaDownload, FaTimes, FaEye, FaQrcode } from "react-icons/fa";
 
 const Shipments = () => {
   const [shipments, setShipments] = useState([]);
@@ -89,36 +89,33 @@ const Shipments = () => {
     card: { 
       background: "#ffffff", 
       padding: "24px", 
-      borderRadius: "20px", 
+      borderRadius: "16px", 
       border: "1px solid #e2e8f0", 
       marginBottom: "24px",
-      boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+      boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
       transition: "box-shadow 0.3s ease"
     },
     tableHead: { 
-      background: "#f8fafc", 
-      color: "#475569", 
-      fontSize: "12px", 
-      textTransform: "uppercase",
-      fontWeight: "600",
-      borderBottom: "2px solid #e2e8f0"
+      background: "#f8fafc",
+      borderBottom: "1px solid #e2e8f0"
     },
     td: { 
-      padding: "16px", 
-      borderBottom: "1px solid #f1f5f9", 
-      fontSize: "13px", 
-      color: "#334155" 
+      padding: "18px 16px",
+      borderBottom: "1px solid #f1f5f9",
+      fontSize: "14px",
+      color: "#334155",
+      background: "#ffffff"
     },
     btn: (bg) => ({ 
       background: bg, 
       color: "#fff", 
       border: "none", 
-      padding: "6px 12px", 
-      borderRadius: "8px", 
+      padding: "8px 14px", 
+      borderRadius: "10px", 
       cursor: "pointer", 
       marginRight: "5px", 
       fontSize: "12px", 
-      fontWeight: "500",
+      fontWeight: "600",
       transition: "all 0.2s ease",
       display: "inline-flex",
       alignItems: "center",
@@ -168,7 +165,7 @@ const Shipments = () => {
     },
     tableWrapper: {
       overflowX: "auto",
-      borderRadius: "20px"
+      borderRadius: "16px"
     },
     table: {
       width: "100%",
@@ -194,9 +191,9 @@ const Shipments = () => {
     }),
     awbText: {
       fontWeight: "700",
-      color: "#0f172a",
+      color: "#2563eb",
       fontFamily: "monospace",
-      fontSize: "12px"
+      fontSize: "13px"
     },
     modalOverlay: {
       position: "fixed",
@@ -354,6 +351,26 @@ const Shipments = () => {
           </div>
 
           <div style={{ ...s.card, padding: 0, overflow: "hidden" }}>
+            {/* Table Title */}
+            <div
+              style={{
+                padding: "20px 24px",
+                borderBottom: "1px solid #e2e8f0",
+                background: "#fff"
+              }}
+            >
+              <h3
+                style={{
+                  margin: 0,
+                  color: "#0f172a",
+                  fontSize: "18px",
+                  fontWeight: "700"
+                }}
+              >
+                Shipment Records
+              </h3>
+            </div>
+            
             <div style={s.tableWrapper}>
               {loading ? (
                 <div style={{ padding: "60px", textAlign: "center", color: "#64748b" }}>Loading Shipments...</div>
@@ -374,10 +391,29 @@ const Shipments = () => {
                             <b style={s.awbText}>{shipment.awb}</b>
                           </td>
                           <td style={s.td}>
-                            <span style={{ fontWeight: "500", color: "#1e293b" }}>{shipment.orderId?.customerName || "N/A"}</span>
+                            <span
+                              style={{
+                                fontWeight: "600",
+                                color: "#0f172a",
+                                fontSize: "14px"
+                              }}
+                            >
+                              {shipment.orderId?.customerName || "N/A"}
+                            </span>
                           </td>
                           <td style={s.td}>
-                            <span style={{ fontSize: "12px", color: "#64748b" }}>{shipment.courier}</span>
+                            <span
+                              style={{
+                                background: "#f1f5f9",
+                                padding: "6px 10px",
+                                borderRadius: "999px",
+                                fontSize: "12px",
+                                color: "#475569",
+                                fontWeight: "500"
+                              }}
+                            >
+                              {shipment.courier}
+                            </span>
                           </td>
                           <td style={s.td}>
                             <span style={s.statusBadge(shipment.status)}>

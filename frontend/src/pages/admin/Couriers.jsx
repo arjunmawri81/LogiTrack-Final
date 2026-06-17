@@ -76,23 +76,7 @@ const Couriers = () => {
       padding: "20px 30px",
       overflowX: "auto"
     },
-    welcomeSection: {
-      background: "linear-gradient(135deg, #ea580c, #c2410c)",
-      borderRadius: "20px",
-      padding: "24px 30px",
-      marginBottom: "30px",
-      color: "white"
-    },
-    welcomeTitle: {
-      fontSize: "24px",
-      fontWeight: "700",
-      margin: "0 0 8px 0"
-    },
-    welcomeSubtitle: {
-      fontSize: "14px",
-      opacity: 0.9,
-      margin: 0
-    },
+    // ✅ New header block (similar to Orders/Merchants)
     headerBlock: {
       marginBottom: "25px"
     },
@@ -149,7 +133,6 @@ const Couriers = () => {
       alignItems: "center",
       justifyContent: "center"
     },
-    // Performance Section
     performanceBox: {
       background: "white",
       borderRadius: "20px",
@@ -187,7 +170,6 @@ const Couriers = () => {
       borderRadius: "99px",
       transition: "width 0.3s ease"
     },
-    // Table Section - WHITE BACKGROUND
     tableContainer: {
       background: "white",
       borderRadius: "20px",
@@ -281,16 +263,14 @@ const Couriers = () => {
       gap: "8px"
     },
     actionBtn: {
-      background: "white",
+      background: "#ffffff",
       border: "1px solid #e2e8f0",
       padding: "8px 12px",
-      borderRadius: "10px",
+      borderRadius: "8px",
       cursor: "pointer",
-      color: "#64748b",
-      transition: "all 0.2s",
-      display: "inline-flex",
-      alignItems: "center",
-      gap: "6px"
+      color: "#475569",
+      boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
+      transition: "all 0.2s ease"
     }
   };
 
@@ -314,10 +294,12 @@ const Couriers = () => {
       <div style={styles.mainContent}>
         <AdminTopbar />
 
-        {/* Welcome Section */}
-        <div style={styles.welcomeSection}>
-          <h1 style={styles.welcomeTitle}>🚚 Courier Management</h1>
-          <p style={styles.welcomeSubtitle}>
+        {/* ✅ New header block (similar to Orders/Merchants) */}
+        <div style={styles.headerBlock}>
+          <h1 style={styles.headerTitle}>
+            🚚 Courier Management
+          </h1>
+          <p style={styles.headerSubtitle}>
             Manage courier integrations, track API performance and monitor deliveries
           </p>
         </div>
@@ -390,7 +372,7 @@ const Couriers = () => {
           ))}
         </div>
 
-        {/* Couriers Table - WHITE BACKGROUND */}
+        {/* Couriers Table */}
         <div style={styles.tableContainer}>
           <div style={styles.tableHeader}>
             <h3 style={styles.tableTitle}>Courier Partner List</h3>
@@ -408,7 +390,18 @@ const Couriers = () => {
               </thead>
               <tbody>
                 {couriers.map((courier) => (
-                  <tr key={courier.name}>
+                  <tr
+                    key={courier.name}
+                    style={{
+                      background: "#ffffff"
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.background = "#f8fafc")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.background = "#ffffff")
+                    }
+                  >
                     <td style={styles.td}>
                       <div style={styles.courierInfo}>
                         <div style={styles.courierAvatar}>
@@ -432,18 +425,62 @@ const Couriers = () => {
                     </td>
                     <td style={styles.td}>
                       <div style={styles.actionGroup}>
-                        <button style={styles.actionBtn} title="View Details">
+                        <button 
+                          style={styles.actionBtn} 
+                          title="View Details"
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = "#f1f5f9";
+                            e.currentTarget.style.borderColor = "#cbd5e1";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = "#ffffff";
+                            e.currentTarget.style.borderColor = "#e2e8f0";
+                          }}
+                        >
                           <FaEye size={13} />
                         </button>
-                        <button style={styles.actionBtn} title="Edit">
+                        <button 
+                          style={styles.actionBtn} 
+                          title="Edit"
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = "#f1f5f9";
+                            e.currentTarget.style.borderColor = "#cbd5e1";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = "#ffffff";
+                            e.currentTarget.style.borderColor = "#e2e8f0";
+                          }}
+                        >
                           <FaEdit size={13} />
                         </button>
                         {courier.apiStatus === "Connected" ? (
-                          <button style={styles.actionBtn} title="Disconnect">
+                          <button 
+                            style={styles.actionBtn} 
+                            title="Disconnect"
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = "#fee2e2";
+                              e.currentTarget.style.borderColor = "#fecaca";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = "#ffffff";
+                              e.currentTarget.style.borderColor = "#e2e8f0";
+                            }}
+                          >
                             <FaPowerOff size={13} color="#ef4444" />
                           </button>
                         ) : (
-                          <button style={styles.actionBtn} title="Connect">
+                          <button 
+                            style={styles.actionBtn} 
+                            title="Connect"
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = "#dcfce7";
+                              e.currentTarget.style.borderColor = "#bbf7d0";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = "#ffffff";
+                              e.currentTarget.style.borderColor = "#e2e8f0";
+                            }}
+                          >
                             <FaPlug size={13} color="#10b981" />
                           </button>
                         )}

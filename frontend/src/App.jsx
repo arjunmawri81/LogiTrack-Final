@@ -26,6 +26,7 @@ import CreateShipment from "./pages/merchant/CreateShipment";
 import Shipments from "./pages/merchant/Shipments";
 import Tracking from "./pages/merchant/Tracking";
 import Wallet from "./pages/merchant/Wallet";
+import Invoices from "./pages/merchant/Invoices";
 import Billing from "./pages/merchant/Billing";
 import MerchantReports from "./pages/merchant/Reports";
 import Profile from "./pages/merchant/Profile";
@@ -46,6 +47,8 @@ import AdminRevenue from "./pages/admin/Revenue";
 import AdminReports from "./pages/admin/Reports";
 import AdminSettings from "./pages/admin/Settings";
 import AdminOrders from "./pages/admin/Orders";
+import AdminOrderDetails from "./pages/admin/OrderDetails";
+import AdminShipmentDetails from "./pages/admin/ShipmentDetails"; // ✅ Added
 import AdminShipments from "./pages/admin/Shipments";
 import NDR from "./pages/admin/NDR";
 import RTO from "./pages/admin/RTO";
@@ -110,6 +113,7 @@ function App() {
         <Route path="/merchant/shipments" element={<MerchantRoute><Shipments /></MerchantRoute>} />
         <Route path="/merchant/tracking" element={<MerchantRoute><Tracking /></MerchantRoute>} />
         <Route path="/merchant/wallet" element={<MerchantRoute><Wallet /></MerchantRoute>} />
+        <Route path="/merchant/invoices" element={<MerchantRoute><Invoices /></MerchantRoute>} />
         <Route path="/merchant/billing" element={<MerchantRoute><Billing /></MerchantRoute>} />
         <Route path="/merchant/reports" element={<MerchantRoute><MerchantReports /></MerchantRoute>} />
         <Route path="/merchant/profile" element={<MerchantRoute><Profile /></MerchantRoute>} />
@@ -122,7 +126,10 @@ function App() {
         <Route path="/admin/users" element={<AdminRoute><Users /></AdminRoute>} />
         <Route path="/admin/merchants" element={<AdminRoute><Merchants /></AdminRoute>} />
         <Route path="/admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>} />
+        <Route path="/admin/orders/:id" element={<AdminRoute><AdminOrderDetails /></AdminRoute>} />
         <Route path="/admin/shipments" element={<AdminRoute><AdminShipments /></AdminRoute>} />
+        {/* ✅ Added Admin Shipment Details Route */}
+        <Route path="/admin/shipments/:id" element={<AdminRoute><AdminShipmentDetails /></AdminRoute>} />
         <Route path="/admin/couriers" element={<AdminRoute><Couriers /></AdminRoute>} />
         <Route path="/admin/pricing" element={<AdminRoute><Pricing /></AdminRoute>} />
         <Route path="/admin/revenue" element={<AdminRoute><AdminRevenue /></AdminRoute>} />

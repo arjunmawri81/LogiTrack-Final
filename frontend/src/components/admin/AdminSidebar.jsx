@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import {
   FaHome,
   FaUsers,
@@ -14,20 +14,20 @@ import {
   FaUndo,
 } from "react-icons/fa";
 
-import "./AdminSidebar.css";
+import "./AdminSidebar.css"; // Merchant wala CSS use karo
 
 const AdminSidebar = () => {
   return (
-    <div className="admin-sidebar">
-      {/* Logo */}
-      <div className="admin-brand">
-        <h2>LogiTrack</h2>
-        <span>Admin Panel</span>
+    <div className="sidebar">
+      {/* Header */}
+      <div className="sidebar-header">
+        <h2 className="logo">LogiTrack</h2>
+        <span className="logo-subtitle">ADMIN PANEL</span>
       </div>
 
       {/* Profile */}
-      <div className="admin-profile">
-        <div className="profile-avatar">AS</div>
+      <div className="sidebar-profile">
+        <div className="avatar">AS</div>
 
         <div className="profile-info">
           <h4>Arjun Singh</h4>
@@ -36,93 +36,132 @@ const AdminSidebar = () => {
       </div>
 
       {/* Menu */}
-      <ul className="admin-menu">
+      <ul className="sidebar-menu">
         <li>
-          <NavLink to="/admin/dashboard">
+          <NavLink
+            to="/admin/dashboard"
+            className={({ isActive }) => (isActive ? "active" : "")}
+          >
             <FaHome />
             <span>Dashboard</span>
           </NavLink>
         </li>
 
         <li>
-          <NavLink to="/admin/users">
+          <NavLink
+            to="/admin/users"
+            className={({ isActive }) => (isActive ? "active" : "")}
+          >
             <FaUsers />
             <span>Users</span>
           </NavLink>
         </li>
 
         <li>
-          <NavLink to="/admin/merchants">
+          <NavLink
+            to="/admin/merchants"
+            className={({ isActive }) => (isActive ? "active" : "")}
+          >
             <FaStore />
             <span>Merchants</span>
           </NavLink>
         </li>
 
         <li>
-          <NavLink to="/admin/orders">
+          <NavLink
+            to="/admin/orders"
+            className={({ isActive }) => (isActive ? "active" : "")}
+          >
             <FaClipboardList />
             <span>Orders</span>
           </NavLink>
         </li>
 
         <li>
-          <NavLink to="/admin/shipments">
+          <NavLink
+            to="/admin/shipments"
+            className={({ isActive }) => (isActive ? "active" : "")}
+          >
             <FaBox />
             <span>Shipments</span>
           </NavLink>
         </li>
 
         <li>
-          <NavLink to="/admin/couriers">
+          <NavLink
+            to="/admin/couriers"
+            className={({ isActive }) => (isActive ? "active" : "")}
+          >
             <FaTruck />
             <span>Couriers</span>
           </NavLink>
         </li>
 
         <li>
-          <NavLink to="/admin/ndr">
+          <NavLink
+            to="/admin/ndr"
+            className={({ isActive }) => (isActive ? "active" : "")}
+          >
             <FaExclamationTriangle />
             <span>NDR</span>
           </NavLink>
         </li>
 
         <li>
-          <NavLink to="/admin/rto">
+          <NavLink
+            to="/admin/rto"
+            className={({ isActive }) => (isActive ? "active" : "")}
+          >
             <FaUndo />
             <span>RTO</span>
           </NavLink>
         </li>
 
         <li>
-          <NavLink to="/admin/pricing">
+          <NavLink
+            to="/admin/pricing"
+            className={({ isActive }) => (isActive ? "active" : "")}
+          >
             <FaRupeeSign />
             <span>Pricing</span>
           </NavLink>
         </li>
 
         <li>
-          <NavLink to="/admin/cod">
+          <NavLink
+            to="/admin/cod"
+            className={({ isActive }) => (isActive ? "active" : "")}
+          >
             <FaRupeeSign />
             <span>COD</span>
           </NavLink>
         </li>
 
         <li>
-          <NavLink to="/admin/revenue">
+          <NavLink
+            to="/admin/revenue"
+            className={({ isActive }) => (isActive ? "active" : "")}
+          >
             <FaChartBar />
             <span>Revenue</span>
           </NavLink>
         </li>
 
         <li>
-          <NavLink to="/admin/reports">
+          <NavLink
+            to="/admin/reports"
+            className={({ isActive }) => (isActive ? "active" : "")}
+          >
             <FaChartBar />
             <span>Reports</span>
           </NavLink>
         </li>
 
         <li>
-          <NavLink to="/admin/settings">
+          <NavLink
+            to="/admin/settings"
+            className={({ isActive }) => (isActive ? "active" : "")}
+          >
             <FaCog />
             <span>Settings</span>
           </NavLink>
@@ -131,10 +170,10 @@ const AdminSidebar = () => {
 
       {/* Logout */}
       <div className="logout-section">
-        <NavLink to="/login">
+        <Link to="/login">
           <FaSignOutAlt />
           <span>Logout</span>
-        </NavLink>
+        </Link>
       </div>
     </div>
   );

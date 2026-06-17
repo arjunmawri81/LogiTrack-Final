@@ -107,8 +107,26 @@ const Wallet = () => {
       background: "#fff",
       border: "1px solid #e2e8f0",
       borderRadius: "16px",
-      padding: "25px",
+      padding: 0,
       marginBottom: "20px",
+      overflow: "hidden",
+    },
+
+    cardHeader: {
+      padding: "20px 24px",
+      borderBottom: "1px solid #e2e8f0",
+      background: "#fff",
+    },
+
+    cardTitle: {
+      margin: 0,
+      color: "#0f172a",
+      fontSize: "18px",
+      fontWeight: "700",
+    },
+
+    inputWrapper: {
+      padding: "24px",
     },
 
     input: {
@@ -118,6 +136,7 @@ const Wallet = () => {
       borderRadius: "8px",
       marginBottom: "15px",
       outline: "none",
+      fontSize: "14px",
     },
 
     btn: {
@@ -131,20 +150,52 @@ const Wallet = () => {
       display: "flex",
       alignItems: "center",
       gap: "8px",
+      transition: "all 0.2s ease",
+    },
+
+    tableHead: {
+      background: "#f8fafc",
+      borderBottom: "1px solid #e2e8f0",
     },
 
     th: {
-      padding: "14px",
-      background: "#f1f5f9",
+      padding: "16px",
       textAlign: "left",
       fontSize: "12px",
+      fontWeight: "600",
+      color: "#475569",
       textTransform: "uppercase",
+      letterSpacing: "0.5px",
     },
 
     td: {
-      padding: "14px",
-      borderBottom: "1px solid #e2e8f0",
+      padding: "18px 16px",
+      borderBottom: "1px solid #f1f5f9",
+      fontSize: "14px",
+      color: "#334155",
+      background: "#ffffff",
     },
+
+    tableWrapper: {
+      overflowX: "auto",
+      padding: "0",
+    },
+
+    table: {
+      width: "100%",
+      borderCollapse: "collapse",
+      minWidth: "600px",
+    },
+
+    typeBadge: (type) => ({
+      color: type === "CREDIT" ? "#16a34a" : "#dc2626",
+      fontWeight: "700",
+      fontSize: "13px",
+      background: type === "CREDIT" ? "#dcfce7" : "#fee2e2",
+      padding: "4px 12px",
+      borderRadius: "100px",
+      display: "inline-block",
+    }),
   };
 
   return (
@@ -157,16 +208,28 @@ const Wallet = () => {
         <h1
           style={{
             fontSize: "30px",
-            marginBottom: "20px",
+            fontWeight: "700",
+            color: "#0f172a",
+            marginBottom: "8px",
+            letterSpacing: "-0.5px",
           }}
         >
           My Wallet
         </h1>
+        <p
+          style={{
+            fontSize: "14px",
+            color: "#64748b",
+            marginBottom: "24px",
+          }}
+        >
+          Manage your wallet and transactions
+        </p>
 
         {/* Balance */}
         <div style={s.balanceCard}>
           <div>
-            <p style={{ margin: 0 }}>
+            <p style={{ margin: 0, color: "#94a3b8", fontSize: "14px" }}>
               Available Balance
             </p>
 
@@ -174,6 +237,7 @@ const Wallet = () => {
               style={{
                 marginTop: "10px",
                 fontSize: "42px",
+                fontWeight: "700",
               }}
             >
               ₹{wallet.balance || 0}
@@ -198,12 +262,16 @@ const Wallet = () => {
               style={{
                 color: "#64748b",
                 marginBottom: "10px",
+                fontSize: "12px",
+                fontWeight: "600",
+                textTransform: "uppercase",
+                letterSpacing: "0.5px",
               }}
             >
               Total Credit
             </h4>
 
-            <h2 style={{ color: "#16a34a" }}>
+            <h2 style={{ color: "#16a34a", fontWeight: "700" }}>
               ₹{summary.totalCredit}
             </h2>
           </div>
@@ -213,12 +281,16 @@ const Wallet = () => {
               style={{
                 color: "#64748b",
                 marginBottom: "10px",
+                fontSize: "12px",
+                fontWeight: "600",
+                textTransform: "uppercase",
+                letterSpacing: "0.5px",
               }}
             >
               Total Debit
             </h4>
 
-            <h2 style={{ color: "#dc2626" }}>
+            <h2 style={{ color: "#dc2626", fontWeight: "700" }}>
               ₹{summary.totalDebit}
             </h2>
           </div>
@@ -228,12 +300,16 @@ const Wallet = () => {
               style={{
                 color: "#64748b",
                 marginBottom: "10px",
+                fontSize: "12px",
+                fontWeight: "600",
+                textTransform: "uppercase",
+                letterSpacing: "0.5px",
               }}
             >
               Transactions
             </h4>
 
-            <h2 style={{ color: "#0f172a" }}>
+            <h2 style={{ color: "#0f172a", fontWeight: "700" }}>
               {summary.totalTransactions}
             </h2>
           </div>
@@ -241,100 +317,100 @@ const Wallet = () => {
 
         {/* Recharge */}
         <div style={s.card}>
-          <h3>Recharge Wallet</h3>
+          <div style={s.cardHeader}>
+            <h3 style={s.cardTitle}>Recharge Wallet</h3>
+          </div>
+          <div style={s.inputWrapper}>
+            <input
+              type="number"
+              placeholder="Enter Amount"
+              value={amount}
+              onChange={(e) =>
+                setAmount(e.target.value)
+              }
+              style={s.input}
+            />
 
-          <input
-            type="number"
-            placeholder="Enter Amount"
-            value={amount}
-            onChange={(e) =>
-              setAmount(e.target.value)
-            }
-            style={s.input}
-          />
-
-          <button
-            onClick={rechargeWallet}
-            style={s.btn}
-          >
-            <FaPlus />
-            Recharge Now
-          </button>
+            <button
+              onClick={rechargeWallet}
+              style={s.btn}
+            >
+              <FaPlus />
+              Recharge Now
+            </button>
+          </div>
         </div>
 
         {/* Transactions */}
         <div style={s.card}>
-          <h3>Recent Transactions</h3>
+          <div style={s.cardHeader}>
+            <h3 style={s.cardTitle}>Recent Transactions</h3>
+          </div>
 
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-            }}
-          >
-            <thead>
-              <tr>
-                <th style={s.th}>Date</th>
-                <th style={s.th}>Type</th>
-                <th style={s.th}>Amount</th>
-                <th style={s.th}>Description</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {wallet.transactions?.length > 0 ? (
-                [...wallet.transactions]
-                  .sort(
-                    (a, b) =>
-                      new Date(b.createdAt) -
-                      new Date(a.createdAt)
-                  )
-                  .map((t, index) => (
-                    <tr key={index}>
-                      <td style={s.td}>
-                        {new Date(
-                          t.createdAt
-                        ).toLocaleDateString()}
-                      </td>
-
-                      <td style={s.td}>
-                        <span
-                          style={{
-                            color:
-                              t.type === "CREDIT"
-                                ? "#16a34a"
-                                : "#dc2626",
-                            fontWeight: "700",
-                          }}
-                        >
-                          {t.type}
-                        </span>
-                      </td>
-
-                      <td style={s.td}>
-                        ₹{t.amount}
-                      </td>
-
-                      <td style={s.td}>
-                        {t.description}
-                      </td>
-                    </tr>
-                  ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan="4"
-                    style={{
-                      textAlign: "center",
-                      padding: "30px",
-                    }}
-                  >
-                    No Transactions Found
-                  </td>
+          <div style={s.tableWrapper}>
+            <table style={s.table}>
+              <thead>
+                <tr style={s.tableHead}>
+                  <th style={s.th}>Date</th>
+                  <th style={s.th}>Type</th>
+                  <th style={s.th}>Amount</th>
+                  <th style={s.th}>Description</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+
+              <tbody>
+                {wallet.transactions?.length > 0 ? (
+                  [...wallet.transactions]
+                    .sort(
+                      (a, b) =>
+                        new Date(b.createdAt) -
+                        new Date(a.createdAt)
+                    )
+                    .map((t, index) => (
+                      <tr key={index}>
+                        <td style={s.td}>
+                          {new Date(
+                            t.createdAt
+                          ).toLocaleDateString('en-GB')}
+                        </td>
+
+                        <td style={s.td}>
+                          <span style={s.typeBadge(t.type)}>
+                            {t.type}
+                          </span>
+                        </td>
+
+                        <td style={s.td}>
+                          <span style={{ fontWeight: "600", color: "#0f172a" }}>
+                            ₹{t.amount}
+                          </span>
+                        </td>
+
+                        <td style={s.td}>
+                          <span style={{ color: "#475569" }}>
+                            {t.description}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan="4"
+                      style={{
+                        textAlign: "center",
+                        padding: "60px",
+                        color: "#94a3b8",
+                        fontSize: "14px",
+                      }}
+                    >
+                      No Transactions Found
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </main>
     </div>
