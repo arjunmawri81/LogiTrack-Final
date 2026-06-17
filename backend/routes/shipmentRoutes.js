@@ -6,6 +6,7 @@ const { authMiddleware } = require("../middleware/authMiddleware");
 const {
   createShipment,
   getShipments,
+  getShipmentById,
   trackShipment,
   updateShipmentStatus,
   schedulePickup,
@@ -30,6 +31,11 @@ router.get("/", authMiddleware, getShipments);
 // GET /api/shipments/track/AWB123456
 // ===============================
 router.get("/track/:id", authMiddleware, trackShipment);
+
+// ===============================
+// GET SINGLE SHIPMENT
+// ===============================
+router.get("/:id", authMiddleware, getShipmentById);
 
 // ===============================
 // UPDATE SHIPMENT STATUS

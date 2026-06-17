@@ -27,8 +27,10 @@ const {
   deleteAdmin,
 
   getOrders,
+  getOrderByIdAdmin,
+  updateOrderStatus, // ✅ ADDED THIS
   getShipments,
-
+  getShipmentByIdAdmin,
   getCommission,
   getRevenue,
 } = require("../controllers/adminController");
@@ -149,7 +151,7 @@ router.delete(
   deleteAdmin
 );
 
-// Orders & Shipments
+// Orders
 router.get(
   "/orders",
   authMiddleware,
@@ -158,10 +160,33 @@ router.get(
 );
 
 router.get(
+  "/orders/:id",
+  authMiddleware,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
+  getOrderByIdAdmin
+);
+
+// ✅ ADDED: PATCH route for order status update
+router.patch(
+  "/orders/:id/status",
+  authMiddleware,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
+  updateOrderStatus
+);
+
+// Shipments
+router.get(
   "/shipments",
   authMiddleware,
   authorizeRoles("ADMIN", "SUPER_ADMIN"),
   getShipments
+);
+
+router.get(
+  "/shipments/:id",
+  authMiddleware,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
+  getShipmentByIdAdmin
 );
 
 // Revenue & Commission

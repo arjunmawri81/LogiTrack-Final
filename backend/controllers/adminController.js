@@ -2,6 +2,7 @@ const User = require("../models/User");
 const Order = require("../models/Order");
 const Shipment = require("../models/Shipment");
 const Invoice = require("../models/Invoice");
+const Wallet = require("../models/Wallet");
 const bcrypt = require("bcryptjs");
 
 // ================================
@@ -10,16 +11,51 @@ const bcrypt = require("bcryptjs");
 const getDashboardStats = async (req, res) => {
   try {
     const totalUsers = await User.countDocuments();
+
+    const totalMerchants = await User.countDocuments({
+      role: "MERCHANT",
+    });
+
+    const pendingMerchants = await User.countDocuments({
+      role: "MERCHANT",
+      isApproved: false,
+    });
+
     const totalOrders = await Order.countDocuments();
+
+    const pendingOrders = await Order.countDocuments({
+      status: "PENDING",
+    });
+
     const totalShipments = await Shipment.countDocuments();
+
+    const deliveredShipments =
+      await Shipment.countDocuments({
+        status: "DELIVERED",
+      });
+
     const invoices = await Invoice.find();
-    const totalRevenue = invoices.reduce((sum, invoice) => sum + (invoice.amount || 0), 0);
+
+    // ✅ UPDATED: Revenue from shipping charges only
+    const totalRevenue = invoices.reduce(
+      (sum, invoice) =>
+        sum + (invoice.shippingCharge || 0),
+      0
+    );
 
     res.status(200).json({
       success: true,
+
       totalUsers,
+      totalMerchants,
+      pendingMerchants,
+
       totalOrders,
+      pendingOrders,
+
       totalShipments,
+      deliveredShipments,
+
       totalRevenue,
     });
   } catch (error) {
@@ -306,11 +342,7 @@ const blockMerchant = async (req, res) => {
 // Unblock Merchant
 const unblockMerchant = async (req, res) => {
   try {
-    const merchant = await User.findByIdAndUpdate(
-      req.params.id,
-      { isBlocked: false },
-      { new: true }
-    ).select("-password");
+    const merchant = await User.findById(req.params.id);
 
     if (!merchant) {
       return res.status(404).json({
@@ -319,13 +351,16 @@ const unblockMerchant = async (req, res) => {
       });
     }
 
-    res.status(200).json({
+    merchant.isBlocked = false;
+
+    await merchant.save();
+
+    return res.status(200).json({
       success: true,
-      message: "Merchant unblocked successfully",
-      merchant,
+      message: "Merchant Unblocked Successfully",
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
@@ -453,6 +488,71 @@ const getOrders = async (req, res) => {
   }
 };
 
+// ================================
+// GET SINGLE ORDER (ADMIN)
+// ================================
+const getOrderByIdAdmin = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      order,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ================================
+// UPDATE ORDER STATUS (ADMIN)
+// ================================
+const updateOrderStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    const order = await Order.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
+    }
+
+    // Sync Shipment Status
+    await Shipment.updateMany(
+      { orderId: order._id },
+      { status }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Order status updated successfully",
+      order,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 const getShipments = async (req, res) => {
   try {
     const shipments = await Shipment.find().sort({ createdAt: -1 });
@@ -470,21 +570,24 @@ const getShipments = async (req, res) => {
 };
 
 // ================================
-// COMMISSION & REVENUE
+// GET SINGLE SHIPMENT (ADMIN)
 // ================================
-const getCommission = async (req, res) => {
+const getShipmentByIdAdmin = async (req, res) => {
   try {
-    const totalRevenue = 50000;
-    const commissionRate = 10;
+    const shipment = await Shipment.findById(req.params.id)
+      .populate("orderId")
+      .populate("merchantId");
 
-    const totalCommission =
-      (totalRevenue * commissionRate) / 100;
+    if (!shipment) {
+      return res.status(404).json({
+        success: false,
+        message: "Shipment not found",
+      });
+    }
 
     res.status(200).json({
       success: true,
-      totalRevenue,
-      commissionRate,
-      totalCommission,
+      shipment,
     });
   } catch (error) {
     res.status(500).json({
@@ -494,19 +597,66 @@ const getCommission = async (req, res) => {
   }
 };
 
+// ================================
+// COMMISSION & REVENUE - ✅ UPDATED
+// ================================
+const getCommission = async (req, res) => {
+  try {
+    const invoices = await Invoice.find();
+
+    const totalRevenue = invoices.reduce(
+      (sum, invoice) =>
+        sum + (invoice.shippingCharge || 0),
+      0
+    );
+
+    const commissionRate = 10;
+
+    const totalCommission =
+      (totalRevenue * commissionRate) / 100;
+
+    const netRevenue =
+      totalRevenue - totalCommission;
+
+    res.status(200).json({
+      success: true,
+      totalRevenue,
+      commissionRate,
+      totalCommission,
+      netRevenue,
+      totalInvoices: invoices.length,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ================================
+// GET REVENUE - ✅ FINAL VERSION
+// ================================
 const getRevenue = async (req, res) => {
   try {
     const invoices = await Invoice.find();
 
     const totalRevenue = invoices.reduce(
       (sum, invoice) =>
-        sum + invoice.amount,
+        sum + (invoice.shippingCharge || 0),
       0
     );
+
+    // ✅ ADDED: Get total orders and shipments
+    const totalOrders = await Order.countDocuments();
+    const totalShipments = await Shipment.countDocuments();
 
     res.status(200).json({
       success: true,
       totalRevenue,
+      totalOrders,
+      totalShipments,
+      totalInvoices: invoices.length,
       invoices,
     });
   } catch (error) {
@@ -547,9 +697,12 @@ module.exports = {
   
   // Orders & Shipments
   getOrders,
+  getOrderByIdAdmin,
+  updateOrderStatus,
   getShipments,
+  getShipmentByIdAdmin,
   
   // Commission & Revenue
-  getCommission,
+  getCommission, // ✅ Updated with real data
   getRevenue,
 };

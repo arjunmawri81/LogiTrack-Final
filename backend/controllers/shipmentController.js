@@ -1,6 +1,7 @@
 const Shipment = require("../models/Shipment");
 const Order = require("../models/Order");
 const Invoice = require("../models/Invoice");
+const Wallet = require("../models/Wallet");
 const QRCode = require("qrcode");
 const PDFDocument = require("pdfkit");
 const bwipjs = require("bwip-js");
@@ -11,21 +12,31 @@ const bwipjs = require("bwip-js");
 const generateAWB = async () => {
   let awb;
   let exists = true;
+  let attempts = 0;
+  const maxAttempts = 10;
 
-  while (exists) {
-    awb =
-      "AWB" +
-      Date.now() +
-      Math.floor(1000 + Math.random() * 9000);
-
+  while (exists && attempts < maxAttempts) {
+    attempts++;
+    awb = "AWB" + Date.now() + Math.floor(1000 + Math.random() * 9000);
+    
     const found = await Shipment.findOne({ awb });
-
     if (!found) {
       exists = false;
     }
   }
 
+  if (exists) {
+    throw new Error("Failed to generate unique AWB after multiple attempts");
+  }
+
   return awb;
+};
+
+// ===============================
+// GENERATE UNIQUE INVOICE NUMBER
+// ===============================
+const generateInvoiceNumber = () => {
+  return "INV" + Date.now() + Math.floor(Math.random() * 1000);
 };
 
 // ===============================
@@ -56,6 +67,39 @@ const createShipment = async (req, res) => {
       });
     }
 
+    // Wallet Check
+    const SHIPPING_CHARGE = 50;
+
+    let wallet = await Wallet.findOne({
+      merchantId: req.user.id,
+    });
+
+    if (!wallet) {
+      wallet = await Wallet.create({
+        merchantId: req.user.id,
+      });
+    }
+
+    if (wallet.balance < SHIPPING_CHARGE) {
+      return res.status(400).json({
+        success: false,
+        message: "Insufficient Wallet Balance",
+      });
+    }
+
+    // Duplicate Shipment Stop
+    const existingShipment = await Shipment.findOne({
+      orderId,
+      merchantId: req.user.id,
+    });
+
+    if (existingShipment) {
+      return res.status(400).json({
+        success: false,
+        message: "Shipment already exists for this order",
+      });
+    }
+
     const awb = await generateAWB();
 
     const shipment = await Shipment.create({
@@ -73,18 +117,25 @@ const createShipment = async (req, res) => {
       ],
     });
 
-    const invoice = await Invoice.create({
-      invoiceNumber:
-        "INV" +
-        Date.now() +
-        Math.floor(Math.random() * 1000),
+    // 2. Wallet Deduction Safety: Deduct wallet first
+    wallet.balance -= SHIPPING_CHARGE;
+    wallet.transactions.push({
+      amount: SHIPPING_CHARGE,
+      type: "DEBIT",
+      description: `Shipment Charge - ${awb}`,
+      createdAt: new Date(),
+    });
+    await wallet.save();
 
+    // Then create invoice
+    const invoice = await Invoice.create({
+      invoiceNumber: generateInvoiceNumber(), // 1. Using the function
       merchantId: req.user.id,
       orderId: order._id,
       shipmentId: shipment._id,
       amount: order.amount || 0,
       taxAmount: 18,
-      shippingCharge: 50,
+      shippingCharge: SHIPPING_CHARGE,
       paymentMethod: order.paymentMode || "COD",
       status: "PAID",
     });
@@ -132,7 +183,34 @@ const getShipments = async (req, res) => {
 };
 
 // ===============================
-// TRACK SINGLE SHIPMENT
+// GET SINGLE SHIPMENT
+// ===============================
+const getShipmentById = async (req, res) => {
+  try {
+    const shipment = await Shipment.findById(req.params.id)
+      .populate("orderId");
+
+    if (!shipment) {
+      return res.status(404).json({
+        success: false,
+        message: "Shipment not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      shipment,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ===============================
+// TRACK SHIPMENT BY AWB
 // ===============================
 const trackShipment = async (req, res) => {
   try {
@@ -224,6 +302,13 @@ const schedulePickup = async (req, res) => {
         success: false,
         message: "Shipment not found",
       });
+    }
+
+    // Update order status
+    const order = await Order.findById(shipment.orderId);
+    if (order) {
+      order.status = "READY_FOR_PICKUP";
+      await order.save();
     }
 
     shipment.pickupDate = new Date();
@@ -364,9 +449,13 @@ const getTrackingTimeline = async (req, res) => {
   }
 };
 
+// ===============================
+// EXPORTS
+// ===============================
 module.exports = {
   createShipment,
   getShipments,
+  getShipmentById,  
   trackShipment,
   updateShipmentStatus,
   schedulePickup,

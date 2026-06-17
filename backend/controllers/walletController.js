@@ -82,7 +82,7 @@ const rechargeWallet = async (req, res) => {
 // ================================
 const debitWallet = async (req, res) => {
   try {
-    const { amount, description } = req.body;
+    const { amount, description } = req.body;    
 
     if (!amount || Number(amount) <= 0) {
       return res.status(400).json({
@@ -91,14 +91,19 @@ const debitWallet = async (req, res) => {
       });
     }
 
-    const wallet = await Wallet.findOne({
+    let wallet = await Wallet.findOne({
       merchantId: req.user.id,
     });
 
     if (!wallet) {
-      return res.status(404).json({
+      const newWallet = await Wallet.create({
+        merchantId: req.user.id,
+      });
+
+      return res.status(400).json({
         success: false,
-        message: "Wallet not found",
+        message: "Insufficient wallet balance",
+        wallet: newWallet,
       });
     }
 

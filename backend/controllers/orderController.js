@@ -64,12 +64,27 @@ const getOrders = async (req, res) => {
 // ================================
 // GET SINGLE ORDER
 // ================================
+// ================================
+// GET SINGLE ORDER
+// ================================
 const getOrderById = async (req, res) => {
   try {
-    const order = await Order.findOne({
-      _id: req.params.id,
-      merchantId: req.user.id,
-    });
+    let order;
+
+    // Admin & Super Admin can view any order
+    if (
+      req.user.role === "ADMIN" ||
+      req.user.role === "SUPER_ADMIN"
+    ) {
+      order = await Order.findById(req.params.id);
+    }
+    // Merchant can view only own orders
+    else {
+      order = await Order.findOne({
+        _id: req.params.id,
+        merchantId: req.user.id,
+      });
+    }
 
     if (!order) {
       return res.status(404).json({
@@ -78,18 +93,17 @@ const getOrderById = async (req, res) => {
       });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       order,
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
   }
 };
-
 // ================================
 // UPDATE ORDER
 // ================================
