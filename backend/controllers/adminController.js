@@ -3,6 +3,7 @@ const Order = require("../models/Order");
 const Shipment = require("../models/Shipment");
 const Invoice = require("../models/Invoice");
 const Wallet = require("../models/Wallet");
+const RateCard = require("../models/RateCard");
 const bcrypt = require("bcryptjs");
 
 // ================================
@@ -36,7 +37,6 @@ const getDashboardStats = async (req, res) => {
 
     const invoices = await Invoice.find();
 
-    // ✅ UPDATED: Revenue from shipping charges only
     const totalRevenue = invoices.reduce(
       (sum, invoice) =>
         sum + (invoice.shippingCharge || 0),
@@ -45,17 +45,13 @@ const getDashboardStats = async (req, res) => {
 
     res.status(200).json({
       success: true,
-
       totalUsers,
       totalMerchants,
       pendingMerchants,
-
       totalOrders,
       pendingOrders,
-
       totalShipments,
       deliveredShipments,
-
       totalRevenue,
     });
   } catch (error) {
@@ -169,6 +165,77 @@ const getMerchants = async (req, res) => {
       success: true,
       count: merchants.length,
       merchants,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const getMerchantDetails = async (req, res) => {
+  try {
+    const merchantId = req.params.id;
+
+    const merchant = await User.findById(merchantId)
+      .select("-password");
+
+    if (!merchant) {
+      return res.status(404).json({
+        success: false,
+        message: "Merchant not found",
+      });
+    }
+
+    const totalOrders =
+      await Order.countDocuments({
+        merchant: merchantId,
+      });
+
+    const totalShipments =
+      await Shipment.countDocuments({
+        merchantId: merchantId,
+      });
+
+    const wallet =
+      await Wallet.findOne({
+        merchantId: merchantId,
+      });
+
+    const rateCards =
+      await RateCard.find({
+        merchantId: merchantId,
+      });
+
+    res.status(200).json({
+      success: true,
+
+      merchant: {
+        _id: merchant._id,
+        companyName: merchant.companyName,
+        merchantName: merchant.name,
+        email: merchant.email,
+        phone: merchant.phone,
+        gstNumber: merchant.gstNumber,
+        panNumber: merchant.panNumber,
+        address: merchant.address,
+        city: merchant.city,
+        state: merchant.state,
+        pincode: merchant.pincode,
+        kycStatus: merchant.kycStatus,
+        status: merchant.isApproved
+          ? "Approved"
+          : "Pending",
+      },
+
+      totalOrders,
+      totalShipments,
+
+      walletBalance:
+        wallet?.balance || 0,
+
+      rateCards,
     });
   } catch (error) {
     res.status(500).json({
@@ -488,9 +555,7 @@ const getOrders = async (req, res) => {
   }
 };
 
-// ================================
 // GET SINGLE ORDER (ADMIN)
-// ================================
 const getOrderByIdAdmin = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
@@ -514,9 +579,7 @@ const getOrderByIdAdmin = async (req, res) => {
   }
 };
 
-// ================================
 // UPDATE ORDER STATUS (ADMIN)
-// ================================
 const updateOrderStatus = async (req, res) => {
   try {
     const { status } = req.body;
@@ -569,9 +632,7 @@ const getShipments = async (req, res) => {
   }
 };
 
-// ================================
 // GET SINGLE SHIPMENT (ADMIN)
-// ================================
 const getShipmentByIdAdmin = async (req, res) => {
   try {
     const shipment = await Shipment.findById(req.params.id)
@@ -598,7 +659,7 @@ const getShipmentByIdAdmin = async (req, res) => {
 };
 
 // ================================
-// COMMISSION & REVENUE - ✅ UPDATED
+// COMMISSION & REVENUE
 // ================================
 const getCommission = async (req, res) => {
   try {
@@ -634,9 +695,7 @@ const getCommission = async (req, res) => {
   }
 };
 
-// ================================
-// GET REVENUE - ✅ FINAL VERSION
-// ================================
+// GET REVENUE
 const getRevenue = async (req, res) => {
   try {
     const invoices = await Invoice.find();
@@ -647,7 +706,6 @@ const getRevenue = async (req, res) => {
       0
     );
 
-    // ✅ ADDED: Get total orders and shipments
     const totalOrders = await Order.countDocuments();
     const totalShipments = await Shipment.countDocuments();
 
@@ -658,6 +716,159 @@ const getRevenue = async (req, res) => {
       totalShipments,
       totalInvoices: invoices.length,
       invoices,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ================================
+// RATE CARD MANAGEMENT
+// ================================
+
+// Get all rate cards for a merchant
+const getRateCards = async (req, res) => {
+  try {
+    const { merchantId } = req.params;
+    
+    const rateCards = await RateCard.find({ merchantId });
+    
+    res.status(200).json({
+      success: true,
+      count: rateCards.length,
+      rateCards,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// Get rate card for a specific courier
+const getRateCardByCourier = async (req, res) => {
+  try {
+    const { merchantId, courier } = req.params;
+    
+    const rateCard = await RateCard.findOne({ 
+      merchantId, 
+      courierPartner: courier 
+    });
+    
+    if (!rateCard) {
+      return res.status(404).json({
+        success: false,
+        message: "Rate card not found for this courier",
+      });
+    }
+    
+    res.status(200).json({
+      success: true,
+      rateCard,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// Create or update rate card
+const saveRateCard = async (req, res) => {
+  try {
+    const {
+      merchantId,
+      courierPartner,
+      forwardRates,
+      zoneRates,
+      codCharge,
+      rtoCharge,
+      reversePickup,
+      fuelCharge,
+      isActive,
+      serviceability,
+    } = req.body;
+
+    // Check if rate card exists
+    let rateCard = await RateCard.findOne({ 
+      merchantId, 
+      courierPartner 
+    });
+
+    if (rateCard) {
+      // Update existing
+      rateCard.forwardRates = forwardRates;
+      rateCard.zoneRates = zoneRates;
+      rateCard.codCharge = codCharge;
+      rateCard.rtoCharge = rtoCharge;
+      rateCard.reversePickup = reversePickup;
+      rateCard.fuelCharge = fuelCharge;
+      rateCard.isActive = isActive !== undefined ? isActive : true;
+      if (serviceability) {
+        rateCard.serviceability = serviceability;
+      }
+      rateCard.updatedAt = new Date();
+    } else {
+      // Create new
+      rateCard = new RateCard({
+        merchantId,
+        courierPartner,
+        forwardRates,
+        zoneRates,
+        codCharge,
+        rtoCharge,
+        reversePickup,
+        fuelCharge,
+        isActive: isActive !== undefined ? isActive : true,
+        serviceability: serviceability || {
+          codEnabled: true,
+          prepaidEnabled: true,
+          rtoEnabled: true,
+          reversePickup: true,
+        },
+      });
+    }
+
+    await rateCard.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Rate card saved successfully",
+      rateCard,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// Delete rate card
+const deleteRateCard = async (req, res) => {
+  try {
+    const { merchantId, courier } = req.params;
+    
+    const rateCard = await RateCard.findOneAndDelete({ 
+      merchantId, 
+      courierPartner: courier 
+    });
+    
+    if (!rateCard) {
+      return res.status(404).json({
+        success: false,
+        message: "Rate card not found",
+      });
+    }
+    
+    res.status(200).json({
+      success: true,
+      message: "Rate card deleted successfully",
     });
   } catch (error) {
     res.status(500).json({
@@ -682,6 +893,7 @@ module.exports = {
   
   // Merchants
   getMerchants,
+  getMerchantDetails,
   getPendingMerchants,
   getApprovedMerchants,
   approveMerchant,
@@ -703,6 +915,12 @@ module.exports = {
   getShipmentByIdAdmin,
   
   // Commission & Revenue
-  getCommission, // ✅ Updated with real data
+  getCommission, 
   getRevenue,
+  
+  // Rate Cards
+  getRateCards,
+  getRateCardByCourier,
+  saveRateCard,
+  deleteRateCard,
 };

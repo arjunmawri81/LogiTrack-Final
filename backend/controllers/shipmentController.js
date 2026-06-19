@@ -2,6 +2,7 @@ const Shipment = require("../models/Shipment");
 const Order = require("../models/Order");
 const Invoice = require("../models/Invoice");
 const Wallet = require("../models/Wallet");
+const RateCard = require("../models/RateCard");
 const QRCode = require("qrcode");
 const PDFDocument = require("pdfkit");
 const bwipjs = require("bwip-js");
@@ -55,6 +56,10 @@ const createShipment = async (req, res) => {
       });
     }
 
+    // ✅ Normalize courier name to lowercase for consistency
+    const normalizedCourier = courier.trim().toLowerCase();
+
+    // 1. Find Order
     const order = await Order.findOne({
       _id: orderId,
       merchantId: req.user.id,
@@ -67,9 +72,60 @@ const createShipment = async (req, res) => {
       });
     }
 
-    // Wallet Check
-    const SHIPPING_CHARGE = 50;
+    // 2. DUPLICATE SHIPMENT CHECK
+    const existingShipment = await Shipment.findOne({
+      orderId,
+      merchantId: req.user.id,
+    });
 
+    if (existingShipment) {
+      return res.status(400).json({
+        success: false,
+        message: "Shipment already exists for this order",
+      });
+    }
+
+    // 3. DYNAMIC SHIPPING CHARGE CALCULATION BASED ON RATE CARD
+    // ✅ Using lowercase courier name for case-insensitive matching
+    const rateCard = await RateCard.findOne({
+      merchantId: req.user.id,
+      courierPartner: normalizedCourier,
+      isActive: true,
+    });
+
+    if (!rateCard) {
+      return res.status(404).json({
+        success: false,
+        message: `Rate Card Not Found for courier: ${courier.trim()}`,
+      });
+    }
+
+    const weight = Number(order.weight || 0);
+
+    let SHIPPING_CHARGE = 0;
+
+    if (weight <= 0.5) {
+      SHIPPING_CHARGE = rateCard.forwardRates?.rate500gm || 0;
+    } else if (weight <= 1) {
+      SHIPPING_CHARGE = rateCard.forwardRates?.rate1kg || 0;
+    } else if (weight <= 2) {
+      SHIPPING_CHARGE = rateCard.forwardRates?.rate2kg || 0;
+    } else {
+      SHIPPING_CHARGE = 
+        (rateCard.forwardRates?.rate2kg || 0) +
+        (Math.ceil(weight - 2) * (rateCard.forwardRates?.additionalKg || 0));
+    }
+
+    // ✅ Add COD charge if payment mode is COD
+    if (order.paymentMode === "COD") {
+      SHIPPING_CHARGE += rateCard.codCharge || 0;
+    }
+
+    // ✅ Save shipping charge in order
+    order.shippingCharge = SHIPPING_CHARGE;
+    await order.save();
+
+    // 4. Wallet Check
     let wallet = await Wallet.findOne({
       merchantId: req.user.id,
     });
@@ -87,25 +143,15 @@ const createShipment = async (req, res) => {
       });
     }
 
-    // Duplicate Shipment Stop
-    const existingShipment = await Shipment.findOne({
-      orderId,
-      merchantId: req.user.id,
-    });
-
-    if (existingShipment) {
-      return res.status(400).json({
-        success: false,
-        message: "Shipment already exists for this order",
-      });
-    }
-
+    // 5. Generate AWB and Create Shipment
     const awb = await generateAWB();
 
+    // ✅ Store courier in original case for display, and lowercase for queries
     const shipment = await Shipment.create({
       orderId,
       merchantId: req.user.id,
-      courier,
+      courier: courier.trim(), // Store original case for display
+      courierPartner: normalizedCourier, // Store lowercase for queries
       awb,
       status: "PENDING",
       trackingEvents: [
@@ -117,7 +163,7 @@ const createShipment = async (req, res) => {
       ],
     });
 
-    // 2. Wallet Deduction Safety: Deduct wallet first
+    // 6. Wallet Deduction
     wallet.balance -= SHIPPING_CHARGE;
     wallet.transactions.push({
       amount: SHIPPING_CHARGE,
@@ -127,9 +173,9 @@ const createShipment = async (req, res) => {
     });
     await wallet.save();
 
-    // Then create invoice
+    // 7. Create Invoice
     const invoice = await Invoice.create({
-      invoiceNumber: generateInvoiceNumber(), // 1. Using the function
+      invoiceNumber: generateInvoiceNumber(),
       merchantId: req.user.id,
       orderId: order._id,
       shipmentId: shipment._id,
@@ -142,10 +188,15 @@ const createShipment = async (req, res) => {
 
     console.log("INVOICE CREATED =>", invoice);
 
+    // ✅ Enhanced Response with debugging info
     return res.status(201).json({
       success: true,
       message: "Shipment Created Successfully",
       shipment,
+      shippingCharge: SHIPPING_CHARGE,
+      rateCardUsed: rateCard.courierPartner,
+      weight: order.weight,
+      paymentMode: order.paymentMode,
     });
   } catch (error) {
     console.log("SHIPMENT ERROR =>", error);

@@ -48,7 +48,7 @@ import AdminReports from "./pages/admin/Reports";
 import AdminSettings from "./pages/admin/Settings";
 import AdminOrders from "./pages/admin/Orders";
 import AdminOrderDetails from "./pages/admin/OrderDetails";
-import AdminShipmentDetails from "./pages/admin/ShipmentDetails"; // ✅ Added
+import AdminShipmentDetails from "./pages/admin/ShipmentDetails";
 import AdminShipments from "./pages/admin/Shipments";
 import NDR from "./pages/admin/NDR";
 import RTO from "./pages/admin/RTO";
@@ -67,6 +67,7 @@ import ApiMonitoring from "./pages/superadmin/ApiMonitoring";
 import Revenue from "./pages/superadmin/Revenue";
 import AuditLogs from "./pages/superadmin/AuditLogs";
 import SuperAdminSettings from "./pages/superadmin/Settings";
+import RateCardManagement from "./pages/superadmin/RateCardManagement"; // ✅ Added
 
 // ======================
 // STAFF & WAREHOUSE PAGES
@@ -128,7 +129,6 @@ function App() {
         <Route path="/admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>} />
         <Route path="/admin/orders/:id" element={<AdminRoute><AdminOrderDetails /></AdminRoute>} />
         <Route path="/admin/shipments" element={<AdminRoute><AdminShipments /></AdminRoute>} />
-        {/* ✅ Added Admin Shipment Details Route */}
         <Route path="/admin/shipments/:id" element={<AdminRoute><AdminShipmentDetails /></AdminRoute>} />
         <Route path="/admin/couriers" element={<AdminRoute><Couriers /></AdminRoute>} />
         <Route path="/admin/pricing" element={<AdminRoute><Pricing /></AdminRoute>} />
@@ -145,6 +145,17 @@ function App() {
         <Route path="/superadmin/users" element={<SuperAdminRoute><UserManagement /></SuperAdminRoute>} />
         <Route path="/superadmin/orders" element={<SuperAdminRoute><OrderManagement /></SuperAdminRoute>} />
         <Route path="/superadmin/merchants" element={<SuperAdminRoute><MerchantManagement /></SuperAdminRoute>} />
+        
+        {/* ✅ Added RateCard Route */}
+        <Route
+          path="/superadmin/ratecard/:merchantId"
+          element={
+            <SuperAdminRoute>
+              <RateCardManagement />
+            </SuperAdminRoute>
+          }
+        />
+        
         <Route path="/superadmin/commission" element={<SuperAdminRoute><Commission /></SuperAdminRoute>} />
         <Route path="/superadmin/revenue" element={<SuperAdminRoute><Revenue /></SuperAdminRoute>} />
         <Route path="/superadmin/api-monitoring" element={<SuperAdminRoute><ApiMonitoring /></SuperAdminRoute>} />

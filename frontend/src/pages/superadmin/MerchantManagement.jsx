@@ -1,9 +1,14 @@
 import React, { useEffect, useState } from "react";
 import api from "../../services/api";
 import SuperAdminLayout from "./SuperAdminLayout";
+import { FaEye, FaBox, FaTruck, FaWallet, FaBuilding, FaCheckCircle, FaTimesCircle, FaClock } from "react-icons/fa";
+import { IoClose } from "react-icons/io5";
 
 const MerchantManagement = () => {
   const [merchants, setMerchants] = useState([]);
+  const [selectedMerchant, setSelectedMerchant] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchMerchants();
@@ -15,6 +20,19 @@ const MerchantManagement = () => {
       setMerchants(res.data.merchants || []);
     } catch (error) {
       console.error("Error retrieving merchant data directory:", error);
+    }
+  };
+
+  const viewMerchant = async (id) => {
+    setLoading(true);
+    try {
+      const res = await api.get(`/admin/merchant/${id}`);
+      setSelectedMerchant(res.data);
+      setShowModal(true);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -60,106 +78,939 @@ const MerchantManagement = () => {
     }
   };
 
+  // Navigate to Rate Card Management
+  const openRateCard = (merchantId) => {
+    window.location.href = `/superadmin/ratecard/${merchantId}`;
+    // OR if using React Router:
+    // navigate(`/superadmin/ratecard/${merchantId}`);
+  };
+
   const fontStyle = {
     fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
   };
 
+  // Status badge helper
+  const getStatusBadge = (isBlocked, isApproved) => {
+    if (isBlocked) {
+      return { label: "Blocked", bg: "#fef2f2", color: "#dc2626", icon: FaTimesCircle };
+    } else if (isApproved) {
+      return { label: "Approved", bg: "#f0fdf4", color: "#16a34a", icon: FaCheckCircle };
+    } else {
+      return { label: "Pending", bg: "#fffbeb", color: "#d97706", icon: FaClock };
+    }
+  };
+
   return (
     <SuperAdminLayout>
-      <div style={{ ...fontStyle, maxWidth: "1400px", margin: "0 auto", padding: "10px" }}>
+      <div style={{ ...fontStyle, maxWidth: "1400px", margin: "0 auto", padding: "24px" }}>
         
         {/* HEADER SECTION */}
-        <div style={{ borderBottom: "1px solid #f1f5f9", paddingBottom: "20px", marginBottom: "30px" }}>
-          <h1 style={{ fontSize: "32px", fontWeight: "800", color: "#0f172a", margin: "0 0 6px 0", letterSpacing: "-0.025em" }}>
-            Merchant Management
-          </h1>
-          <p style={{ color: "#64748b", fontSize: "14px", margin: 0, fontWeight: "500" }}>
-            Manage registered merchants and business accounts
-          </p>
+        <div style={{ 
+          display: "flex", 
+          justifyContent: "space-between", 
+          alignItems: "flex-start",
+          borderBottom: "1px solid #e2e8f0", 
+          paddingBottom: "24px", 
+          marginBottom: "32px",
+          flexWrap: "wrap",
+          gap: "16px"
+        }}>
+          <div>
+            <h1 style={{ 
+              fontSize: "28px", 
+              fontWeight: "700", 
+              color: "#0f172a", 
+              margin: "0 0 4px 0", 
+              letterSpacing: "-0.025em" 
+            }}>
+              Merchant Management
+            </h1>
+            <p style={{ color: "#64748b", fontSize: "14px", margin: 0, fontWeight: "400" }}>
+              Manage registered merchants and business accounts
+            </p>
+          </div>
+          <button
+            style={{
+              padding: "8px 20px",
+              background: "#0f172a",
+              color: "#fff",
+              border: "none",
+              borderRadius: "8px",
+              fontSize: "14px",
+              fontWeight: "500",
+              cursor: "pointer",
+              transition: "all 0.2s"
+            }}
+            onMouseEnter={(e) => e.target.style.background = "#1e293b"}
+            onMouseLeave={(e) => e.target.style.background = "#0f172a"}
+          >
+            + Add Merchant
+          </button>
         </div>
 
-        {/* STATS CARD */}
-        <div style={{ width: "300px", background: "linear-gradient(135deg, #c2410c, #ea580c)", borderRadius: "16px", padding: "24px", color: "#ffffff", marginBottom: "35px", boxShadow: "0 10px 25px -5px rgba(234, 88, 12, 0.15), 0 8px 10px -6px rgba(234, 88, 12, 0.15)" }}>
-          <div style={{ fontSize: "12px", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.05em", color: "#ffedd5", marginBottom: "12px" }}>
-            Total Merchants
+        {/* STATS CARDS */}
+        <div style={{ 
+          display: "grid", 
+          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", 
+          gap: "16px", 
+          marginBottom: "32px" 
+        }}>
+          <div style={{ 
+            background: "#ffffff", 
+            borderRadius: "12px", 
+            padding: "20px 24px", 
+            border: "1px solid #e2e8f0",
+            boxShadow: "0 1px 2px rgba(0,0,0,0.05)"
+          }}>
+            <div style={{ fontSize: "12px", fontWeight: "500", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              Total Merchants
+            </div>
+            <div style={{ fontSize: "32px", fontWeight: "700", color: "#0f172a", marginTop: "4px" }}>
+              {merchants.length}
+            </div>
           </div>
-          <div style={{ fontSize: "38px", fontWeight: "800", lineHeight: "1", letterSpacing: "-0.03em" }}>
-            {merchants.length}
+          <div style={{ 
+            background: "#ffffff", 
+            borderRadius: "12px", 
+            padding: "20px 24px", 
+            border: "1px solid #e2e8f0",
+            boxShadow: "0 1px 2px rgba(0,0,0,0.05)"
+          }}>
+            <div style={{ fontSize: "12px", fontWeight: "500", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              Approved
+            </div>
+            <div style={{ fontSize: "32px", fontWeight: "700", color: "#16a34a", marginTop: "4px" }}>
+              {merchants.filter(m => m.isApproved && !m.isBlocked).length}
+            </div>
+          </div>
+          <div style={{ 
+            background: "#ffffff", 
+            borderRadius: "12px", 
+            padding: "20px 24px", 
+            border: "1px solid #e2e8f0",
+            boxShadow: "0 1px 2px rgba(0,0,0,0.05)"
+          }}>
+            <div style={{ fontSize: "12px", fontWeight: "500", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              Pending
+            </div>
+            <div style={{ fontSize: "32px", fontWeight: "700", color: "#d97706", marginTop: "4px" }}>
+              {merchants.filter(m => !m.isApproved && !m.isBlocked).length}
+            </div>
+          </div>
+          <div style={{ 
+            background: "#ffffff", 
+            borderRadius: "12px", 
+            padding: "20px 24px", 
+            border: "1px solid #e2e8f0",
+            boxShadow: "0 1px 2px rgba(0,0,0,0.05)"
+          }}>
+            <div style={{ fontSize: "12px", fontWeight: "500", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              Blocked
+            </div>
+            <div style={{ fontSize: "32px", fontWeight: "700", color: "#dc2626", marginTop: "4px" }}>
+              {merchants.filter(m => m.isBlocked).length}
+            </div>
           </div>
         </div>
 
-        {/* MERCHANT DIRECTORY GRID TABLE */}
-        <div style={{ background: "#ffffff", borderRadius: "16px", padding: "24px", overflowX: "auto", border: "1px solid #f1f5f9", boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05)" }}>
-          <h2 style={{ color: "#0f172a", margin: "0 0 20px 0", fontSize: "18px", fontWeight: "700", letterSpacing: "-0.02em" }}>
-            Merchant Directory
-          </h2>
+        {/* TABLE */}
+        <div style={{ 
+          background: "#ffffff", 
+          borderRadius: "12px", 
+          border: "1px solid #e2e8f0",
+          boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+          overflow: "hidden"
+        }}>
+          <div style={{ padding: "20px 24px", borderBottom: "1px solid #e2e8f0" }}>
+            <h2 style={{ color: "#0f172a", margin: 0, fontSize: "16px", fontWeight: "600" }}>
+              Merchant Directory
+            </h2>
+          </div>
 
-          <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: "0", background: "#ffffff", borderRadius: "12px", overflow: "hidden", border: "1px solid #e2e8f0" }}>
-            <thead>
-              <tr>
-                <th style={thStyle}>Company</th>
-                <th style={thStyle}>Merchant</th>
-                <th style={thStyle}>GST Number</th>
-                <th style={thStyle}>PAN Number</th>
-                <th style={{ ...thStyle, width: "25%" }}>Address</th>
-                <th style={thStyle}>Status</th>
-                <th style={thStyle}>Actions</th>
-              </tr>
-            </thead>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr>
+                  <th style={thStyle}>Company</th>
+                  <th style={thStyle}>Merchant</th>
+                  <th style={thStyle}>GST</th>
+                  <th style={thStyle}>PAN</th>
+                  <th style={{ ...thStyle, minWidth: "200px" }}>Address</th>
+                  <th style={thStyle}>Status</th>
+                  <th style={{ ...thStyle, minWidth: "340px" }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {merchants.length > 0 ? (
+                  merchants.map((merchant) => {
+                    const status = getStatusBadge(merchant.isBlocked, merchant.isApproved);
+                    const StatusIcon = status.icon;
+                    
+                    return (
+                      <tr key={merchant._id} style={{ 
+                        background: "#ffffff",
+                        transition: "background 0.15s",
+                        cursor: "default"
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = "#fafafa"}
+                      onMouseLeave={(e) => e.currentTarget.style.background = "#ffffff"}
+                      >
+                        <td style={{ ...tdStyle, fontWeight: "500", color: "#0f172a" }}>
+                          {merchant.companyName || "—"}
+                        </td>
+                        <td style={tdStyle}>
+                          <span style={{ 
+                            background: "#f1f5f9", 
+                            color: "#334155", 
+                            padding: "4px 12px", 
+                            borderRadius: "6px", 
+                            fontWeight: "500", 
+                            fontSize: "13px", 
+                            display: "inline-block" 
+                          }}>
+                            {merchant.userId?.name || merchant.name || "N/A"}
+                          </span>
+                        </td>
+                        <td style={{ ...tdStyle, fontFamily: "monospace", fontSize: "13px", color: "#475569" }}>
+                          {merchant.gstNumber || "—"}
+                        </td>
+                        <td style={{ ...tdStyle, fontFamily: "monospace", fontSize: "13px", color: "#475569" }}>
+                          {merchant.panNumber || "—"}
+                        </td>
+                        <td style={{ 
+                          ...tdStyle, 
+                          color: "#64748b", 
+                          maxWidth: "220px", 
+                          whiteSpace: "nowrap", 
+                          overflow: "hidden", 
+                          textOverflow: "ellipsis",
+                          fontSize: "13px"
+                        }} 
+                        title={merchant.address}>
+                          {merchant.address || "—"}
+                        </td>
+                        <td style={tdStyle}>
+                          <span style={{ 
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "6px",
+                            padding: "4px 12px", 
+                            borderRadius: "6px", 
+                            fontSize: "12px", 
+                            fontWeight: "500", 
+                            background: status.bg, 
+                            color: status.color 
+                          }}>
+                            <StatusIcon size={12} />
+                            {status.label}
+                          </span>
+                        </td>
+                        <td style={tdStyle}>
+                          <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
+                            {/* View Button - Fixed Size & Centered */}
+                            <button
+                              onClick={() => viewMerchant(merchant._id)}
+                              style={{
+                                minWidth: "85px",
+                                height: "36px",
+                                padding: "0 14px",
+                                border: "1px solid #e2e8f0",
+                                borderRadius: "6px",
+                                background: "#fff",
+                                color: "#475569",
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                gap: "6px",
+                                fontSize: "13px",
+                                fontWeight: "500",
+                                transition: "all 0.15s"
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = "#f1f5f9";
+                                e.currentTarget.style.borderColor = "#cbd5e1";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = "#fff";
+                                e.currentTarget.style.borderColor = "#e2e8f0";
+                              }}
+                            >
+                              <FaEye size={14} /> View
+                            </button>
 
-            <tbody>
-              {merchants.length > 0 ? (
-                merchants.map((merchant) => (
-                  <tr key={merchant._id} style={{ background: "#ffffff" }}>
-                    <td style={{ ...tdStyle, fontWeight: "600", color: "#0f172a" }}>{merchant.companyName || "—"}</td>
-                    <td style={tdStyle}>
-                      <span style={{ background: "#eff6ff", color: "#1e40af", padding: "6px 14px", borderRadius: "999px", fontWeight: "600", fontSize: "12px", display: "inline-block" }}>
-                        {merchant.userId?.name || "N/A"}
-                      </span>
-                    </td>
-                    <td style={{ ...tdStyle, fontFamily: "monospace", letterSpacing: "0.05em", color: "#475569" }}>{merchant.gstNumber || "—"}</td>
-                    <td style={{ ...tdStyle, fontFamily: "monospace", letterSpacing: "0.05em", color: "#475569" }}>{merchant.panNumber || "—"}</td>
-                    <td style={{ ...tdStyle, color: "#64748b", maxWidth: "280px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={merchant.address}>
-                      {merchant.address || "—"}
-                    </td>
-                    <td style={tdStyle}>
-                      <span style={{ padding: "6px 12px", borderRadius: "999px", fontSize: "12px", fontWeight: "600", background: merchant.isBlocked ? "#fee2e2" : merchant.isApproved ? "#dcfce7" : "#fef3c7", color: merchant.isBlocked ? "#dc2626" : merchant.isApproved ? "#15803d" : "#d97706" }}>
-                        {merchant.isBlocked ? "Blocked" : merchant.isApproved ? "Approved" : "Pending"}
-                      </span>
-                    </td>
-                    <td style={tdStyle}>
-                      {!merchant.isApproved && (
-                        <>
-                          <button onClick={() => approveMerchant(merchant._id)} style={actionBtn}>Approve</button>
-                          <button onClick={() => rejectMerchant(merchant._id)} style={{ ...actionBtn, background: "#dc2626", marginLeft: "8px" }}>Reject</button>
-                        </>
-                      )}
-                      {merchant.isApproved && !merchant.isBlocked && (
-                        <button onClick={() => blockMerchant(merchant._id)} style={actionBtn}>Block</button>
-                      )}
-                      {merchant.isBlocked && (
-                        <button onClick={() => unblockMerchant(merchant._id)} style={actionBtn}>Unblock</button>
-                      )}
+                            {/* Rates Button - Fixed Size & Centered */}
+                            <button
+                              onClick={() => openRateCard(merchant._id)}
+                              style={{
+                                minWidth: "85px",
+                                height: "36px",
+                                padding: "0 14px",
+                                border: "none",
+                                borderRadius: "6px",
+                                background: "#f1f5f9",
+                                color: "#475569",
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: "13px",
+                                fontWeight: "500",
+                                transition: "all 0.15s"
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = "#e2e8f0";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = "#f1f5f9";
+                              }}
+                            >
+                              Rates
+                            </button>
+
+                            {!merchant.isApproved && (
+                              <>
+                                <button
+                                  onClick={() => approveMerchant(merchant._id)}
+                                  style={{
+                                    minWidth: "85px",
+                                    height: "36px",
+                                    padding: "0 14px",
+                                    border: "none",
+                                    borderRadius: "6px",
+                                    background: "#dcfce7",
+                                    color: "#15803d",
+                                    cursor: "pointer",
+                                    fontSize: "13px",
+                                    fontWeight: "500",
+                                    transition: "all 0.15s",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center"
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.background = "#bbf7d0";
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.background = "#dcfce7";
+                                  }}
+                                >
+                                  Approve
+                                </button>
+                                <button
+                                  onClick={() => rejectMerchant(merchant._id)}
+                                  style={{
+                                    minWidth: "85px",
+                                    height: "36px",
+                                    padding: "0 14px",
+                                    border: "none",
+                                    borderRadius: "6px",
+                                    background: "#fee2e2",
+                                    color: "#dc2626",
+                                    cursor: "pointer",
+                                    fontSize: "13px",
+                                    fontWeight: "500",
+                                    transition: "all 0.15s",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center"
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.background = "#fecaca";
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.background = "#fee2e2";
+                                  }}
+                                >
+                                  Reject
+                                </button>
+                              </>
+                            )}
+
+                            {merchant.isApproved && !merchant.isBlocked && (
+                              <button
+                                onClick={() => blockMerchant(merchant._id)}
+                                style={{
+                                  minWidth: "85px",
+                                  height: "36px",
+                                  padding: "0 14px",
+                                  border: "none",
+                                  borderRadius: "6px",
+                                  background: "#fee2e2",
+                                  color: "#dc2626",
+                                  cursor: "pointer",
+                                  fontSize: "13px",
+                                  fontWeight: "500",
+                                  transition: "all 0.15s",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center"
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.background = "#fecaca";
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.background = "#fee2e2";
+                                }}
+                              >
+                                Block
+                              </button>
+                            )}
+
+                            {merchant.isBlocked && (
+                              <button
+                                onClick={() => unblockMerchant(merchant._id)}
+                                style={{
+                                  minWidth: "85px",
+                                  height: "36px",
+                                  padding: "0 14px",
+                                  border: "none",
+                                  borderRadius: "6px",
+                                  background: "#dcfce7",
+                                  color: "#15803d",
+                                  cursor: "pointer",
+                                  fontSize: "13px",
+                                  fontWeight: "500",
+                                  transition: "all 0.15s",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center"
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.background = "#bbf7d0";
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.background = "#dcfce7";
+                                }}
+                              >
+                                Unblock
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan="7" style={{ textAlign: "center", padding: "48px 0", color: "#94a3b8", fontSize: "14px" }}>
+                      No merchants found
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="7" style={{ textAlign: "center", padding: "48px 0", color: "#94a3b8", background: "#ffffff", fontSize: "14px", fontWeight: "500" }}>
-                    No Merchants Found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
+
+      {/* MERCHANT DETAILS MODAL */}
+      {showModal && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            background: "rgba(15, 23, 42, 0.6)",
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 9999,
+            padding: "20px"
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowModal(false);
+          }}
+        >
+          <div
+            style={{
+              background: "#ffffff",
+              width: "100%",
+              maxWidth: "880px",
+              maxHeight: "90vh",
+              overflowY: "auto",
+              borderRadius: "16px",
+              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+              animation: "slideUp 0.3s ease-out",
+            }}
+          >
+            {loading ? (
+              // Loading State
+              <div style={{ padding: "60px 40px", textAlign: "center" }}>
+                <div style={{ 
+                  fontSize: "16px", 
+                  color: "#64748b",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "12px"
+                }}>
+                  <div style={{
+                    width: "40px",
+                    height: "40px",
+                    border: "3px solid #e2e8f0",
+                    borderTop: "3px solid #0f172a",
+                    borderRadius: "50%",
+                    animation: "spin 0.8s linear infinite"
+                  }} />
+                  Loading Merchant Details...
+                </div>
+              </div>
+            ) : (
+              // Modal Content
+              <>
+                {/* Modal Header */}
+                <div style={{
+                  padding: "24px 28px",
+                  borderBottom: "1px solid #e2e8f0",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  background: "#fafafa",
+                  borderRadius: "16px 16px 0 0"
+                }}>
+                  <div>
+                    <h2 style={{ 
+                      fontSize: "20px", 
+                      fontWeight: "700", 
+                      color: "#0f172a", 
+                      margin: 0,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px"
+                    }}>
+                      <FaBuilding size={20} style={{ color: "#64748b" }} />
+                      Merchant Details
+                    </h2>
+                    <p style={{ margin: "4px 0 0 0", color: "#64748b", fontSize: "14px" }}>
+                      {selectedMerchant?.merchant?.companyName || "Business"}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowModal(false)}
+                    style={{
+                      width: "36px",
+                      height: "36px",
+                      border: "none",
+                      borderRadius: "8px",
+                      background: "#f1f5f9",
+                      color: "#475569",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      transition: "all 0.15s",
+                      fontSize: "18px"
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "#e2e8f0";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "#f1f5f9";
+                    }}
+                  >
+                    <IoClose />
+                  </button>
+                </div>
+
+                {/* Modal Body */}
+                <div style={{ padding: "28px" }}>
+                  {/* Stats Cards - Updated with Rate Cards Count */}
+                  <div style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(4, 1fr)",
+                    gap: "12px",
+                    marginBottom: "28px"
+                  }}>
+                    <div style={{
+                      background: "#f8fafc",
+                      padding: "16px 20px",
+                      borderRadius: "10px",
+                      border: "1px solid #e2e8f0",
+                      textAlign: "center"
+                    }}>
+                      <FaBox size={18} style={{ color: "#64748b", marginBottom: "4px" }} />
+                      <div style={{ fontSize: "11px", fontWeight: "500", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                        Orders
+                      </div>
+                      <div style={{ fontSize: "24px", fontWeight: "700", color: "#0f172a" }}>
+                        {selectedMerchant?.totalOrders || 0}
+                      </div>
+                    </div>
+                    <div style={{
+                      background: "#f8fafc",
+                      padding: "16px 20px",
+                      borderRadius: "10px",
+                      border: "1px solid #e2e8f0",
+                      textAlign: "center"
+                    }}>
+                      <FaTruck size={18} style={{ color: "#64748b", marginBottom: "4px" }} />
+                      <div style={{ fontSize: "11px", fontWeight: "500", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                        Shipments
+                      </div>
+                      <div style={{ fontSize: "24px", fontWeight: "700", color: "#0f172a" }}>
+                        {selectedMerchant?.totalShipments || 0}
+                      </div>
+                    </div>
+                    <div style={{
+                      background: "#f8fafc",
+                      padding: "16px 20px",
+                      borderRadius: "10px",
+                      border: "1px solid #e2e8f0",
+                      textAlign: "center"
+                    }}>
+                      <FaWallet size={18} style={{ color: "#64748b", marginBottom: "4px" }} />
+                      <div style={{ fontSize: "11px", fontWeight: "500", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                        Wallet
+                      </div>
+                      <div style={{ fontSize: "24px", fontWeight: "700", color: "#0f172a" }}>
+                        ₹{selectedMerchant?.walletBalance || 0}
+                      </div>
+                    </div>
+                    {/* ✅ NEW: Rate Cards Count Card */}
+                    <div style={{
+                      background: "#f8fafc",
+                      padding: "16px 20px",
+                      borderRadius: "10px",
+                      border: "1px solid #e2e8f0",
+                      textAlign: "center"
+                    }}>
+                      <FaBuilding size={18} style={{ color: "#64748b", marginBottom: "4px" }} />
+                      <div style={{ fontSize: "11px", fontWeight: "500", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                        Rate Cards
+                      </div>
+                      <div style={{ fontSize: "24px", fontWeight: "700", color: "#ea580c" }}>
+                        {selectedMerchant?.rateCards?.length || 0}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Info Grid */}
+                  <div style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "12px",
+                    marginBottom: "24px"
+                  }}>
+                    <div style={infoCardStyle}>
+                      <div style={{ fontSize: "11px", fontWeight: "500", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>
+                        Company Name
+                      </div>
+                      <div style={{ fontSize: "15px", fontWeight: "500", color: "#0f172a" }}>
+                        {selectedMerchant?.merchant?.companyName || "—"}
+                      </div>
+                    </div>
+                    <div style={infoCardStyle}>
+                      <div style={{ fontSize: "11px", fontWeight: "500", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>
+                        Contact Person
+                      </div>
+                      <div style={{ fontSize: "15px", fontWeight: "500", color: "#0f172a" }}>
+                        {selectedMerchant?.merchant?.merchantName || selectedMerchant?.merchant?.name || "—"}
+                      </div>
+                    </div>
+                    <div style={infoCardStyle}>
+                      <div style={{ fontSize: "11px", fontWeight: "500", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>
+                        Email Address
+                      </div>
+                      <div style={{ fontSize: "15px", fontWeight: "500", color: "#0f172a", wordBreak: "break-all" }}>
+                        {selectedMerchant?.merchant?.email || "—"}
+                      </div>
+                    </div>
+                    <div style={infoCardStyle}>
+                      <div style={{ fontSize: "11px", fontWeight: "500", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>
+                        Phone Number
+                      </div>
+                      <div style={{ fontSize: "15px", fontWeight: "500", color: "#0f172a" }}>
+                        {selectedMerchant?.merchant?.phone || "—"}
+                      </div>
+                    </div>
+                    <div style={infoCardStyle}>
+                      <div style={{ fontSize: "11px", fontWeight: "500", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>
+                        GST Number
+                      </div>
+                      <div style={{ fontSize: "15px", fontWeight: "500", color: "#0f172a", fontFamily: "monospace" }}>
+                        {selectedMerchant?.merchant?.gstNumber || "—"}
+                      </div>
+                    </div>
+                    <div style={infoCardStyle}>
+                      <div style={{ fontSize: "11px", fontWeight: "500", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>
+                        PAN Number
+                      </div>
+                      <div style={{ fontSize: "15px", fontWeight: "500", color: "#0f172a", fontFamily: "monospace" }}>
+                        {selectedMerchant?.merchant?.panNumber || "—"}
+                      </div>
+                    </div>
+                    <div style={{ ...infoCardStyle, gridColumn: "1 / -1" }}>
+                      <div style={{ fontSize: "11px", fontWeight: "500", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>
+                        Address
+                      </div>
+                      <div style={{ fontSize: "15px", fontWeight: "400", color: "#334155" }}>
+                        {[
+                          selectedMerchant?.merchant?.address,
+                          selectedMerchant?.merchant?.city,
+                          selectedMerchant?.merchant?.state
+                        ]
+                        .filter(Boolean)
+                        .join(", ")}
+                        {selectedMerchant?.merchant?.pincode
+                          ? ` - ${selectedMerchant.merchant.pincode}`
+                          : ""}
+                      </div>
+                    </div>
+                    <div style={{ ...infoCardStyle, gridColumn: "1 / -1" }}>
+                      <div style={{ fontSize: "11px", fontWeight: "500", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>
+                        KYC Status
+                      </div>
+                      <div>
+                        <span style={{
+                          padding: "4px 14px",
+                          borderRadius: "6px",
+                          fontSize: "13px",
+                          fontWeight: "500",
+                          background: selectedMerchant?.merchant?.kycStatus === "VERIFIED" ? "#dcfce7" : 
+                                     selectedMerchant?.merchant?.kycStatus === "REJECTED" ? "#fee2e2" : "#fef3c7",
+                          color: selectedMerchant?.merchant?.kycStatus === "VERIFIED" ? "#15803d" : 
+                                 selectedMerchant?.merchant?.kycStatus === "REJECTED" ? "#dc2626" : "#d97706"
+                        }}>
+                          {selectedMerchant?.merchant?.kycStatus || "PENDING"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ✅ UPDATED: COURIER PRICING CONFIGURATION WITH PROFESSIONAL TABLE */}
+                  <div
+                    style={{
+                      border: "1px solid #e2e8f0",
+                      borderRadius: "12px",
+                      padding: "20px",
+                      marginTop: "20px"
+                    }}
+                  >
+                    {/* Header with Edit Button */}
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginBottom: "15px"
+                      }}
+                    >
+                      <h3
+                        style={{
+                          fontSize: "16px",
+                          fontWeight: "600",
+                          color: "#0f172a",
+                          margin: 0
+                        }}
+                      >
+                        Courier Pricing Configuration
+                      </h3>
+
+                      <button
+                        onClick={() => openRateCard(selectedMerchant?.merchant?._id || selectedMerchant?._id)}
+                        style={{
+                          padding: "6px 14px",
+                          border: "none",
+                          borderRadius: "8px",
+                          background: "#ea580c",
+                          color: "#fff",
+                          cursor: "pointer",
+                          fontSize: "13px",
+                          fontWeight: "600",
+                          transition: "all 0.15s"
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = "#c2410c"}
+                        onMouseLeave={(e) => e.currentTarget.style.background = "#ea580c"}
+                      >
+                        Edit Rates
+                      </button>
+                    </div>
+
+                    {selectedMerchant?.rateCards?.length > 0 ? (
+                      <div style={{ overflowX: "auto" }}>
+                        <table
+                          style={{
+                            width: "100%",
+                            borderCollapse: "collapse",
+                            marginTop: "10px",
+                          }}
+                        >
+                          <thead>
+                            <tr
+                              style={{
+                                background: "#f8fafc",
+                              }}
+                            >
+                              <th style={rateTh}>Courier</th>
+                              <th style={rateTh}>500gm</th>
+                              <th style={rateTh}>1kg</th>
+                              <th style={rateTh}>2kg</th>
+                              <th style={rateTh}>Add KG</th>
+                              <th style={rateTh}>COD</th>
+                              <th style={rateTh}>Status</th>
+                            </tr>
+                          </thead>
+
+                          <tbody>
+                            {selectedMerchant.rateCards.map((rate) => (
+                              <tr key={rate._id}>
+                                <td style={rateTd}>
+                                  🚚 {rate.courierPartner}
+                                </td>
+
+                                <td style={rateTd}>
+                                  ₹{rate.forwardRates?.rate500gm || 0}
+                                </td>
+
+                                <td style={rateTd}>
+                                  ₹{rate.forwardRates?.rate1kg || 0}
+                                </td>
+
+                                <td style={rateTd}>
+                                  ₹{rate.forwardRates?.rate2kg || 0}
+                                </td>
+
+                                <td style={rateTd}>
+                                  ₹{rate.forwardRates?.additionalKg || 0}
+                                </td>
+
+                                <td style={rateTd}>
+                                  ₹{rate.codCharge || 0}
+                                </td>
+
+                                <td style={rateTd}>
+                                  <span
+                                    style={{
+                                      background: rate.isActive !== false ? "#dcfce7" : "#fee2e2",
+                                      color: rate.isActive !== false ? "#15803d" : "#dc2626",
+                                      padding: "4px 10px",
+                                      borderRadius: "20px",
+                                      fontSize: "12px",
+                                      fontWeight: "600",
+                                    }}
+                                  >
+                                    {rate.isActive !== false ? "Active" : "Inactive"}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <p style={{ color: "#94a3b8", fontSize: "14px" }}>
+                        No Rates Assigned
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Modal Footer */}
+                <div style={{
+                  padding: "16px 28px",
+                  borderTop: "1px solid #e2e8f0",
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  background: "#fafafa",
+                  borderRadius: "0 0 16px 16px"
+                }}>
+                  <button
+                    onClick={() => setShowModal(false)}
+                    style={{
+                      padding: "8px 24px",
+                      background: "#0f172a",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "8px",
+                      cursor: "pointer",
+                      fontSize: "14px",
+                      fontWeight: "500",
+                      transition: "all 0.15s"
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "#1e293b";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "#0f172a";
+                    }}
+                  >
+                    Close
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes slideUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px) scale(0.98);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </SuperAdminLayout>
   );
 };
 
-const thStyle = { padding: "16px 24px", textAlign: "left", color: "#475569", fontWeight: "600", fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.05em", background: "#f8fafc", borderBottom: "1px solid #e2e8f0" };
-const tdStyle = { padding: "18px 24px", color: "#334155", fontSize: "14px", fontWeight: "500", borderBottom: "1px solid #f1f5f9" };
-const actionBtn = { padding: "8px 14px", border: "none", borderRadius: "8px", background: "#2563eb", color: "#fff", cursor: "pointer", fontSize: "12px", fontWeight: "600", marginLeft: "5px" };
+const thStyle = {
+  padding: "12px 16px",
+  textAlign: "left",
+  color: "#64748b",
+  fontWeight: "600",
+  fontSize: "12px",
+  textTransform: "uppercase",
+  letterSpacing: "0.05em",
+  background: "#f8fafc",
+  borderBottom: "1px solid #e2e8f0",
+  whiteSpace: "nowrap"
+};
+
+const tdStyle = {
+  padding: "12px 16px",
+  color: "#334155",
+  fontSize: "14px",
+  fontWeight: "400",
+  borderBottom: "1px solid #f1f5f9"
+};
+
+const infoCardStyle = {
+  background: "#fafafa",
+  padding: "12px 16px",
+  borderRadius: "8px",
+  border: "1px solid #f1f5f9"
+};
+
+// ✅ NEW: Rate Table Styles
+const rateTh = {
+  padding: "12px",
+  textAlign: "left",
+  borderBottom: "1px solid #e2e8f0",
+  fontSize: "12px",
+  fontWeight: "600",
+  color: "#64748b",
+  background: "#f8fafc",
+};
+
+const rateTd = {
+  padding: "12px",
+  borderBottom: "1px solid #f1f5f9",
+  fontSize: "14px",
+  color: "#334155",
+};
 
 export default MerchantManagement;

@@ -14,6 +14,7 @@ const {
   deleteUser,
 
   getMerchants,
+  getMerchantDetails,  // ✅ ADDED HERE
   getPendingMerchants,
   getApprovedMerchants,
   approveMerchant,
@@ -28,7 +29,7 @@ const {
 
   getOrders,
   getOrderByIdAdmin,
-  updateOrderStatus, // ✅ ADDED THIS
+  updateOrderStatus,
   getShipments,
   getShipmentByIdAdmin,
   getCommission,
@@ -78,6 +79,14 @@ router.get(
   authMiddleware,
   authorizeRoles("ADMIN", "SUPER_ADMIN"),
   getMerchants
+);
+
+// ✅ NEW ROUTE ADDED HERE
+router.get(
+  "/merchant/:id",
+  authMiddleware,
+  authorizeRoles("SUPER_ADMIN"),
+  getMerchantDetails
 );
 
 router.get(
@@ -166,7 +175,6 @@ router.get(
   getOrderByIdAdmin
 );
 
-// ✅ ADDED: PATCH route for order status update
 router.patch(
   "/orders/:id/status",
   authMiddleware,
