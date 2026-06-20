@@ -14,7 +14,7 @@ const {
   deleteUser,
 
   getMerchants,
-  getMerchantDetails,  // ✅ ADDED HERE
+  getMerchantDetails,
   getPendingMerchants,
   getApprovedMerchants,
   approveMerchant,
@@ -34,6 +34,11 @@ const {
   getShipmentByIdAdmin,
   getCommission,
   getRevenue,
+  
+  // Order Management (Admin)
+  updateOrderAdmin,
+  assignCourier,
+  cancelOrderAdmin,
 } = require("../controllers/adminController");
 
 // Dashboard
@@ -81,7 +86,6 @@ router.get(
   getMerchants
 );
 
-// ✅ NEW ROUTE ADDED HERE
 router.get(
   "/merchant/:id",
   authMiddleware,
@@ -180,6 +184,34 @@ router.patch(
   authMiddleware,
   authorizeRoles("ADMIN", "SUPER_ADMIN"),
   updateOrderStatus
+);
+
+// ================================
+// ORDER MANAGEMENT ROUTES (ADMIN)
+// ================================
+
+// Edit Order (Full Update)
+router.put(
+  "/orders/:id",
+  authMiddleware,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
+  updateOrderAdmin
+);
+
+// Assign Courier
+router.patch(
+  "/orders/:id/courier",
+  authMiddleware,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
+  assignCourier
+);
+
+// Cancel Order
+router.patch(
+  "/orders/:id/cancel",
+  authMiddleware,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
+  cancelOrderAdmin
 );
 
 // Shipments

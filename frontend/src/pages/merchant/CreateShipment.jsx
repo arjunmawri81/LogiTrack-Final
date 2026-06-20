@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import api from "../../services/api";
-import { FaBox, FaTruck, FaArrowLeft, FaCheckCircle, FaShippingFast } from "react-icons/fa";
+import { FaBox, FaTruck, FaArrowLeft, FaCheckCircle, FaShippingFast, FaWallet, FaRupeeSign } from "react-icons/fa";
 
 const CreateShipment = () => {
   const navigate = useNavigate();
@@ -15,10 +15,25 @@ const CreateShipment = () => {
     courier: "",
   });
   const [loading, setLoading] = useState(false);
+  const [walletBalance, setWalletBalance] = useState(0);
+  
+  const [pricing, setPricing] = useState({
+    shippingCharge: 0,
+    codCharge: 0,
+    fuelCharge: 0,
+    totalCharge: 0
+  });
 
   useEffect(() => {
     fetchOrders();
+    fetchWallet();
   }, []);
+
+  useEffect(() => {
+    if (formData.orderId && formData.courier) {
+      calculatePricing();
+    }
+  }, [formData.orderId, formData.courier]);
 
   const fetchOrders = async () => {
     try {
@@ -29,15 +44,74 @@ const CreateShipment = () => {
     }
   };
 
+  const fetchWallet = async () => {
+    try {
+      const res = await api.get("/wallet");
+      console.log("WALLET =>", res.data);
+      setWalletBalance(res.data.wallet?.balance || 0);
+    } catch (error) {
+      console.log("Wallet fetch failed, using default");
+      setWalletBalance(0);
+    }
+  };
+
+  const calculatePricing = async () => {
+    try {
+      const res = await api.post("/rate-cards/calculate", {
+        orderId: formData.orderId,
+        courier: formData.courier
+      });
+      
+      setPricing({
+        shippingCharge: res.data.shippingCharge || 0,
+        codCharge: res.data.codCharge || 0,
+        fuelCharge: res.data.fuelCharge || 0,
+        totalCharge: res.data.totalCharge || 0
+      });
+    } catch (error) {
+      console.log("Using static pricing fallback");
+      
+      const currentOrder = orders.find(o => o._id === formData.orderId) || selectedOrder;
+      const baseCharge = 45;
+      const codCharge = currentOrder?.paymentMode === "COD" ? 30 : 0;
+      const fuelCharge = 5;
+      
+      setPricing({
+        shippingCharge: baseCharge,
+        codCharge: codCharge,
+        fuelCharge: fuelCharge,
+        totalCharge: baseCharge + codCharge + fuelCharge
+      });
+    }
+  };
+
+  const currentOrder = orders.find(o => o._id === formData.orderId) || selectedOrder;
+
+  const totalCharge = pricing.totalCharge || 0;
+  
+  // ✅ FIX 1: Proper balance calculations
+  const shortfall = Math.max(0, totalCharge - walletBalance);
+  const balanceAfterShipment = Math.max(0, walletBalance - totalCharge);
+  const isInsufficientBalance = walletBalance < totalCharge;
+
+  const isFormValid = 
+    formData.orderId && 
+    formData.courier && 
+    !isInsufficientBalance &&
+    !loading;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!isFormValid) return;
+
     setLoading(true);
     try {
       await api.post("/shipments", formData);
       alert("Shipment Created Successfully");
       navigate("/merchant/shipments");
     } catch (err) {
-      alert(err?.response?.data?.message || "Failed");
+      alert(err?.response?.data?.message || "Failed to create shipment");
     } finally {
       setLoading(false);
     }
@@ -112,7 +186,9 @@ const CreateShipment = () => {
       padding: "16px",
       borderRadius: "14px",
       marginBottom: "24px",
-      border: "1px solid #fed7aa",
+      border: "1px solid #fed7aa"
+    },
+    selectedOrderHeader: {
       display: "flex",
       alignItems: "center",
       gap: "12px"
@@ -144,6 +220,31 @@ const CreateShipment = () => {
       fontWeight: "600",
       color: "#431407",
       margin: 0
+    },
+    selectedOrderCheck: {
+      color: "#16a34a",
+      fontSize: "20px"
+    },
+    orderDetailsCard: {
+      marginTop: "12px",
+      padding: "12px 16px",
+      background: "#ffffff",
+      borderRadius: "10px",
+      border: "1px solid #f1f5f9"
+    },
+    orderDetailRow: {
+      display: "flex",
+      justifyContent: "space-between",
+      padding: "4px 0",
+      fontSize: "13px",
+      color: "#334155"
+    },
+    orderDetailLabel: {
+      color: "#64748b"
+    },
+    orderDetailValue: {
+      fontWeight: "500",
+      color: "#0f172a"
     },
     formGroup: {
       marginBottom: "24px"
@@ -178,6 +279,76 @@ const CreateShipment = () => {
       transition: "all 0.2s ease",
       color: "#1e293b"
     },
+    costPreviewCard: {
+      background: "#f8fafc",
+      border: "1px solid #e2e8f0",
+      borderRadius: "14px",
+      padding: "16px",
+      marginBottom: "20px"
+    },
+    costPreviewTitle: {
+      fontSize: "14px",
+      fontWeight: "600",
+      color: "#0f172a",
+      margin: "0 0 12px 0"
+    },
+    costRow: {
+      display: "flex",
+      justifyContent: "space-between",
+      padding: "4px 0",
+      fontSize: "13px",
+      color: "#475569"
+    },
+    costDivider: {
+      border: "none",
+      borderTop: "1px solid #e2e8f0",
+      margin: "8px 0"
+    },
+    costTotal: {
+      display: "flex",
+      justifyContent: "space-between",
+      padding: "4px 0",
+      fontSize: "15px",
+      fontWeight: "700",
+      color: "#0f172a"
+    },
+    walletCard: {
+      background: "#ecfdf5",
+      border: "1px solid #bbf7d0",
+      borderRadius: "14px",
+      padding: "16px",
+      marginBottom: "20px"
+    },
+    walletRow: {
+      display: "flex",
+      justifyContent: "space-between",
+      padding: "4px 0",
+      fontSize: "13px",
+      color: "#065f46"
+    },
+    walletBalance: {
+      fontWeight: "600",
+      color: "#065f46"
+    },
+    walletAfter: {
+      fontWeight: "600",
+      color: isInsufficientBalance ? "#dc2626" : "#065f46"
+    },
+    walletRequired: {
+      fontWeight: "600",
+      color: "#0f172a"
+    },
+    shortfallText: {
+      fontWeight: "600",
+      color: "#dc2626"
+    },
+    insufficientText: {
+      color: "#dc2626",
+      fontSize: "12px",
+      fontWeight: "500",
+      marginTop: "8px",
+      textAlign: "center"
+    },
     submitButton: {
       width: "100%",
       background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
@@ -194,6 +365,23 @@ const CreateShipment = () => {
       justifyContent: "center",
       gap: "10px",
       marginTop: "8px"
+    },
+    submitButtonDisabled: {
+      width: "100%",
+      background: "#94a3b8",
+      color: "#fff",
+      padding: "14px 24px",
+      borderRadius: "12px",
+      border: "none",
+      fontWeight: "600",
+      fontSize: "15px",
+      cursor: "not-allowed",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: "10px",
+      marginTop: "8px",
+      opacity: 0.7
     },
     backButton: {
       background: "transparent",
@@ -284,18 +472,40 @@ const CreateShipment = () => {
 
               <form onSubmit={handleSubmit}>
                 {/* Selected Order Display */}
-                {selectedOrder && (
+                {currentOrder && (
                   <div style={styles.selectedOrderCard}>
-                    <div style={styles.selectedOrderIcon}>
-                      <FaBox />
+                    <div style={styles.selectedOrderHeader}>
+                      <div style={styles.selectedOrderIcon}>
+                        <FaBox />
+                      </div>
+                      <div style={styles.selectedOrderContent}>
+                        <div style={styles.selectedOrderLabel}>Selected Order</div>
+                        <div style={styles.selectedOrderValue}>
+                          {currentOrder.orderNumber || currentOrder._id?.slice(-6) || "N/A"} - {currentOrder.customerName || "N/A"}
+                        </div>
+                      </div>
+                      <FaCheckCircle style={styles.selectedOrderCheck} />
                     </div>
-                    <div style={styles.selectedOrderContent}>
-                      <div style={styles.selectedOrderLabel}>Selected Order</div>
-                      <div style={styles.selectedOrderValue}>
-                        {selectedOrder.orderNumber || selectedOrder._id.slice(-6)} - {selectedOrder.customerName}
+
+                    {/* Order Details Card */}
+                    <div style={styles.orderDetailsCard}>
+                      <div style={styles.orderDetailRow}>
+                        <span style={styles.orderDetailLabel}>Product</span>
+                        <span style={styles.orderDetailValue}>{currentOrder?.productName || "N/A"}</span>
+                      </div>
+                      <div style={styles.orderDetailRow}>
+                        <span style={styles.orderDetailLabel}>Weight</span>
+                        <span style={styles.orderDetailValue}>{currentOrder?.weight || 0} KG</span>
+                      </div>
+                      <div style={styles.orderDetailRow}>
+                        <span style={styles.orderDetailLabel}>Payment</span>
+                        <span style={styles.orderDetailValue}>{currentOrder?.paymentMode || "N/A"}</span>
+                      </div>
+                      <div style={styles.orderDetailRow}>
+                        <span style={styles.orderDetailLabel}>Amount</span>
+                        <span style={styles.orderDetailValue}>₹{currentOrder?.amount || 0}</span>
                       </div>
                     </div>
-                    <FaCheckCircle style={{ color: "#16a34a", fontSize: "20px" }} />
                   </div>
                 )}
 
@@ -321,7 +531,7 @@ const CreateShipment = () => {
                   </select>
                 </div>
 
-                {/* Courier Selection */}
+                {/* Courier Selection - ✅ Added all couriers */}
                 <div style={styles.formGroup}>
                   <div style={styles.label}>
                     <FaTruck style={styles.labelIcon} />
@@ -338,22 +548,78 @@ const CreateShipment = () => {
                     <option value="DTDC">📦 DTDC</option>
                     <option value="Delhivery">🚚 Delhivery</option>
                     <option value="XpressBees">🐝 XpressBees</option>
+                    <option value="BlueDart">🔵 BlueDart</option>
+                    <option value="Ecom">📦 Ecom</option>
+                    <option value="Shadowfax">🟣 Shadowfax</option>
                   </select>
                 </div>
 
-                {/* Submit Button */}
+                {/* Shipment Cost Preview */}
+                <div style={styles.costPreviewCard}>
+                  <h4 style={styles.costPreviewTitle}>💰 Shipment Cost Preview</h4>
+                  <div style={styles.costRow}>
+                    <span>Shipping Charge</span>
+                    <span>₹{pricing.shippingCharge}</span>
+                  </div>
+                  <div style={styles.costRow}>
+                    <span>COD Charge</span>
+                    <span>₹{pricing.codCharge}</span>
+                  </div>
+                  <div style={styles.costRow}>
+                    <span>Fuel Charge</span>
+                    <span>₹{pricing.fuelCharge}</span>
+                  </div>
+                  <hr style={styles.costDivider} />
+                  <div style={styles.costTotal}>
+                    <span>Total Charge</span>
+                    <span style={{ color: "#ea580c" }}>₹{pricing.totalCharge}</span>
+                  </div>
+                </div>
+
+                {/* ✅ FIX 1: Wallet Preview with proper calculations */}
+                <div style={styles.walletCard}>
+                  <div style={styles.walletRow}>
+                    <span>💰 Wallet Balance</span>
+                    <span style={styles.walletBalance}>₹{walletBalance}</span>
+                  </div>
+                  <div style={styles.walletRow}>
+                    <span>Required Amount</span>
+                    <span style={styles.walletRequired}>₹{totalCharge}</span>
+                  </div>
+                  
+                  {isInsufficientBalance ? (
+                    <>
+                      <div style={styles.walletRow}>
+                        <span>Shortfall</span>
+                        <span style={styles.shortfallText}>₹{shortfall}</span>
+                      </div>
+                      <div style={styles.insufficientText}>
+                        ⚠️ Please recharge ₹{shortfall} to proceed
+                      </div>
+                    </>
+                  ) : (
+                    <div style={styles.walletRow}>
+                      <span>Balance After Shipment</span>
+                      <span style={styles.walletAfter}>₹{balanceAfterShipment}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* ✅ FIX 2: Submit Button with better UX text */}
                 <div style={styles.buttonWrapper}>
                   <button
                     type="submit"
-                    disabled={loading}
-                    style={{
-                      ...styles.submitButton,
-                      opacity: loading ? 0.7 : 1,
-                      cursor: loading ? "not-allowed" : "pointer"
-                    }}
+                    disabled={!isFormValid}
+                    style={!isFormValid ? styles.submitButtonDisabled : styles.submitButton}
                   >
                     {loading ? (
                       <>⏳ Creating Shipment...</>
+                    ) : !formData.orderId ? (
+                      <>📋 Select an Order</>
+                    ) : !formData.courier ? (
+                      <>🚚 Select a Courier</>
+                    ) : isInsufficientBalance ? (
+                      <>💳 Recharge Wallet First</>
                     ) : (
                       <>🚀 Create Shipment</>
                     )}
@@ -367,5 +633,5 @@ const CreateShipment = () => {
     </>
   );
 };
-
+    
 export default CreateShipment;

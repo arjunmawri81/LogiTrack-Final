@@ -1,10 +1,23 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 import api from "../../services/api";
-import { FaUsers, FaTruck, FaRupeeSign, FaBox, FaStore, FaClock, FaCheckCircle, FaChartLine } from "react-icons/fa";
+import { 
+  FaUsers, 
+  FaTruck, 
+  FaRupeeSign, 
+  FaBox, 
+  FaStore, 
+  FaClock, 
+  FaCheckCircle, 
+  FaChartLine,
+  FaBell
+} from "react-icons/fa";
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+  
   // ========== STYLES ==========
   const styles = {
     container: {
@@ -130,6 +143,9 @@ const Dashboard = () => {
     totalRevenue: 0,
   });
 
+  // Recent orders state only
+  const [recentOrders, setRecentOrders] = useState([]);
+
   // Fetch dashboard data from API
   useEffect(() => {
     fetchDashboard();
@@ -146,6 +162,18 @@ const Dashboard = () => {
       } else {
         setStats(response.data);
       }
+
+      // Fetch recent orders - latest first
+      const ordersRes = await api.get("/admin/orders");
+      setRecentOrders(
+        ordersRes.data.orders
+          ?.sort(
+            (a, b) =>
+              new Date(b.createdAt) -
+              new Date(a.createdAt)
+          )
+          .slice(0, 5) || []
+      );
     } catch (error) {
       console.log(error);
     }
@@ -291,6 +319,184 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
+
+        {/* Recent Activity Log - Premium Style with Bell Icon */}
+        <div
+          style={{
+            background: "#fff",
+            marginTop: "25px",
+            padding: "20px",
+            borderRadius: "16px",
+            border: "1px solid #e2e8f0",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+          }}
+        >
+          {/* Premium Gradient Heading with Bell Icon */}
+          <div
+            style={{
+              background: "linear-gradient(135deg, #1e3a8a, #2563eb)",
+              padding: "18px 22px",
+              borderRadius: "14px",
+              marginBottom: "18px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              color: "#fff",
+              boxShadow: "0 8px 20px rgba(37,99,235,0.2)"
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <div
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  borderRadius: "10px",
+                  background: "rgba(255,255,255,0.2)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <FaBell size={20} color="#fff" />
+              </div>
+              <div>
+                <h2
+                  style={{
+                    margin: 0,
+                    fontSize: "22px",
+                    fontWeight: "700",
+                    color: "#fff"
+                  }}
+                >
+                  Recent Activity Log
+                </h2>
+
+                <p
+                  style={{
+                    marginTop: "4px",
+                    color: "#dbeafe",
+                    fontSize: "13px",
+                    marginBottom: 0
+                  }}
+                >
+                  Latest platform transactions and order activities
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => navigate("/admin/orders")}
+              style={{
+                background: "#fff",
+                color: "#2563eb",
+                border: "none",
+                padding: "8px 18px",
+                borderRadius: "10px",
+                fontWeight: "600",
+                cursor: "pointer",
+                transition: "all 0.2s",
+                fontSize: "13px",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "#f0f4ff";
+                e.currentTarget.style.transform = "scale(1.05)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "#fff";
+                e.currentTarget.style.transform = "scale(1)";
+              }}
+            >
+              View All
+            </button>
+          </div>
+
+          {/* Compact Activity Rows */}
+          {recentOrders.length > 0 ? (
+            recentOrders.map((order) => (
+              <div
+                key={order._id}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "10px 14px",
+                  marginBottom: "8px",
+                  background: "#f8fafc",
+                  borderRadius: "10px",
+                  border: "1px solid #eef2f6",
+                  transition: "all 0.25s ease",
+                  cursor: "pointer",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.06)";
+                  e.currentTarget.style.borderColor = "#2563eb";
+                  e.currentTarget.style.background = "#ffffff";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "none";
+                  e.currentTarget.style.borderColor = "#eef2f6";
+                  e.currentTarget.style.background = "#f8fafc";
+                }}
+                onClick={() => navigate(`/admin/orders/${order._id}`)}
+              >
+                <div>
+                  <div
+                    style={{
+                      fontWeight: "600",
+                      color: "#0f172a",
+                      fontSize: "14px",
+                    }}
+                  >
+                    Order Created
+                  </div>
+
+                  <div
+                    style={{
+                      color: "#64748b",
+                      marginTop: "2px",
+                      fontSize: "12px",
+                    }}
+                  >
+                    {order.orderNumber}
+                  </div>
+                </div>
+
+                <div style={{ textAlign: "right" }}>
+                  <div
+                    style={{
+                      color: "#16a34a",
+                      fontWeight: "700",
+                      fontSize: "15px",
+                    }}
+                  >
+                    ₹{order.amount}
+                  </div>
+
+                  <div
+                    style={{
+                      color: "#94a3b8",
+                      fontSize: "11px",
+                      marginTop: "2px",
+                    }}
+                  >
+                    {new Date(order.createdAt).toLocaleDateString('en-IN', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric'
+                    })}
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div style={{ padding: "30px 0", color: "#94a3b8", textAlign: "center" }}>
+              No recent activity
+            </div>
+          )}
+        </div>
+
       </div>
     </div>
   );

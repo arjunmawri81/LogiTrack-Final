@@ -1,16 +1,20 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import api from "../../services/api";
-import { FaTruck, FaSearch, FaDownload, FaTimes, FaEye, FaQrcode } from "react-icons/fa";
+import { 
+  FaTruck, FaSearch, FaDownload, FaTimes, FaEye, FaQrcode,
+  FaBox, FaClock, FaCheckCircle, FaExclamationTriangle, FaUndo, FaFilter
+} from "react-icons/fa";
 
 const Shipments = () => {
+  const navigate = useNavigate();
   const [shipments, setShipments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
   const [showModal, setShowModal] = useState(false);
   const [selectedTimeline, setSelectedTimeline] = useState([]);
-  
-  // New States for QR Modal
   const [showQRModal, setShowQRModal] = useState(false);
   const [qrImage, setQrImage] = useState("");
 
@@ -35,6 +39,12 @@ const Shipments = () => {
       case "DELIVERED": return { background: "#dcfce7", color: "#166534" };
       case "RTO": return { background: "#fee2e2", color: "#991b1b" };
       case "NDR": return { background: "#fef3c7", color: "#92400e" };
+      case "IN_TRANSIT": return { background: "#dbeafe", color: "#1d4ed8" };
+      case "OUT_FOR_DELIVERY": return { background: "#dbeafe", color: "#1d4ed8" };
+      case "PICKED_UP": return { background: "#e0e7ff", color: "#4338ca" };
+      case "READY_FOR_PICKUP": return { background: "#fef3c7", color: "#92400e" };
+      case "PROCESSING": return { background: "#fce7f3", color: "#9d174d" };
+      case "PACKED": return { background: "#ede9fe", color: "#6d28d9" };
       default: return { background: "#dbeafe", color: "#1d4ed8" };
     }
   };
@@ -58,7 +68,6 @@ const Shipments = () => {
   const handleOpenQR = async (shipmentId) => {
     try {
       const res = await api.get(`/shipments/${shipmentId}/qr`);
-      // Updated Logic
       if (res.data?.qrCode) {
         setQrImage(res.data.qrCode);
         setShowQRModal(true);
@@ -70,11 +79,37 @@ const Shipments = () => {
     }
   };
 
-  const filtered = shipments.filter(
-    (s) =>
+  // Statistics Calculations
+  const totalShipments = shipments.length;
+  const delivered = shipments.filter(s => s.status === "DELIVERED").length;
+  const inTransit = shipments.filter(s => 
+    s.status === "IN_TRANSIT" || 
+    s.status === "OUT_FOR_DELIVERY"
+  ).length;
+  const pending = shipments.filter(s => 
+    s.status === "PENDING" || 
+    s.status === "PROCESSING" || 
+    s.status === "PACKED" || 
+    s.status === "READY_FOR_PICKUP"
+  ).length;
+  const ndr = shipments.filter(s => s.status === "NDR").length;
+  const rto = shipments.filter(s => s.status === "RTO").length;
+
+  // Filter with status
+  const filtered = shipments.filter((s) => {
+    const matchesSearch =
       s.awb?.toLowerCase().includes(search.toLowerCase()) ||
-      (s.orderId?.customerName || "").toLowerCase().includes(search.toLowerCase())
-  );
+      (s.orderId?.customerName || "")
+        .toLowerCase()
+        .includes(search.toLowerCase());
+
+    const matchesStatus =
+      statusFilter === "ALL"
+        ? true
+        : s.status === statusFilter;
+
+    return matchesSearch && matchesStatus;
+  });
 
   const s = {
     container: { 
@@ -94,6 +129,38 @@ const Shipments = () => {
       marginBottom: "24px",
       boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
       transition: "box-shadow 0.3s ease"
+    },
+    statsGrid: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+      gap: "12px",
+      marginBottom: "24px"
+    },
+    statCard: (color) => ({
+      background: "#ffffff",
+      padding: "16px 20px",
+      borderRadius: "14px",
+      border: "1px solid #e2e8f0",
+      textAlign: "center",
+      boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+      transition: "all 0.2s ease"
+    }),
+    statIcon: (color) => ({
+      fontSize: "20px",
+      color: color,
+      marginBottom: "6px"
+    }),
+    statValue: {
+      fontSize: "24px",
+      fontWeight: "700",
+      color: "#0f172a"
+    },
+    statLabel: {
+      fontSize: "11px",
+      color: "#64748b",
+      fontWeight: "500",
+      textTransform: "uppercase",
+      letterSpacing: "0.3px"
     },
     tableHead: { 
       background: "#f8fafc",
@@ -153,15 +220,29 @@ const Shipments = () => {
       display: "flex",
       alignItems: "center",
       gap: "12px",
-      transition: "all 0.2s ease"
+      transition: "all 0.2s ease",
+      flexWrap: "wrap"
     },
     searchInput: {
       border: "none",
       outline: "none",
-      width: "100%",
+      flex: 1,
       fontSize: "14px",
       padding: "12px 0",
-      background: "transparent"
+      background: "transparent",
+      minWidth: "200px"
+    },
+    filterSelect: {
+      padding: "10px 16px",
+      borderRadius: "10px",
+      border: "1px solid #e2e8f0",
+      fontSize: "13px",
+      fontWeight: "500",
+      color: "#334155",
+      background: "#ffffff",
+      cursor: "pointer",
+      outline: "none",
+      transition: "all 0.2s ease"
     },
     tableWrapper: {
       overflowX: "auto",
@@ -170,7 +251,7 @@ const Shipments = () => {
     table: {
       width: "100%",
       borderCollapse: "collapse",
-      minWidth: "900px"
+      minWidth: "1000px"
     },
     th: {
       padding: "16px",
@@ -314,6 +395,16 @@ const Shipments = () => {
     tr:hover td {
       background: #f8fafc;
     }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    select:focus {
+      border-color: #f97316;
+      box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+    }
   `;
 
   return (
@@ -328,18 +419,41 @@ const Shipments = () => {
           <h1 style={s.pageTitle}>Shipments Management</h1>
           <p style={s.pageSubtitle}>Manage and track all your shipments</p>
 
-          <div style={s.card}>
-            <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-              <div style={s.statsIconWrapper}>
-                <FaTruck />
-              </div>
-              <div>
-                <h4 style={{ margin: 0, color: "#64748b", fontSize: "12px", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px" }}>TOTAL SHIPMENTS</h4>
-                <h2 style={{ margin: "4px 0 0 0", fontSize: "32px", fontWeight: "700", color: "#0f172a" }}>{shipments.length}</h2>
-              </div>
+          {/* Statistics Cards */}
+          <div style={s.statsGrid}>
+            <div className="stat-card" style={s.statCard("#2563eb")}>
+              <FaBox style={s.statIcon("#2563eb")} />
+              <div style={s.statValue}>{totalShipments}</div>
+              <div style={s.statLabel}>Total</div>
+            </div>
+            <div className="stat-card" style={s.statCard("#d97706")}>
+              <FaClock style={s.statIcon("#d97706")} />
+              <div style={s.statValue}>{pending}</div>
+              <div style={s.statLabel}>Pending</div>
+            </div>
+            <div className="stat-card" style={s.statCard("#2563eb")}>
+              <FaTruck style={s.statIcon("#2563eb")} />
+              <div style={s.statValue}>{inTransit}</div>
+              <div style={s.statLabel}>In Transit</div>
+            </div>
+            <div className="stat-card" style={s.statCard("#16a34a")}>
+              <FaCheckCircle style={s.statIcon("#16a34a")} />
+              <div style={s.statValue}>{delivered}</div>
+              <div style={s.statLabel}>Delivered</div>
+            </div>
+            <div className="stat-card" style={s.statCard("#d97706")}>
+              <FaExclamationTriangle style={s.statIcon("#d97706")} />
+              <div style={s.statValue}>{ndr}</div>
+              <div style={s.statLabel}>NDR</div>
+            </div>
+            <div className="stat-card" style={s.statCard("#dc2626")}>
+              <FaUndo style={s.statIcon("#dc2626")} />
+              <div style={s.statValue}>{rto}</div>
+              <div style={s.statLabel}>RTO</div>
             </div>
           </div>
 
+          {/* Search + Status Filter */}
           <div className="search-wrapper" style={s.searchWrapper}>
             <FaSearch style={{ color: "#94a3b8" }} />
             <input 
@@ -348,10 +462,30 @@ const Shipments = () => {
               style={s.searchInput} 
               onChange={(e) => setSearch(e.target.value)} 
             />
+            
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <FaFilter style={{ color: "#94a3b8", fontSize: "14px" }} />
+              <select
+                style={s.filterSelect}
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="ALL">All Status</option>
+                <option value="PENDING">Pending</option>
+                <option value="PROCESSING">Processing</option>
+                <option value="PACKED">Packed</option>
+                <option value="READY_FOR_PICKUP">Ready For Pickup</option>
+                <option value="PICKED_UP">Picked Up</option>
+                <option value="IN_TRANSIT">In Transit</option> {/* ✅ ADDED */}
+                <option value="OUT_FOR_DELIVERY">Out For Delivery</option>
+                <option value="DELIVERED">Delivered</option>
+                <option value="NDR">NDR</option>
+                <option value="RTO">RTO</option>
+              </select>
+            </div>
           </div>
 
           <div style={{ ...s.card, padding: 0, overflow: "hidden" }}>
-            {/* Table Title */}
             <div
               style={{
                 padding: "20px 24px",
@@ -368,6 +502,14 @@ const Shipments = () => {
                 }}
               >
                 Shipment Records
+                <span style={{ 
+                  fontSize: "13px", 
+                  fontWeight: "400", 
+                  color: "#64748b",
+                  marginLeft: "10px"
+                }}>
+                  ({filtered.length} shipments)
+                </span>
               </h3>
             </div>
             
@@ -378,7 +520,7 @@ const Shipments = () => {
                 <table style={s.table}>
                   <thead>
                     <tr style={s.tableHead}>
-                      {["AWB", "CUSTOMER", "COURIER", "STATUS", "DATE", "QR", "LABEL", "TIMELINE"].map((h) => (
+                      {["AWB", "CUSTOMER", "COURIER", "STATUS", "DATE", "DETAILS", "QR", "LABEL", "TIMELINE"].map((h) => (
                         <th key={h} style={s.th}>{h}</th>
                       ))}
                     </tr>
@@ -423,6 +565,18 @@ const Shipments = () => {
                           <td style={s.td}>
                             <span style={{ fontSize: "12px" }}>{new Date(shipment.createdAt).toLocaleDateString('en-GB')}</span>
                           </td>
+                          
+                          <td style={s.td}>
+                            <button
+                              onClick={() =>
+                                navigate(`/merchant/shipments/${shipment._id}`)
+                              }
+                              style={s.btn("#1e293b")}
+                            >
+                              <FaEye size={11} /> Details
+                            </button>
+                          </td>
+                          
                           <td style={s.td}>
                             <button onClick={() => handleOpenQR(shipment._id)} style={s.btn("#16a34a")}>
                               <FaQrcode size={11} /> QR
@@ -430,7 +584,7 @@ const Shipments = () => {
                           </td>
                           <td style={s.td}>
                             <button onClick={() => downloadLabel(shipment._id, shipment.awb)} style={s.btn("#2563eb")}>
-                              <FaDownload size={11} /> 
+                              <FaDownload size={11} /> Label
                             </button>
                           </td>
                           <td style={s.td}>
@@ -446,14 +600,16 @@ const Shipments = () => {
                               }} 
                               style={s.btn("#f97316")}
                             >
-                              <FaEye size={11} /> View
+                              <FaEye size={11} /> Timeline
                             </button>
                           </td>
                         </tr>
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="8" style={{ padding: "60px", textAlign: "center", color: "#94a3b8" }}>No Shipments Found</td>
+                        <td colSpan="9" style={{ padding: "60px", textAlign: "center", color: "#94a3b8" }}>
+                          {search || statusFilter !== "ALL" ? "No matching shipments found" : "No Shipments Found"}
+                        </td>
                       </tr>
                     )}
                   </tbody>

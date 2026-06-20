@@ -616,6 +616,105 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
+// ================================
+// ORDER MANAGEMENT (ADMIN)
+// ================================
+
+// Edit Order
+const updateOrderAdmin = async (req, res) => {
+  try {
+    const order = await Order.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Order updated successfully",
+      order,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// Assign Courier
+const assignCourier = async (req, res) => {
+  try {
+    const { courierPartner } = req.body;
+
+    const order = await Order.findByIdAndUpdate(
+      req.params.id,
+      {
+        courierPartner,
+        status: "PROCESSING",
+      },
+      { new: true }
+    );
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Courier assigned successfully",
+      order,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// Cancel Order
+const cancelOrderAdmin = async (req, res) => {
+  try {
+    const order = await Order.findByIdAndUpdate(
+      req.params.id,
+      { status: "CANCELLED" },
+      { new: true }
+    );
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Order cancelled successfully",
+      order,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ================================
+// SHIPMENTS
+// ================================
 const getShipments = async (req, res) => {
   try {
     const shipments = await Shipment.find().sort({ createdAt: -1 });
@@ -913,6 +1012,11 @@ module.exports = {
   updateOrderStatus,
   getShipments,
   getShipmentByIdAdmin,
+  
+  // Order Management (Admin)
+  updateOrderAdmin,
+  assignCourier,
+  cancelOrderAdmin,
   
   // Commission & Revenue
   getCommission, 
