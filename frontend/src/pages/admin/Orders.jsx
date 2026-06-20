@@ -66,6 +66,64 @@ const Orders = () => {
     );
   };
 
+  // ================================
+  // PRINT LABELS
+  // ================================
+  const handlePrintLabels = () => {
+    const selectedData = orders.filter((o) =>
+      selectedOrders.includes(o._id)
+    );
+
+    if (selectedData.length === 0) {
+      alert("Please select at least one order");
+      return;
+    }
+
+    const printWindow = window.open("", "_blank");
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Shipping Labels</title>
+          <style>
+            body{
+              font-family: Arial, sans-serif;
+              padding:20px;
+            }
+            .label{
+              border:2px solid #000;
+              padding:15px;
+              margin-bottom:20px;
+              border-radius:8px;
+            }
+            h3{
+              margin:0 0 10px 0;
+            }
+          </style>
+        </head>
+        <body>
+          ${selectedData
+            .map(
+              (order) => `
+              <div class="label">
+                <h3>${order.orderNumber}</h3>
+                <p><strong>Name:</strong> ${order.customerName}</p>
+                <p><strong>Phone:</strong> ${order.customerPhone}</p>
+                <p><strong>Address:</strong> ${order.customerAddress}</p>
+                <p><strong>City:</strong> ${order.city}</p>
+                <p><strong>Pincode:</strong> ${order.pincode}</p>
+              </div>
+            `
+            )
+            .join("")}
+        </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.print();
+  };
+
   const updateStatus = async (id, status) => {
     try {
       await api.patch(`/admin/orders/${id}/status`, {
@@ -419,9 +477,7 @@ const Orders = () => {
             </button>
 
             <button
-              onClick={() =>
-                alert("Label Generation Coming Soon")
-              }
+              onClick={handlePrintLabels}
               style={{
                 background: "#8b5cf6",
                 color: "#fff",
