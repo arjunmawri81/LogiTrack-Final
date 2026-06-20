@@ -25,6 +25,10 @@ const Orders = () => {
   const [selectedOrders, setSelectedOrders] = useState([]);
   const [openMenu, setOpenMenu] = useState(null);
   const [courierModal, setCourierModal] = useState(null);
+  const [bulkStatusModal, setBulkStatusModal] = useState(false);
+  const [bulkCourierModal, setBulkCourierModal] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState("PROCESSING");
+  const [selectedCourier, setSelectedCourier] = useState("");
 
   useEffect(() => {
     fetchOrders();
@@ -98,7 +102,7 @@ const Orders = () => {
   };
 
   // ================================
-  // 2. ASSIGN COURIER
+  // 2. ASSIGN COURIER (Single)
   // ================================
   const assignCourier = async (id, courierPartner) => {
     try {
@@ -116,6 +120,56 @@ const Orders = () => {
         error?.response?.data?.message ||
         "Courier assignment failed"
       );
+    }
+  };
+
+  // ================================
+  // 3. BULK STATUS UPDATE
+  // ================================
+  const handleBulkStatusUpdate = async () => {
+    if (!selectedStatus) {
+      alert("Please select a status");
+      return;
+    }
+
+    try {
+      await api.patch("/admin/orders/bulk-status", {
+        orderIds: selectedOrders,
+        status: selectedStatus,
+      });
+
+      setBulkStatusModal(false);
+      setSelectedOrders([]);
+      fetchOrders();
+      alert(`✅ ${selectedOrders.length} orders updated to ${selectedStatus} successfully`);
+    } catch (error) {
+      console.log("BULK STATUS ERROR =>", error);
+      alert(error?.response?.data?.message || "Bulk status update failed");
+    }
+  };
+
+  // ================================
+  // 4. BULK COURIER ASSIGN
+  // ================================
+  const handleBulkCourierAssign = async () => {
+    if (!selectedCourier) {
+      alert("Please select a courier partner");
+      return;
+    }
+
+    try {
+      await api.patch("/admin/orders/bulk-courier", {
+        orderIds: selectedOrders,
+        courierPartner: selectedCourier,
+      });
+
+      setBulkCourierModal(false);
+      setSelectedOrders([]);
+      fetchOrders();
+      alert(`✅ ${selectedOrders.length} orders assigned to ${selectedCourier} successfully`);
+    } catch (error) {
+      console.log("BULK COURIER ERROR =>", error);
+      alert(error?.response?.data?.message || "Bulk courier assignment failed");
     }
   };
 
@@ -365,6 +419,9 @@ const Orders = () => {
             </button>
 
             <button
+              onClick={() =>
+                alert("Label Generation Coming Soon")
+              }
               style={{
                 background: "#8b5cf6",
                 color: "#fff",
@@ -375,12 +432,13 @@ const Orders = () => {
                 fontWeight: "500",
               }}
             >
-              Labels
+              Print Labels
             </button>
 
             <button
+              onClick={() => setBulkStatusModal(true)}
               style={{
-                background: "#059669",
+                background: "#10b981",
                 color: "#fff",
                 border: "none",
                 padding: "8px 16px",
@@ -389,10 +447,11 @@ const Orders = () => {
                 fontWeight: "500",
               }}
             >
-              Invoice
+              Bulk Status
             </button>
 
             <button
+              onClick={() => setBulkCourierModal(true)}
               style={{
                 background: "#d97706",
                 color: "#fff",
@@ -639,7 +698,14 @@ const Orders = () => {
                             {[
                               { label: "View Order", icon: <FaEye size={16} color="#3b82f6" />, action: () => navigate(`/admin/orders/${order._id}`) },
                               { label: "Edit Order", icon: <FaEdit size={16} color="#8b5cf6" />, action: () => navigate(`/admin/orders/edit/${order._id}`) },
-                              { label: "Invoice", icon: <FaFileInvoice size={16} color="#059669" />, action: () => console.log("Invoice", order._id) },
+                              { 
+                                label: "Invoice", 
+                                icon: <FaFileInvoice size={16} color="#059669" />, 
+                                action: () =>
+                                  alert(
+                                    "Invoice generation module will be available in next update."
+                                  )
+                              },
                               { label: "Assign Courier", icon: <FaTruck size={16} color="#d97706" />, action: () => setCourierModal(order) },
                               { label: "Cancel Order", icon: <FaTimesCircle size={16} color="#dc2626" />, action: () => cancelOrder(order._id) },
                             ].map((item, idx) => (
@@ -689,7 +755,7 @@ const Orders = () => {
         </div>
 
         {/* ================================ */}
-        {/* COURIER ASSIGNMENT MODAL */}
+        {/* SINGLE COURIER ASSIGNMENT MODAL */}
         {/* ================================ */}
         {courierModal && (
           <div
@@ -813,6 +879,264 @@ const Orders = () => {
               >
                 Cancel
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* ================================ */}
+        {/* BULK STATUS UPDATE MODAL */}
+        {/* ================================ */}
+        {bulkStatusModal && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: "rgba(0,0,0,0.5)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 1000,
+              backdropFilter: "blur(4px)",
+            }}
+            onClick={() => setBulkStatusModal(false)}
+          >
+            <div
+              style={{
+                background: "#fff",
+                padding: "30px",
+                borderRadius: "16px",
+                maxWidth: "400px",
+                width: "100%",
+                boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3
+                style={{
+                  margin: "0 0 8px 0",
+                  fontSize: "20px",
+                  fontWeight: "700",
+                  color: "#0f172a",
+                }}
+              >
+                📊 Bulk Status Update
+              </h3>
+              <p
+                style={{
+                  color: "#64748b",
+                  fontSize: "14px",
+                  marginBottom: "20px",
+                }}
+              >
+                Update status for <strong>{selectedOrders.length}</strong> selected orders
+              </p>
+
+              <div style={{ marginBottom: "20px" }}>
+                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", color: "#1e293b" }}>
+                  Select Status
+                </label>
+                <select
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "12px",
+                    borderRadius: "10px",
+                    border: "1px solid #e2e8f0",
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    background: "#f8fafc",
+                    cursor: "pointer",
+                  }}
+                >
+                  <option value="PENDING">PENDING</option>
+                  <option value="PROCESSING">PROCESSING</option>
+                  <option value="PACKED">PACKED</option>
+                  <option value="READY_FOR_PICKUP">READY FOR PICKUP</option>
+                  <option value="SHIPPED">SHIPPED</option>
+                  <option value="DELIVERED">DELIVERED</option>
+                  <option value="RETURNED">RETURNED</option>
+                  <option value="CANCELLED">CANCELLED</option>
+                </select>
+              </div>
+
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button
+                  onClick={handleBulkStatusUpdate}
+                  style={{
+                    flex: 1,
+                    padding: "12px",
+                    background: "#10b981",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "10px",
+                    cursor: "pointer",
+                    fontWeight: "600",
+                    fontSize: "14px",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "#059669";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "#10b981";
+                  }}
+                >
+                  Update Status
+                </button>
+                <button
+                  onClick={() => setBulkStatusModal(false)}
+                  style={{
+                    flex: 1,
+                    padding: "12px",
+                    background: "#f1f5f9",
+                    color: "#64748b",
+                    border: "none",
+                    borderRadius: "10px",
+                    cursor: "pointer",
+                    fontWeight: "600",
+                    fontSize: "14px",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "#e2e8f0";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "#f1f5f9";
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ================================ */}
+        {/* BULK COURIER ASSIGNMENT MODAL */}
+        {/* ================================ */}
+        {bulkCourierModal && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: "rgba(0,0,0,0.5)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 1000,
+              backdropFilter: "blur(4px)",
+            }}
+            onClick={() => setBulkCourierModal(false)}
+          >
+            <div
+              style={{
+                background: "#fff",
+                padding: "30px",
+                borderRadius: "16px",
+                maxWidth: "400px",
+                width: "100%",
+                boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3
+                style={{
+                  margin: "0 0 8px 0",
+                  fontSize: "20px",
+                  fontWeight: "700",
+                  color: "#0f172a",
+                }}
+              >
+                🚚 Bulk Courier Assignment
+              </h3>
+              <p
+                style={{
+                  color: "#64748b",
+                  fontSize: "14px",
+                  marginBottom: "20px",
+                }}
+              >
+                Assign courier to <strong>{selectedOrders.length}</strong> selected orders
+              </p>
+
+              <div style={{ marginBottom: "20px" }}>
+                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", color: "#1e293b" }}>
+                  Select Courier Partner
+                </label>
+                <select
+                  value={selectedCourier}
+                  onChange={(e) => setSelectedCourier(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "12px",
+                    borderRadius: "10px",
+                    border: "1px solid #e2e8f0",
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    background: "#f8fafc",
+                    cursor: "pointer",
+                  }}
+                >
+                  <option value="">Select a courier...</option>
+                  <option value="Delhivery">Delhivery</option>
+                  <option value="DTDC">DTDC</option>
+                  <option value="Xpressbees">Xpressbees</option>
+                  <option value="Ecom Express">Ecom Express</option>
+                  <option value="Blue Dart">Blue Dart</option>
+                </select>
+              </div>
+
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button
+                  onClick={handleBulkCourierAssign}
+                  style={{
+                    flex: 1,
+                    padding: "12px",
+                    background: "#d97706",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "10px",
+                    cursor: "pointer",
+                    fontWeight: "600",
+                    fontSize: "14px",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "#b45309";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "#d97706";
+                  }}
+                >
+                  Assign Courier
+                </button>
+                <button
+                  onClick={() => setBulkCourierModal(false)}
+                  style={{
+                    flex: 1,
+                    padding: "12px",
+                    background: "#f1f5f9",
+                    color: "#64748b",
+                    border: "none",
+                    borderRadius: "10px",
+                    cursor: "pointer",
+                    fontWeight: "600",
+                    fontSize: "14px",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "#e2e8f0";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "#f1f5f9";
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
         )}

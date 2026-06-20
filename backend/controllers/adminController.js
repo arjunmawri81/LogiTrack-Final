@@ -713,6 +713,93 @@ const cancelOrderAdmin = async (req, res) => {
 };
 
 // ================================
+// BULK OPERATIONS
+// ================================
+
+// BULK STATUS UPDATE
+const bulkUpdateStatus = async (req, res) => {
+  try {
+    const { orderIds, status } = req.body;
+
+    if (!orderIds || !Array.isArray(orderIds) || orderIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide valid order IDs",
+      });
+    }
+
+    if (!status) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide a status to update",
+      });
+    }
+
+    const result = await Order.updateMany(
+      {
+        _id: { $in: orderIds },
+      },
+      {
+        status,
+      }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: `${result.modifiedCount} orders updated successfully`,
+      updatedCount: result.modifiedCount,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// BULK COURIER ASSIGN
+const bulkAssignCourier = async (req, res) => {
+  try {
+    const { orderIds, courierPartner } = req.body;
+
+    if (!orderIds || !Array.isArray(orderIds) || orderIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide valid order IDs",
+      });
+    }
+
+    if (!courierPartner) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide a courier partner to assign",
+      });
+    }
+
+    const result = await Order.updateMany(
+      {
+        _id: { $in: orderIds },
+      },
+      {
+        courierPartner,
+        status: "PROCESSING",
+      }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: `${result.modifiedCount} orders assigned to ${courierPartner} successfully`,
+      updatedCount: result.modifiedCount,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ================================
 // SHIPMENTS
 // ================================
 const getShipments = async (req, res) => {
@@ -1017,6 +1104,10 @@ module.exports = {
   updateOrderAdmin,
   assignCourier,
   cancelOrderAdmin,
+  
+  // Bulk Operations
+  bulkUpdateStatus,
+  bulkAssignCourier,
   
   // Commission & Revenue
   getCommission, 

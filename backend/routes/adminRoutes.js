@@ -39,6 +39,10 @@ const {
   updateOrderAdmin,
   assignCourier,
   cancelOrderAdmin,
+
+  // Bulk Operations
+  bulkUpdateStatus,
+  bulkAssignCourier,
 } = require("../controllers/adminController");
 
 // Dashboard
@@ -172,6 +176,31 @@ router.get(
   getOrders
 );
 
+// ================================
+// BULK OPERATIONS ROUTES (BEFORE ID ROUTES)
+// ================================
+
+// Bulk Status Update
+router.patch(
+  "/orders/bulk-status",
+  authMiddleware,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
+  bulkUpdateStatus
+);
+
+// Bulk Courier Assign
+router.patch(
+  "/orders/bulk-courier",
+  authMiddleware,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
+  bulkAssignCourier
+);
+
+// ================================
+// ORDER MANAGEMENT ROUTES (WITH ID)
+// ================================
+
+// Get Order by ID
 router.get(
   "/orders/:id",
   authMiddleware,
@@ -179,16 +208,13 @@ router.get(
   getOrderByIdAdmin
 );
 
+// Update Order Status
 router.patch(
   "/orders/:id/status",
   authMiddleware,
   authorizeRoles("ADMIN", "SUPER_ADMIN"),
   updateOrderStatus
 );
-
-// ================================
-// ORDER MANAGEMENT ROUTES (ADMIN)
-// ================================
 
 // Edit Order (Full Update)
 router.put(
