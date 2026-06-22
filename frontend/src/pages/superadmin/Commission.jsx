@@ -7,7 +7,13 @@ const Commission = () => {
     totalRevenue: 0,
     commissionRate: 10,
     totalCommission: 0,
+    monthlyCommission: 0,
+    todayCommission: 0,
+    activeMerchants: 0,
+    netRevenue: 0,
   });
+
+  const [merchantBreakdown, setMerchantBreakdown] = useState([]);
 
   useEffect(() => {
     fetchCommission();
@@ -20,13 +26,17 @@ const Commission = () => {
         totalRevenue: res.data.totalRevenue || 0,
         commissionRate: res.data.commissionRate || 10,
         totalCommission: res.data.totalCommission || 0,
+        monthlyCommission: res.data.monthlyCommission || 0,
+        todayCommission: res.data.todayCommission || 0,
+        activeMerchants: res.data.activeMerchants || 0,
+        netRevenue: res.data.netRevenue || 0,
       });
+      setMerchantBreakdown(res.data.merchantBreakdown || []);
     } catch (error) {
       console.error("Error retrieving platform commission metrics:", error);
     }
   };
 
-  // Base font framework rule across all page elements
   const fontStyle = {
     fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
   };
@@ -62,7 +72,6 @@ const Commission = () => {
             marginBottom: "35px",
           }}
         >
-          {/* TOTAL REVENUE CARD */}
           <div style={cardBlue}>
             <div style={{ ...cardLabel, color: "#93c5fd" }}>
               Total Revenue
@@ -72,17 +81,15 @@ const Commission = () => {
             </div>
           </div>
 
-          {/* COMMISSION RATE CARD */}
           <div style={cardGreen}>
             <div style={{ ...cardLabel, color: "#a7f3d0" }}>
-              Commission Rate
+              Net Revenue
             </div>
             <div style={cardValue}>
-              {commission.commissionRate}%
+              ₹{commission.netRevenue?.toLocaleString()}
             </div>
           </div>
 
-          {/* EARNED COMMISSION CARD */}
           <div style={cardOrange}>
             <div style={{ ...cardLabel, color: "#ffedd5" }}>
               Total Commission
@@ -91,15 +98,41 @@ const Commission = () => {
               ₹{commission.totalCommission.toLocaleString()}
             </div>
           </div>
+
+          <div style={cardBlue}>
+            <div style={{ ...cardLabel, color: "#93c5fd" }}>
+              Monthly Commission
+            </div>
+            <div style={cardValue}>
+              ₹{commission.monthlyCommission.toLocaleString()}
+            </div>
+          </div>
+
+          <div style={cardGreen}>
+            <div style={{ ...cardLabel, color: "#a7f3d0" }}>
+              Today's Commission
+            </div>
+            <div style={cardValue}>
+              ₹{commission.todayCommission.toLocaleString()}
+            </div>
+          </div>
+
+          <div style={cardOrange}>
+            <div style={{ ...cardLabel, color: "#ffedd5" }}>
+              Active Merchants
+            </div>
+            <div style={cardValue}>
+              {commission.activeMerchants}
+            </div>
+          </div>
         </div>
 
-        {/* COMMISSION SUMMARY DATAGRID */}
+        {/* MERCHANT COMMISSION TABLE */}
         <div
           style={{
             background: "#ffffff",
             borderRadius: "16px",
             padding: "24px",
-            overflowX: "auto",
             border: "1px solid #f1f5f9",
             boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05)",
           }}
@@ -113,44 +146,68 @@ const Commission = () => {
               letterSpacing: "-0.02em",
             }}
           >
-            Commission Summary
+            Merchant Commission Breakdown
           </h2>
 
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "separate",
-              borderSpacing: "0",
-              background: "#ffffff",
-              borderRadius: "12px",
-              overflow: "hidden",
-              border: "1px solid #e2e8f0",
-            }}
-          >
-            <thead>
-              <tr>
-                <th style={thStyle}>Total Revenue</th>
-                <th style={thStyle}>Commission Rate</th>
-                <th style={thStyle}>Commission Earned</th>
-              </tr>
-            </thead>
+          <div style={{ overflowX: "auto" }}>
+            <table
+              style={{
+                width: "100%",
+                borderCollapse: "separate",
+                borderSpacing: "0",
+                background: "#ffffff",
+                borderRadius: "12px",
+                overflow: "hidden",
+                border: "1px solid #e2e8f0",
+              }}
+            >
+              <thead>
+                <tr>
+                  <th style={{ ...thStyle, textAlign: "left" }}>Merchant</th>
+                  <th style={{ ...thStyle, textAlign: "center" }}>Orders</th>
+                  <th style={{ ...thStyle, textAlign: "right" }}>Revenue</th>
+                  <th style={{ ...thStyle, textAlign: "right" }}>Commission</th>
+                  <th style={{ ...thStyle, textAlign: "center" }}>Status</th>
+                </tr>
+              </thead>
 
-            <tbody>
-              <tr style={{ background: "#ffffff" }}>
-                <td style={{ ...tdStyle, fontWeight: "600", color: "#0f172a" }}>
-                  ₹{commission.totalRevenue.toLocaleString()}
-                </td>
-                
-                <td style={{ ...tdStyle, color: "#475569", fontFamily: "monospace", fontSize: "15px" }}>
-                  {commission.commissionRate}%
-                </td>
-                
-                <td style={{ ...tdStyle, fontWeight: "700", color: "#166534" }}>
-                  ₹{commission.totalCommission.toLocaleString()}
-                </td>
-              </tr>
-            </tbody>
-          </table>
+              <tbody>
+                {merchantBreakdown
+                  .filter((merchant) => merchant.revenue > 0)
+                  .map((merchant) => (
+                    <tr key={merchant.merchantId}>
+                      <td style={{ ...tdStyle, fontWeight: "600", color: "#0f172a" }}>
+                        {merchant.merchantName}
+                      </td>
+                      <td style={{ ...tdStyle, textAlign: "center", color: "#475569" }}>
+                        {merchant.orders}
+                      </td>
+                      <td style={{ ...tdStyle, textAlign: "right", fontWeight: "500", color: "#0f172a" }}>
+                        ₹{merchant.revenue.toLocaleString()}
+                      </td>
+                      <td style={{ ...tdStyle, textAlign: "right", fontWeight: "700", color: "#166534" }}>
+                        ₹{merchant.commission.toLocaleString()}
+                      </td>
+                      <td style={{ ...tdStyle, textAlign: "center" }}>
+                        <span
+                          style={{
+                            display: "inline-block",
+                            padding: "6px 12px",
+                            borderRadius: "20px",
+                            background: merchant.status === "ACTIVE" ? "#dcfce7" : "#fef3c7",
+                            color: merchant.status === "ACTIVE" ? "#166534" : "#92400e",
+                            fontWeight: "600",
+                            fontSize: "12px",
+                          }}
+                        >
+                          {merchant.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
       </div>
@@ -199,11 +256,10 @@ const cardOrange = {
 };
 
 const thStyle = {
-  padding: "16px 24px",
-  textAlign: "left",
+  padding: "12px 16px",
   color: "#475569",
   fontWeight: "600",
-  fontSize: "13px",
+  fontSize: "12px",
   textTransform: "uppercase",
   letterSpacing: "0.05em",
   background: "#f8fafc",
@@ -211,10 +267,9 @@ const thStyle = {
 };
 
 const tdStyle = {
-  padding: "18px 24px",
+  padding: "14px 16px",
   color: "#334155",
-  fontSize: "14px",
-  fontWeight: "500",
+  fontSize: "13px",
   borderBottom: "1px solid #f1f5f9",
 };
 

@@ -19,7 +19,7 @@ const courierRoutes = require("./routes/courierRoutes");
 const codRoutes = require("./routes/codRoutes");
 const ndrRoutes = require("./routes/ndrRoutes");
 const rtoRoutes = require("./routes/rtoRoutes");
-const rateCardRoutes = require("./routes/rateCardRoutes"); // ✅ NEW: RateCard routes
+const rateCardRoutes = require("./routes/rateCardRoutes"); 
 
 dotenv.config();
 connectDB();
@@ -48,7 +48,7 @@ app.use(express.urlencoded({ extended: true }));
 app.get("/", (req, res) => {
   res.json({
     success: true,
-    message: "LogiTrack Backend Running 🚀",
+    message: "LogiTrack Backend Running ",
   });
 });
 
@@ -69,7 +69,7 @@ app.use("/api/couriers", courierRoutes);
 app.use("/api/cod", codRoutes);
 app.use("/api/ndr", ndrRoutes);
 app.use("/api/rto", rtoRoutes);
-app.use("/api/ratecards", rateCardRoutes); // ✅ NEW: RateCard routes added
+app.use("/api/ratecards", rateCardRoutes); 
 
 // ====================================
 // 404 HANDLER
@@ -99,7 +99,7 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server Running On Port ${PORT}`);
+  console.log(` Server Running On Port ${PORT}`);
 });
 
 module.exports = app;

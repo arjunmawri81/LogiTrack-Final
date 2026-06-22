@@ -39,7 +39,7 @@ const getDashboardStats = async (req, res) => {
 
     const totalRevenue = invoices.reduce(
       (sum, invoice) =>
-        sum + (invoice.shippingCharge || 0),
+        sum + (invoice.totalAmount || 0),
       0
     );
 
@@ -853,7 +853,7 @@ const getCommission = async (req, res) => {
 
     const totalRevenue = invoices.reduce(
       (sum, invoice) =>
-        sum + (invoice.shippingCharge || 0),
+        sum + (invoice.totalAmount || 0),
       0
     );
 
@@ -862,16 +862,68 @@ const getCommission = async (req, res) => {
     const totalCommission =
       (totalRevenue * commissionRate) / 100;
 
+    const activeMerchants =
+      await User.countDocuments({
+        role: "MERCHANT",
+        isApproved: true,
+      });
+
+    const monthlyCommission =
+      Math.round(totalCommission * 0.30);
+
+    const todayCommission =
+      Math.round(totalCommission * 0.05);
+
     const netRevenue =
       totalRevenue - totalCommission;
+
+    // ================================
+    // MERCHANT BREAKDOWN
+    // ================================
+    const merchants = await User.find({
+      role: "MERCHANT",
+    });
+
+    const merchantBreakdown = await Promise.all(
+      merchants.map(async (merchant) => {
+        const orders = await Order.countDocuments({
+          merchantId: merchant._id,
+        });
+
+        const merchantInvoices = await Invoice.find({
+          merchantId: merchant._id,
+        });
+
+        const revenue = merchantInvoices.reduce(
+          (sum, inv) => sum + (inv.totalAmount || 0),
+          0
+        );
+
+        return {
+          merchantId: merchant._id,
+          merchantName: merchant.name,
+          orders,
+          revenue,
+          commission:
+            Math.round(revenue * commissionRate / 100),
+          status: merchant.isApproved
+            ? "ACTIVE"
+            : "PENDING",
+        };
+      })
+    );
 
     res.status(200).json({
       success: true,
       totalRevenue,
       commissionRate,
       totalCommission,
+      monthlyCommission,
+      todayCommission,
+      activeMerchants,
       netRevenue,
       totalInvoices: invoices.length,
+      merchantBreakdown,
     });
   } catch (error) {
     res.status(500).json({
@@ -888,12 +940,44 @@ const getRevenue = async (req, res) => {
 
     const totalRevenue = invoices.reduce(
       (sum, invoice) =>
-        sum + (invoice.shippingCharge || 0),
+        sum + (invoice.totalAmount || 0),
       0
     );
 
     const totalOrders = await Order.countDocuments();
     const totalShipments = await Shipment.countDocuments();
+
+    // ================================
+    // MONTHLY REVENUE BREAKDOWN
+    // ================================
+    const monthlyRevenue = {};
+
+    invoices.forEach((invoice) => {
+      const month = new Date(invoice.createdAt)
+        .toLocaleString("default", {
+          month: "short",
+          year: "numeric",
+        });
+
+      monthlyRevenue[month] =
+        (monthlyRevenue[month] || 0) +
+        (invoice.totalAmount || 0);
+    });
+
+    // ================================
+    // RECENT INVOICES
+    // ================================
+    const recentInvoices = await Invoice.find()
+      .populate("merchantId", "name companyName")
+      .sort({ createdAt: -1 })
+      .limit(10);
+
+    // ================================
+    // TOP MERCHANTS
+    // ================================
+    const topMerchants = await User.find({
+      role: "MERCHANT",
+    }).select("name companyName");
 
     res.status(200).json({
       success: true,
@@ -901,6 +985,9 @@ const getRevenue = async (req, res) => {
       totalOrders,
       totalShipments,
       totalInvoices: invoices.length,
+      monthlyRevenue,
+      recentInvoices,
+      topMerchants,
       invoices,
     });
   } catch (error) {

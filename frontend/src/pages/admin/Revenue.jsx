@@ -11,16 +11,6 @@ import {
   FaEye,
 } from "react-icons/fa";
 
-// Static monthly data (will be replaced with API data later)
-const monthlyData = [
-  { month: "Jan", revenue: 45000, orders: 45, shipments: 42 },
-  { month: "Feb", revenue: 52000, orders: 52, shipments: 50 },
-  { month: "Mar", revenue: 61000, orders: 58, shipments: 56 },
-  { month: "Apr", revenue: 48500, orders: 48, shipments: 45 },
-  { month: "May", revenue: 67000, orders: 64, shipments: 62 },
-  { month: "Jun", revenue: 72000, orders: 68, shipments: 66 },
-];
-
 const Revenue = () => {
   const [stats, setStats] = useState({
     totalRevenue: 0,
@@ -29,6 +19,9 @@ const Revenue = () => {
   });
   const [timeRange, setTimeRange] = useState("monthly");
   const [loading, setLoading] = useState(true);
+  const [monthlyData, setMonthlyData] = useState([]);
+  const [recentInvoices, setRecentInvoices] = useState([]);
+  const [topMerchants, setTopMerchants] = useState([]);
 
   useEffect(() => {
     fetchRevenue();
@@ -37,15 +30,9 @@ const Revenue = () => {
   const fetchRevenue = async () => {
     try {
       setLoading(true);
-      // ✅ FIXED: Using the correct revenue API endpoint
       const response = await api.get("/admin/revenue");
       
       if (response.data.success) {
-        // Option A: Dashboard API (current way) - if backend already returns these
-        // If your backend returns totalOrders and totalShipments, use them
-        
-        // Option B: If backend only returns totalRevenue and invoices
-        // We need to fetch dashboard stats separately
         const dashboardResponse = await api.get("/admin/dashboard");
         
         setStats({
@@ -53,6 +40,45 @@ const Revenue = () => {
           totalOrders: dashboardResponse.data.totalOrders || 0,
           totalShipments: dashboardResponse.data.totalShipments || 0,
         });
+
+        // Process monthly revenue data
+        const revenueData = Object.entries(
+          response.data.monthlyRevenue || {}
+        ).map(([month, revenue]) => ({
+          month,
+          revenue,
+        }));
+        setMonthlyData(revenueData);
+
+        // Set recent invoices
+        setRecentInvoices(
+          response.data.invoices?.slice(0, 10) || []
+        );
+
+        // Set top merchants (from invoices data)
+        if (response.data.invoices) {
+          const merchantMap = {};
+          response.data.invoices.forEach(invoice => {
+            const merchantId = invoice.merchantId?._id || invoice.merchantId;
+            if (merchantId) {
+              if (!merchantMap[merchantId]) {
+                merchantMap[merchantId] = {
+                  id: merchantId,
+                  name: invoice.merchantId?.name || "Unknown Merchant",
+                  companyName: invoice.merchantId?.companyName || "-",
+                  totalRevenue: 0
+                };
+              }
+              merchantMap[merchantId].totalRevenue += (invoice.totalAmount || 0);
+            }
+          });
+          
+          const sortedMerchants = Object.values(merchantMap)
+            .sort((a, b) => b.totalRevenue - a.totalRevenue)
+            .slice(0, 5);
+          
+          setTopMerchants(sortedMerchants);
+        }
       }
       setLoading(false);
     } catch (error) {
@@ -61,7 +87,7 @@ const Revenue = () => {
     }
   };
 
-  // Clean styles - removed welcomeSection, chartBox, progress items
+  // Clean styles
   const styles = {
     container: {
       display: "flex",
@@ -164,7 +190,8 @@ const Revenue = () => {
       borderRadius: "12px",
       boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
       overflow: "hidden",
-      border: "1px solid #eef2f6"
+      border: "1px solid #eef2f6",
+      marginBottom: "20px"
     },
     tableHeader: {
       padding: "16px 24px",
@@ -223,7 +250,12 @@ const Revenue = () => {
       alignItems: "center",
       gap: "6px"
     },
-    // Summary table styles
+    threeColumnGrid: {
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: "20px",
+      marginBottom: "20px"
+    },
     summaryContainer: {
       marginTop: "20px"
     },
@@ -262,6 +294,12 @@ const Revenue = () => {
       padding: "40px",
       color: "#64748b",
       fontSize: "16px"
+    },
+    emptyState: {
+      textAlign: "center",
+      padding: "30px",
+      color: "#94a3b8",
+      fontSize: "14px"
     }
   };
 
@@ -283,7 +321,7 @@ const Revenue = () => {
       <div style={styles.mainContent}>
         <AdminTopbar />
 
-        {/* Header - Clean, no welcome section */}
+        {/* Header */}
         <div style={styles.headerBlock}>
           <div>
             <h1 style={styles.headerTitle}>Revenue Analytics</h1>
@@ -329,7 +367,7 @@ const Revenue = () => {
           </div>
         </div>
 
-        {/* Stats Cards - Only numbers, no trend indicators */}
+        {/* Stats Cards */}
         <div style={styles.statsGrid}>
           <div style={styles.statCard}>
             <div style={styles.statInfo}>
@@ -372,7 +410,7 @@ const Revenue = () => {
           </div>
         </div>
 
-        {/* Monthly Revenue Table */}
+        {/* Monthly Revenue Summary Table */}
         <div style={styles.tableContainer}>
           <div style={styles.tableHeader}>
             <h3 style={styles.tableTitle}>Monthly Revenue Summary</h3>
@@ -385,39 +423,134 @@ const Revenue = () => {
               <thead>
                 <tr>
                   <th style={styles.th}>MONTH</th>
-                  <th style={styles.th}>ORDERS</th>
-                  <th style={styles.th}>SHIPMENTS</th>
                   <th style={styles.th}>REVENUE</th>
                   <th style={styles.th}>ACTION</th>
                 </tr>
               </thead>
               <tbody>
-                {monthlyData.map((item, index) => (
-                  <tr key={index}>
-                    <td style={styles.td}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                        <FaCalendarAlt color="#94a3b8" size={14} />
-                        <span style={{ fontWeight: "500" }}>{item.month}</span>
-                      </div>
-                    </td>
-                    <td style={styles.td}>{item.orders}</td>
-                    <td style={styles.td}>{item.shipments}</td>
-                    <td style={styles.td}>
-                      <span style={styles.revenueCell}>₹{item.revenue.toLocaleString()}</span>
-                    </td>
-                    <td style={styles.td}>
-                      <button style={styles.actionBtn} title="View Details">
-                        <FaEye size={12} />
-                      </button>
+                {monthlyData.length > 0 ? (
+                  monthlyData.map((item, index) => (
+                    <tr key={index}>
+                      <td style={styles.td}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                          <FaCalendarAlt color="#94a3b8" size={14} />
+                          <span style={{ fontWeight: "500" }}>{item.month}</span>
+                        </div>
+                      </td>
+                      <td style={styles.td}>
+                        <span style={styles.revenueCell}>₹{item.revenue.toLocaleString()}</span>
+                      </td>
+                      <td style={styles.td}>
+                        <button style={styles.actionBtn} title="View Details">
+                          <FaEye size={12} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="3" style={styles.emptyState}>
+                      No monthly data available
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
         </div>
 
-        {/* Platform Revenue Summary - Clean cards instead of table */}
+        {/* Two Column Layout: Top Merchants & Recent Activity */}
+        <div style={styles.threeColumnGrid}>
+          {/* Top Revenue Merchants */}
+          <div style={styles.tableContainer}>
+            <div style={styles.tableHeader}>
+              <h3 style={styles.tableTitle}>Top Revenue Merchants</h3>
+              <span style={{ fontSize: "13px", color: "#64748b" }}>
+                {topMerchants.length} merchants
+              </span>
+            </div>
+            <div style={styles.tableWrapper}>
+              <table style={styles.table}>
+                <thead>
+                  <tr>
+                    <th style={styles.th}>Merchant</th>
+                    <th style={styles.th}>Company</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {topMerchants.length > 0 ? (
+                    topMerchants.map((merchant, index) => (
+                      <tr key={index}>
+                        <td style={styles.td}>
+                          <span style={{ fontWeight: "500" }}>{merchant.name}</span>
+                        </td>
+                        <td style={styles.td}>{merchant.companyName || "-"}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="2" style={styles.emptyState}>
+                        No merchant data available
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Recent Revenue Activity */}
+          <div style={styles.tableContainer}>
+            <div style={styles.tableHeader}>
+              <h3 style={styles.tableTitle}>Recent Revenue Activity</h3>
+              <span style={{ fontSize: "13px", color: "#64748b" }}>
+                Latest transactions
+              </span>
+            </div>
+            <div style={styles.tableWrapper}>
+              <table style={styles.table}>
+                <thead>
+                  <tr>
+                    <th style={styles.th}>Merchant</th>
+                    <th style={styles.th}>Amount</th>
+                    <th style={styles.th}>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentInvoices.length > 0 ? (
+                    recentInvoices.map((invoice, index) => (
+                      <tr key={index}>
+                        <td style={styles.td}>
+                          <span style={{ fontWeight: "500" }}>
+                            {invoice.merchantId?.name || "Unknown Merchant"}
+                          </span>
+                        </td>
+                        <td style={styles.td}>
+                          <span style={styles.revenueCell}>
+                            ₹{(invoice.totalAmount || 0).toLocaleString()}
+                          </span>
+                        </td>
+                        <td style={styles.td}>
+                          {invoice.createdAt 
+                            ? new Date(invoice.createdAt).toLocaleDateString()
+                            : "-"}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="3" style={styles.emptyState}>
+                        No recent activity
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        {/* Platform Revenue Summary */}
         <div style={styles.summaryContainer}>
           <div style={styles.summaryGrid}>
             <div style={styles.summaryCard}>
