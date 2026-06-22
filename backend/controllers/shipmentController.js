@@ -86,7 +86,6 @@ const createShipment = async (req, res) => {
     }
 
     // 3. DYNAMIC SHIPPING CHARGE CALCULATION BASED ON RATE CARD
-    // ✅ Using lowercase courier name for case-insensitive matching
     const rateCard = await RateCard.findOne({
       merchantId: req.user.id,
       courierPartner: normalizedCourier,
@@ -146,12 +145,11 @@ const createShipment = async (req, res) => {
     // 5. Generate AWB and Create Shipment
     const awb = await generateAWB();
 
-    // ✅ Store courier in original case for display, and lowercase for queries
     const shipment = await Shipment.create({
       orderId,
       merchantId: req.user.id,
-      courier: courier.trim(), // Store original case for display
-      courierPartner: normalizedCourier, // Store lowercase for queries
+      courier: courier.trim(),
+      courierPartner: normalizedCourier,
       awb,
       status: "PENDING",
       trackingEvents: [
@@ -159,6 +157,7 @@ const createShipment = async (req, res) => {
           status: "PENDING",
           location: "Warehouse",
           remark: "Shipment Created",
+          timestamp: new Date(),
         },
       ],
     });
@@ -188,7 +187,6 @@ const createShipment = async (req, res) => {
 
     console.log("INVOICE CREATED =>", invoice);
 
-    // ✅ Enhanced Response with debugging info
     return res.status(201).json({
       success: true,
       message: "Shipment Created Successfully",
@@ -292,12 +290,29 @@ const trackShipment = async (req, res) => {
 };
 
 // ===============================
-// UPDATE SHIPMENT STATUS
+// UPDATE SHIPMENT STATUS (FIXED WITH ORDER STATUS MAPPING)
 // ===============================
 const updateShipmentStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
+
+    // ✅ Change 1: Allowed Status Validation
+    const allowedStatuses = [
+      "READY_FOR_PICKUP",
+      "IN_TRANSIT",
+      "OUT_FOR_DELIVERY",
+      "DELIVERED",
+      "NDR",
+      "RTO",
+    ];
+
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid shipment status",
+      });
+    }
 
     const shipment = await Shipment.findById(id);
 
@@ -308,20 +323,43 @@ const updateShipmentStatus = async (req, res) => {
       });
     }
 
+    // ✅ Change 2: Delivered Lock
+    if (shipment.status === "DELIVERED") {
+      return res.status(400).json({
+        success: false,
+        message: "Delivered shipment cannot be modified",
+      });
+    }
+
+    // Update shipment status
     shipment.status = status;
 
+    // ✅ FIX: Order Status Mapping
     const order = await Order.findById(shipment.orderId);
+
     if (order) {
-      order.status = status;
+      const orderStatusMap = {
+        READY_FOR_PICKUP: "READY_FOR_PICKUP",
+        IN_TRANSIT: "SHIPPED",
+        OUT_FOR_DELIVERY: "SHIPPED",
+        DELIVERED: "DELIVERED",
+        NDR: "SHIPPED",
+        RTO: "RETURNED",
+      };
+
+      order.status = orderStatusMap[status] || order.status;
       await order.save();
     }
 
+    // ✅ Change 3: Tracking Timeline with proper location and timestamp
     shipment.trackingEvents.push({
       status,
-      location: "System Update",
+      location: "Admin Panel",
       remark: `Shipment status changed to ${status}`,
+      timestamp: new Date(),
     });
 
+    // Set delivery date if status is DELIVERED
     if (status === "DELIVERED") {
       shipment.deliveryDate = new Date();
     }
@@ -367,8 +405,9 @@ const schedulePickup = async (req, res) => {
 
     shipment.trackingEvents.push({
       status: "READY_FOR_PICKUP",
-      location: "Warehouse",
+      location: "Admin Panel",
       remark: "Pickup Scheduled",
+      timestamp: new Date(),
     });
 
     await shipment.save();

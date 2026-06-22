@@ -800,11 +800,22 @@ const bulkAssignCourier = async (req, res) => {
 };
 
 // ================================
-// SHIPMENTS
+// SHIPMENTS (FIXED WITH POPULATE)
 // ================================
 const getShipments = async (req, res) => {
   try {
-    const shipments = await Shipment.find().sort({ createdAt: -1 });
+    // ✅ FIX: Added populate to get full order details
+    const shipments = await Shipment.find()
+      .populate(
+        "orderId",
+        "orderNumber customerName customerPhone customerAddress amount paymentMode weight productName shippingCharge"
+      )
+      .populate(
+        "merchantId",
+        "name companyName email phone"
+      )
+      .sort({ createdAt: -1 });
+
     res.status(200).json({
       success: true,
       count: shipments.length,
