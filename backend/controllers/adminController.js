@@ -579,7 +579,9 @@ const getOrderByIdAdmin = async (req, res) => {
   }
 };
 
-// UPDATE ORDER STATUS (ADMIN)
+// ================================
+// UPDATE ORDER STATUS (FIXED - REMOVED SHIPMENT SYNC)
+// ================================
 const updateOrderStatus = async (req, res) => {
   try {
     const { status } = req.body;
@@ -597,11 +599,9 @@ const updateOrderStatus = async (req, res) => {
       });
     }
 
-    // Sync Shipment Status
-    await Shipment.updateMany(
-      { orderId: order._id },
-      { status }
-    );
+    // ✅ REMOVED: Shipment status sync
+    // Order status and Shipment status are now independent
+    // Future courier integration will handle shipment updates separately
 
     res.status(200).json({
       success: true,
@@ -944,10 +944,54 @@ const getCommission = async (req, res) => {
   }
 };
 
-// GET REVENUE
+// ================================
+// GET REVENUE (FIXED WITH DATE FILTER)
+// ================================
 const getRevenue = async (req, res) => {
   try {
-    const invoices = await Invoice.find();
+    // ✅ STEP 1: Date filter from query params
+    const { range, from, to } = req.query;
+
+    let filter = {};
+
+    if (range === "today") {
+      const start = new Date();
+      start.setHours(0, 0, 0, 0);
+
+      filter.createdAt = {
+        $gte: start,
+      };
+    }
+
+    if (range === "week") {
+      const start = new Date();
+      start.setDate(start.getDate() - 7);
+
+      filter.createdAt = {
+        $gte: start,
+      };
+    }
+
+    if (range === "month") {
+      const start = new Date();
+      start.setDate(1);
+      start.setHours(0, 0, 0, 0);
+
+      filter.createdAt = {
+        $gte: start,
+      };
+    }
+
+    if (from && to) {
+      filter.createdAt = {
+        $gte: new Date(from),
+        $lte: new Date(to),
+      };
+    }
+
+    // ✅ STEP 2: Revenue Query with filter
+    const invoices = await Invoice.find(filter)
+      .populate("merchantId", "name companyName");
 
     const totalRevenue = invoices.reduce(
       (sum, invoice) =>
@@ -975,10 +1019,8 @@ const getRevenue = async (req, res) => {
         (invoice.totalAmount || 0);
     });
 
-    // ================================
-    // RECENT INVOICES
-    // ================================
-    const recentInvoices = await Invoice.find()
+    // ✅ STEP 3: Recent Invoices with filter
+    const recentInvoices = await Invoice.find(filter)
       .populate("merchantId", "name companyName")
       .sort({ createdAt: -1 })
       .limit(10);

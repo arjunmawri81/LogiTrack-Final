@@ -6,6 +6,7 @@ const RateCard = require("../models/RateCard");
 const QRCode = require("qrcode");
 const PDFDocument = require("pdfkit");
 const bwipjs = require("bwip-js");
+const NDR = require("../models/NDR"); // ✅ Added NDR model
 
 // ===============================
 // GENERATE UNIQUE AWB
@@ -349,6 +350,33 @@ const updateShipmentStatus = async (req, res) => {
 
       order.status = orderStatusMap[status] || order.status;
       await order.save();
+    }
+
+    // ✅ AUTO CREATE NDR WHEN SHIPMENT STATUS IS NDR
+    if (status === "NDR") {
+      console.log("========== NDR HIT ==========");
+
+      const existingNDR = await NDR.findOne({
+        shipmentId: shipment._id,
+      });
+
+      console.log("EXISTING =", existingNDR);
+
+      if (!existingNDR) {
+        try {
+          const ndr = await NDR.create({
+            shipmentId: shipment._id,
+            orderId: shipment.orderId,
+            merchantId: shipment.merchantId,
+            awb: shipment.awb,
+            reason: "Delivery Failed",
+          });
+
+          console.log("NDR CREATED =", ndr);
+        } catch (err) {
+          console.log("NDR ERROR =", err);
+        }
+      }
     }
 
     // ✅ Change 3: Tracking Timeline with proper location and timestamp

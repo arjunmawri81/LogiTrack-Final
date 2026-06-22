@@ -10,7 +10,6 @@ const {
   getNDRs,
   resolveNDR,
   reattemptNDR,
-  markDelivered,
   convertToRTO,
 } = require("../controllers/ndrController");
 
@@ -42,18 +41,11 @@ router.patch(
   reattemptNDR
 );
 
-// Mark Delivered
-router.patch(
-  "/:id/delivered",
-  authMiddleware,
-  markDelivered
-);
-
 // Convert To RTO
 router.patch(
   "/:id/rto",
   authMiddleware,
   convertToRTO
 );
-
+ 
 module.exports = router;

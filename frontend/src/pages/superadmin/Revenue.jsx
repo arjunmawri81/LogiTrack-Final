@@ -49,8 +49,8 @@ const Revenue = () => {
     m => m.revenue > 0
   );
   
-  // Use filtered merchant count for accuracy
-  const activeMerchants = merchantBreakdown.length;
+  // ✅ CHANGE 1: Use backend activeMerchants instead of filtered count
+  const activeMerchants = revenueData.activeMerchants;
 
   const highestRevenueMerchant = merchantBreakdown.length > 0
     ? merchantBreakdown.reduce((max, curr) => curr.revenue > max.revenue ? curr : max)
@@ -64,7 +64,7 @@ const Revenue = () => {
     ? revenueData.platformRevenue / activeMerchants
     : 0;
 
-  // Top 5 merchants - no need for second filter
+  // Top 5 merchants
   const topMerchants = [...merchantBreakdown]
     .sort((a, b) => b.revenue - a.revenue)
     .slice(0, 5);
@@ -99,7 +99,7 @@ const Revenue = () => {
         boxSizing: "border-box"
       }}>
         
-        {/* HEADER SECTION - Same row with refresh button */}
+        {/* HEADER SECTION - ✅ CHANGE 2: Updated title */}
         <div style={{ 
           borderBottom: "1px solid #f1f5f9", 
           paddingBottom: "20px", 
@@ -118,7 +118,7 @@ const Revenue = () => {
               margin: "0 0 6px 0", 
               letterSpacing: "-0.025em" 
             }}>
-              Business Analytics
+              Revenue & Commission Analytics
             </h1>
             <p style={{ color: "#64748b", fontSize: "14px", margin: 0, fontWeight: "500" }}>
               Platform revenue tracking and merchant analytics
@@ -463,7 +463,7 @@ const Revenue = () => {
                 </div>
               </div>
 
-              {/* Average Revenue Per Merchant - Professional Format */}
+              {/* Average Revenue Per Merchant */}
               <div style={{ 
                 background: "#ffffff", 
                 padding: "14px 16px", 

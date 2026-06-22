@@ -29,7 +29,10 @@ const getNDRs = async (req, res) => {
   try {
     const ndrs = await NDR.find({
       merchantId: req.user.id,
-    }).populate("orderId");
+    }).populate(
+      "orderId",
+      "orderNumber customerName customerPhone"
+    );
 
     res.status(200).json({
       success: true,
@@ -114,40 +117,6 @@ const reattemptNDR = async (req, res) => {
 };
 
 // =================================
-// MARK DELIVERED
-// =================================
-const markDelivered = async (req, res) => {
-  try {
-    const ndr = await NDR.findOne({
-      _id: req.params.id,
-      merchantId: req.user.id,
-    });
-
-    if (!ndr) {
-      return res.status(404).json({
-        success: false,
-        message: "NDR not found",
-      });
-    }
-
-    ndr.status = "DELIVERED";
-
-    await ndr.save();
-
-    res.status(200).json({
-      success: true,
-      message: "Shipment Delivered Successfully",
-      ndr,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-// =================================
 // CONVERT TO RTO
 // =================================
 const convertToRTO = async (req, res) => {
@@ -187,6 +156,5 @@ module.exports = {
   getNDRs,
   resolveNDR,
   reattemptNDR,
-  markDelivered,
   convertToRTO,
 };

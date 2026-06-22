@@ -7,38 +7,56 @@ import {
   FaChartLine,
   FaMoneyBillWave,
   FaWallet,
-  FaCalendarAlt,
-  FaEye,
+  FaSync,
+  FaCalculator,
 } from "react-icons/fa";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts";
 
 const Revenue = () => {
+  // ✅ STEP 4: Added range state
+  const [range, setRange] = useState("month");
   const [stats, setStats] = useState({
     totalRevenue: 0,
     totalOrders: 0,
     totalShipments: 0,
+    totalInvoices: 0,
   });
-  const [timeRange, setTimeRange] = useState("monthly");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [monthlyData, setMonthlyData] = useState([]);
   const [recentInvoices, setRecentInvoices] = useState([]);
   const [topMerchants, setTopMerchants] = useState([]);
 
+  // ✅ STEP 5: Auto reload on range change
   useEffect(() => {
     fetchRevenue();
-  }, []);
+  }, [range]);
 
   const fetchRevenue = async () => {
     try {
       setLoading(true);
-      const response = await api.get("/admin/revenue");
+      setError("");
+      
+      // ✅ STEP 6: API Call with range filter
+      const response = await api.get(`/admin/revenue?range=${range}`);
       
       if (response.data.success) {
-        const dashboardResponse = await api.get("/admin/dashboard");
-        
+        // ✅ STEP 7: Removed extra dashboard API call
+        // Backend already returns totalOrders and totalShipments
         setStats({
           totalRevenue: response.data.totalRevenue || 0,
-          totalOrders: dashboardResponse.data.totalOrders || 0,
-          totalShipments: dashboardResponse.data.totalShipments || 0,
+          totalOrders: response.data.totalOrders || 0,
+          totalShipments: response.data.totalShipments || 0,
+          totalInvoices: response.data.totalInvoices || 0,
         });
 
         // Process monthly revenue data
@@ -50,12 +68,10 @@ const Revenue = () => {
         }));
         setMonthlyData(revenueData);
 
-        // Set recent invoices
-        setRecentInvoices(
-          response.data.invoices?.slice(0, 10) || []
-        );
+        // Set recent invoices from backend
+        setRecentInvoices(response.data.recentInvoices || []);
 
-        // Set top merchants (from invoices data)
+        // Process top merchants from backend data
         if (response.data.invoices) {
           const merchantMap = {};
           response.data.invoices.forEach(invoice => {
@@ -83,8 +99,28 @@ const Revenue = () => {
       setLoading(false);
     } catch (error) {
       console.log("Error fetching revenue:", error);
+      setError("Failed to load revenue data. Please try again.");
       setLoading(false);
     }
+  };
+
+  // Calculate averages
+  const avgOrderRevenue = stats.totalOrders > 0
+    ? stats.totalRevenue / stats.totalOrders
+    : 0;
+
+  const avgShipmentRevenue = stats.totalShipments > 0
+    ? stats.totalRevenue / stats.totalShipments
+    : 0;
+
+  // Get status badge style
+  const getStatusStyle = (status) => {
+    const statusMap = {
+      PAID: { bg: "#dcfce7", color: "#166534", label: "Paid" },
+      PENDING: { bg: "#fef3c7", color: "#92400e", label: "Pending" },
+      FAILED: { bg: "#fee2e2", color: "#991b1b", label: "Failed" },
+    };
+    return statusMap[status] || { bg: "#f1f5f9", color: "#64748b", label: status || "Unknown" };
   };
 
   // Clean styles
@@ -120,34 +156,37 @@ const Revenue = () => {
       color: "#64748b",
       margin: "4px 0 0 0"
     },
-    timeRangeGroup: {
-      display: "flex",
-      gap: "6px",
-      background: "white",
-      padding: "4px",
-      borderRadius: "10px",
-      border: "1px solid #e2e8f0"
-    },
-    timeRangeBtn: {
-      padding: "7px 16px",
-      borderRadius: "8px",
+    refreshButton: {
+      padding: "8px 18px",
+      background: "#0f172a",
+      color: "white",
       border: "none",
-      background: "transparent",
+      borderRadius: "8px",
       cursor: "pointer",
       fontSize: "13px",
       fontWeight: "500",
-      color: "#64748b",
+      display: "flex",
+      alignItems: "center",
+      gap: "8px",
       transition: "all 0.2s"
     },
-    timeRangeBtnActive: {
-      background: "#0f172a",
-      color: "white"
+    filterSelect: {
+      padding: "8px 14px",
+      borderRadius: "8px",
+      border: "1px solid #e2e8f0",
+      background: "#fff",
+      cursor: "pointer",
+      fontSize: "13px",
+      fontWeight: "500",
+      color: "#0f172a",
+      outline: "none",
+      transition: "border-color 0.2s"
     },
     statsGrid: {
       display: "grid",
       gridTemplateColumns: "repeat(4, 1fr)",
       gap: "20px",
-      marginBottom: "30px"
+      marginBottom: "16px"
     },
     statCard: {
       background: "white",
@@ -184,6 +223,83 @@ const Revenue = () => {
       alignItems: "center",
       justifyContent: "center",
       flexShrink: 0
+    },
+    avgMetricsRow: {
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: "20px",
+      marginBottom: "30px"
+    },
+    avgMetricCard: {
+      background: "white",
+      padding: "16px 20px",
+      borderRadius: "12px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+      border: "1px solid #eef2f6"
+    },
+    avgMetricInfo: {
+      flex: 1
+    },
+    avgMetricLabel: {
+      fontSize: "12px",
+      fontWeight: "500",
+      color: "#64748b",
+      marginBottom: "4px"
+    },
+    avgMetricValue: {
+      fontSize: "22px",
+      fontWeight: "700",
+      color: "#0f172a",
+      margin: 0
+    },
+    avgMetricIconWrapper: {
+      width: "40px",
+      height: "40px",
+      borderRadius: "10px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0,
+      background: "#f1f5f9"
+    },
+    chartContainer: {
+      background: "white",
+      borderRadius: "12px",
+      padding: "20px",
+      boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+      border: "1px solid #eef2f6",
+      marginBottom: "20px",
+      height: "350px"
+    },
+    chartTitle: {
+      fontSize: "16px",
+      fontWeight: "600",
+      color: "#0f172a",
+      margin: "0 0 16px 0"
+    },
+    emptyChartState: {
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      height: "270px",
+      color: "#94a3b8"
+    },
+    emptyChartIcon: {
+      fontSize: "48px",
+      marginBottom: "12px"
+    },
+    emptyChartText: {
+      fontSize: "16px",
+      fontWeight: "500"
+    },
+    emptyChartSubtext: {
+      fontSize: "13px",
+      color: "#cbd5e1",
+      marginTop: "4px"
     },
     tableContainer: {
       background: "white",
@@ -238,55 +354,53 @@ const Revenue = () => {
       color: "#059669",
       fontSize: "15px"
     },
-    actionBtn: {
-      background: "white",
-      border: "1px solid #e2e8f0",
-      padding: "6px 10px",
-      borderRadius: "8px",
-      cursor: "pointer",
-      color: "#64748b",
-      transition: "all 0.2s",
-      display: "inline-flex",
-      alignItems: "center",
-      gap: "6px"
+    invoiceCell: {
+      fontWeight: "500",
+      color: "#0f172a",
+      fontSize: "13px"
     },
-    threeColumnGrid: {
+    statusBadge: {
+      display: "inline-block",
+      padding: "3px 12px",
+      borderRadius: "20px",
+      fontSize: "11px",
+      fontWeight: "600",
+      textTransform: "uppercase",
+      letterSpacing: "0.3px"
+    },
+    twoColumnGrid: {
       display: "grid",
       gridTemplateColumns: "1fr 1fr",
       gap: "20px",
       marginBottom: "20px"
     },
-    summaryContainer: {
-      marginTop: "20px"
-    },
-    summaryGrid: {
-      display: "grid",
-      gridTemplateColumns: "repeat(3, 1fr)",
-      gap: "15px",
-      marginBottom: "30px"
-    },
-    summaryCard: {
-      background: "white",
-      padding: "16px 20px",
+    errorContainer: {
+      background: "#fef2f2",
+      border: "1px solid #fecaca",
       borderRadius: "12px",
-      border: "1px solid #eef2f6",
-      boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)"
+      padding: "20px 24px",
+      display: "flex",
+      alignItems: "center",
+      gap: "12px",
+      color: "#991b1b",
+      marginBottom: "20px"
     },
-    summaryLabel: {
+    errorIcon: {
+      fontSize: "20px"
+    },
+    errorText: {
+      fontSize: "14px",
+      fontWeight: "500"
+    },
+    retryButton: {
+      marginLeft: "auto",
+      padding: "6px 16px",
+      background: "#991b1b",
+      color: "white",
+      border: "none",
+      borderRadius: "6px",
+      cursor: "pointer",
       fontSize: "13px",
-      color: "#64748b",
-      marginBottom: "4px"
-    },
-    summaryValue: {
-      fontSize: "20px",
-      fontWeight: "700",
-      color: "#0f172a",
-      margin: 0
-    },
-    statusBadge: {
-      padding: "4px 12px",
-      borderRadius: "20px",
-      fontSize: "12px",
       fontWeight: "500"
     },
     loadingText: {
@@ -327,47 +441,37 @@ const Revenue = () => {
             <h1 style={styles.headerTitle}>Revenue Analytics</h1>
             <p style={styles.headerSubtitle}>Monitor revenue, commissions and financial performance</p>
           </div>
-          <div style={styles.timeRangeGroup}>
-            <button 
-              style={{ 
-                ...styles.timeRangeBtn, 
-                ...(timeRange === "daily" ? styles.timeRangeBtnActive : {})
-              }}
-              onClick={() => setTimeRange("daily")}
+          <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+            {/* ✅ STEP 8: Replace Coming Soon with Working Filter */}
+            <select
+              value={range}
+              onChange={(e) => setRange(e.target.value)}
+              style={styles.filterSelect}
+              onFocus={(e) => e.target.style.borderColor = "#3b82f6"}
+              onBlur={(e) => e.target.style.borderColor = "#e2e8f0"}
             >
-              Daily
-            </button>
-            <button 
-              style={{ 
-                ...styles.timeRangeBtn, 
-                ...(timeRange === "weekly" ? styles.timeRangeBtnActive : {})
-              }}
-              onClick={() => setTimeRange("weekly")}
-            >
-              Weekly
-            </button>
-            <button 
-              style={{ 
-                ...styles.timeRangeBtn, 
-                ...(timeRange === "monthly" ? styles.timeRangeBtnActive : {})
-              }}
-              onClick={() => setTimeRange("monthly")}
-            >
-              Monthly
-            </button>
-            <button 
-              style={{ 
-                ...styles.timeRangeBtn, 
-                ...(timeRange === "yearly" ? styles.timeRangeBtnActive : {})
-              }}
-              onClick={() => setTimeRange("yearly")}
-            >
-              Yearly
+              <option value="today">Today</option>
+              <option value="week">Last 7 Days</option>
+              <option value="month">This Month</option>
+            </select>
+            <button onClick={fetchRevenue} style={styles.refreshButton}>
+              <FaSync size={14} /> Refresh
             </button>
           </div>
         </div>
 
-        {/* Stats Cards */}
+        {/* Error State */}
+        {error && (
+          <div style={styles.errorContainer}>
+            <span style={styles.errorIcon}>⚠️</span>
+            <span style={styles.errorText}>{error}</span>
+            <button onClick={fetchRevenue} style={styles.retryButton}>
+              Retry
+            </button>
+          </div>
+        )}
+
+        {/* Stats Cards - 4 Cards */}
         <div style={styles.statsGrid}>
           <div style={styles.statCard}>
             <div style={styles.statInfo}>
@@ -401,66 +505,164 @@ const Revenue = () => {
 
           <div style={styles.statCard}>
             <div style={styles.statInfo}>
-              <div style={styles.statLabel}>Pending Settlement</div>
-              <h2 style={styles.statValue}>₹0</h2>
+              <div style={styles.statLabel}>Total Invoices</div>
+              <h2 style={styles.statValue}>{(stats.totalInvoices || 0).toLocaleString()}</h2>
             </div>
-            <div style={{ ...styles.statIconWrapper, background: "#fee2e2" }}>
-              <FaWallet color="#ef4444" size={20} />
+            <div style={{ ...styles.statIconWrapper, background: "#e0e7ff" }}>
+              <FaWallet color="#6366f1" size={20} />
             </div>
           </div>
         </div>
 
-        {/* Monthly Revenue Summary Table */}
-        <div style={styles.tableContainer}>
-          <div style={styles.tableHeader}>
-            <h3 style={styles.tableTitle}>Monthly Revenue Summary</h3>
-            <span style={{ fontSize: "13px", color: "#64748b" }}>
-              {new Date().getFullYear()}
-            </span>
+        {/* Average Revenue Metrics */}
+        <div style={styles.avgMetricsRow}>
+          <div style={styles.avgMetricCard}>
+            <div style={styles.avgMetricInfo}>
+              <div style={styles.avgMetricLabel}>Average Revenue / Order</div>
+              <h3 style={styles.avgMetricValue}>₹{avgOrderRevenue.toFixed(2)}</h3>
+            </div>
+            <div style={styles.avgMetricIconWrapper}>
+              <FaCalculator color="#64748b" size={18} />
+            </div>
           </div>
-          <div style={styles.tableWrapper}>
-            <table style={styles.table}>
-              <thead>
-                <tr>
-                  <th style={styles.th}>MONTH</th>
-                  <th style={styles.th}>REVENUE</th>
-                  <th style={styles.th}>ACTION</th>
-                </tr>
-              </thead>
-              <tbody>
-                {monthlyData.length > 0 ? (
-                  monthlyData.map((item, index) => (
-                    <tr key={index}>
-                      <td style={styles.td}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                          <FaCalendarAlt color="#94a3b8" size={14} />
-                          <span style={{ fontWeight: "500" }}>{item.month}</span>
-                        </div>
-                      </td>
-                      <td style={styles.td}>
-                        <span style={styles.revenueCell}>₹{item.revenue.toLocaleString()}</span>
-                      </td>
-                      <td style={styles.td}>
-                        <button style={styles.actionBtn} title="View Details">
-                          <FaEye size={12} />
-                        </button>
+          <div style={styles.avgMetricCard}>
+            <div style={styles.avgMetricInfo}>
+              <div style={styles.avgMetricLabel}>Average Revenue / Shipment</div>
+              <h3 style={styles.avgMetricValue}>₹{avgShipmentRevenue.toFixed(2)}</h3>
+            </div>
+            <div style={styles.avgMetricIconWrapper}>
+              <FaCalculator color="#64748b" size={18} />
+            </div>
+          </div>
+        </div>
+
+        {/* Revenue Trend Chart */}
+        <div style={styles.chartContainer}>
+          <h3 style={styles.chartTitle}>Revenue Trend</h3>
+          {monthlyData.length > 1 ? (
+            <ResponsiveContainer width="100%" height={270}>
+              <LineChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                <XAxis 
+                  dataKey="month" 
+                  stroke="#94a3b8"
+                  fontSize={12}
+                  tickLine={false}
+                />
+                <YAxis 
+                  stroke="#94a3b8"
+                  fontSize={12}
+                  tickLine={false}
+                  tickFormatter={(value) => `₹${value.toLocaleString()}`}
+                />
+                <Tooltip 
+                  formatter={(value) => [`₹${value.toLocaleString()}`, 'Revenue']}
+                  contentStyle={{
+                    background: 'white',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '8px',
+                    padding: '10px 14px'
+                  }}
+                />
+                <Legend />
+                <Line 
+                  type="monotone" 
+                  dataKey="revenue" 
+                  stroke="#10b981" 
+                  strokeWidth={3}
+                  dot={{ fill: '#10b981', r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div style={styles.emptyChartState}>
+              <div style={styles.emptyChartIcon}>📊</div>
+              <div style={styles.emptyChartText}>
+                {monthlyData.length === 0 
+                  ? "No revenue data available yet" 
+                  : "Not enough data for trend analysis"}
+              </div>
+              <div style={styles.emptyChartSubtext}>
+                {monthlyData.length === 0 
+                  ? "Revenue data will appear here as transactions are processed"
+                  : "Need at least 2 months of data to show trend"}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Two Column Layout: Recent Activity & Top Merchants */}
+        <div style={styles.twoColumnGrid}>
+          {/* Recent Revenue Activity with Status */}
+          <div style={styles.tableContainer}>
+            <div style={styles.tableHeader}>
+              <h3 style={styles.tableTitle}>Recent Revenue Activity</h3>
+              <span style={{ fontSize: "13px", color: "#64748b" }}>
+                Latest transactions
+              </span>
+            </div>
+            <div style={styles.tableWrapper}>
+              <table style={styles.table}>
+                <thead>
+                  <tr>
+                    <th style={styles.th}>Invoice</th>
+                    <th style={styles.th}>Merchant</th>
+                    <th style={styles.th}>Amount</th>
+                    <th style={styles.th}>Status</th>
+                    <th style={styles.th}>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentInvoices.length > 0 ? (
+                    recentInvoices.map((invoice, index) => {
+                      const statusStyle = getStatusStyle(invoice.status);
+                      return (
+                        <tr key={index}>
+                          <td style={styles.td}>
+                            <span style={styles.invoiceCell}>
+                              {invoice.invoiceNumber || `INV-${index + 1}`}
+                            </span>
+                          </td>
+                          <td style={styles.td}>
+                            <span style={{ fontWeight: "500" }}>
+                              {invoice.merchantId?.name || "Unknown Merchant"}
+                            </span>
+                          </td>
+                          <td style={styles.td}>
+                            <span style={styles.revenueCell}>
+                              ₹{(invoice.totalAmount || 0).toLocaleString()}
+                            </span>
+                          </td>
+                          <td style={styles.td}>
+                            <span style={{
+                              ...styles.statusBadge,
+                              background: statusStyle.bg,
+                              color: statusStyle.color
+                            }}>
+                              {statusStyle.label}
+                            </span>
+                          </td>
+                          <td style={styles.td}>
+                            {invoice.createdAt 
+                              ? new Date(invoice.createdAt).toLocaleDateString()
+                              : "-"}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan="5" style={styles.emptyState}>
+                        No recent activity
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="3" style={styles.emptyState}>
-                      No monthly data available
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
 
-        {/* Two Column Layout: Top Merchants & Recent Activity */}
-        <div style={styles.threeColumnGrid}>
           {/* Top Revenue Merchants */}
           <div style={styles.tableContainer}>
             <div style={styles.tableHeader}>
@@ -475,6 +677,7 @@ const Revenue = () => {
                   <tr>
                     <th style={styles.th}>Merchant</th>
                     <th style={styles.th}>Company</th>
+                    <th style={styles.th}>Revenue</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -485,11 +688,16 @@ const Revenue = () => {
                           <span style={{ fontWeight: "500" }}>{merchant.name}</span>
                         </td>
                         <td style={styles.td}>{merchant.companyName || "-"}</td>
+                        <td style={styles.td}>
+                          <span style={styles.revenueCell}>
+                            ₹{merchant.totalRevenue.toLocaleString()}
+                          </span>
+                        </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="2" style={styles.emptyState}>
+                      <td colSpan="3" style={styles.emptyState}>
                         No merchant data available
                       </td>
                     </tr>
@@ -498,89 +706,10 @@ const Revenue = () => {
               </table>
             </div>
           </div>
-
-          {/* Recent Revenue Activity */}
-          <div style={styles.tableContainer}>
-            <div style={styles.tableHeader}>
-              <h3 style={styles.tableTitle}>Recent Revenue Activity</h3>
-              <span style={{ fontSize: "13px", color: "#64748b" }}>
-                Latest transactions
-              </span>
-            </div>
-            <div style={styles.tableWrapper}>
-              <table style={styles.table}>
-                <thead>
-                  <tr>
-                    <th style={styles.th}>Merchant</th>
-                    <th style={styles.th}>Amount</th>
-                    <th style={styles.th}>Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentInvoices.length > 0 ? (
-                    recentInvoices.map((invoice, index) => (
-                      <tr key={index}>
-                        <td style={styles.td}>
-                          <span style={{ fontWeight: "500" }}>
-                            {invoice.merchantId?.name || "Unknown Merchant"}
-                          </span>
-                        </td>
-                        <td style={styles.td}>
-                          <span style={styles.revenueCell}>
-                            ₹{(invoice.totalAmount || 0).toLocaleString()}
-                          </span>
-                        </td>
-                        <td style={styles.td}>
-                          {invoice.createdAt 
-                            ? new Date(invoice.createdAt).toLocaleDateString()
-                            : "-"}
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan="3" style={styles.emptyState}>
-                        No recent activity
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        {/* Platform Revenue Summary */}
-        <div style={styles.summaryContainer}>
-          <div style={styles.summaryGrid}>
-            <div style={styles.summaryCard}>
-              <div style={styles.summaryLabel}>Total Orders</div>
-              <h3 style={styles.summaryValue}>{(stats.totalOrders || 0).toLocaleString()}</h3>
-              <span style={{ ...styles.statusBadge, background: "#dcfce7", color: "#166534" }}>
-                Active
-              </span>
-            </div>
-            <div style={styles.summaryCard}>
-              <div style={styles.summaryLabel}>Total Shipments</div>
-              <h3 style={styles.summaryValue}>{(stats.totalShipments || 0).toLocaleString()}</h3>
-              <span style={{ ...styles.statusBadge, background: "#dcfce7", color: "#166534" }}>
-                Active
-              </span>
-            </div>
-            <div style={styles.summaryCard}>
-              <div style={styles.summaryLabel}>Total Revenue</div>
-              <h3 style={{ ...styles.summaryValue, color: "#059669" }}>
-                ₹{(stats.totalRevenue || 0).toLocaleString()}
-              </h3>
-              <span style={{ ...styles.statusBadge, background: "#dbeafe", color: "#1e40af" }}>
-                Growing
-              </span>
-            </div>
-          </div>
         </div>
       </div>
     </div>
   );
 };
-
+ 
 export default Revenue;

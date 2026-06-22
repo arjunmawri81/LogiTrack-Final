@@ -14,6 +14,17 @@ const ndrSchema = new mongoose.Schema(
       required: true,
     },
 
+    shipmentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Shipment",
+      required: true,
+    },
+
+    awb: {
+      type: String,
+      required: true,
+    },
+
     reason: {
       type: String,
       required: true,
