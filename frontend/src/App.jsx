@@ -35,6 +35,7 @@ import Settings from "./pages/merchant/Settings";
 import CreateOrder from "./pages/merchant/CreateOrder";
 import Serviceability from "./pages/merchant/Serviceability";
 import RateCalculator from "./pages/merchant/RateCalculator";
+import Tickets from "./pages/merchant/Tickets"; // ✅ ADDED
 
 // ======================
 // ADMIN PAGES
@@ -49,12 +50,13 @@ import AdminReports from "./pages/admin/Reports";
 import AdminSettings from "./pages/admin/Settings";
 import AdminOrders from "./pages/admin/Orders";
 import AdminOrderDetails from "./pages/admin/OrderDetails";
-import EditOrder from "./pages/admin/EditOrder"; // ✅ ADDED
+import EditOrder from "./pages/admin/EditOrder";
 import AdminShipmentDetails from "./pages/admin/ShipmentDetails";
 import AdminShipments from "./pages/admin/Shipments";
 import NDR from "./pages/admin/NDR";
 import RTO from "./pages/admin/RTO";
 import COD from "./pages/admin/COD";
+import AdminTickets from "./pages/admin/AdminTickets"; // ✅ ADDED
 
 // ======================
 // SUPER ADMIN PAGES
@@ -124,6 +126,9 @@ function App() {
         <Route path="/merchant/settings" element={<MerchantRoute><Settings /></MerchantRoute>} />
         <Route path="/merchant/serviceability" element={<MerchantRoute><Serviceability /></MerchantRoute>} />
         <Route path="/merchant/rate-calculator" element={<MerchantRoute><RateCalculator /></MerchantRoute>} />
+        
+        {/* ✅ MERCHANT TICKETS ROUTE */}
+        <Route path="/merchant/tickets" element={<MerchantRoute><Tickets /></MerchantRoute>} />
 
         {/* ================= ADMIN ================= */}
         <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
@@ -131,10 +136,7 @@ function App() {
         <Route path="/admin/merchants" element={<AdminRoute><Merchants /></AdminRoute>} />
         <Route path="/admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>} />
         <Route path="/admin/orders/:id" element={<AdminRoute><AdminOrderDetails /></AdminRoute>} />
-        
-        {/* ✅ Edit Order Route - Just below the order details route */}
         <Route path="/admin/orders/edit/:id" element={<AdminRoute><EditOrder /></AdminRoute>} />
-        
         <Route path="/admin/shipments" element={<AdminRoute><AdminShipments /></AdminRoute>} />
         <Route path="/admin/shipments/:id" element={<AdminRoute><AdminShipmentDetails /></AdminRoute>} />
         <Route path="/admin/couriers" element={<AdminRoute><Couriers /></AdminRoute>} />
@@ -145,6 +147,9 @@ function App() {
         <Route path="/admin/ndr" element={<AdminRoute><NDR /></AdminRoute>} />
         <Route path="/admin/rto" element={<AdminRoute><RTO /></AdminRoute>} />
         <Route path="/admin/cod" element={<AdminRoute><COD /></AdminRoute>} />
+        
+        {/* ✅ ADMIN TICKETS ROUTE */}
+        <Route path="/admin/tickets" element={<AdminRoute><AdminTickets /></AdminRoute>} />
 
         {/* ================= SUPER ADMIN ================= */}
         <Route path="/superadmin/dashboard" element={<SuperAdminRoute><SuperAdminDashboard /></SuperAdminRoute>} />

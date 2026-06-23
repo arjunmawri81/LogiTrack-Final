@@ -10,6 +10,7 @@ import {
   FaUser,
   FaCog,
   FaSignOutAlt,
+  FaTicketAlt, // ✅ ADDED
 } from "react-icons/fa";
 import "./Sidebar.css";
 
@@ -148,6 +149,19 @@ const Sidebar = () => {
               </NavLink>
             </li>
 
+            {/* ✅ ADMIN SUPPORT TICKETS */}
+            <li>
+              <NavLink
+                to="/admin/tickets"
+                className={({ isActive }) =>
+                  isActive ? "active" : ""
+                }
+              >
+                <FaTicketAlt />
+                <span>Support Tickets</span>
+              </NavLink>
+            </li>
+
             <li>
               <NavLink
                 to="/admin/settings"
@@ -234,7 +248,6 @@ const Sidebar = () => {
               </NavLink>
             </li>
 
-            {/* NEW INVOICES MENU */}
             <li>
               <NavLink
                 to="/merchant/invoices"
@@ -292,6 +305,19 @@ const Sidebar = () => {
               >
                 <FaChartBar />
                 <span>Reports</span>
+              </NavLink>
+            </li>
+
+            {/* ✅ MERCHANT SUPPORT TICKETS */}
+            <li>
+              <NavLink
+                to="/merchant/tickets"
+                className={({ isActive }) =>
+                  isActive ? "active" : ""
+                }
+              >
+                <FaTicketAlt />
+                <span>Support Tickets</span>
               </NavLink>
             </li>
 

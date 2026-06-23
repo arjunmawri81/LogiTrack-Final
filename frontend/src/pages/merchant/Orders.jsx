@@ -201,7 +201,7 @@ const Orders = () => {
                     <th key={h} style={{
                       textAlign: "left",
                       padding: "16px 20px",
-                      color: "#ffffff",
+                      color: "#2f2f2f",
                       fontSize: "12px",
                       fontWeight: "600",
                       textTransform: "uppercase",
