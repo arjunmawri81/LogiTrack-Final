@@ -22,7 +22,10 @@ import Register from "./pages/auth/Register";
 import Dashboard from "./pages/merchant/Dashboard";
 import Orders from "./pages/merchant/Orders";
 import OrderDetails from "./pages/merchant/OrderDetails";
+import EditOrder from "./pages/merchant/EditOrder"; // ✅ ADDED
+import CreateOrder from "./pages/merchant/CreateOrder";
 import CreateShipment from "./pages/merchant/CreateShipment";
+import BulkShipment from "./pages/merchant/BulkShipment"; // ✅ ADDED
 import Shipments from "./pages/merchant/Shipments";
 import ShipmentDetails from "./pages/merchant/ShipmentDetails";
 import Tracking from "./pages/merchant/Tracking";
@@ -32,10 +35,9 @@ import Billing from "./pages/merchant/Billing";
 import MerchantReports from "./pages/merchant/Reports";
 import Profile from "./pages/merchant/Profile";
 import Settings from "./pages/merchant/Settings";
-import CreateOrder from "./pages/merchant/CreateOrder";
 import Serviceability from "./pages/merchant/Serviceability";
 import RateCalculator from "./pages/merchant/RateCalculator";
-import Tickets from "./pages/merchant/Tickets"; // ✅ ADDED
+import Tickets from "./pages/merchant/Tickets";
 
 // ======================
 // ADMIN PAGES
@@ -50,13 +52,13 @@ import AdminReports from "./pages/admin/Reports";
 import AdminSettings from "./pages/admin/Settings";
 import AdminOrders from "./pages/admin/Orders";
 import AdminOrderDetails from "./pages/admin/OrderDetails";
-import EditOrder from "./pages/admin/EditOrder";
+import AdminEditOrder from "./pages/admin/EditOrder";
 import AdminShipmentDetails from "./pages/admin/ShipmentDetails";
 import AdminShipments from "./pages/admin/Shipments";
 import NDR from "./pages/admin/NDR";
 import RTO from "./pages/admin/RTO";
 import COD from "./pages/admin/COD";
-import AdminTickets from "./pages/admin/AdminTickets"; // ✅ ADDED
+import AdminTickets from "./pages/admin/AdminTickets";
 
 // ======================
 // SUPER ADMIN PAGES
@@ -111,12 +113,20 @@ function App() {
 
         {/* ================= MERCHANT ================= */}
         <Route path="/merchant/dashboard" element={<MerchantRoute><Dashboard /></MerchantRoute>} />
+        
+        {/* Orders Routes */}
         <Route path="/merchant/orders" element={<MerchantRoute><Orders /></MerchantRoute>} />
         <Route path="/merchant/orders/:id" element={<MerchantRoute><OrderDetails /></MerchantRoute>} />
+        <Route path="/merchant/orders/edit/:id" element={<MerchantRoute><EditOrder /></MerchantRoute>} /> 
         <Route path="/merchant/create-order" element={<MerchantRoute><CreateOrder /></MerchantRoute>} />
+        
+        {/* Shipment Routes */}
         <Route path="/merchant/create-shipment" element={<MerchantRoute><CreateShipment /></MerchantRoute>} />
+        <Route path="/merchant/bulk-shipment" element={<MerchantRoute><BulkShipment /></MerchantRoute>} /> 
         <Route path="/merchant/shipments" element={<MerchantRoute><Shipments /></MerchantRoute>} />
         <Route path="/merchant/shipments/:id" element={<MerchantRoute><ShipmentDetails /></MerchantRoute>} />
+        
+        {/* Other Merchant Routes */}
         <Route path="/merchant/tracking" element={<MerchantRoute><Tracking /></MerchantRoute>} />
         <Route path="/merchant/wallet" element={<MerchantRoute><Wallet /></MerchantRoute>} />
         <Route path="/merchant/invoices" element={<MerchantRoute><Invoices /></MerchantRoute>} />
@@ -126,8 +136,6 @@ function App() {
         <Route path="/merchant/settings" element={<MerchantRoute><Settings /></MerchantRoute>} />
         <Route path="/merchant/serviceability" element={<MerchantRoute><Serviceability /></MerchantRoute>} />
         <Route path="/merchant/rate-calculator" element={<MerchantRoute><RateCalculator /></MerchantRoute>} />
-        
-        {/* ✅ MERCHANT TICKETS ROUTE */}
         <Route path="/merchant/tickets" element={<MerchantRoute><Tickets /></MerchantRoute>} />
 
         {/* ================= ADMIN ================= */}
@@ -136,7 +144,7 @@ function App() {
         <Route path="/admin/merchants" element={<AdminRoute><Merchants /></AdminRoute>} />
         <Route path="/admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>} />
         <Route path="/admin/orders/:id" element={<AdminRoute><AdminOrderDetails /></AdminRoute>} />
-        <Route path="/admin/orders/edit/:id" element={<AdminRoute><EditOrder /></AdminRoute>} />
+        <Route path="/admin/orders/edit/:id" element={<AdminRoute><AdminEditOrder /></AdminRoute>} />
         <Route path="/admin/shipments" element={<AdminRoute><AdminShipments /></AdminRoute>} />
         <Route path="/admin/shipments/:id" element={<AdminRoute><AdminShipmentDetails /></AdminRoute>} />
         <Route path="/admin/couriers" element={<AdminRoute><Couriers /></AdminRoute>} />
@@ -147,8 +155,6 @@ function App() {
         <Route path="/admin/ndr" element={<AdminRoute><NDR /></AdminRoute>} />
         <Route path="/admin/rto" element={<AdminRoute><RTO /></AdminRoute>} />
         <Route path="/admin/cod" element={<AdminRoute><COD /></AdminRoute>} />
-        
-        {/* ✅ ADMIN TICKETS ROUTE */}
         <Route path="/admin/tickets" element={<AdminRoute><AdminTickets /></AdminRoute>} />
 
         {/* ================= SUPER ADMIN ================= */}

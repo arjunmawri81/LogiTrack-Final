@@ -100,12 +100,40 @@ const orderSchema = new mongoose.Schema(
       required: true,
     },
 
+    // ✅ INSURANCE FIELDS ADDED HERE
+    insuranceEnabled: {
+      type: Boolean,
+      default: false,
+    },
+
+    insuranceAmount: {
+      type: Number,
+      default: 0,
+    },
+
     shippingCharge: {
       type: Number,
       default: 0,
     },
 
     courierPartner: {
+      type: String,
+      default: "",
+    },
+
+    shipmentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Shipment",
+      default: null,
+    },
+
+    invoiceId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Invoice",
+      default: null,
+    },
+
+    awb: {
       type: String,
       default: "",
     },
@@ -123,9 +151,12 @@ const orderSchema = new mongoose.Schema(
         "PACKED",
         "READY_FOR_PICKUP",
         "SHIPPED",
+        "OUT_FOR_DELIVERY",
         "DELIVERED",
         "RETURNED",
         "CANCELLED",
+        "NDR",
+        "RTO",
       ],
       default: "PENDING",
     },

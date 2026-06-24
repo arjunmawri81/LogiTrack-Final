@@ -17,6 +17,8 @@ const {
   searchOrders,
   uploadCSVOrders,
   uploadExcelOrders,
+  cancelOrder,
+  bulkCancelOrders,
 } = require("../controllers/orderController");
 
 // =====================================
@@ -67,6 +69,15 @@ router.post(
 );
 
 // =====================================
+// BULK CANCEL ORDERS
+// =====================================
+router.post(
+  "/bulk-cancel",
+  authMiddleware,
+  bulkCancelOrders
+);
+
+// =====================================
 // GET SINGLE ORDER
 // =====================================
 router.get(
@@ -100,6 +111,15 @@ router.patch(
   "/:id/status",
   authMiddleware,
   updateOrderStatus
+);
+
+// =====================================
+// CANCEL SINGLE ORDER
+// =====================================
+router.patch(
+  "/:id/cancel",
+  authMiddleware,
+  cancelOrder
 );
 
 module.exports = router;

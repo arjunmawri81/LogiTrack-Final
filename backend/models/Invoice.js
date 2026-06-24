@@ -54,8 +54,9 @@ const invoiceSchema = new mongoose.Schema(
         "CARD",
         "NETBANKING",
         "COD",
+        "PREPAID",
       ],
-      default: "WALLET",
+      default: "PREPAID",
     },
 
     status: {

@@ -7,6 +7,7 @@ const QRCode = require("qrcode");
 const PDFDocument = require("pdfkit");
 const bwipjs = require("bwip-js");
 const NDR = require("../models/NDR"); // ✅ Added NDR model
+const AdmZip = require("adm-zip"); // ✅ Added for bulk labels
 
 // ===============================
 // GENERATE UNIQUE AWB
@@ -42,13 +43,18 @@ const generateInvoiceNumber = () => {
 };
 
 // ===============================
-// CREATE SHIPMENT
+// CREATE SHIPMENT (UPDATED WITH INSURANCE)
 // ===============================
 const createShipment = async (req, res) => {
   try {
     console.log("REQ USER =>", req.user);
 
-    const { orderId, courier } = req.body;
+    // ✅ UPDATED: Added insuranceEnabled to destructuring
+    const {
+      orderId,
+      courier,
+      insuranceEnabled = false,
+    } = req.body;
 
     if (!orderId || !courier) {
       return res.status(400).json({
@@ -121,6 +127,17 @@ const createShipment = async (req, res) => {
       SHIPPING_CHARGE += rateCard.codCharge || 0;
     }
 
+    // ✅ INSURANCE PREMIUM CALCULATION
+    let insurancePremium = 0;
+
+    if (insuranceEnabled) {
+      insurancePremium = Math.ceil(
+        (order.amount || 0) * 0.02 // 2% of order amount
+      );
+
+      SHIPPING_CHARGE += insurancePremium;
+    }
+
     // ✅ Save shipping charge in order
     order.shippingCharge = SHIPPING_CHARGE;
     await order.save();
@@ -146,6 +163,7 @@ const createShipment = async (req, res) => {
     // 5. Generate AWB and Create Shipment
     const awb = await generateAWB();
 
+    // ✅ UPDATED: Added insurance fields to shipment creation
     const shipment = await Shipment.create({
       orderId,
       merchantId: req.user.id,
@@ -153,6 +171,9 @@ const createShipment = async (req, res) => {
       courierPartner: normalizedCourier,
       awb,
       status: "PENDING",
+      insuranceEnabled,
+      insuranceAmount: order.amount || 0,
+      insurancePremium,
       trackingEvents: [
         {
           status: "PENDING",
@@ -174,6 +195,7 @@ const createShipment = async (req, res) => {
     await wallet.save();
 
     // 7. Create Invoice
+    // ✅ UPDATED: Added insuranceCharge to invoice
     const invoice = await Invoice.create({
       invoiceNumber: generateInvoiceNumber(),
       merchantId: req.user.id,
@@ -182,17 +204,30 @@ const createShipment = async (req, res) => {
       amount: order.amount || 0,
       taxAmount: 18,
       shippingCharge: SHIPPING_CHARGE,
+      insuranceCharge: insurancePremium, // ✅ ADDED
       paymentMethod: order.paymentMode || "COD",
       status: "PAID",
     });
 
     console.log("INVOICE CREATED =>", invoice);
 
+    // ✅ UPDATE ORDER WITH SHIPMENT AND INVOICE REFERENCES
+    order.shipmentId = shipment._id;
+    order.invoiceId = invoice._id;
+    order.awb = shipment.awb;
+    order.courierPartner = shipment.courier;
+    order.status = "SHIPPED"; // Update order status to SHIPPED
+    await order.save();
+
+    console.log("ORDER UPDATED WITH SHIPMENT & INVOICE =>", order);
+
     return res.status(201).json({
       success: true,
       message: "Shipment Created Successfully",
       shipment,
       shippingCharge: SHIPPING_CHARGE,
+      insurancePremium,
+      insuranceEnabled,
       rateCardUsed: rateCard.courierPartner,
       weight: order.weight,
       paymentMode: order.paymentMode,
@@ -204,6 +239,112 @@ const createShipment = async (req, res) => {
       success: false,
       message: error.message,
       stack: error.stack,
+    });
+  }
+};
+
+// ===============================
+// BULK CREATE SHIPMENTS
+// ===============================
+const createBulkShipments = async (req, res) => {
+  try {
+    const { orderIds, courier } = req.body;
+
+    if (!orderIds || orderIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No orders selected",
+      });
+    }
+
+    if (!courier) {
+      return res.status(400).json({
+        success: false,
+        message: "Courier is required",
+      });
+    }
+
+    const shipments = [];
+    const failedOrders = [];
+    const skippedOrders = [];
+
+    for (const orderId of orderIds) {
+      try {
+        // Check if order exists and belongs to merchant
+        const order = await Order.findOne({
+          _id: orderId,
+          merchantId: req.user.id,
+        });
+
+        if (!order) {
+          failedOrders.push({ orderId, reason: "Order not found" });
+          continue;
+        }
+
+        // Check if shipment already exists
+        const existingShipment = await Shipment.findOne({
+          orderId,
+          merchantId: req.user.id,
+        });
+
+        if (existingShipment) {
+          skippedOrders.push({ orderId, reason: "Shipment already exists" });
+          continue;
+        }
+
+        // Generate AWB
+        const awb = "AWB" + Date.now() + Math.floor(Math.random() * 10000);
+
+        // Create shipment
+        const shipment = await Shipment.create({
+          orderId,
+          merchantId: req.user.id,
+          courier: courier.trim(),
+          courierPartner: courier.trim().toLowerCase(),
+          awb,
+          status: "PENDING",
+          trackingEvents: [
+            {
+              status: "PENDING",
+              location: "Warehouse",
+              remark: "Bulk Shipment Created",
+              timestamp: new Date(),
+            },
+          ],
+        });
+
+        shipments.push(shipment);
+
+        // ✅ UPDATE ORDER WITH SHIPMENT REFERENCE
+        order.shipmentId = shipment._id;
+        order.awb = shipment.awb;
+        order.courierPartner = shipment.courier;
+        order.status = "SHIPPED";
+        await order.save();
+
+      } catch (error) {
+        console.error(`Error creating shipment for order ${orderId}:`, error);
+        failedOrders.push({ orderId, reason: error.message });
+      }
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: `${shipments.length} shipments created successfully`,
+      shipments,
+      summary: {
+        created: shipments.length,
+        skipped: skippedOrders.length,
+        failed: failedOrders.length,
+        skippedOrders,
+        failedOrders,
+      },
+    });
+  } catch (error) {
+    console.error("Bulk shipment error:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message,
     });
   }
 };
@@ -522,6 +663,12 @@ const generateLabel = async (req, res) => {
     doc.text(`Order No: ${shipment.orderId.orderNumber}`);
     doc.text(`Payment: ${shipment.orderId.paymentMode}`);
     doc.text(`Amount: ₹${shipment.orderId.amount}`);
+    
+    // ✅ Show insurance info if enabled
+    if (shipment.insuranceEnabled) {
+      doc.text(`Insurance: ₹${shipment.insuranceAmount} (Premium: ₹${shipment.insurancePremium})`);
+    }
+    
     doc.moveDown();
 
     const barcodeBuffer = await bwipjs.toBuffer({
@@ -568,16 +715,113 @@ const getTrackingTimeline = async (req, res) => {
 };
 
 // ===============================
+// BULK LABELS (NEW FUNCTION)
+// ===============================
+const bulkLabels = async (req, res) => {
+  try {
+    const { shipmentIds } = req.body;
+
+    if (!shipmentIds || !Array.isArray(shipmentIds) || shipmentIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No shipment IDs provided",
+      });
+    }
+
+    const shipments = await Shipment.find({
+      _id: { $in: shipmentIds },
+      merchantId: req.user.id,
+    }).populate("orderId");
+
+    if (shipments.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No shipments found",
+      });
+    }
+
+    // Create ZIP file with all labels
+    const zip = new AdmZip();
+
+    for (const shipment of shipments) {
+      try {
+        // Generate PDF for each shipment
+        const doc = new PDFDocument({ size: "A6", margin: 20 });
+        const chunks = [];
+
+        doc.on('data', chunk => chunks.push(chunk));
+        doc.on('end', () => {
+          const pdfBuffer = Buffer.concat(chunks);
+          zip.addFile(`label_${shipment.awb}.pdf`, pdfBuffer);
+        });
+
+        doc.fontSize(18).text("LOGITRACK SHIPPING LABEL", { align: "center" });
+        doc.moveDown();
+        
+        doc.fontSize(12).text(`AWB: ${shipment.awb}`);
+        doc.text(`Courier: ${shipment.courier}`);
+        doc.moveDown();
+        
+        if (shipment.orderId) {
+          doc.text(`Customer: ${shipment.orderId.customerName || 'N/A'}`);
+          doc.text(`Phone: ${shipment.orderId.customerPhone || 'N/A'}`);
+          doc.text(`Address: ${shipment.orderId.customerAddress || 'N/A'}`);
+          doc.text(`Order No: ${shipment.orderId.orderNumber || 'N/A'}`);
+          doc.text(`Amount: ₹${shipment.orderId.amount || 0}`);
+        }
+
+        if (shipment.insuranceEnabled) {
+          doc.text(`Insurance: ₹${shipment.insuranceAmount} (Premium: ₹${shipment.insurancePremium})`);
+        }
+
+        doc.moveDown();
+
+        const barcodeBuffer = await bwipjs.toBuffer({
+          bcid: "code128",
+          text: shipment.awb,
+          scale: 3,
+          height: 10,
+        });
+
+        doc.image(barcodeBuffer, { width: 180 });
+        doc.end();
+
+      } catch (error) {
+        console.error(`Error generating label for ${shipment.awb}:`, error);
+      }
+    }
+
+    // Wait for all PDFs to be generated
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    const zipBuffer = zip.toBuffer();
+
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename=labels_${Date.now()}.zip`);
+    res.send(zipBuffer);
+
+  } catch (error) {
+    console.error("Bulk labels error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ===============================
 // EXPORTS
 // ===============================
 module.exports = {
   createShipment,
+  createBulkShipments, 
   getShipments,
-  getShipmentById,  
+  getShipmentById,
   trackShipment,
   updateShipmentStatus,
   schedulePickup,
   generateShipmentQR,
   getTrackingTimeline,
   generateLabel,
+  bulkLabels, 
 };

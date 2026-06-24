@@ -1,4 +1,5 @@
 const Order = require("../models/Order");
+const Shipment = require("../models/Shipment");
 const fs = require("fs");
 const csv = require("csv-parser");
 const XLSX = require("xlsx");
@@ -33,7 +34,7 @@ const createOrder = async (req, res) => {
 };
 
 // ================================
-// GET ALL ORDERS (DEBUG VERSION)
+// GET ALL ORDERS (UPDATED WITH POPULATE)
 // ================================
 const getOrders = async (req, res) => {
   try {
@@ -41,7 +42,10 @@ const getOrders = async (req, res) => {
 
     const orders = await Order.find({
       merchantId: req.user.id,
-    }).sort({ createdAt: -1 });
+    })
+    .populate("shipmentId")  // ✅ Populate shipment details
+    .populate("invoiceId")   // ✅ Populate invoice details
+    .sort({ createdAt: -1 });
 
     console.log("ORDERS FOUND =>", orders.length);
 
@@ -64,9 +68,6 @@ const getOrders = async (req, res) => {
 // ================================
 // GET SINGLE ORDER
 // ================================
-// ================================
-// GET SINGLE ORDER
-// ================================
 const getOrderById = async (req, res) => {
   try {
     let order;
@@ -76,14 +77,18 @@ const getOrderById = async (req, res) => {
       req.user.role === "ADMIN" ||
       req.user.role === "SUPER_ADMIN"
     ) {
-      order = await Order.findById(req.params.id);
+      order = await Order.findById(req.params.id)
+        .populate("shipmentId")
+        .populate("invoiceId");
     }
     // Merchant can view only own orders
     else {
       order = await Order.findOne({
         _id: req.params.id,
         merchantId: req.user.id,
-      });
+      })
+      .populate("shipmentId")
+      .populate("invoiceId");
     }
 
     if (!order) {
@@ -104,11 +109,24 @@ const getOrderById = async (req, res) => {
     });
   }
 };
+
 // ================================
 // UPDATE ORDER
 // ================================
 const updateOrder = async (req, res) => {
   try {
+    // ✅ CHECK IF SHIPMENT ALREADY EXISTS
+    const shipment = await Shipment.findOne({
+      orderId: req.params.id,
+    });
+
+    if (shipment) {
+      return res.status(400).json({
+        success: false,
+        message: "Shipment already created. Order cannot be edited.",
+      });
+    }
+
     const order = await Order.findOneAndUpdate(
       {
         _id: req.params.id,
@@ -116,7 +134,9 @@ const updateOrder = async (req, res) => {
       },
       req.body,
       { new: true }
-    );
+    )
+    .populate("shipmentId")
+    .populate("invoiceId");
 
     if (!order) {
       return res.status(404).json({
@@ -139,10 +159,22 @@ const updateOrder = async (req, res) => {
 };
 
 // ================================
-// DELETE ORDER
+// DELETE ORDER (UPDATED WITH SHIPMENT CHECK)
 // ================================
 const deleteOrder = async (req, res) => {
   try {
+    // ✅ CHECK IF SHIPMENT ALREADY EXISTS
+    const shipment = await Shipment.findOne({
+      orderId: req.params.id,
+    });
+
+    if (shipment) {
+      return res.status(400).json({
+        success: false,
+        message: "Shipment already created. Order cannot be deleted.",
+      });
+    }
+
     const order = await Order.findOneAndDelete({
       _id: req.params.id,
       merchantId: req.user.id,
@@ -216,7 +248,9 @@ const searchOrders = async (req, res) => {
         { orderNumber: { $regex: keyword || "", $options: "i" } },
         { customerPhone: { $regex: keyword || "", $options: "i" } },
       ],
-    });
+    })
+    .populate("shipmentId")
+    .populate("invoiceId");
 
     res.status(200).json({
       success: true,
@@ -300,6 +334,125 @@ const uploadExcelOrders = async (req, res) => {
   }
 };
 
+// ================================
+// CANCEL ORDER (UPDATED WITH BETTER STATUS CHECK)
+// ================================
+const cancelOrder = async (req, res) => {
+  try {
+    // ✅ Security - Only merchant's own order
+    const order = await Order.findOne({
+      _id: req.params.id,
+      merchantId: req.user.id,
+    });
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found"
+      });
+    }
+
+    // ✅ IMPROVED: Better status check - prevents cancellation after pickup
+    if (
+      order.shipmentId ||
+      [
+        "READY_FOR_PICKUP",
+        "SHIPPED",
+        "OUT_FOR_DELIVERY",
+        "DELIVERED"
+      ].includes(order.status)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Order cannot be cancelled. It already has a shipment or is already in transit/delivered."
+      });
+    }
+
+    // Check if already cancelled
+    if (order.status === "CANCELLED") {
+      return res.status(400).json({
+        success: false,
+        message: "Order is already cancelled"
+      });
+    }
+
+    // Update order status to CANCELLED
+    order.status = "CANCELLED";
+    await order.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Order cancelled successfully"
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// ================================
+// BULK CANCEL ORDERS (UPDATED)
+// ================================
+const bulkCancelOrders = async (req, res) => {
+  try {
+    const { orderIds } = req.body;
+
+    if (!orderIds || !Array.isArray(orderIds) || orderIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No order IDs provided",
+      });
+    }
+
+    // ✅ Updated: Better conditions for bulk cancellation
+    const result = await Order.updateMany(
+      {
+        _id: { $in: orderIds },
+        merchantId: req.user.id, // ✅ Security: Only merchant's orders
+        shipmentId: null, // Only orders without shipment
+        status: { 
+          $nin: [
+            "READY_FOR_PICKUP",
+            "SHIPPED", 
+            "OUT_FOR_DELIVERY",
+            "DELIVERED", 
+            "CANCELLED"
+          ] // Don't cancel these statuses
+        },
+      },
+      {
+        status: "CANCELLED",
+      }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No eligible orders found for cancellation",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `${result.modifiedCount} orders cancelled successfully`,
+      matchedCount: result.matchedCount,
+      modifiedCount: result.modifiedCount,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ================================
+// EXPORTS
+// ================================
 module.exports = {
   createOrder,
   getOrders,
@@ -310,4 +463,6 @@ module.exports = {
   searchOrders,
   uploadCSVOrders,
   uploadExcelOrders,
+  cancelOrder,
+  bulkCancelOrders,
 };

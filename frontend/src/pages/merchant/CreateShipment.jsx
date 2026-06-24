@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import api from "../../services/api";
-import { FaBox, FaTruck, FaArrowLeft, FaCheckCircle, FaShippingFast, FaWallet, FaRupeeSign } from "react-icons/fa";
+import { FaBox, FaTruck, FaArrowLeft, FaCheckCircle, FaShippingFast, FaWallet, FaRupeeSign, FaStar, FaSortAmountUp, FaShieldAlt } from "react-icons/fa";
 
 const CreateShipment = () => {
   const navigate = useNavigate();
@@ -24,6 +24,39 @@ const CreateShipment = () => {
     totalCharge: 0
   });
 
+  // States for recommendations
+  const [recommended, setRecommended] = useState(null);
+  const [courierRates, setCourierRates] = useState([]);
+  const [recommendationLoading, setRecommendationLoading] = useState(false);
+
+  // Insurance toggle state
+  const [insuranceEnabled, setInsuranceEnabled] = useState(false);
+  const [insuranceAmount, setInsuranceAmount] = useState(0);
+
+  // ETA mapping (temporary - will come from API)
+  const etaMap = {
+    delhivery: "3 Days",
+    xpressbees: "2 Days",
+    dtdc: "4 Days",
+    ecom: "3 Days",
+    bluedart: "2 Days",
+    shadowfax: "3 Days",
+  };
+
+  // Insurance charge calculation
+  const INSURANCE_CHARGE = 12;
+
+  // Get merchantId from user object
+  const getMerchantId = () => {
+    try {
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      return user?.id || user?.merchantId || null;
+    } catch (error) {
+      console.log("Error getting merchantId:", error);
+      return null;
+    }
+  };
+
   useEffect(() => {
     fetchOrders();
     fetchWallet();
@@ -34,6 +67,26 @@ const CreateShipment = () => {
       calculatePricing();
     }
   }, [formData.orderId, formData.courier]);
+
+  // Fetch recommendations when order is selected
+  useEffect(() => {
+    if (formData.orderId) {
+      fetchRecommendations();
+    } else {
+      setRecommended(null);
+      setCourierRates([]);
+    }
+  }, [formData.orderId]);
+
+  // Update insurance amount when order changes
+  useEffect(() => {
+    if (currentOrder) {
+      setInsuranceAmount(currentOrder.insuranceAmount || 0);
+      if (currentOrder.insuranceEnabled) {
+        setInsuranceEnabled(true);
+      }
+    }
+  }, [formData.orderId]);
 
   const fetchOrders = async () => {
     try {
@@ -57,39 +110,123 @@ const CreateShipment = () => {
 
   const calculatePricing = async () => {
     try {
-      const res = await api.post("/rate-cards/calculate", {
+      const res = await api.post("/ratecards/calculate", {
         orderId: formData.orderId,
         courier: formData.courier
       });
       
-      setPricing({
-        shippingCharge: res.data.shippingCharge || 0,
-        codCharge: res.data.codCharge || 0,
-        fuelCharge: res.data.fuelCharge || 0,
-        totalCharge: res.data.totalCharge || 0
-      });
+      if (res.data.success) {
+        setPricing({
+          shippingCharge: res.data.shippingCharge || 0,
+          codCharge: res.data.codCharge || 0,
+          fuelCharge: res.data.fuelCharge || 0,
+          totalCharge: res.data.totalCharge || 0
+        });
+      } else {
+        useStaticPricing();
+      }
     } catch (error) {
-      console.log("Using static pricing fallback");
+      console.log("Pricing API failed, using fallback:", error);
+      useStaticPricing();
+    }
+  };
+
+  const useStaticPricing = () => {
+    const currentOrder = orders.find(o => o._id === formData.orderId) || selectedOrder;
+    const baseCharge = 45;
+    const codCharge = currentOrder?.paymentMode === "COD" ? 30 : 0;
+    const fuelCharge = 5;
+    
+    setPricing({
+      shippingCharge: baseCharge,
+      codCharge: codCharge,
+      fuelCharge: fuelCharge,
+      totalCharge: baseCharge + codCharge + fuelCharge
+    });
+  };
+
+  // Courier Name Mapping
+  const courierMap = {
+    dtdc: "DTDC",
+    delhivery: "Delhivery",
+    xpressbees: "XpressBees",
+    bluedart: "BlueDart",
+    ecom: "Ecom",
+    shadowfax: "Shadowfax",
+  };
+
+  // Reverse mapping for display
+  const reverseCourierMap = {
+    "DTDC": "dtdc",
+    "Delhivery": "delhivery",
+    "XpressBees": "xpressbees",
+    "BlueDart": "bluedart",
+    "Ecom": "ecom",
+    "Shadowfax": "shadowfax",
+  };
+
+  // Fetch Recommendations
+  const fetchRecommendations = async () => {
+    try {
+      setRecommendationLoading(true);
       
       const currentOrder = orders.find(o => o._id === formData.orderId) || selectedOrder;
-      const baseCharge = 45;
-      const codCharge = currentOrder?.paymentMode === "COD" ? 30 : 0;
-      const fuelCharge = 5;
+
+      if (!currentOrder) {
+        setRecommendationLoading(false);
+        return;
+      }
+
+      const merchantId = getMerchantId();
+
+      if (!merchantId) {
+        console.log("Merchant ID not found");
+        setRecommendationLoading(false);
+        return;
+      }
+
+      const weight = currentOrder.weight || 0.5;
       
-      setPricing({
-        shippingCharge: baseCharge,
-        codCharge: codCharge,
-        fuelCharge: fuelCharge,
-        totalCharge: baseCharge + codCharge + fuelCharge
-      });
+      const res = await api.get(
+        `/ratecards/recommendation?merchantId=${merchantId}&weight=${weight}`
+      );
+
+      console.log("RECOMMENDATIONS =>", res.data);
+      console.log("COURIERS ARRAY =>", res.data.couriers);
+      console.log("TOTAL =>", res.data.couriers?.length);
+
+      if (res.data.success) {
+        setRecommended(res.data.recommended);
+        setCourierRates(res.data.couriers || []);
+
+        // Auto-select recommended courier
+        if (res.data.recommended?.courier) {
+          const recommendedCourier = res.data.recommended.courier;
+          const displayCourier = courierMap[recommendedCourier] || recommendedCourier;
+          
+          setFormData((prev) => ({
+            ...prev,
+            courier: displayCourier
+          }));
+        }
+      }
+    } catch (error) {
+      console.log("Recommendation failed:", error);
+      setRecommended(null);
+      setCourierRates([]);
+    } finally {
+      setRecommendationLoading(false);
     }
   };
 
   const currentOrder = orders.find(o => o._id === formData.orderId) || selectedOrder;
 
-  const totalCharge = pricing.totalCharge || 0;
+  // Calculate total with insurance
+  const baseTotalCharge = pricing.totalCharge || 0;
+  const insuranceCost = insuranceEnabled ? INSURANCE_CHARGE : 0;
+  const totalCharge = baseTotalCharge + insuranceCost;
   
-  // ✅ FIX 1: Proper balance calculations
+  // Balance calculations
   const shortfall = Math.max(0, totalCharge - walletBalance);
   const balanceAfterShipment = Math.max(0, walletBalance - totalCharge);
   const isInsufficientBalance = walletBalance < totalCharge;
@@ -107,7 +244,14 @@ const CreateShipment = () => {
 
     setLoading(true);
     try {
-      await api.post("/shipments", formData);
+      const payload = {
+        ...formData,
+        courier: reverseCourierMap[formData.courier] || formData.courier.toLowerCase(),
+        insuranceEnabled: insuranceEnabled,
+        insuranceAmount: insuranceEnabled ? insuranceAmount : 0
+      };
+      
+      await api.post("/shipments", payload);
       alert("Shipment Created Successfully");
       navigate("/merchant/shipments");
     } catch (err) {
@@ -279,6 +423,64 @@ const CreateShipment = () => {
       transition: "all 0.2s ease",
       color: "#1e293b"
     },
+    recommendedCard: {
+      background: "linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)",
+      border: "2px solid #86efac",
+      padding: "16px",
+      borderRadius: "12px",
+      marginBottom: "20px",
+      position: "relative"
+    },
+    recommendedBadge: {
+      position: "absolute",
+      top: "-10px",
+      right: "16px",
+      background: "#f97316",
+      color: "#fff",
+      padding: "2px 14px",
+      borderRadius: "20px",
+      fontSize: "11px",
+      fontWeight: "600",
+      boxShadow: "0 2px 8px rgba(249,115,22,0.3)"
+    },
+    recommendedTitle: {
+      margin: "0 0 4px 0",
+      fontSize: "13px",
+      fontWeight: "600",
+      color: "#15803d",
+      display: "flex",
+      alignItems: "center",
+      gap: "8px"
+    },
+    recommendedCourier: {
+      margin: "8px 0 0 0",
+      fontSize: "20px",
+      fontWeight: "700",
+      color: "#065f46",
+      letterSpacing: "-0.5px"
+    },
+    recommendedRate: {
+      margin: "0",
+      fontSize: "14px",
+      color: "#15803d",
+      fontWeight: "500"
+    },
+    comparisonCard: {
+      background: "#f8fafc",
+      border: "1px solid #e2e8f0",
+      borderRadius: "12px",
+      padding: "16px",
+      marginBottom: "20px"
+    },
+    comparisonTitle: {
+      fontSize: "13px",
+      fontWeight: "600",
+      color: "#0f172a",
+      margin: "0 0 12px 0",
+      display: "flex",
+      alignItems: "center",
+      gap: "8px"
+    },
     costPreviewCard: {
       background: "#f8fafc",
       border: "1px solid #e2e8f0",
@@ -402,6 +604,87 @@ const CreateShipment = () => {
       display: "flex",
       flexDirection: "column",
       gap: "12px"
+    },
+    loadingText: {
+      textAlign: "center",
+      color: "#94a3b8",
+      fontSize: "13px",
+      padding: "8px 0"
+    },
+    noRatesText: {
+      textAlign: "center",
+      color: "#94a3b8",
+      fontSize: "13px",
+      padding: "12px 0"
+    },
+    insuranceToggle: {
+      background: "#f8fafc",
+      border: "1px solid #e2e8f0",
+      borderRadius: "12px",
+      padding: "14px 16px",
+      marginBottom: "16px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      cursor: "pointer",
+      transition: "all 0.2s ease"
+    },
+    insuranceToggleActive: {
+      background: "#f0fdf4",
+      border: "1px solid #86efac",
+    },
+    insuranceLeft: {
+      display: "flex",
+      alignItems: "center",
+      gap: "10px"
+    },
+    insuranceIcon: {
+      color: "#f97316",
+      fontSize: "16px"
+    },
+    insuranceLabel: {
+      fontSize: "13px",
+      fontWeight: "500",
+      color: "#0f172a"
+    },
+    insuranceSubtext: {
+      fontSize: "11px",
+      color: "#64748b",
+      marginTop: "2px"
+    },
+    insuranceSwitch: {
+      width: "44px",
+      height: "24px",
+      background: "#cbd5e1",
+      borderRadius: "12px",
+      position: "relative",
+      transition: "all 0.3s ease",
+      flexShrink: 0
+    },
+    insuranceSwitchActive: {
+      background: "#f97316",
+    },
+    insuranceSwitchKnob: {
+      width: "20px",
+      height: "20px",
+      background: "#fff",
+      borderRadius: "50%",
+      position: "absolute",
+      top: "2px",
+      left: "2px",
+      transition: "all 0.3s ease",
+      boxShadow: "0 1px 3px rgba(0,0,0,0.2)"
+    },
+    insuranceSwitchKnobActive: {
+      left: "22px",
+    },
+    insuranceCostRow: {
+      display: "flex",
+      justifyContent: "space-between",
+      padding: "4px 0",
+      fontSize: "13px",
+      color: "#475569",
+      marginTop: "4px"
     }
   };
 
@@ -438,6 +721,22 @@ const CreateShipment = () => {
     .back-button:hover {
       border-color: #f97316 !important;
       color: #f97316 !important;
+    }
+
+    .comparison-table th {
+      border-bottom: 2px solid #e2e8f0 !important;
+    }
+
+    .comparison-table td {
+      border-bottom: 1px solid #f1f5f9 !important;
+    }
+
+    .comparison-table tr:last-child td {
+      border-bottom: none !important;
+    }
+
+    .insurance-toggle:hover {
+      border-color: #f97316 !important;
     }
   `;
 
@@ -531,30 +830,294 @@ const CreateShipment = () => {
                   </select>
                 </div>
 
-                {/* Courier Selection - ✅ Added all couriers */}
+                {/* ✅ UPDATED: Top 3 Recommended Couriers Card */}
+                {recommendationLoading ? (
+                  <div style={styles.loadingText}>⏳ Finding best couriers...</div>
+                ) : courierRates.length > 0 ? (
+                  <>
+                    <div style={styles.recommendedCard}>
+                      <div style={styles.recommendedBadge}>🏆 Top 3</div>
+                      <div style={styles.recommendedTitle}>
+                        <FaStar style={{ color: "#f97316" }} />
+                        Recommended Couriers (Cheapest)
+                      </div>
+                      
+                      {courierRates.slice(0, 3).map((c, index) => {
+                        // ✅ FIXED: Use total directly from backend
+                        const total = Number(c.total || 0);
+                        const isCheapest = index === 0;
+                        
+                        return (
+                          <div
+                            key={c.courier}
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              padding: "8px 0",
+                              borderBottom: index < 2 ? "1px solid #e2e8f0" : "none",
+                              marginTop: index === 0 ? "8px" : "0",
+                              background: isCheapest ? "rgba(22, 163, 74, 0.08)" : "transparent",
+                              borderRadius: isCheapest ? "6px" : "0",
+                              paddingLeft: isCheapest ? "8px" : "0",
+                              paddingRight: isCheapest ? "8px" : "0"
+                            }}
+                          >
+                            <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                              <span style={{ 
+                                fontWeight: "600", 
+                                color: isCheapest ? "#16a34a" : "#334155",
+                                fontSize: isCheapest ? "14px" : "13px"
+                              }}>
+                                #{index + 1}
+                              </span>
+                              <span style={{ fontWeight: "500", color: "#0f172a" }}>
+                                {courierMap[c.courier] || c.courier}
+                              </span>
+                              {isCheapest && (
+                                <span style={{ 
+                                  background: "#16a34a", 
+                                  color: "#fff", 
+                                  fontSize: "10px",
+                                  padding: "2px 8px",
+                                  borderRadius: "12px",
+                                  fontWeight: "600"
+                                }}>
+                                  Cheapest
+                                </span>
+                              )}
+                            </span>
+                            <span style={{ 
+                              fontWeight: isCheapest ? "700" : "500",
+                              color: isCheapest ? "#16a34a" : "#0f172a"
+                            }}>
+                              ₹{total}
+                            </span>
+                          </div>
+                        );
+                      })}
+                      
+                      {courierRates.length > 3 && (
+                        <div style={{
+                          textAlign: "center",
+                          marginTop: "10px",
+                          fontSize: "12px",
+                          color: "#94a3b8"
+                        }}>
+                          +{courierRates.length - 3} more couriers available
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Courier Comparison Table */}
+                    {courierRates.length > 0 && (
+                      <div style={styles.comparisonCard}>
+                        <div style={styles.comparisonTitle}>
+                          <FaSortAmountUp style={{ color: "#64748b" }} />
+                          All Courier Comparison
+                        </div>
+
+                        <table
+                          className="comparison-table"
+                          style={{
+                            width: "100%",
+                            borderCollapse: "collapse",
+                            fontSize: "13px",
+                          }}
+                        >
+                          <thead>
+                            <tr>
+                              <th style={{ textAlign: "left", padding: "8px" }}>
+                                Courier
+                              </th>
+                              <th style={{ textAlign: "center", padding: "8px" }}>
+                                Forward
+                              </th>
+                              <th style={{ textAlign: "center", padding: "8px" }}>
+                                COD
+                              </th>
+                              <th style={{ textAlign: "center", padding: "8px" }}>
+                                ETA
+                              </th>
+                              <th style={{ textAlign: "right", padding: "8px" }}>
+                                Total
+                              </th>
+                            </tr>
+                          </thead>
+
+                          <tbody>
+                            {courierRates.slice(0, 5).map((c, index) => {
+                              // ✅ FIXED: Use fields directly from backend
+                              const total = Number(c.total || 0);
+                              const isCheapest = index === 0;
+                              const eta = c.eta || etaMap[c.courier] || "N/A";
+
+                              return (
+                                <tr
+                                  key={c.courier}
+                                  style={{
+                                    borderTop: "1px solid #e2e8f0",
+                                    background: isCheapest ? "#f0fdf4" : "transparent"
+                                  }}
+                                >
+                                  <td
+                                    style={{
+                                      padding: "10px 8px",
+                                    }}
+                                  >
+                                    {courierMap[c.courier] || c.courier}
+                                    {isCheapest && (
+                                      <span
+                                        style={{
+                                          marginLeft: 4,
+                                          color: "#16a34a",
+                                          fontWeight: 600,
+                                          fontSize: "11px"
+                                        }}
+                                      >
+                                        ⭐ Cheapest
+                                      </span>
+                                    )}
+                                  </td>
+
+                                  <td
+                                    style={{
+                                      textAlign: "center",
+                                      padding: "10px 8px",
+                                    }}
+                                  >
+                                    ₹{c.forwardRate || 0}
+                                  </td>
+
+                                  <td
+                                    style={{
+                                      textAlign: "center",
+                                      padding: "10px 8px",
+                                    }}
+                                  >
+                                    ₹{c.codCharge || 0}
+                                  </td>
+
+                                  <td
+                                    style={{
+                                      textAlign: "center",
+                                      padding: "10px 8px",
+                                      color: "#475569"
+                                    }}
+                                  >
+                                    {eta}
+                                  </td>
+
+                                  <td
+                                    style={{
+                                      textAlign: "right",
+                                      fontWeight: isCheapest ? "700" : "600",
+                                      padding: "10px 8px",
+                                      color: isCheapest ? "#15803d" : "#0f172a"
+                                    }}
+                                  >
+                                    ₹{total}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                            
+                            {courierRates.length > 5 && (
+                              <tr>
+                                <td colSpan="5" style={{
+                                  textAlign: "center",
+                                  padding: "10px",
+                                  color: "#94a3b8",
+                                  fontSize: "12px"
+                                }}>
+                                  +{courierRates.length - 5} more couriers
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </>
+                ) : formData.orderId ? (
+                  <div style={styles.noRatesText}>
+                    No rate cards found. Please contact admin.
+                  </div>
+                ) : null}
+
+                {/* ✅ UPDATED: Dynamic Courier Dropdown */}
                 <div style={styles.formGroup}>
                   <div style={styles.label}>
                     <FaTruck style={styles.labelIcon} />
                     <span>Select Courier <span style={styles.requiredStar}>*</span></span>
+                    {recommended && (
+                      <span style={{ 
+                        marginLeft: "auto", 
+                        fontSize: "11px", 
+                        color: "#15803d",
+                        fontWeight: "500"
+                      }}>
+                        ⭐ Best: {courierMap[recommended.courier] || recommended.courier}
+                      </span>
+                    )}
                   </div>
                   <select
                     name="courier"
                     value={formData.courier}
                     onChange={(e) => setFormData({ ...formData, courier: e.target.value })}
-                    style={styles.select}
+                    style={{
+                      ...styles.select,
+                      borderColor: recommended && formData.courier === (courierMap[recommended.courier] || recommended.courier) ? "#86efac" : "#e2e8f0",
+                      background: recommended && formData.courier === (courierMap[recommended.courier] || recommended.courier) ? "#f0fdf4" : "#fff"
+                    }}
                     required
                   >
                     <option value="">Choose a courier partner</option>
-                    <option value="DTDC">📦 DTDC</option>
-                    <option value="Delhivery">🚚 Delhivery</option>
-                    <option value="XpressBees">🐝 XpressBees</option>
-                    <option value="BlueDart">🔵 BlueDart</option>
-                    <option value="Ecom">📦 Ecom</option>
-                    <option value="Shadowfax">🟣 Shadowfax</option>
+                    {courierRates.map((c) => (
+                      <option
+                        key={c.courier}
+                        value={courierMap[c.courier] || c.courier}
+                      >
+                        {courierMap[c.courier] || c.courier}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
-                {/* Shipment Cost Preview */}
+                {/* Insurance Toggle */}
+                {currentOrder && (
+                  <div 
+                    className="insurance-toggle"
+                    style={{
+                      ...styles.insuranceToggle,
+                      ...(insuranceEnabled ? styles.insuranceToggleActive : {})
+                    }}
+                    onClick={() => setInsuranceEnabled(!insuranceEnabled)}
+                  >
+                    <div style={styles.insuranceLeft}>
+                      <FaShieldAlt style={styles.insuranceIcon} />
+                      <div>
+                        <div style={styles.insuranceLabel}>
+                          ☑ Add Insurance
+                        </div>
+                        <div style={styles.insuranceSubtext}>
+                          Protect your shipment (₹{INSURANCE_CHARGE})
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{
+                      ...styles.insuranceSwitch,
+                      ...(insuranceEnabled ? styles.insuranceSwitchActive : {})
+                    }}>
+                      <div style={{
+                        ...styles.insuranceSwitchKnob,
+                        ...(insuranceEnabled ? styles.insuranceSwitchKnobActive : {})
+                      }} />
+                    </div>
+                  </div>
+                )}
+
+                {/* Cost Preview */}
                 <div style={styles.costPreviewCard}>
                   <h4 style={styles.costPreviewTitle}>💰 Shipment Cost Preview</h4>
                   <div style={styles.costRow}>
@@ -569,14 +1132,22 @@ const CreateShipment = () => {
                     <span>Fuel Charge</span>
                     <span>₹{pricing.fuelCharge}</span>
                   </div>
+                  
+                  {insuranceEnabled && (
+                    <div style={styles.costRow}>
+                      <span>🛡️ Insurance Charge</span>
+                      <span>₹{INSURANCE_CHARGE}</span>
+                    </div>
+                  )}
+                  
                   <hr style={styles.costDivider} />
                   <div style={styles.costTotal}>
                     <span>Total Charge</span>
-                    <span style={{ color: "#ea580c" }}>₹{pricing.totalCharge}</span>
+                    <span style={{ color: "#ea580c" }}>₹{totalCharge}</span>
                   </div>
                 </div>
 
-                {/* ✅ FIX 1: Wallet Preview with proper calculations */}
+                {/* Wallet Preview */}
                 <div style={styles.walletCard}>
                   <div style={styles.walletRow}>
                     <span>💰 Wallet Balance</span>
@@ -605,7 +1176,7 @@ const CreateShipment = () => {
                   )}
                 </div>
 
-                {/* ✅ FIX 2: Submit Button with better UX text */}
+                {/* Submit Button */}
                 <div style={styles.buttonWrapper}>
                   <button
                     type="submit"

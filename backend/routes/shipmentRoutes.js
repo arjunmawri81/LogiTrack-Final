@@ -5,6 +5,7 @@ const { authMiddleware } = require("../middleware/authMiddleware");
 
 const {
   createShipment,
+  createBulkShipments,
   getShipments,
   getShipmentById,
   trackShipment,
@@ -13,12 +14,23 @@ const {
   generateShipmentQR,
   getTrackingTimeline,
   generateLabel,
+  bulkLabels, // ✅ ADDED
 } = require("../controllers/shipmentController");
 
 // ===============================
 // CREATE SHIPMENT
 // ===============================
 router.post("/", authMiddleware, createShipment);
+
+// ===============================
+// BULK CREATE SHIPMENTS
+// ===============================
+router.post("/bulk", authMiddleware, createBulkShipments);
+
+// ===============================
+// BULK LABELS DOWNLOAD
+// ===============================
+router.post("/bulk-labels", authMiddleware, bulkLabels); // ✅ ADDED
 
 // ===============================
 // GET ALL SHIPMENTS

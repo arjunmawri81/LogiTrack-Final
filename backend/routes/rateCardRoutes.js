@@ -12,6 +12,8 @@ const {
   getMerchantRateCards,
   getCourierRateCard,
   deleteRateCard,
+  getRecommendedCouriers,
+  calculatePricing, // ✅ ADDED
 } = require("../controllers/rateCardController");
 
 // ====================================
@@ -42,6 +44,24 @@ router.get(
   authMiddleware,
   authorizeRoles("SUPER_ADMIN"),
   getCourierRateCard
+);
+
+// ====================================
+// COURIER RECOMMENDATION
+// ====================================
+router.get(
+  "/recommendation",
+  authMiddleware,
+  getRecommendedCouriers
+);
+
+// ====================================
+// CALCULATE SHIPPING PRICE
+// ====================================
+router.post(
+  "/calculate",
+  authMiddleware,
+  calculatePricing //
 );
 
 // ====================================
