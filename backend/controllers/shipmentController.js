@@ -163,11 +163,23 @@ const createShipment = async (req, res) => {
     // 5. Generate AWB and Create Shipment
     const awb = await generateAWB();
 
-    // ✅ UPDATED: Added insurance fields to shipment creation
+    // ✅ STEP 1: Debug log before shipment creation
+    console.log("===== BEFORE SHIPMENT CREATE =====");
+    console.log({
+      orderId,
+      merchantId: req.user.id,
+      courier: normalizedCourier,
+      awb,
+      insuranceEnabled,
+      insuranceAmount: order.amount || 0,
+      insurancePremium,
+    });
+
+    // ✅ STEP 1: Using normalizedCourier instead of courier.trim()
     const shipment = await Shipment.create({
       orderId,
       merchantId: req.user.id,
-      courier: courier.trim(),
+      courier: normalizedCourier,
       courierPartner: normalizedCourier,
       awb,
       status: "PENDING",
@@ -184,7 +196,17 @@ const createShipment = async (req, res) => {
       ],
     });
 
+    console.log("===== SHIPMENT CREATED =====");
+    console.log(shipment);
+
     // 6. Wallet Deduction
+    console.log("===== BEFORE WALLET SAVE =====");
+    console.log({
+      currentBalance: wallet.balance,
+      deductionAmount: SHIPPING_CHARGE,
+      newBalance: wallet.balance - SHIPPING_CHARGE,
+    });
+
     wallet.balance -= SHIPPING_CHARGE;
     wallet.transactions.push({
       amount: SHIPPING_CHARGE,
@@ -194,7 +216,27 @@ const createShipment = async (req, res) => {
     });
     await wallet.save();
 
+    console.log("===== WALLET SAVED =====");
+    console.log({
+      newBalance: wallet.balance,
+      transactionCount: wallet.transactions.length,
+    });
+
     // 7. Create Invoice
+    console.log("===== BEFORE INVOICE CREATE =====");
+    console.log({
+      invoiceNumber: generateInvoiceNumber(),
+      merchantId: req.user.id,
+      orderId: order._id,
+      shipmentId: shipment._id,
+      amount: order.amount || 0,
+      taxAmount: 18,
+      shippingCharge: SHIPPING_CHARGE,
+      insuranceCharge: insurancePremium,
+      paymentMethod: order.paymentMode || "COD",
+      status: "PAID",
+    });
+
     // ✅ UPDATED: Added insuranceCharge to invoice
     const invoice = await Invoice.create({
       invoiceNumber: generateInvoiceNumber(),
@@ -204,27 +246,70 @@ const createShipment = async (req, res) => {
       amount: order.amount || 0,
       taxAmount: 18,
       shippingCharge: SHIPPING_CHARGE,
-      insuranceCharge: insurancePremium, // ✅ ADDED
+      insuranceCharge: insurancePremium,
       paymentMethod: order.paymentMode || "COD",
       status: "PAID",
     });
 
     console.log("INVOICE CREATED =>", invoice);
 
+    // ✅ STEP 2: CRITICAL FIX - Use findByIdAndUpdate with new: true
+    console.log("===== UPDATING SHIPMENT WITH INVOICE ID USING findByIdAndUpdate =====");
+    console.log("Shipment ID:", shipment._id);
+    console.log("Invoice ID:", invoice._id);
+    
+    const updatedShipment = await Shipment.findByIdAndUpdate(
+      shipment._id,
+      {
+        invoiceId: invoice._id,
+      },
+      {
+        new: true, // ✅ Returns the updated document
+      }
+    );
+    
+    // ✅ ADD THIS CHECK RIGHT AFTER THE UPDATE
+    const checkShipment = await Shipment.findById(shipment._id);
+    console.log("UPDATED SHIPMENT INVOICE =>", checkShipment.invoiceId);
+    
+    console.log("===== SHIPMENT UPDATED WITH INVOICE ID =====");
+    console.log("UPDATED SHIPMENT =>", updatedShipment);
+    console.log("UPDATED INVOICE ID =>", updatedShipment.invoiceId);
+
     // ✅ UPDATE ORDER WITH SHIPMENT AND INVOICE REFERENCES
+    console.log("===== BEFORE ORDER SAVE =====");
+    console.log({
+      orderId: order._id,
+      shipmentId: shipment._id,
+      invoiceId: invoice._id,
+      awb: shipment.awb,
+      courierPartner: shipment.courier,
+      status: "SHIPPED",
+    });
+
     order.shipmentId = shipment._id;
     order.invoiceId = invoice._id;
     order.awb = shipment.awb;
     order.courierPartner = shipment.courier;
-    order.status = "SHIPPED"; // Update order status to SHIPPED
+    order.status = "SHIPPED";
     await order.save();
 
+    console.log("===== ORDER SAVED =====");
     console.log("ORDER UPDATED WITH SHIPMENT & INVOICE =>", order);
+
+    // ✅ Get the final shipment with populated invoiceId
+    const finalShipment = await Shipment.findById(shipment._id)
+      .populate("orderId")
+      .populate("invoiceId");
+
+    console.log("===== FINAL UPDATED SHIPMENT =====");
+    console.log("FINAL INVOICE ID =>", finalShipment.invoiceId);
+    console.log("Full final shipment:", finalShipment);
 
     return res.status(201).json({
       success: true,
       message: "Shipment Created Successfully",
-      shipment,
+      shipment: finalShipment,
       shippingCharge: SHIPPING_CHARGE,
       insurancePremium,
       insuranceEnabled,
@@ -264,6 +349,7 @@ const createBulkShipments = async (req, res) => {
       });
     }
 
+    const normalizedCourier = courier.trim().toLowerCase();
     const shipments = [];
     const failedOrders = [];
     const skippedOrders = [];
@@ -299,8 +385,8 @@ const createBulkShipments = async (req, res) => {
         const shipment = await Shipment.create({
           orderId,
           merchantId: req.user.id,
-          courier: courier.trim(),
-          courierPartner: courier.trim().toLowerCase(),
+          courier: normalizedCourier,
+          courierPartner: normalizedCourier,
           awb,
           status: "PENDING",
           trackingEvents: [
@@ -350,14 +436,21 @@ const createBulkShipments = async (req, res) => {
 };
 
 // ===============================
-// GET ALL SHIPMENTS
+// GET ALL SHIPMENTS (UPDATED WITH NESTED POPULATE)
 // ===============================
 const getShipments = async (req, res) => {
   try {
+    // ✅ UPDATED: Nested populate for orderId.invoiceId
     const shipments = await Shipment.find({
       merchantId: req.user.id,
     })
-      .populate("orderId")
+      .populate({
+        path: "orderId",
+        populate: {
+          path: "invoiceId",
+        },
+      })
+      .populate("invoiceId")
       .sort({ createdAt: -1 });
 
     return res.status(200).json({
@@ -379,7 +472,13 @@ const getShipments = async (req, res) => {
 const getShipmentById = async (req, res) => {
   try {
     const shipment = await Shipment.findById(req.params.id)
-      .populate("orderId");
+      .populate({
+        path: "orderId",
+        populate: {
+          path: "invoiceId",
+        },
+      })
+      .populate("invoiceId");
 
     if (!shipment) {
       return res.status(404).json({
@@ -410,7 +509,14 @@ const trackShipment = async (req, res) => {
     const shipment = await Shipment.findOne({
       awb: id,
       merchantId: req.user.id,
-    }).populate("orderId");
+    })
+      .populate({
+        path: "orderId",
+        populate: {
+          path: "invoiceId",
+        },
+      })
+      .populate("invoiceId");
 
     if (!shipment) {
       return res.status(404).json({

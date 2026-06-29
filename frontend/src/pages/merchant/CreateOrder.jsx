@@ -7,10 +7,25 @@ const CreateOrder = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    customerName: "", customerPhone: "", customerEmail: "", customerAddress: "",
-    city: "", state: "", pincode: "", productName: "", sku: "", quantity: 1,
-    weight: "", length: "", breadth: "", height: "", paymentMode: "PREPAID",
-    amount: "", shippingCharge: "", courierPartner: "", notes: "",
+    customerName: "", 
+    customerPhone: "", 
+    customerEmail: "", 
+    customerAddress: "",
+    city: "", 
+    state: "", 
+    pincode: "", 
+    productName: "", 
+    sku: "", 
+    quantity: 1,
+    weight: "", 
+    length: "", 
+    breadth: "", 
+    height: "", 
+    paymentMode: "PREPAID",
+    amount: "", 
+    shippingCharge: "", 
+    courierPartner: "", 
+    notes: "",
   });
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -29,8 +44,18 @@ const CreateOrder = () => {
     }
   };
 
+  // Grid styles using inline
+  const gridStyles = {
+    display: "grid",
+    gridTemplateColumns: "repeat(2, 1fr)",
+    gap: "20px",
+  };
+
+  const fullWidthStyle = {
+    gridColumn: "1 / -1",
+  };
+
   return (
-    // Change 1: Replace Root Layout
     <div
       style={{
         display: "flex",
@@ -54,7 +79,6 @@ const CreateOrder = () => {
           overflowX: "hidden",
         }}
       >
-        {/* Change 2: Replace Page Heading */}
         <div style={{ marginBottom: "25px" }}>
           <h1
             style={{
@@ -66,7 +90,6 @@ const CreateOrder = () => {
           >
             Create Order
           </h1>
-
           <p
             style={{
               color: "#64748b",
@@ -77,7 +100,6 @@ const CreateOrder = () => {
           </p>
         </div>
         
-        {/* Change 3: Replace Form Container */}
         <form
           onSubmit={handleSubmit}
           style={{
@@ -88,42 +110,221 @@ const CreateOrder = () => {
             boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
           }}
         >
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: "20px" }}>
+          <div style={gridStyles}>
+            {/* Customer Details Section */}
+            <div style={fullWidthStyle}>
+              <h2 style={sectionTitle}>Customer Details</h2>
+            </div>
             
-            <div style={{ gridColumn: "span 2" }}><h2 style={sectionTitle}>Customer Details</h2></div>
-            <input name="customerName" placeholder="Name" value={formData.customerName} onChange={handleChange} required style={inputStyle} />
-            <input name="customerPhone" placeholder="Phone" value={formData.customerPhone} onChange={handleChange} required style={inputStyle} />
-            <input name="customerEmail" placeholder="Email" value={formData.customerEmail} onChange={handleChange} style={inputStyle} />
-            <input name="pincode" placeholder="Pincode" value={formData.pincode} onChange={handleChange} style={inputStyle} />
-            <input name="city" placeholder="City" value={formData.city} onChange={handleChange} style={inputStyle} />
-            <input name="state" placeholder="State" value={formData.state} onChange={handleChange} style={inputStyle} />
-            <textarea name="customerAddress" placeholder="Full Address" value={formData.customerAddress} onChange={handleChange} required style={{...inputStyle, gridColumn: "span 2"}} />
+            <input 
+              name="customerName" 
+              placeholder="Customer Name" 
+              value={formData.customerName} 
+              onChange={handleChange} 
+              required 
+              style={inputStyle} 
+            />
+            <input 
+              name="customerPhone" 
+              placeholder="Phone Number" 
+              value={formData.customerPhone} 
+              onChange={handleChange} 
+              required 
+              style={inputStyle} 
+            />
+            
+            <input 
+              name="customerEmail" 
+              placeholder="Email Address" 
+              value={formData.customerEmail} 
+              onChange={handleChange} 
+              style={inputStyle} 
+            />
+            <input 
+              name="pincode" 
+              placeholder="Pincode" 
+              value={formData.pincode} 
+              onChange={handleChange} 
+              style={inputStyle} 
+            />
+            
+            <input 
+              name="city" 
+              placeholder="City" 
+              value={formData.city} 
+              onChange={handleChange} 
+              style={inputStyle} 
+            />
+            <input 
+              name="state" 
+              placeholder="State" 
+              value={formData.state} 
+              onChange={handleChange} 
+              style={inputStyle} 
+            />
+            
+            <textarea 
+              name="customerAddress" 
+              placeholder="Full Address" 
+              value={formData.customerAddress} 
+              onChange={handleChange} 
+              required 
+              style={{...inputStyle, ...fullWidthStyle}}
+              rows="3"
+            />
 
-            <div style={{ gridColumn: "span 2" }}><h2 style={sectionTitle}>Product & Package</h2></div>
-            <input name="productName" placeholder="Product Name" value={formData.productName} onChange={handleChange} required style={inputStyle} />
-            <input name="sku" placeholder="SKU" value={formData.sku} onChange={handleChange} style={inputStyle} />
-            <input type="number" name="quantity" placeholder="Quantity" value={formData.quantity} onChange={handleChange} style={inputStyle} />
-            <input type="number" name="weight" placeholder="Weight (kg)" value={formData.weight} onChange={handleChange} style={inputStyle} />
-            <input type="number" name="length" placeholder="Length (cm)" value={formData.length} onChange={handleChange} style={inputStyle} />
-            <input type="number" name="breadth" placeholder="Breadth (cm)" value={formData.breadth} onChange={handleChange} style={inputStyle} />
-            <input type="number" name="height" placeholder="Height (cm)" value={formData.height} onChange={handleChange} style={inputStyle} />
+            {/* Product & Package Section */}
+            <div style={fullWidthStyle}>
+              <h2 style={sectionTitle}>Product & Package</h2>
+            </div>
             
-            <div style={{ gridColumn: "span 2" }}><h2 style={sectionTitle}>Payment & Courier</h2></div>
-            <select name="paymentMode" value={formData.paymentMode} onChange={handleChange} style={inputStyle}>
+            <input 
+              name="productName" 
+              placeholder="Product Name" 
+              value={formData.productName} 
+              onChange={handleChange} 
+              required 
+              style={inputStyle} 
+            />
+            <input 
+              name="sku" 
+              placeholder="SKU" 
+              value={formData.sku} 
+              onChange={handleChange} 
+              style={inputStyle} 
+            />
+            
+            <input 
+              type="number" 
+              name="quantity" 
+              placeholder="Quantity" 
+              value={formData.quantity} 
+              onChange={handleChange} 
+              style={inputStyle} 
+            />
+            <input 
+              type="number" 
+              name="weight" 
+              placeholder="Weight (kg)" 
+              value={formData.weight} 
+              onChange={handleChange} 
+              style={inputStyle} 
+            />
+            
+            <input 
+              type="number" 
+              name="length" 
+              placeholder="Length (cm)" 
+              value={formData.length} 
+              onChange={handleChange} 
+              style={inputStyle} 
+            />
+            <input 
+              type="number" 
+              name="breadth" 
+              placeholder="Breadth (cm)" 
+              value={formData.breadth} 
+              onChange={handleChange} 
+              style={inputStyle} 
+            />
+            
+            <input 
+              type="number" 
+              name="height" 
+              placeholder="Height (cm)" 
+              value={formData.height} 
+              onChange={handleChange} 
+              style={{...inputStyle, ...fullWidthStyle}}
+            />
+            
+            {/* Payment & Courier Section */}
+            <div style={fullWidthStyle}>
+              <h2 style={sectionTitle}>Payment & Courier</h2>
+            </div>
+            
+            <input 
+              type="number" 
+              name="amount" 
+              placeholder="Order Amount" 
+              value={formData.amount} 
+              onChange={handleChange} 
+              required 
+              style={inputStyle} 
+            />
+            <select 
+              name="paymentMode" 
+              value={formData.paymentMode} 
+              onChange={handleChange} 
+              style={inputStyle}
+            >
               <option value="PREPAID">PREPAID</option>
               <option value="COD">COD</option>
             </select>
-            <input type="number" name="amount" placeholder="Amount" value={formData.amount} onChange={handleChange} required style={inputStyle} />
-            <select name="courierPartner" value={formData.courierPartner} onChange={handleChange} style={inputStyle}>
+            
+            <select 
+              name="courierPartner" 
+              value={formData.courierPartner} 
+              onChange={handleChange} 
+              style={inputStyle}
+            >
               <option value="">Select Courier</option>
               <option value="DTDC">DTDC</option>
               <option value="Delhivery">Delhivery</option>
               <option value="XpressBees">XpressBees</option>
+              <option value="ShadowFax">ShadowFax</option>
+              <option value="Ecom">Ecom</option>
+              <option value="Bluedart">Bluedart</option>
             </select>
+            
+            <input 
+              type="number" 
+              name="shippingCharge" 
+              placeholder="Shipping Charge" 
+              value={formData.shippingCharge} 
+              onChange={handleChange} 
+              style={inputStyle} 
+            />
+            
+            <textarea
+              name="notes"
+              placeholder="Order Notes (Optional)"
+              value={formData.notes}
+              onChange={handleChange}
+              style={{...inputStyle, ...fullWidthStyle}}
+              rows="3"
+            />
           </div>
 
-          <button type="submit" disabled={loading} style={buttonStyle}>
-            {loading ? "Creating..." : "Create Order"}
+          <button 
+            type="submit" 
+            disabled={loading} 
+            style={{
+              background: "#f97316",
+              color: "#fff",
+              border: "none",
+              padding: "15px 30px",
+              borderRadius: "12px",
+              cursor: "pointer",
+              fontWeight: "700",
+              fontSize: "17px",
+              height: "55px",
+              marginTop: "20px",
+              width: "100%",
+              transition: "all 0.3s ease",
+              opacity: loading ? 0.7 : 1,
+            }}
+            onMouseEnter={(e) => {
+              if (!loading) {
+                e.target.style.background = "#ea580c";
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!loading) {
+                e.target.style.background = "#f97316";
+              }
+            }}
+          >
+            {loading ? "Creating Order..." : "Create Order"}
           </button>
         </form>
       </div>
@@ -131,8 +332,21 @@ const CreateOrder = () => {
   );
 };
 
-const sectionTitle = { fontSize: "18px", color: "#1e293b", margin: "10px 0" };
-const inputStyle = { width: "100%", padding: "12px", borderRadius: "10px", border: "1px solid #e2e8f0", fontSize: "14px" };
-const buttonStyle = { background: "#f97316", color: "#fff", border: "none", padding: "15px 30px", borderRadius: "12px", cursor: "pointer", fontWeight: "600", marginTop: "20px", width: "100%" };
+const sectionTitle = { 
+  fontSize: "18px", 
+  color: "#1e293b", 
+  margin: "10px 0",
+  fontWeight: "600",
+};
+
+const inputStyle = { 
+  width: "100%", 
+  padding: "12px", 
+  borderRadius: "10px", 
+  border: "1px solid #e2e8f0", 
+  fontSize: "14px",
+  boxSizing: "border-box",
+  transition: "border-color 0.3s ease",
+};
 
 export default CreateOrder;

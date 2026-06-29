@@ -83,7 +83,7 @@ const invoiceSchema = new mongoose.Schema(
 // ================================
 // AUTO CALCULATE TOTAL AMOUNT
 // ================================
-invoiceSchema.pre("save", function () {
+invoiceSchema.pre("save", async function () {
   this.totalAmount =
     Number(this.amount || 0) +
     Number(this.taxAmount || 0) +

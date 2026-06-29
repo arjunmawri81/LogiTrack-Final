@@ -130,10 +130,12 @@ const getInvoices = async (req, res) => {
       req.user.id
     );
 
+    // ✅ FIX: Added populate("shipmentId") to get shipment details
     const invoices = await Invoice.find({
       merchantId: req.user.id,
     })
       .populate("orderId")
+      .populate("shipmentId")  // ← THIS WAS MISSING
       .sort({ createdAt: -1 });
 
     console.log(

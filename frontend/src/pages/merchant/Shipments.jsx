@@ -3,8 +3,18 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import api from "../../services/api";
 import { 
-  FaTruck, FaSearch, FaDownload, FaTimes, FaEye, FaQrcode,
-  FaBox, FaClock, FaCheckCircle, FaExclamationTriangle, FaUndo, FaFilter
+  FaTruck,
+  FaSearch,
+  FaDownload,
+  FaTimes,
+  FaEye,
+  FaFileInvoice,
+  FaBox,
+  FaClock,
+  FaCheckCircle,
+  FaExclamationTriangle,
+  FaUndo,
+  FaFilter,
 } from "react-icons/fa";
 
 const Shipments = () => {
@@ -15,8 +25,6 @@ const Shipments = () => {
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [showModal, setShowModal] = useState(false);
   const [selectedTimeline, setSelectedTimeline] = useState([]);
-  const [showQRModal, setShowQRModal] = useState(false);
-  const [qrImage, setQrImage] = useState("");
 
   useEffect(() => {
     fetchShipments();
@@ -25,7 +33,12 @@ const Shipments = () => {
   const fetchShipments = async () => {
     try {
       setLoading(true);
+      
       const res = await api.get("/shipments");
+      
+      console.log("SHIPMENTS =>", res.data.shipments);
+      console.log("FIRST SHIPMENT =>", res.data.shipments[0]);
+      
       setShipments(res.data.shipments || []);
     } catch (error) {
       console.error("Error fetching shipments:", error);
@@ -65,17 +78,53 @@ const Shipments = () => {
     }
   };
 
-  const handleOpenQR = async (shipmentId) => {
+  // ✅ UPDATED: Fixed Invoice download function
+  const downloadInvoice = async (shipment) => {
     try {
-      const res = await api.get(`/shipments/${shipmentId}/qr`);
-      if (res.data?.qrCode) {
-        setQrImage(res.data.qrCode);
-        setShowQRModal(true);
-      } else {
-        alert("QR Code not found");
+      let invoiceId = null;
+
+      if (shipment.invoiceId?._id) {
+        invoiceId = shipment.invoiceId._id;
+      } else if (typeof shipment.invoiceId === "string") {
+        invoiceId = shipment.invoiceId;
       }
-    } catch (err) {
-      alert("Failed to fetch QR Code");
+
+      if (!invoiceId) {
+        alert("Invoice not generated");
+        return;
+      }
+
+      const token = localStorage.getItem("token");
+
+      const response = await fetch(
+        `http://localhost:5000/api/invoices/${invoiceId}/download`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Invoice download failed");
+      }
+
+      const blob = await response.blob();
+
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `invoice-${invoiceId}.pdf`;
+
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error(error);
+      alert("Invoice download failed");
     }
   };
 
@@ -339,29 +388,6 @@ const Shipments = () => {
     timelineMeta: {
       fontSize: "11px",
       color: "#94a3b8"
-    },
-    qrModalContent: {
-      background: "#fff",
-      padding: "25px",
-      borderRadius: "20px",
-      textAlign: "center",
-      maxWidth: "90vw"
-    },
-    qrImage: {
-      width: "250px",
-      height: "250px",
-      marginTop: "15px",
-      borderRadius: "12px"
-    },
-    qrCloseBtn: {
-      marginTop: "15px",
-      padding: "10px 20px",
-      background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
-      color: "#fff",
-      border: "none",
-      borderRadius: "10px",
-      cursor: "pointer",
-      fontWeight: "500"
     }
   };
 
@@ -476,7 +502,7 @@ const Shipments = () => {
                 <option value="PACKED">Packed</option>
                 <option value="READY_FOR_PICKUP">Ready For Pickup</option>
                 <option value="PICKED_UP">Picked Up</option>
-                <option value="IN_TRANSIT">In Transit</option> {/* ✅ ADDED */}
+                <option value="IN_TRANSIT">In Transit</option>
                 <option value="OUT_FOR_DELIVERY">Out For Delivery</option>
                 <option value="DELIVERED">Delivered</option>
                 <option value="NDR">NDR</option>
@@ -520,7 +546,17 @@ const Shipments = () => {
                 <table style={s.table}>
                   <thead>
                     <tr style={s.tableHead}>
-                      {["AWB", "CUSTOMER", "COURIER", "STATUS", "DATE", "DETAILS", "QR", "LABEL", "TIMELINE"].map((h) => (
+                      {[
+                        "AWB",
+                        "CUSTOMER",
+                        "COURIER",
+                        "STATUS",
+                        "DATE",
+                        "DETAILS",
+                        "INVOICE",
+                        "LABEL",
+                        "TIMELINE"
+                      ].map((h) => (
                         <th key={h} style={s.th}>{h}</th>
                       ))}
                     </tr>
@@ -577,11 +613,17 @@ const Shipments = () => {
                             </button>
                           </td>
                           
+                          {/* ✅ Updated Invoice Button with fixed function */}
                           <td style={s.td}>
-                            <button onClick={() => handleOpenQR(shipment._id)} style={s.btn("#16a34a")}>
-                              <FaQrcode size={11} /> QR
+                            <button
+                              onClick={() => downloadInvoice(shipment)}
+                              style={s.btn("#059669")}
+                            >
+                              <FaFileInvoice size={11} />
+                              Invoice
                             </button>
                           </td>
+                          
                           <td style={s.td}>
                             <button onClick={() => downloadLabel(shipment._id, shipment.awb)} style={s.btn("#2563eb")}>
                               <FaDownload size={11} /> Label
@@ -643,20 +685,6 @@ const Shipments = () => {
                 </div>
               )) : <p style={{ textAlign: "center", color: "#94a3b8", padding: "20px" }}>No updates yet</p>}
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* QR Modal */}
-      {showQRModal && (
-        <div style={s.modalOverlay} onClick={() => setShowQRModal(false)}>
-          <div style={s.qrModalContent} onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ margin: 0, fontSize: "18px", color: "#0f172a" }}>Shipment QR Code</h3>
-            <img src={qrImage} alt="Shipment QR" style={s.qrImage} />
-            <br />
-            <button onClick={() => setShowQRModal(false)} style={s.qrCloseBtn}>
-              Close
-            </button>
           </div>
         </div>
       )}

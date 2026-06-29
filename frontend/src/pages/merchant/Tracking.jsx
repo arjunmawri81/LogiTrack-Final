@@ -56,14 +56,27 @@ const Tracking = () => {
   const styles = {
     container: {
       display: "flex",
-      background: "#f8fafc",
+      flexDirection: "column",
+      background: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)",
       minHeight: "100vh",
       fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
     },
+    sidebarWrapper: {
+      width: "100%",
+      flexShrink: 0
+    },
     main: {
       flex: 1,
-      padding: "30px",
-      boxSizing: "border-box",
+      padding: "24px 20px",
+      width: "100%",
+      maxWidth: "100%",
+      margin: "0 auto",
+      boxSizing: "border-box"
+    },
+    contentWrapper: {
+      maxWidth: "1200px",
+      margin: "0 auto",
+      width: "100%"
     },
     pageHeader: {
       marginBottom: "28px"
@@ -321,43 +334,34 @@ const Tracking = () => {
   const desktopStyles = `
     @media (min-width: 768px) {
       .tracking-container {
-        display: flex !important;
+        flex-direction: row !important;
       }
-
       .sidebar-wrapper {
         width: 280px !important;
-        flex-shrink: 0;
       }
-
       .tracking-main {
-        flex: 1 !important;
-        padding: 30px !important;
+        padding: 32px 40px !important;
       }
-
       .info-grid {
+        grid-template-columns: repeat(4, 1fr) !important;
         gap: 28px !important;
       }
-      
       .timeline-item:last-child {
         border-bottom: none !important;
       }
     }
 
-    @media (max-width: 768px) {
+    @media (max-width: 767px) {
       .tracking-container {
         flex-direction: column !important;
       }
-
       .tracking-main {
-        width: 100% !important;
-        padding: 20px !important;
+        padding: 16px !important;
       }
-
       .info-grid {
         grid-template-columns: 1fr !important;
       }
-
-      .cardHeader {
+      .card-header {
         flex-direction: column !important;
         align-items: flex-start !important;
         gap: 10px;
@@ -367,10 +371,6 @@ const Tracking = () => {
     @media (min-width: 1024px) {
       .tracking-main {
         padding: 40px !important;
-      }
-      
-      .info-grid {
-        grid-template-columns: repeat(4, 1fr) !important;
       }
     }
 
@@ -393,156 +393,158 @@ const Tracking = () => {
     <>
       <style>{desktopStyles}</style>
       <div className="tracking-container" style={styles.container}>
-        <div className="sidebar-wrapper">
+        <div className="sidebar-wrapper" style={styles.sidebarWrapper}>
           <Sidebar />
         </div>
 
         <main className="tracking-main" style={styles.main}>
-          <div style={styles.pageHeader}>
-            <h1 style={styles.title}>Track Shipment</h1>
-            <p style={styles.subtitle}>Real-time shipment tracking and updates</p>
-          </div>
-
-          {/* Search Card */}
-          <div style={styles.searchCard}>
-            <div style={styles.searchHeader}>
-              <div style={styles.searchIcon}>
-                <FaTruck />
-              </div>
-              <div>
-                <h3 style={styles.searchTitle}>Enter AWB Details</h3>
-              </div>
+          <div style={styles.contentWrapper}>
+            <div style={styles.pageHeader}>
+              <h1 style={styles.title}>Track Shipment</h1>
+              <p style={styles.subtitle}>Real-time shipment tracking and updates</p>
             </div>
-            <div style={styles.inputWrapper}>
-              <label style={styles.inputLabel}>Air Waybill Number</label>
-              <input 
-                type="text" 
-                placeholder="e.g. AWB17813389631365888" 
-                value={awb} 
-                onChange={(e) => setAwb(e.target.value)} 
-                style={styles.input}
-                onFocus={(e) => e.target.style.borderColor = "#f97316"}
-                onBlur={(e) => e.target.style.borderColor = "#e2e8f0"}
-              />
+
+            {/* Search Card */}
+            <div style={styles.searchCard}>
+              <div style={styles.searchHeader}>
+                <div style={styles.searchIcon}>
+                  <FaTruck />
+                </div>
+                <div>
+                  <h3 style={styles.searchTitle}>Enter AWB Details</h3>
+                </div>
+              </div>
+              <div style={styles.inputWrapper}>
+                <label style={styles.inputLabel}>Air Waybill Number</label>
+                <input 
+                  type="text" 
+                  placeholder="e.g. AWB17813389631365888" 
+                  value={awb} 
+                  onChange={(e) => setAwb(e.target.value)} 
+                  style={styles.input}
+                  onFocus={(e) => e.target.style.borderColor = "#f97316"}
+                  onBlur={(e) => e.target.style.borderColor = "#e2e8f0"}
+                />
+              </div>
+              <button onClick={handleTrack} disabled={loading} style={styles.button}>
+                {loading ? "Tracking..." : "Track Shipment"}
+              </button>
             </div>
-            <button onClick={handleTrack} disabled={loading} style={styles.button}>
-              {loading ? "Tracking..." : "Track Shipment"}
-            </button>
-          </div>
 
-          {/* Shipment Details */}
-          {shipment && (
-            <div style={styles.detailsCard}>
-              <div style={styles.cardHeader}>
-                <div style={styles.cardTitle}>
-                  <FaBox style={{ color: "#f97316" }} />
-                  Shipment Details
+            {/* Shipment Details */}
+            {shipment && (
+              <div style={styles.detailsCard}>
+                <div style={styles.cardHeader}>
+                  <div style={styles.cardTitle}>
+                    <FaBox style={{ color: "#f97316" }} />
+                    Shipment Details
+                  </div>
+                  <div style={{...styles.statusBadgeLarge, ...getStatusStyle(shipment.status)}}>
+                    {getStatusStyle(shipment.status).icon}
+                    {shipment.status || "PENDING"}
+                  </div>
                 </div>
-                <div style={{...styles.statusBadgeLarge, ...getStatusStyle(shipment.status)}}>
-                  {getStatusStyle(shipment.status).icon}
-                  {shipment.status || "PENDING"}
-                </div>
-              </div>
 
-              <div className="info-grid" style={styles.infoGrid}>
-                <div style={styles.infoItem}>
-                  <div style={styles.infoLabel}>
-                    <FaTruck size={11} /> AWB NUMBER
+                <div className="info-grid" style={styles.infoGrid}>
+                  <div style={styles.infoItem}>
+                    <div style={styles.infoLabel}>
+                      <FaTruck size={11} /> AWB NUMBER
+                    </div>
+                    <p style={styles.infoValue}>{shipment.awb || "N/A"}</p>
+                    <p style={styles.infoValueSmall}>{shipment.courier || "Delhivery"}</p>
                   </div>
-                  <p style={styles.infoValue}>{shipment.awb || "N/A"}</p>
-                  <p style={styles.infoValueSmall}>{shipment.courier || "Delhivery"}</p>
-                </div>
-                <div style={styles.infoItem}>
-                  <div style={styles.infoLabel}>
-                    <FaUser size={11} /> CUSTOMER
-                  </div>
-                  <p style={styles.infoValue}>{shipment.orderId?.customerName || "Rahul Sharma"}</p>
-                  <div style={{ display: "flex", alignItems: "center", gap: "4px", marginTop: "4px" }}>
-                    <FaPhoneAlt size={10} style={{ color: "#94a3b8" }} />
-                    <p style={styles.infoValueSmall}>{shipment.orderId?.customerPhone || "9876543210"}</p>
-                  </div>
-                </div>
-                <div style={styles.infoItem}>
-                  <div style={styles.infoLabel}>
-                    <FaCalendarAlt size={11} /> PICKUP DATE
-                  </div>
-                  <p style={styles.infoValue}>
-                    {shipment.pickupDate ? new Date(shipment.pickupDate).toLocaleDateString('en-IN', {
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric'
-                    }) : "Pending"}
-                  </p>
-                </div>
-                <div style={styles.infoItem}>
-                  <div style={styles.infoLabel}>
-                    <FaCalendarAlt size={11} /> DELIVERY DATE
-                  </div>
-                  <p style={styles.infoValue}>
-                    {shipment.deliveryDate ? new Date(shipment.deliveryDate).toLocaleDateString('en-IN', {
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric'
-                    }) : "Not Delivered"}
-                  </p>
-                </div>
-              </div>
-
-              <div style={styles.divider} />
-
-              {/* Progress Bar */}
-              <div style={styles.progressSection}>
-                <div style={styles.progressHeader}>
-                  <span style={styles.progressLabel}>Shipment Progress</span>
-                  <span style={styles.progressPercent}>{getProgressPercent(shipment.status)} Complete</span>
-                </div>
-                <div style={styles.progressBarWrapper}>
-                  <div style={{...styles.progressBar, width: getProgressWidth(shipment.status)}} />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Tracking Timeline */}
-          {shipment?.trackingEvents?.length > 0 && (
-            <div style={styles.timelineCard}>
-              <div style={styles.cardHeader}>
-                <div style={styles.cardTitle}>
-                  <FaClock style={{ color: "#f97316" }} />
-                  Tracking Timeline
-                </div>
-              </div>
-              {[...shipment.trackingEvents].reverse().map((event, index) => (
-                <div key={index} className="timeline-item" style={styles.timelineItem}>
-                  <div style={styles.timelineIcon}>
-                    {event.status === "DELIVERED" ? <FaCheckCircle /> : 
-                     event.status === "IN_TRANSIT" ? <FaTruck /> : 
-                     <FaClock />}
-                  </div>
-                  <div style={styles.timelineContent}>
-                    <div style={styles.timelineStatus}>{event.status}</div>
-                    <div style={styles.timelineRemark}>{event.remark}</div>
-                    <div style={styles.timelineMeta}>
-                      <span style={styles.timelineLocation}>
-                        <FaMapMarkerAlt size={10} /> {event.location || "Warehouse"}
-                      </span>
-                      <span style={styles.timelineTime}>
-                        <FaClock size={10} /> {event.timestamp ? new Date(event.timestamp).toLocaleString() : ""}
-                      </span>
+                  <div style={styles.infoItem}>
+                    <div style={styles.infoLabel}>
+                      <FaUser size={11} /> CUSTOMER
+                    </div>
+                    <p style={styles.infoValue}>{shipment.orderId?.customerName || "Rahul Sharma"}</p>
+                    <div style={{ display: "flex", alignItems: "center", gap: "4px", marginTop: "4px" }}>
+                      <FaPhoneAlt size={10} style={{ color: "#94a3b8" }} />
+                      <p style={styles.infoValueSmall}>{shipment.orderId?.customerPhone || "9876543210"}</p>
                     </div>
                   </div>
+                  <div style={styles.infoItem}>
+                    <div style={styles.infoLabel}>
+                      <FaCalendarAlt size={11} /> PICKUP DATE
+                    </div>
+                    <p style={styles.infoValue}>
+                      {shipment.pickupDate ? new Date(shipment.pickupDate).toLocaleDateString('en-IN', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric'
+                      }) : "Pending"}
+                    </p>
+                  </div>
+                  <div style={styles.infoItem}>
+                    <div style={styles.infoLabel}>
+                      <FaCalendarAlt size={11} /> DELIVERY DATE
+                    </div>
+                    <p style={styles.infoValue}>
+                      {shipment.deliveryDate ? new Date(shipment.deliveryDate).toLocaleDateString('en-IN', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric'
+                      }) : "Not Delivered"}
+                    </p>
+                  </div>
                 </div>
-              ))}
-            </div>
-          )}
 
-          {/* Empty State */}
-          {shipment && shipment?.trackingEvents?.length === 0 && (
-            <div style={styles.emptyState}>
-              <FaTruck size={48} style={{ opacity: 0.3, marginBottom: "16px" }} />
-              <p>No tracking events available yet</p>
-            </div>
-          )}
+                <div style={styles.divider} />
+
+                {/* Progress Bar */}
+                <div style={styles.progressSection}>
+                  <div style={styles.progressHeader}>
+                    <span style={styles.progressLabel}>Shipment Progress</span>
+                    <span style={styles.progressPercent}>{getProgressPercent(shipment.status)} Complete</span>
+                  </div>
+                  <div style={styles.progressBarWrapper}>
+                    <div style={{...styles.progressBar, width: getProgressWidth(shipment.status)}} />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Tracking Timeline */}
+            {shipment?.trackingEvents?.length > 0 && (
+              <div style={styles.timelineCard}>
+                <div style={styles.cardHeader}>
+                  <div style={styles.cardTitle}>
+                    <FaClock style={{ color: "#f97316" }} />
+                    Tracking Timeline
+                  </div>
+                </div>
+                {[...shipment.trackingEvents].reverse().map((event, index) => (
+                  <div key={index} className="timeline-item" style={styles.timelineItem}>
+                    <div style={styles.timelineIcon}>
+                      {event.status === "DELIVERED" ? <FaCheckCircle /> : 
+                       event.status === "IN_TRANSIT" ? <FaTruck /> : 
+                       <FaClock />}
+                    </div>
+                    <div style={styles.timelineContent}>
+                      <div style={styles.timelineStatus}>{event.status}</div>
+                      <div style={styles.timelineRemark}>{event.remark}</div>
+                      <div style={styles.timelineMeta}>
+                        <span style={styles.timelineLocation}>
+                          <FaMapMarkerAlt size={10} /> {event.location || "Warehouse"}
+                        </span>
+                        <span style={styles.timelineTime}>
+                          <FaClock size={10} /> {event.timestamp ? new Date(event.timestamp).toLocaleString() : ""}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Empty State */}
+            {shipment && shipment?.trackingEvents?.length === 0 && (
+              <div style={styles.emptyState}>
+                <FaTruck size={48} style={{ opacity: 0.3, marginBottom: "16px" }} />
+                <p>No tracking events available yet</p>
+              </div>
+            )}
+          </div>
         </main>
       </div>
     </>

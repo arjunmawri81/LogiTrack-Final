@@ -215,9 +215,8 @@ const shipmentSchema = new mongoose.Schema(
   }
 );
 
-// ============ PRE-SAVE HOOK ============
-shipmentSchema.pre("save", function(next) {
-  // Initial tracking event
+// ============ PRE-SAVE HOOK (UPDATED - Removed next()) ============
+shipmentSchema.pre("save", function () {
   if (!this.trackingEvents || this.trackingEvents.length === 0) {
     this.trackingEvents = [
       {
@@ -229,22 +228,17 @@ shipmentSchema.pre("save", function(next) {
     ];
   }
 
-  // Auto-update pickup date when status changes to READY_FOR_PICKUP
   if (this.status === "READY_FOR_PICKUP" && !this.pickupDate) {
     this.pickupDate = new Date();
   }
 
-  // Auto-update delivery date when status changes to DELIVERED
   if (this.status === "DELIVERED" && !this.deliveryDate) {
     this.deliveryDate = new Date();
   }
 
-  // Auto-update RTO completed date
   if (this.rtoStatus === "COMPLETED" && !this.rtoDetails.completedDate) {
     this.rtoDetails.completedDate = new Date();
   }
-
-  next();
 });
 
 // ============ INSTANCE METHODS ============

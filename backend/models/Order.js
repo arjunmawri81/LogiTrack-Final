@@ -166,7 +166,7 @@ const orderSchema = new mongoose.Schema(
   }
 );
 
-orderSchema.pre("save", function () {
+orderSchema.pre("save", async function () {
   if (!this.orderNumber) {
     this.orderNumber =
       "ORD" +

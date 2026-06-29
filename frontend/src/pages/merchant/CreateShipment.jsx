@@ -281,7 +281,7 @@ const CreateShipment = () => {
       margin: "0 auto",
       boxSizing: "border-box",
       display: "flex",
-      alignItems: "center",
+      alignItems: "flex-start",
       justifyContent: "center"
     },
     formContainer: {
@@ -290,7 +290,7 @@ const CreateShipment = () => {
       border: "1px solid rgba(226, 232, 240, 0.8)",
       boxShadow: "0 20px 25px -5px rgba(0,0,0,0.05), 0 10px 10px -5px rgba(0,0,0,0.01)",
       width: "100%",
-      maxWidth: "560px",
+      maxWidth: "1200px",
       overflow: "hidden"
     },
     formHeader: {
@@ -701,6 +701,22 @@ const CreateShipment = () => {
       }
     }
 
+    @media (max-width: 767px) {
+      .create-shipment-main {
+        padding: 16px !important;
+      }
+      .create-shipment-main > div {
+        max-width: 100% !important;
+        border-radius: 16px !important;
+      }
+      .create-shipment-main > div > div:first-child {
+        padding: 20px 16px !important;
+      }
+      .create-shipment-main > div > div:last-child {
+        padding: 20px 16px !important;
+      }
+    }
+
     select:focus {
       border-color: #f97316 !important;
       box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1) !important;
@@ -830,7 +846,7 @@ const CreateShipment = () => {
                   </select>
                 </div>
 
-                {/* ✅ UPDATED: Top 3 Recommended Couriers Card */}
+                {/* Top 3 Recommended Couriers Card */}
                 {recommendationLoading ? (
                   <div style={styles.loadingText}>⏳ Finding best couriers...</div>
                 ) : courierRates.length > 0 ? (
@@ -843,7 +859,6 @@ const CreateShipment = () => {
                       </div>
                       
                       {courierRates.slice(0, 3).map((c, index) => {
-                        // ✅ FIXED: Use total directly from backend
                         const total = Number(c.total || 0);
                         const isCheapest = index === 0;
                         
@@ -947,7 +962,6 @@ const CreateShipment = () => {
 
                           <tbody>
                             {courierRates.slice(0, 5).map((c, index) => {
-                              // ✅ FIXED: Use fields directly from backend
                               const total = Number(c.total || 0);
                               const isCheapest = index === 0;
                               const eta = c.eta || etaMap[c.courier] || "N/A";
@@ -1045,7 +1059,7 @@ const CreateShipment = () => {
                   </div>
                 ) : null}
 
-                {/* ✅ UPDATED: Dynamic Courier Dropdown */}
+                {/* Dynamic Courier Dropdown */}
                 <div style={styles.formGroup}>
                   <div style={styles.label}>
                     <FaTruck style={styles.labelIcon} />

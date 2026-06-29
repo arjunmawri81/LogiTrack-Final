@@ -5,6 +5,9 @@ import { FaDownload } from "react-icons/fa";
 
 const Invoices = () => {
   const [invoices, setInvoices] = useState([]);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [courierFilter, setCourierFilter] = useState("ALL");
   const [summary, setSummary] = useState({
     totalInvoices: 0,
     paidInvoices: 0,
@@ -64,6 +67,25 @@ const Invoices = () => {
       console.log(error);
     }
   };
+
+  // ✅ Filter invoices
+  const filteredInvoices = invoices.filter((invoice) => {
+    const searchText = search.toLowerCase();
+
+    const matchesSearch =
+      invoice.invoiceNumber?.toLowerCase().includes(searchText) ||
+      invoice.shipmentId?.awb?.toLowerCase().includes(searchText) ||
+      invoice.orderId?.customerName?.toLowerCase().includes(searchText);
+
+    const matchesStatus =
+      statusFilter === "ALL" || invoice.status === statusFilter;
+
+    const matchesCourier =
+      courierFilter === "ALL" ||
+      invoice.shipmentId?.courier?.toLowerCase() === courierFilter.toLowerCase();
+
+    return matchesSearch && matchesStatus && matchesCourier;
+  });
 
   return (
     <div
@@ -202,10 +224,70 @@ const Invoices = () => {
                 letterSpacing: "0.5px",
               }}
             >
-              Total Revenue
+              Total Billing
             </h3>
             <h2 style={{ color: "#0f172a" }}>₹{summary.totalRevenue}</h2>
           </div>
+        </div>
+
+        {/* Search and Filter Section */}
+        <div
+          style={{
+            display: "flex",
+            gap: "15px",
+            marginBottom: "20px",
+            flexWrap: "wrap",
+          }}
+        >
+          <input
+            type="text"
+            placeholder="Search Invoice / AWB / Customer..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{
+              flex: 1,
+              minWidth: "280px",
+              padding: "12px 15px",
+              border: "1px solid #d1d5db",
+              borderRadius: "10px",
+              outline: "none",
+              fontSize: "14px",
+            }}
+          />
+
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            style={{
+              padding: "12px",
+              borderRadius: "10px",
+              border: "1px solid #d1d5db",
+              minWidth: "160px",
+            }}
+          >
+            <option value="ALL">All Status</option>
+            <option value="PAID">Paid</option>
+            <option value="PENDING">Pending</option>
+            <option value="FAILED">Failed</option>
+          </select>
+
+          <select
+            value={courierFilter}
+            onChange={(e) => setCourierFilter(e.target.value)}
+            style={{
+              padding: "12px",
+              borderRadius: "10px",
+              border: "1px solid #d1d5db",
+              minWidth: "170px",
+            }}
+          >
+            <option value="ALL">All Couriers</option>
+            <option value="delhivery">Delhivery</option>
+            <option value="dtdc">DTDC</option>
+            <option value="xpressbees">XpressBees</option>
+            <option value="shadowfax">Shadowfax</option>
+            <option value="ecom">Ecom</option>
+          </select>
         </div>
 
         {/* Invoice Table */}
@@ -256,7 +338,33 @@ const Invoices = () => {
                     letterSpacing: "0.5px",
                   }}
                 >
-                  Order No
+                  AWB
+                </th>
+                <th
+                  style={{
+                    padding: "16px",
+                    textAlign: "left",
+                    color: "#64748b",
+                    fontSize: "12px",
+                    fontWeight: "600",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                  }}
+                >
+                  Customer
+                </th>
+                <th
+                  style={{
+                    padding: "16px",
+                    textAlign: "left",
+                    color: "#64748b",
+                    fontSize: "12px",
+                    fontWeight: "600",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                  }}
+                >
+                  Courier
                 </th>
                 <th
                   style={{
@@ -308,13 +416,13 @@ const Invoices = () => {
                     letterSpacing: "0.5px",
                   }}
                 >
-                  Action
+                  Download
                 </th>
               </tr>
             </thead>
 
             <tbody>
-              {invoices.map((invoice) => (
+              {filteredInvoices.map((invoice) => (
                 <tr
                   key={invoice._id}
                   style={{
@@ -349,7 +457,7 @@ const Invoices = () => {
                     </span>
                   </td>
 
-                  {/* Order Number */}
+                  {/* AWB */}
                   <td
                     style={{
                       padding: "16px",
@@ -358,7 +466,31 @@ const Invoices = () => {
                       fontSize: "14px",
                     }}
                   >
-                    {invoice.orderId?.orderNumber || "-"}
+                    {invoice.shipmentId?.awb || "-"}
+                  </td>
+
+                  {/* Customer */}
+                  <td
+                    style={{
+                      padding: "16px",
+                      color: "#0f172a",
+                      fontSize: "14px",
+                      fontWeight: "500",
+                    }}
+                  >
+                    {invoice.orderId?.customerName || "-"}
+                  </td>
+
+                  {/* Courier */}
+                  <td
+                    style={{
+                      padding: "16px",
+                      color: "#334155",
+                      fontSize: "14px",
+                      fontWeight: "500",
+                    }}
+                  >
+                    {invoice.shipmentId?.courier || "-"}
                   </td>
 
                   {/* Amount */}
@@ -424,7 +556,7 @@ const Invoices = () => {
                     ).toLocaleDateString()}
                   </td>
 
-                  {/* Action */}
+                  {/* Download Button */}
                   <td
                     style={{
                       padding: "16px",
@@ -434,6 +566,7 @@ const Invoices = () => {
                     }}
                   >
                     <button
+                      title="Download Invoice"
                       onClick={() =>
                         downloadInvoice(invoice._id)
                       }
@@ -459,15 +592,17 @@ const Invoices = () => {
             </tbody>
           </table>
 
-          {invoices.length === 0 && (
+          {filteredInvoices.length === 0 && (
             <div
               style={{
                 textAlign: "center",
-                padding: "30px",
+                padding: "60px 30px",
                 color: "#64748b",
               }}
             >
-              No Invoices Found
+              No invoices available.
+              <br />
+              Create shipments to generate invoices.
             </div>
           )}
         </div>
