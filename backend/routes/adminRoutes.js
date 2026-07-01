@@ -44,11 +44,15 @@ const {
   bulkUpdateStatus,
   bulkAssignCourier,
 
-  // ✅ NDR Management (Admin) - ADDED
+  // ✅ NDR Management (Admin)
   getAdminNDR,
   approveReattempt,
   approveRTO,
   rejectNDRRequest,
+
+  // ✅ RTO Management (Admin) - ADDED
+  getAdminRTO,
+
 } = require("../controllers/adminController");
 
 // ================================
@@ -291,7 +295,7 @@ router.get(
 );
 
 // ================================
-// NDR MANAGEMENT (ADMIN) - ✅ ADDED
+// NDR MANAGEMENT (ADMIN)
 // ================================
 
 // Get All NDR Records
@@ -324,6 +328,18 @@ router.patch(
   authMiddleware,
   authorizeRoles("ADMIN", "SUPER_ADMIN"),
   rejectNDRRequest
+);
+
+// ================================
+// RTO MANAGEMENT (ADMIN) - ✅ ADDED
+// ================================
+
+// Get All RTO Records
+router.get(
+  "/rto",
+  authMiddleware,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
+  getAdminRTO
 );
 
 module.exports = router;

@@ -1071,6 +1071,32 @@ const rejectNDRRequest = async (req, res) => {
 };
 
 // ================================
+// ADMIN RTO MANAGEMENT - ✅ NEW FUNCTION
+// ================================
+const getAdminRTO = async (req, res) => {
+  try {
+    const rtos = await RTO.find()
+      .populate("merchantId", "name companyName")
+      .populate("orderId", "orderNumber customerName customerPhone")
+      .populate("shipmentId", "awb courier")
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      rtos,
+    });
+
+  } catch (err) {
+    console.error(err);
+
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
+// ================================
 // COMMISSION & REVENUE
 // ================================
 const getCommission = async (req, res) => {
@@ -1447,6 +1473,9 @@ module.exports = {
   approveReattempt,
   approveRTO,
   rejectNDRRequest,
+  
+  // Admin RTO Management - ✅ NEW
+  getAdminRTO,
   
   // Commission & Revenue
   getCommission,

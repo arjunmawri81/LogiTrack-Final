@@ -30,17 +30,24 @@ const createRTO = async (req, res) => {
 };
 
 // ================================
-// GET ALL RTO (Merchant) - ✅ FIXED
+// GET ALL RTO (Admin & Merchant) - ✅ FIXED
 // ================================
 const getRTOs = async (req, res) => {
   try {
-    const rtos = await RTO.find({
-      merchantId: req.user.id,
-    })
-    .populate("shipmentId", "awb courier status trackingUrl")
-    .populate("orderId", "orderNumber customerName customerPhone customerEmail")
-    .populate("ndrId", "ndrReason status")
-    .sort({ createdAt: -1 });
+    let query = {};
+
+    // Merchant → sirf apne RTO
+    if (req.user.role === "MERCHANT") {
+      query.merchantId = req.user.id;
+    }
+
+    // Admin & Super Admin → sab RTO
+    const rtos = await RTO.find(query)
+      .populate("merchantId", "name companyName email")
+      .populate("shipmentId")
+      .populate("orderId")
+      .populate("ndrId")
+      .sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
@@ -375,14 +382,172 @@ const cancelRTO = async (req, res) => {
 };
 
 // ================================
+// ADMIN RTO STATUS UPDATES - ✅ NEW FUNCTIONS
+// ================================
+
+// 1. Schedule Pickup
+const schedulePickup = async (req, res) => {
+  try {
+    const rto = await RTO.findById(req.params.id);
+
+    if (!rto) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "RTO not found" 
+      });
+    }
+
+    rto.status = "PICKUP_SCHEDULED";
+    await rto.save();
+
+    res.json({
+      success: true,
+      message: "Pickup Scheduled",
+      rto,
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
+// 2. Picked Up
+const markPickedUp = async (req, res) => {
+  try {
+    const rto = await RTO.findById(req.params.id);
+
+    if (!rto) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "RTO not found" 
+      });
+    }
+
+    rto.status = "PICKED_UP";
+    await rto.save();
+
+    res.json({
+      success: true,
+      message: "Marked as Picked Up",
+      rto,
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
+// 3. Move to Transit
+const moveTransit = async (req, res) => {
+  try {
+    const rto = await RTO.findById(req.params.id);
+
+    if (!rto) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "RTO not found" 
+      });
+    }
+
+    rto.status = "IN_TRANSIT";
+    await rto.save();
+
+    res.json({
+      success: true,
+      message: "Moved to In Transit",
+      rto,
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
+// 4. Warehouse Received
+const warehouseReceived = async (req, res) => {
+  try {
+    const rto = await RTO.findById(req.params.id);
+
+    if (!rto) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "RTO not found" 
+      });
+    }
+
+    rto.status = "RECEIVED_AT_WAREHOUSE";
+    rto.receivedDate = new Date();
+    await rto.save();
+
+    res.json({
+      success: true,
+      message: "Received at Warehouse",
+      rto,
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
+// 5. Complete RTO
+const completeRTO = async (req, res) => {
+  try {
+    const rto = await RTO.findById(req.params.id);
+
+    if (!rto) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "RTO not found" 
+      });
+    }
+
+    rto.status = "COMPLETED";
+    rto.completedDate = new Date();
+    await rto.save();
+
+    res.json({
+      success: true,
+      message: "RTO Completed",
+      rto,
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
+// ================================
 // EXPORT ALL FUNCTIONS
 // ================================
 module.exports = {
   createRTO,
-  getRTOs,           // ✅ FIXED - Now properly populates all fields
+  getRTOs,
   getRTOById,
   updateRTOStatus,
   requestRTOFromNDR,
   getRTOStats,
   cancelRTO,
+
+  // Admin RTO Status Update Functions
+  schedulePickup,
+  markPickedUp,
+  moveTransit,
+  warehouseReceived,
+  completeRTO,
 };
