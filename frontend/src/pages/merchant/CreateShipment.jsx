@@ -8,6 +8,10 @@ const CreateShipment = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const selectedOrder = location.state?.order;
+  
+  // ✅ Step 1: Added bulk shipment support
+  const bulkOrderIds = location.state?.orderIds || [];
+  const isBulk = location.state?.isBulk || false;
 
   const [orders, setOrders] = useState([]);
   const [formData, setFormData] = useState({
@@ -61,6 +65,16 @@ const CreateShipment = () => {
     fetchOrders();
     fetchWallet();
   }, []);
+
+  // ✅ Step 2: Bulk order auto-select effect
+  useEffect(() => {
+    if (isBulk && bulkOrderIds.length > 0 && orders.length > 0) {
+      setFormData((prev) => ({
+        ...prev,
+        orderId: bulkOrderIds[0], // recommendation ke liye pehla order
+      }));
+    }
+  }, [orders, isBulk, bulkOrderIds]);
 
   useEffect(() => {
     if (formData.orderId && formData.courier) {
@@ -244,16 +258,31 @@ const CreateShipment = () => {
 
     setLoading(true);
     try {
-      const payload = {
-        ...formData,
-        courier: reverseCourierMap[formData.courier] || formData.courier.toLowerCase(),
-        insuranceEnabled: insuranceEnabled,
-        insuranceAmount: insuranceEnabled ? insuranceAmount : 0
-      };
-      
-      await api.post("/shipments", payload);
-      alert("Shipment Created Successfully");
-      navigate("/merchant/shipments");
+      // ✅ Bulk shipment: Submit multiple orders
+      if (isBulk && bulkOrderIds.length > 0) {
+        const payload = {
+          orderIds: bulkOrderIds,
+          courier: reverseCourierMap[formData.courier] || formData.courier.toLowerCase(),
+          insuranceEnabled: insuranceEnabled,
+          insuranceAmount: insuranceEnabled ? insuranceAmount : 0
+        };
+        
+        await api.post("/shipments/bulk", payload);
+        alert(`✅ ${bulkOrderIds.length} shipments created successfully!`);
+        navigate("/merchant/shipments");
+      } else {
+        // Single shipment
+        const payload = {
+          ...formData,
+          courier: reverseCourierMap[formData.courier] || formData.courier.toLowerCase(),
+          insuranceEnabled: insuranceEnabled,
+          insuranceAmount: insuranceEnabled ? insuranceAmount : 0
+        };
+        
+        await api.post("/shipments", payload);
+        alert("Shipment Created Successfully");
+        navigate("/merchant/shipments");
+      }
     } catch (err) {
       alert(err?.response?.data?.message || "Failed to create shipment");
     } finally {
@@ -771,8 +800,14 @@ const CreateShipment = () => {
               <div style={styles.headerIcon}>
                 <FaShippingFast />
               </div>
-              <h2 style={styles.headerTitle}>Create Shipment</h2>
-              <p style={styles.headerSubtitle}>Generate new shipment for order</p>
+              <h2 style={styles.headerTitle}>
+                {isBulk ? `Bulk Shipment (${bulkOrderIds.length} Orders)` : "Create Shipment"}
+              </h2>
+              <p style={styles.headerSubtitle}>
+                {isBulk 
+                  ? `Creating shipments for ${bulkOrderIds.length} selected orders` 
+                  : "Generate new shipment for order"}
+              </p>
             </div>
 
             {/* Form Body */}
@@ -786,8 +821,44 @@ const CreateShipment = () => {
               </button>
 
               <form onSubmit={handleSubmit}>
-                {/* Selected Order Display */}
-                {currentOrder && (
+                {/* Bulk Order Count Display */}
+                {isBulk && bulkOrderIds.length > 0 && (
+                  <div style={{
+                    ...styles.selectedOrderCard,
+                    background: "linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)",
+                    border: "1px solid #86efac"
+                  }}>
+                    <div style={styles.selectedOrderHeader}>
+                      <div style={{
+                        ...styles.selectedOrderIcon,
+                        background: "#16a34a"
+                      }}>
+                        <FaBox />
+                      </div>
+                      <div style={styles.selectedOrderContent}>
+                        <div style={{
+                          ...styles.selectedOrderLabel,
+                          color: "#166534"
+                        }}>
+                          Bulk Shipment
+                        </div>
+                        <div style={{
+                          ...styles.selectedOrderValue,
+                          color: "#14532d"
+                        }}>
+                          {bulkOrderIds.length} orders selected for bulk shipment
+                        </div>
+                      </div>
+                      <FaCheckCircle style={{
+                        color: "#16a34a",
+                        fontSize: "20px"
+                      }} />
+                    </div>
+                  </div>
+                )}
+
+                {/* Selected Order Display for Single */}
+                {!isBulk && currentOrder && (
                   <div style={styles.selectedOrderCard}>
                     <div style={styles.selectedOrderHeader}>
                       <div style={styles.selectedOrderIcon}>
@@ -824,27 +895,57 @@ const CreateShipment = () => {
                   </div>
                 )}
 
-                {/* Order Selection */}
-                <div style={styles.formGroup}>
-                  <div style={styles.label}>
-                    <FaBox style={styles.labelIcon} />
-                    <span>Select Order <span style={styles.requiredStar}>*</span></span>
+                {/* Order Selection - Hide in bulk mode */}
+                {!isBulk && (
+                  <div style={styles.formGroup}>
+                    <div style={styles.label}>
+                      <FaBox style={styles.labelIcon} />
+                      <span>Select Order <span style={styles.requiredStar}>*</span></span>
+                    </div>
+                    <select
+                      name="orderId"
+                      value={formData.orderId}
+                      onChange={(e) => setFormData({ ...formData, orderId: e.target.value })}
+                      style={styles.select}
+                      required
+                    >
+                      <option value="">Choose an order</option>
+                      {orders.map((o) => (
+                        <option key={o._id} value={o._id}>
+                          {`${o.orderNumber || o._id.slice(-6)} - ${o.customerName}`}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                  <select
-                    name="orderId"
-                    value={formData.orderId}
-                    onChange={(e) => setFormData({ ...formData, orderId: e.target.value })}
-                    style={styles.select}
-                    required
-                  >
-                    <option value="">Choose an order</option>
-                    {orders.map((o) => (
-                      <option key={o._id} value={o._id}>
-                        {`${o.orderNumber || o._id.slice(-6)} - ${o.customerName}`}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                )}
+
+                {/* For bulk: Show selected orders count and first order for recommendations */}
+                {isBulk && (
+                  <div style={styles.formGroup}>
+                    <div style={styles.label}>
+                      <FaBox style={styles.labelIcon} />
+                      <span>Bulk Orders <span style={styles.requiredStar}>*</span></span>
+                    </div>
+                    <div style={{
+                      padding: "12px 16px",
+                      background: "#f8fafc",
+                      borderRadius: "12px",
+                      border: "1px solid #e2e8f0",
+                      fontSize: "14px",
+                      color: "#0f172a"
+                    }}>
+                      {bulkOrderIds.length} orders selected
+                      <span style={{
+                        display: "block",
+                        fontSize: "12px",
+                        color: "#64748b",
+                        marginTop: "4px"
+                      }}>
+                        Using first order for rate calculation
+                      </span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Top 3 Recommended Couriers Card */}
                 {recommendationLoading ? (
@@ -1053,7 +1154,7 @@ const CreateShipment = () => {
                       </div>
                     )}
                   </>
-                ) : formData.orderId ? (
+                ) : formData.orderId || isBulk ? (
                   <div style={styles.noRatesText}>
                     No rate cards found. Please contact admin.
                   </div>
@@ -1099,7 +1200,7 @@ const CreateShipment = () => {
                 </div>
 
                 {/* Insurance Toggle */}
-                {currentOrder && (
+                {currentOrder && !isBulk && (
                   <div 
                     className="insurance-toggle"
                     style={{
@@ -1131,9 +1232,44 @@ const CreateShipment = () => {
                   </div>
                 )}
 
+                {/* Bulk Insurance Toggle */}
+                {isBulk && (
+                  <div 
+                    className="insurance-toggle"
+                    style={{
+                      ...styles.insuranceToggle,
+                      ...(insuranceEnabled ? styles.insuranceToggleActive : {})
+                    }}
+                    onClick={() => setInsuranceEnabled(!insuranceEnabled)}
+                  >
+                    <div style={styles.insuranceLeft}>
+                      <FaShieldAlt style={styles.insuranceIcon} />
+                      <div>
+                        <div style={styles.insuranceLabel}>
+                          ☑ Add Insurance to All
+                        </div>
+                        <div style={styles.insuranceSubtext}>
+                          Protect all shipments (₹{INSURANCE_CHARGE} each)
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{
+                      ...styles.insuranceSwitch,
+                      ...(insuranceEnabled ? styles.insuranceSwitchActive : {})
+                    }}>
+                      <div style={{
+                        ...styles.insuranceSwitchKnob,
+                        ...(insuranceEnabled ? styles.insuranceSwitchKnobActive : {})
+                      }} />
+                    </div>
+                  </div>
+                )}
+
                 {/* Cost Preview */}
                 <div style={styles.costPreviewCard}>
-                  <h4 style={styles.costPreviewTitle}>💰 Shipment Cost Preview</h4>
+                  <h4 style={styles.costPreviewTitle}>
+                    {isBulk ? `💰 Bulk Cost Preview (per order)` : `💰 Shipment Cost Preview`}
+                  </h4>
                   <div style={styles.costRow}>
                     <span>Shipping Charge</span>
                     <span>₹{pricing.shippingCharge}</span>
@@ -1156,9 +1292,23 @@ const CreateShipment = () => {
                   
                   <hr style={styles.costDivider} />
                   <div style={styles.costTotal}>
-                    <span>Total Charge</span>
+                    <span>Total per Order</span>
                     <span style={{ color: "#ea580c" }}>₹{totalCharge}</span>
                   </div>
+                  
+                  {isBulk && bulkOrderIds.length > 0 && (
+                    <div style={{
+                      ...styles.costTotal,
+                      marginTop: "8px",
+                      paddingTop: "8px",
+                      borderTop: "2px solid #e2e8f0"
+                    }}>
+                      <span>Total for {bulkOrderIds.length} Orders</span>
+                      <span style={{ color: "#ea580c", fontSize: "18px" }}>
+                        ₹{totalCharge * bulkOrderIds.length}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Wallet Preview */}
@@ -1169,23 +1319,29 @@ const CreateShipment = () => {
                   </div>
                   <div style={styles.walletRow}>
                     <span>Required Amount</span>
-                    <span style={styles.walletRequired}>₹{totalCharge}</span>
+                    <span style={styles.walletRequired}>
+                      {isBulk ? `₹${totalCharge * bulkOrderIds.length}` : `₹${totalCharge}`}
+                    </span>
                   </div>
                   
                   {isInsufficientBalance ? (
                     <>
                       <div style={styles.walletRow}>
                         <span>Shortfall</span>
-                        <span style={styles.shortfallText}>₹{shortfall}</span>
+                        <span style={styles.shortfallText}>
+                          ₹{isBulk ? shortfall * bulkOrderIds.length : shortfall}
+                        </span>
                       </div>
                       <div style={styles.insufficientText}>
-                        ⚠️ Please recharge ₹{shortfall} to proceed
+                        ⚠️ Please recharge ₹{isBulk ? shortfall * bulkOrderIds.length : shortfall} to proceed
                       </div>
                     </>
                   ) : (
                     <div style={styles.walletRow}>
                       <span>Balance After Shipment</span>
-                      <span style={styles.walletAfter}>₹{balanceAfterShipment}</span>
+                      <span style={styles.walletAfter}>
+                        ₹{isBulk ? Math.max(0, walletBalance - (totalCharge * bulkOrderIds.length)) : balanceAfterShipment}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -1198,13 +1354,15 @@ const CreateShipment = () => {
                     style={!isFormValid ? styles.submitButtonDisabled : styles.submitButton}
                   >
                     {loading ? (
-                      <>⏳ Creating Shipment...</>
-                    ) : !formData.orderId ? (
+                      <>⏳ Creating Shipment{isBulk ? 's' : ''}...</>
+                    ) : !formData.orderId && !isBulk ? (
                       <>📋 Select an Order</>
                     ) : !formData.courier ? (
                       <>🚚 Select a Courier</>
                     ) : isInsufficientBalance ? (
                       <>💳 Recharge Wallet First</>
+                    ) : isBulk ? (
+                      <>🚀 Create {bulkOrderIds.length} Shipments</>
                     ) : (
                       <>🚀 Create Shipment</>
                     )}

@@ -1,4 +1,4 @@
-// Orders.jsx - Updated with all fixes
+// Orders.jsx - Updated with bulk shipment navigation fix
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
@@ -219,18 +219,22 @@ const Orders = () => {
     }
   };
 
-  // Bulk Shipment Handler
+  // ✅ FIXED: Bulk Shipment Handler - Now navigates to create-shipment with isBulk flag
   const handleBulkShipment = () => {
     if (selectedOrders.length === 0) {
-      alert('⚠️ Please select at least one order for bulk shipment.');
+      alert("⚠️ Please select at least one order.");
       return;
     }
-    navigate("/merchant/bulk-shipment", {
-      state: { orderIds: selectedOrders, orderCount: selectedOrders.length }
+
+    navigate("/merchant/create-shipment", {
+      state: {
+        orderIds: selectedOrders,
+        isBulk: true,
+      },
     });
   };
 
-  // ✅ CHANGE 1: Bulk Labels Fix - Extract shipmentIds from orders
+  // Bulk Labels Fix - Extract shipmentIds from orders
   const handleBulkLabels = async () => {
     if (selectedOrders.length === 0) {
       alert('⚠️ Please select at least one order.');
@@ -268,9 +272,6 @@ const Orders = () => {
     }
   };
 
-  // ✅ TEMPORARILY REMOVED - Bulk Invoice and Generate Manifest
-  // Will be added back when backend is ready
-
   // Bulk Cancel Orders
   const handleBulkCancel = async () => {
     if (selectedOrders.length === 0) {
@@ -296,7 +297,7 @@ const Orders = () => {
     }
   };
 
-  // ✅ FIXED: Download Single Label - uses shipmentId
+  // Download Single Label - uses shipmentId
   const handleDownloadLabel = async (shipmentId) => {
     if (!shipmentId) {
       alert('❌ No shipment found for this order.');
@@ -322,7 +323,7 @@ const Orders = () => {
     }
   };
 
-  // ✅ FIXED: Download Single Invoice - uses invoiceId
+  // Download Single Invoice - uses invoiceId
   const handleDownloadInvoice = async (invoiceId) => {
     if (!invoiceId) {
       alert('❌ No invoice found for this order.');
@@ -348,7 +349,7 @@ const Orders = () => {
     }
   };
 
-  // ✅ FIXED: Cancel Single Order - uses PATCH
+  // Cancel Single Order - uses PATCH
   const handleCancelOrder = async (orderId) => {
     if (!window.confirm('⚠️ Are you sure you want to cancel this order?')) {
       return;
@@ -597,7 +598,6 @@ const Orders = () => {
                     <button onClick={handleBulkLabels} style={dropdownItemStyle}>
                       <FaDownload /> Download Labels
                     </button>
-                    {/* ✅ TEMPORARILY REMOVED - Bulk Invoice and Generate Manifest */}
                     <hr style={{ margin: '4px 0', border: 'none', borderTop: '1px solid #e2e8f0' }} />
                     <button onClick={handleBulkCancel} style={{...dropdownItemStyle, color: '#dc2626' }}>
                       <FaTimes /> Cancel Orders
@@ -1154,7 +1154,7 @@ const Orders = () => {
                                   </button>
                                 )}
 
-                                {/* ✅ FIXED: Create Shipment - Pass order object in state */}
+                                {/* Create Shipment - Pass order object in state */}
                                 {!hasShipment && !isCancelled && (
                                   <button
                                     onClick={() => {
@@ -1169,7 +1169,7 @@ const Orders = () => {
                                   </button>
                                 )}
 
-                                {/* ✅ FIXED: Track Shipment - uses shipmentId._id */}
+                                {/* Track Shipment - uses shipmentId._id */}
                                 {hasShipment && (
                                   <button
                                     onClick={() => {
@@ -1182,7 +1182,7 @@ const Orders = () => {
                                   </button>
                                 )}
 
-                                {/* ✅ CHANGE 2: Show Download Label only when shipment exists */}
+                                {/* Show Download Label only when shipment exists */}
                                 {order.shipmentId && (
                                   <button
                                     onClick={() => handleDownloadLabel(order.shipmentId._id)}
@@ -1192,7 +1192,7 @@ const Orders = () => {
                                   </button>
                                 )}
 
-                                {/* ✅ CHANGE 3: Invoice Button Fix with check */}
+                                {/* Invoice Button with check */}
                                 <button
                                   onClick={() => {
                                     if (!order.invoiceId?._id) {

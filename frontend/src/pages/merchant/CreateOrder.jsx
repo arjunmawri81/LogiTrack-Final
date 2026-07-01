@@ -7,24 +7,22 @@ const CreateOrder = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    customerName: "", 
-    customerPhone: "", 
-    customerEmail: "", 
+    customerName: "",
+    customerPhone: "",
+    customerEmail: "",
     customerAddress: "",
-    city: "", 
-    state: "", 
-    pincode: "", 
-    productName: "", 
-    sku: "", 
+    city: "",
+    state: "",
+    pincode: "",
+    productName: "",
+    sku: "",
     quantity: 1,
-    weight: "", 
-    length: "", 
-    breadth: "", 
-    height: "", 
+    weight: "",
+    length: "",
+    breadth: "",
+    height: "",
     paymentMode: "PREPAID",
-    amount: "", 
-    shippingCharge: "", 
-    courierPartner: "", 
+    amount: "",
     notes: "",
   });
 
@@ -237,9 +235,9 @@ const CreateOrder = () => {
               style={{...inputStyle, ...fullWidthStyle}}
             />
             
-            {/* Payment & Courier Section */}
+            {/* Payment Details Section */}
             <div style={fullWidthStyle}>
-              <h2 style={sectionTitle}>Payment & Courier</h2>
+              <h2 style={sectionTitle}>Payment Details</h2>
             </div>
             
             <input 
@@ -260,30 +258,6 @@ const CreateOrder = () => {
               <option value="PREPAID">PREPAID</option>
               <option value="COD">COD</option>
             </select>
-            
-            <select 
-              name="courierPartner" 
-              value={formData.courierPartner} 
-              onChange={handleChange} 
-              style={inputStyle}
-            >
-              <option value="">Select Courier</option>
-              <option value="DTDC">DTDC</option>
-              <option value="Delhivery">Delhivery</option>
-              <option value="XpressBees">XpressBees</option>
-              <option value="ShadowFax">ShadowFax</option>
-              <option value="Ecom">Ecom</option>
-              <option value="Bluedart">Bluedart</option>
-            </select>
-            
-            <input 
-              type="number" 
-              name="shippingCharge" 
-              placeholder="Shipping Charge" 
-              value={formData.shippingCharge} 
-              onChange={handleChange} 
-              style={inputStyle} 
-            />
             
             <textarea
               name="notes"
