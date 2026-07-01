@@ -1,9 +1,14 @@
+// ================================
+// IMPORTS
+// ================================
 const User = require("../models/User");
 const Order = require("../models/Order");
 const Shipment = require("../models/Shipment");
 const Invoice = require("../models/Invoice");
 const Wallet = require("../models/Wallet");
 const RateCard = require("../models/RateCard");
+const NDR = require("../models/NDR");
+const RTO = require("../models/RTO"); // ✅ ADDED
 const bcrypt = require("bcryptjs");
 
 // ================================
@@ -81,7 +86,6 @@ const getUsers = async (req, res) => {
   }
 };
 
-// Get Single User
 const getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select("-password");
@@ -103,7 +107,6 @@ const getUserById = async (req, res) => {
   }
 };
 
-// Update User Status (Block/Unblock)
 const updateUserStatus = async (req, res) => {
   try {
     const { isBlocked, isActive } = req.body;
@@ -133,7 +136,6 @@ const updateUserStatus = async (req, res) => {
   }
 };
 
-// Delete User
 const deleteUser = async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
@@ -156,7 +158,7 @@ const deleteUser = async (req, res) => {
 };
 
 // ================================
-// MERCHANT MANAGEMENT (Using User Model)
+// MERCHANT MANAGEMENT
 // ================================
 const getMerchants = async (req, res) => {
   try {
@@ -245,7 +247,6 @@ const getMerchantDetails = async (req, res) => {
   }
 };
 
-// Get Pending Merchants
 const getPendingMerchants = async (req, res) => {
   try {
     const pendingMerchants = await User.find({ 
@@ -266,7 +267,6 @@ const getPendingMerchants = async (req, res) => {
   }
 };
 
-// Get Approved Merchants
 const getApprovedMerchants = async (req, res) => {
   try {
     const approvedMerchants = await User.find({ 
@@ -287,7 +287,6 @@ const getApprovedMerchants = async (req, res) => {
   }
 };
 
-// Approve Merchant
 const approveMerchant = async (req, res) => {
   try {
     const { id } = req.params;
@@ -334,7 +333,6 @@ const approveMerchant = async (req, res) => {
   }
 };
 
-// Reject Merchant
 const rejectMerchant = async (req, res) => {
   try {
     const { id } = req.params;
@@ -377,7 +375,6 @@ const rejectMerchant = async (req, res) => {
   }
 };
 
-// Block Merchant
 const blockMerchant = async (req, res) => {
   try {
     const merchant = await User.findByIdAndUpdate(
@@ -406,7 +403,6 @@ const blockMerchant = async (req, res) => {
   }
 };
 
-// Unblock Merchant
 const unblockMerchant = async (req, res) => {
   try {
     const merchant = await User.findById(req.params.id);
@@ -434,7 +430,6 @@ const unblockMerchant = async (req, res) => {
   }
 };
 
-// Delete Merchant
 const deleteMerchant = async (req, res) => {
   try {
     const merchant = await User.findByIdAndDelete(req.params.id);
@@ -555,7 +550,6 @@ const getOrders = async (req, res) => {
   }
 };
 
-// GET SINGLE ORDER (ADMIN)
 const getOrderByIdAdmin = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
@@ -579,9 +573,6 @@ const getOrderByIdAdmin = async (req, res) => {
   }
 };
 
-// ================================
-// UPDATE ORDER STATUS (FIXED - REMOVED SHIPMENT SYNC)
-// ================================
 const updateOrderStatus = async (req, res) => {
   try {
     const { status } = req.body;
@@ -599,10 +590,6 @@ const updateOrderStatus = async (req, res) => {
       });
     }
 
-    // ✅ REMOVED: Shipment status sync
-    // Order status and Shipment status are now independent
-    // Future courier integration will handle shipment updates separately
-
     res.status(200).json({
       success: true,
       message: "Order status updated successfully",
@@ -616,11 +603,6 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
-// ================================
-// ORDER MANAGEMENT (ADMIN)
-// ================================
-
-// Edit Order
 const updateOrderAdmin = async (req, res) => {
   try {
     const order = await Order.findByIdAndUpdate(
@@ -649,7 +631,6 @@ const updateOrderAdmin = async (req, res) => {
   }
 };
 
-// Assign Courier
 const assignCourier = async (req, res) => {
   try {
     const { courierPartner } = req.body;
@@ -683,7 +664,6 @@ const assignCourier = async (req, res) => {
   }
 };
 
-// Cancel Order
 const cancelOrderAdmin = async (req, res) => {
   try {
     const order = await Order.findByIdAndUpdate(
@@ -715,8 +695,6 @@ const cancelOrderAdmin = async (req, res) => {
 // ================================
 // BULK OPERATIONS
 // ================================
-
-// BULK STATUS UPDATE
 const bulkUpdateStatus = async (req, res) => {
   try {
     const { orderIds, status } = req.body;
@@ -757,7 +735,6 @@ const bulkUpdateStatus = async (req, res) => {
   }
 };
 
-// BULK COURIER ASSIGN
 const bulkAssignCourier = async (req, res) => {
   try {
     const { orderIds, courierPartner } = req.body;
@@ -800,11 +777,10 @@ const bulkAssignCourier = async (req, res) => {
 };
 
 // ================================
-// SHIPMENTS (FIXED WITH POPULATE)
+// SHIPMENTS
 // ================================
 const getShipments = async (req, res) => {
   try {
-    // ✅ FIX: Added populate to get full order details
     const shipments = await Shipment.find()
       .populate(
         "orderId",
@@ -829,7 +805,6 @@ const getShipments = async (req, res) => {
   }
 };
 
-// GET SINGLE SHIPMENT (ADMIN)
 const getShipmentByIdAdmin = async (req, res) => {
   try {
     const shipment = await Shipment.findById(req.params.id)
@@ -846,6 +821,246 @@ const getShipmentByIdAdmin = async (req, res) => {
     res.status(200).json({
       success: true,
       shipment,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ================================
+// NDR MANAGEMENT (ADMIN)
+// ================================
+
+// GET ALL NDR (ADMIN)
+const getAdminNDR = async (req, res) => {
+  try {
+    const ndrs = await NDR.find()
+      .populate("merchantId", "name companyName email phone")
+      .populate("orderId", "orderNumber customerName customerPhone")
+      .populate("shipmentId", "awb courier status")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: ndrs.length,
+      ndrs,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// APPROVE REATTEMPT (ADMIN)
+const approveReattempt = async (req, res) => {
+  try {
+    const ndr = await NDR.findById(req.params.id);
+
+    if (!ndr) {
+      return res.status(404).json({
+        success: false,
+        message: "NDR record not found",
+      });
+    }
+
+    if (ndr.status !== "REATTEMPT_REQUESTED") {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot approve. Current status: ${ndr.status}`,
+      });
+    }
+
+    ndr.status = "REATTEMPT";
+    ndr.actionTaken = "REATTEMPT";
+
+    ndr.adminNote = req.body?.adminNote || "";
+    ndr.approvedBy = req.user.id;
+    ndr.approvedAt = new Date();
+
+    ndr.deliveryAttempts = (ndr.deliveryAttempts || 0) + 1;
+    
+    const nextDate = new Date();
+    nextDate.setDate(nextDate.getDate() + 2);
+    ndr.nextAttemptDate = nextDate;
+
+    await ndr.save();
+
+    await Shipment.findByIdAndUpdate(
+      ndr.shipmentId,
+      {
+        status: "READY_FOR_REATTEMPT",
+        updatedAt: new Date(),
+      },
+      { new: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Reattempt approved successfully",
+      ndr,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ================================
+// APPROVE RTO (ADMIN) - ✅ UPDATED WITH RTO CREATION
+// ================================
+const approveRTO = async (req, res) => {
+  try {
+    const ndr = await NDR.findById(req.params.id);
+
+    if (!ndr) {
+      return res.status(404).json({
+        success: false,
+        message: "NDR record not found",
+      });
+    }
+
+    if (ndr.status !== "RTO_REQUESTED") {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot approve. Current status: ${ndr.status}`,
+      });
+    }
+
+    // Update NDR status
+    ndr.status = "RTO";
+    ndr.actionTaken = "RTO";
+
+    ndr.adminNote = req.body?.adminNote || "";
+    ndr.approvedBy = req.user.id;
+    ndr.approvedAt = new Date();
+
+    await ndr.save();
+
+    // Update Shipment
+    await Shipment.findByIdAndUpdate(
+      ndr.shipmentId,
+      {
+        status: "RTO_IN_PROGRESS",
+        updatedAt: new Date(),
+      },
+      { new: true }
+    );
+
+    // ✅ ✅ ✅ CREATE RTO RECORD - THIS IS THE FIX!
+    const shipment = await Shipment.findById(ndr.shipmentId)
+      .populate("orderId");
+
+    const existingRTO = await RTO.findOne({
+      shipmentId: ndr.shipmentId,
+    });
+
+    if (!existingRTO) {
+      await RTO.create({
+        merchantId: ndr.merchantId,
+        shipmentId: ndr.shipmentId,
+        orderId: ndr.orderId,
+
+        awb: shipment?.awb || ndr.awb,
+
+        customerName: shipment?.orderId?.customerName || ndr.customerName,
+        customerPhone: shipment?.orderId?.customerPhone || ndr.customerPhone,
+        customerEmail: shipment?.orderId?.customerEmail || ndr.customerEmail,
+        address: shipment?.orderId?.customerAddress || ndr.address,
+        pincode: shipment?.orderId?.pincode || ndr.pincode,
+        city: shipment?.orderId?.city || ndr.city,
+        state: shipment?.orderId?.state || ndr.state,
+
+        courier: shipment?.courier || ndr.courier,
+
+        rtoReason: ndr.reason || ndr.ndrReason || "RTO Approved by Admin",
+        rtoSubReason: ndr.subReason || ndr.ndrSubReason || "",
+        remarks: ndr.remarks || ndr.adminNote || "RTO created from NDR approval",
+
+        status: "IN_TRANSIT", // INITIATED → PICKUP_SCHEDULED → PICKED_UP → IN_TRANSIT → RECEIVED_AT_WAREHOUSE → COMPLETED
+        
+        returnAttempts: 0,
+        maxAttempts: 3,
+        
+        rtoRequestedAt: new Date(),
+        rtoApprovedAt: new Date(),
+        rtoApprovedBy: req.user.id,
+        
+        createdBy: "admin",
+        source: "ndr_rto_approval"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "RTO approved successfully and RTO record created",
+      ndr,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// REJECT NDR REQUEST (ADMIN)
+const rejectNDRRequest = async (req, res) => {
+  try {
+    const ndr = await NDR.findById(req.params.id);
+
+    if (!ndr) {
+      return res.status(404).json({
+        success: false,
+        message: "NDR record not found",
+      });
+    }
+
+    if (ndr.status !== "REATTEMPT_REQUESTED" && ndr.status !== "RTO_REQUESTED") {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot reject. Current status: ${ndr.status}`,
+      });
+    }
+
+    const previousStatus = ndr.status;
+
+    ndr.status = "PENDING";
+    ndr.actionTaken = "NONE";
+
+    ndr.adminNote = req.body?.adminNote || "";
+    ndr.rejectReason = req.body?.rejectReason || "";
+
+    ndr.approvedBy = req.user.id;
+    ndr.approvedAt = new Date();
+
+    await ndr.save();
+
+    const shipmentStatus =
+      previousStatus === "REATTEMPT_REQUESTED"
+        ? "NDR"
+        : "NDR";
+
+    await Shipment.findByIdAndUpdate(
+      ndr.shipmentId,
+      {
+        status: shipmentStatus,
+        updatedAt: new Date(),
+      },
+      { new: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "NDR request rejected successfully",
+      ndr,
+      previousStatus,
     });
   } catch (error) {
     res.status(500).json({
@@ -888,9 +1103,6 @@ const getCommission = async (req, res) => {
     const netRevenue =
       totalRevenue - totalCommission;
 
-    // ================================
-    // MERCHANT BREAKDOWN
-    // ================================
     const merchants = await User.find({
       role: "MERCHANT",
     });
@@ -944,12 +1156,9 @@ const getCommission = async (req, res) => {
   }
 };
 
-// ================================
-// GET REVENUE (FIXED WITH DATE FILTER)
-// ================================
+// GET REVENUE (WITH DATE FILTER)
 const getRevenue = async (req, res) => {
   try {
-    // ✅ STEP 1: Date filter from query params
     const { range, from, to } = req.query;
 
     let filter = {};
@@ -989,7 +1198,6 @@ const getRevenue = async (req, res) => {
       };
     }
 
-    // ✅ STEP 2: Revenue Query with filter
     const invoices = await Invoice.find(filter)
       .populate("merchantId", "name companyName");
 
@@ -1002,9 +1210,6 @@ const getRevenue = async (req, res) => {
     const totalOrders = await Order.countDocuments();
     const totalShipments = await Shipment.countDocuments();
 
-    // ================================
-    // MONTHLY REVENUE BREAKDOWN
-    // ================================
     const monthlyRevenue = {};
 
     invoices.forEach((invoice) => {
@@ -1019,15 +1224,11 @@ const getRevenue = async (req, res) => {
         (invoice.totalAmount || 0);
     });
 
-    // ✅ STEP 3: Recent Invoices with filter
     const recentInvoices = await Invoice.find(filter)
       .populate("merchantId", "name companyName")
       .sort({ createdAt: -1 })
       .limit(10);
 
-    // ================================
-    // TOP MERCHANTS
-    // ================================
     const topMerchants = await User.find({
       role: "MERCHANT",
     }).select("name companyName");
@@ -1054,8 +1255,6 @@ const getRevenue = async (req, res) => {
 // ================================
 // RATE CARD MANAGEMENT
 // ================================
-
-// Get all rate cards for a merchant
 const getRateCards = async (req, res) => {
   try {
     const { merchantId } = req.params;
@@ -1075,7 +1274,6 @@ const getRateCards = async (req, res) => {
   }
 };
 
-// Get rate card for a specific courier
 const getRateCardByCourier = async (req, res) => {
   try {
     const { merchantId, courier } = req.params;
@@ -1104,7 +1302,6 @@ const getRateCardByCourier = async (req, res) => {
   }
 };
 
-// Create or update rate card
 const saveRateCard = async (req, res) => {
   try {
     const {
@@ -1120,14 +1317,12 @@ const saveRateCard = async (req, res) => {
       serviceability,
     } = req.body;
 
-    // Check if rate card exists
     let rateCard = await RateCard.findOne({ 
       merchantId, 
       courierPartner 
     });
 
     if (rateCard) {
-      // Update existing
       rateCard.forwardRates = forwardRates;
       rateCard.zoneRates = zoneRates;
       rateCard.codCharge = codCharge;
@@ -1140,7 +1335,6 @@ const saveRateCard = async (req, res) => {
       }
       rateCard.updatedAt = new Date();
     } else {
-      // Create new
       rateCard = new RateCard({
         merchantId,
         courierPartner,
@@ -1175,7 +1369,6 @@ const saveRateCard = async (req, res) => {
   }
 };
 
-// Delete rate card
 const deleteRateCard = async (req, res) => {
   try {
     const { merchantId, courier } = req.params;
@@ -1249,8 +1442,14 @@ module.exports = {
   bulkUpdateStatus,
   bulkAssignCourier,
   
+  // NDR Management (Admin)
+  getAdminNDR,
+  approveReattempt,
+  approveRTO,
+  rejectNDRRequest,
+  
   // Commission & Revenue
-  getCommission, 
+  getCommission,
   getRevenue,
   
   // Rate Cards

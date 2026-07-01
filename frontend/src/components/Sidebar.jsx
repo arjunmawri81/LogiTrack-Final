@@ -10,7 +10,9 @@ import {
   FaUser,
   FaCog,
   FaSignOutAlt,
-  FaTicketAlt, // ✅ ADDED
+  FaTicketAlt,
+  FaExclamationTriangle, // NDR
+  FaUndoAlt,             // RTO
 } from "react-icons/fa";
 import "./Sidebar.css";
 
@@ -149,7 +151,7 @@ const Sidebar = () => {
               </NavLink>
             </li>
 
-            {/* ✅ ADMIN SUPPORT TICKETS */}
+            {/* ADMIN SUPPORT TICKETS */}
             <li>
               <NavLink
                 to="/admin/tickets"
@@ -236,6 +238,32 @@ const Sidebar = () => {
               </NavLink>
             </li>
 
+            {/* ✅ NDR MENU ITEM */}
+            <li>
+              <NavLink
+                to="/merchant/ndr"
+                className={({ isActive }) =>
+                  isActive ? "active" : ""
+                }
+              >
+                <FaExclamationTriangle />
+                <span>NDR</span>
+              </NavLink>
+            </li>
+
+            {/* ✅ RTO MENU ITEM - Ready when RTO page is built */}
+            <li>
+              <NavLink
+                to="/merchant/rto"
+                className={({ isActive }) =>
+                  isActive ? "active" : ""
+                }
+              >
+                <FaUndoAlt />
+                <span>RTO</span>
+              </NavLink>
+            </li>
+
             <li>
               <NavLink
                 to="/merchant/wallet"
@@ -308,7 +336,7 @@ const Sidebar = () => {
               </NavLink>
             </li>
 
-            {/* ✅ MERCHANT SUPPORT TICKETS */}
+            {/* MERCHANT SUPPORT TICKETS */}
             <li>
               <NavLink
                 to="/merchant/tickets"

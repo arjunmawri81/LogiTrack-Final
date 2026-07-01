@@ -11,7 +11,15 @@ const {
   resolveNDR,
   reattemptNDR,
   convertToRTO,
+  approveReattempt,
+  rejectReattempt,
+  approveRTO,
+  rejectRTO,
 } = require("../controllers/ndrController");
+
+// =================================
+// MERCHANT ROUTES
+// =================================
 
 // Create NDR
 router.post(
@@ -20,7 +28,7 @@ router.post(
   createNDR
 );
 
-// Get All NDR
+// Get All NDRs
 router.get(
   "/",
   authMiddleware,
@@ -34,18 +42,50 @@ router.patch(
   resolveNDR
 );
 
-// Reattempt Delivery
+// ✅ Merchant requests reattempt
 router.patch(
   "/:id/reattempt",
   authMiddleware,
   reattemptNDR
 );
 
-// Convert To RTO
+// ✅ Merchant requests RTO
 router.patch(
   "/:id/rto",
   authMiddleware,
   convertToRTO
 );
- 
+
+// =================================
+// ADMIN ROUTES
+// =================================
+
+// Admin approves reattempt
+router.patch(
+  "/:id/approve-reattempt",
+  authMiddleware,
+  approveReattempt
+);
+
+// Admin rejects reattempt
+router.patch(
+  "/:id/reject-reattempt",
+  authMiddleware,
+  rejectReattempt
+);
+
+// Admin approves RTO
+router.patch(
+  "/:id/approve-rto",
+  authMiddleware,
+  approveRTO
+);
+
+// Admin rejects RTO
+router.patch(
+  "/:id/reject-rto",
+  authMiddleware,
+  rejectRTO
+);
+
 module.exports = router;

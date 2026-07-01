@@ -80,6 +80,7 @@
   padding: 0 16px;
   margin: 0;
   flex-grow: 1;
+  overflow-y: auto;
 }
 
 .sidebar-menu li {
@@ -97,6 +98,7 @@
   font-weight: 500;
   border-radius: 10px;
   transition: all 0.2s;
+  position: relative;
 }
 
 .sidebar-menu a svg {
@@ -119,6 +121,64 @@
 
 .sidebar-menu a.active svg {
   color: white !important;
+}
+
+/* Special NDR Menu Item - Orange warning style when active */
+.sidebar-menu a[href*="/ndr"].active {
+  background: linear-gradient(90deg, #f97316, #ea580c) !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3) !important;
+}
+
+/* Special RTO Menu Item - Red/Orange style when active */
+.sidebar-menu a[href*="/rto"].active {
+  background: linear-gradient(90deg, #dc2626, #ea580c) !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3) !important;
+}
+
+/* NDR Badge - Shows count of pending NDRs */
+.ndr-badge {
+  margin-left: auto;
+  background-color: #ef4444;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 20px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.sidebar-menu a.active .ndr-badge {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+/* RTO Badge - Shows count of pending RTOs */
+.rto-badge {
+  margin-left: auto;
+  background-color: #f97316;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 20px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.sidebar-menu a.active .rto-badge {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+/* Menu divider for NDR/RTO section */
+.sidebar-menu .menu-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #1e293b, transparent);
+  margin: 12px 8px;
+  border: none;
 }
 
 .logout-section {
@@ -148,6 +208,24 @@
   color: #ef4444;
 }
 
+/* Scrollbar Styling */
+.sidebar-menu::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-menu::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 4px;
+}
+
+.sidebar-menu::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .sidebar {
@@ -173,6 +251,11 @@
     margin: 0;
   }
   
+  .sidebar-menu a .ndr-badge,
+  .sidebar-menu a .rto-badge {
+    display: none;
+  }
+  
   .logout-section {
     justify-content: center;
     padding: 12px;
@@ -181,5 +264,17 @@
   
   .logout-section a {
     justify-content: center;
+  }
+
+  .sidebar-menu .menu-divider {
+    margin: 8px 4px;
+  }
+}
+
+/* Dark mode support - stays consistent */
+@media (prefers-color-scheme: dark) {
+  .sidebar {
+    background-color: #0f172a;
+    border-right-color: #1e293b;
   }
 }

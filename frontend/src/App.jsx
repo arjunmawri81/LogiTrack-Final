@@ -22,10 +22,10 @@ import Register from "./pages/auth/Register";
 import Dashboard from "./pages/merchant/Dashboard";
 import Orders from "./pages/merchant/Orders";
 import OrderDetails from "./pages/merchant/OrderDetails";
-import EditOrder from "./pages/merchant/EditOrder"; // ✅ ADDED
+import EditOrder from "./pages/merchant/EditOrder";
 import CreateOrder from "./pages/merchant/CreateOrder";
 import CreateShipment from "./pages/merchant/CreateShipment";
-import BulkShipment from "./pages/merchant/BulkShipment"; // ✅ ADDED
+import BulkShipment from "./pages/merchant/BulkShipment";
 import Shipments from "./pages/merchant/Shipments";
 import ShipmentDetails from "./pages/merchant/ShipmentDetails";
 import Tracking from "./pages/merchant/Tracking";
@@ -38,6 +38,8 @@ import Settings from "./pages/merchant/Settings";
 import Serviceability from "./pages/merchant/Serviceability";
 import RateCalculator from "./pages/merchant/RateCalculator";
 import Tickets from "./pages/merchant/Tickets";
+import MerchantNDR from "./pages/merchant/MerchantNDR";
+import MerchantRTO from "./pages/merchant/MerchantRTO"; // ✅ CORRECTED IMPORT
 
 // ======================
 // ADMIN PAGES
@@ -55,8 +57,8 @@ import AdminOrderDetails from "./pages/admin/OrderDetails";
 import AdminEditOrder from "./pages/admin/EditOrder";
 import AdminShipmentDetails from "./pages/admin/ShipmentDetails";
 import AdminShipments from "./pages/admin/Shipments";
-import NDR from "./pages/admin/NDR";
-import RTO from "./pages/admin/RTO";
+import AdminNDR from "./pages/admin/NDR";
+import AdminRTO from "./pages/admin/RTO";
 import COD from "./pages/admin/COD";
 import AdminTickets from "./pages/admin/AdminTickets";
 
@@ -126,8 +128,14 @@ function App() {
         <Route path="/merchant/shipments" element={<MerchantRoute><Shipments /></MerchantRoute>} />
         <Route path="/merchant/shipments/:id" element={<MerchantRoute><ShipmentDetails /></MerchantRoute>} />
         
-        {/* Other Merchant Routes */}
+        {/* Tracking & NDR Routes */}
         <Route path="/merchant/tracking" element={<MerchantRoute><Tracking /></MerchantRoute>} />
+        <Route path="/merchant/ndr" element={<MerchantRoute><MerchantNDR /></MerchantRoute>} />
+        
+        {/* ✅ MERCHANT RTO ROUTE - CORRECTED */}
+        <Route path="/merchant/rto" element={<MerchantRoute><MerchantRTO /></MerchantRoute>} />
+        
+        {/* Other Merchant Routes */}
         <Route path="/merchant/wallet" element={<MerchantRoute><Wallet /></MerchantRoute>} />
         <Route path="/merchant/invoices" element={<MerchantRoute><Invoices /></MerchantRoute>} />
         <Route path="/merchant/billing" element={<MerchantRoute><Billing /></MerchantRoute>} />
@@ -152,8 +160,8 @@ function App() {
         <Route path="/admin/revenue" element={<AdminRoute><AdminRevenue /></AdminRoute>} />
         <Route path="/admin/reports" element={<AdminRoute><AdminReports /></AdminRoute>} />
         <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
-        <Route path="/admin/ndr" element={<AdminRoute><NDR /></AdminRoute>} />
-        <Route path="/admin/rto" element={<AdminRoute><RTO /></AdminRoute>} />
+        <Route path="/admin/ndr" element={<AdminRoute><AdminNDR /></AdminRoute>} />
+        <Route path="/admin/rto" element={<AdminRoute><AdminRTO /></AdminRoute>} />
         <Route path="/admin/cod" element={<AdminRoute><COD /></AdminRoute>} />
         <Route path="/admin/tickets" element={<AdminRoute><AdminTickets /></AdminRoute>} />
 

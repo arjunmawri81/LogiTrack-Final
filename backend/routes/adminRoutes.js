@@ -43,9 +43,17 @@ const {
   // Bulk Operations
   bulkUpdateStatus,
   bulkAssignCourier,
+
+  // ✅ NDR Management (Admin) - ADDED
+  getAdminNDR,
+  approveReattempt,
+  approveRTO,
+  rejectNDRRequest,
 } = require("../controllers/adminController");
 
-// Dashboard
+// ================================
+// DASHBOARD
+// ================================
 router.get(
   "/dashboard",
   authMiddleware,
@@ -53,7 +61,9 @@ router.get(
   getDashboardStats
 );
 
-// Users
+// ================================
+// USERS
+// ================================
 router.get(
   "/users",
   authMiddleware,
@@ -82,7 +92,9 @@ router.delete(
   deleteUser
 );
 
-// Merchants
+// ================================
+// MERCHANTS
+// ================================
 router.get(
   "/merchants",
   authMiddleware,
@@ -146,7 +158,9 @@ router.delete(
   deleteMerchant
 );
 
-// Admin Management
+// ================================
+// ADMIN MANAGEMENT
+// ================================
 router.post(
   "/admins",
   authMiddleware,
@@ -168,7 +182,9 @@ router.delete(
   deleteAdmin
 );
 
-// Orders
+// ================================
+// ORDERS
+// ================================
 router.get(
   "/orders",
   authMiddleware,
@@ -240,7 +256,9 @@ router.patch(
   cancelOrderAdmin
 );
 
-// Shipments
+// ================================
+// SHIPMENTS
+// ================================
 router.get(
   "/shipments",
   authMiddleware,
@@ -255,7 +273,9 @@ router.get(
   getShipmentByIdAdmin
 );
 
-// Revenue & Commission
+// ================================
+// REVENUE & COMMISSION
+// ================================
 router.get(
   "/commission",
   authMiddleware,
@@ -268,6 +288,42 @@ router.get(
   authMiddleware,
   authorizeRoles("ADMIN", "SUPER_ADMIN"),
   getRevenue
+);
+
+// ================================
+// NDR MANAGEMENT (ADMIN) - ✅ ADDED
+// ================================
+
+// Get All NDR Records
+router.get(
+  "/ndr",
+  authMiddleware,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
+  getAdminNDR
+);
+
+// Approve Reattempt
+router.patch(
+  "/ndr/:id/approve-reattempt",
+  authMiddleware,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
+  approveReattempt
+);
+
+// Approve RTO
+router.patch(
+  "/ndr/:id/approve-rto",
+  authMiddleware,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
+  approveRTO
+);
+
+// Reject NDR Request (Reattempt or RTO)
+router.patch(
+  "/ndr/:id/reject",
+  authMiddleware,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
+  rejectNDRRequest
 );
 
 module.exports = router;
