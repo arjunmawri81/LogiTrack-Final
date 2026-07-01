@@ -1,29 +1,28 @@
-// MerchantRTO.jsx - Fixed with Orange Gradient Header
+// MerchantRTO.jsx - Final Production Version
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar';
 import api from '../../services/api';
 
 const MerchantRTO = () => {
+  const navigate = useNavigate();
   const [rtoRecords, setRtoRecords] = useState([]);
   const [filteredRecords, setFilteredRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchAWB, setSearchAWB] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('ALL');
   const [courierFilter, setCourierFilter] = useState('all');
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [viewModal, setViewModal] = useState(false);
-  const [actionModal, setActionModal] = useState(false);
-  const [actionType, setActionType] = useState('');
-  const [actionNote, setActionNote] = useState('');
   const [couriers, setCouriers] = useState([]);
   const [stats, setStats] = useState({
     total: 0,
-    pending: 0,
-    inTransit: 0,
+    initiated: 0,
+    transit: 0,
+    returned: 0,
     completed: 0
   });
   const [refreshing, setRefreshing] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState({ message: '', type: '', visible: false });
 
   // Fetch RTO Data
@@ -48,25 +47,27 @@ const MerchantRTO = () => {
       ];
       setCouriers(uniqueCouriers);
 
-      const pending = data.filter(r => {
-        const status = (r.status || '').toLowerCase();
-        return status === 'pending' || status === 'initiated';
-      }).length;
+      const initiated = data.filter(r => 
+        (r.status || '').toUpperCase() === 'INITIATED'
+      ).length;
       
-      const inTransit = data.filter(r => {
-        const status = (r.status || '').toLowerCase();
-        return status === 'in_transit' || status === 'picked_up';
-      }).length;
+      const transit = data.filter(r => 
+        (r.status || '').toUpperCase() === 'IN_TRANSIT'
+      ).length;
       
-      const completed = data.filter(r => {
-        const status = (r.status || '').toLowerCase();
-        return status === 'completed' || status === 'delivered' || status === 'closed';
-      }).length;
+      const returned = data.filter(r => 
+        (r.status || '').toUpperCase() === 'RECEIVED_AT_WAREHOUSE'
+      ).length;
+      
+      const completed = data.filter(r => 
+        (r.status || '').toUpperCase() === 'COMPLETED'
+      ).length;
       
       setStats({
         total: data.length,
-        pending,
-        inTransit,
+        initiated,
+        transit,
+        returned,
         completed
       });
     } catch (error) {
@@ -109,31 +110,21 @@ const MerchantRTO = () => {
       'Pincode', 
       'Courier', 
       'RTO Reason', 
-      'Sub Reason', 
-      'Return Attempts',
-      'Last Attempt',
       'Status',
-      'Current Status',
-      'Courier Remarks',
-      'Remarks'
+      'Created Date'
     ];
     
     const csvData = filteredRecords.map(record => [
       record.awb || '',
-      record.orderId || '',
-      record.customerName || '',
-      record.customerPhone || '',
-      (record.address || '').replace(/"/g, '""'),
-      record.pincode || '',
+      record.orderId?.orderNumber || '',
+      record.orderId?.customerName || '',
+      record.orderId?.customerPhone || '',
+      (record.orderId?.address || '').replace(/"/g, '""'),
+      record.orderId?.pincode || '',
       record.courier || '',
       record.rtoReason || '',
-      record.rtoSubReason || '',
-      `${record.returnAttempts || 0} of ${record.maxAttempts || 3}`,
-      record.lastAttemptDate ? new Date(record.lastAttemptDate).toLocaleDateString('en-IN') : '',
       record.status || '',
-      getSubStatus(record.status),
-      (record.courierRemarks || '').replace(/"/g, '""'),
-      (record.remarks || '').replace(/"/g, '""')
+      record.createdAt ? new Date(record.createdAt).toLocaleDateString('en-IN') : ''
     ]);
 
     const csvContent = [
@@ -162,21 +153,24 @@ const MerchantRTO = () => {
     let filtered = rtoRecords;
 
     if (searchAWB) {
+      const searchTerm = searchAWB.toLowerCase();
       filtered = filtered.filter(record =>
-        ((record.awb || '').toLowerCase()).includes(searchAWB.toLowerCase()) ||
-        ((record.orderId || '').toLowerCase()).includes(searchAWB.toLowerCase())
+        (record.awb || '').toLowerCase().includes(searchTerm) ||
+        (record.orderId?.orderNumber || '').toLowerCase().includes(searchTerm) ||
+        (record.orderId?.customerName || '').toLowerCase().includes(searchTerm) ||
+        (record.orderId?.customerPhone || '').toLowerCase().includes(searchTerm)
       );
     }
 
-    if (statusFilter !== 'all') {
+    if (statusFilter !== 'ALL') {
       filtered = filtered.filter(record => 
-        ((record.status || '').toLowerCase()) === statusFilter.toLowerCase()
+        (record.status || '').toUpperCase() === statusFilter
       );
     }
 
     if (courierFilter !== 'all') {
       filtered = filtered.filter(record => 
-        ((record.courier || '').toLowerCase()) === courierFilter.toLowerCase()
+        (record.courier || '').toLowerCase() === courierFilter.toLowerCase()
       );
     }
 
@@ -188,107 +182,51 @@ const MerchantRTO = () => {
     setViewModal(true);
   };
 
-  const handleAction = (record, type) => {
-    setSelectedRecord(record);
-    setActionType(type);
-    setActionModal(true);
-  };
-
-  const submitAction = async () => {
-    if (!actionNote.trim()) {
-      showToast('Please enter remarks before submitting', 'error');
-      return;
-    }
-
-    try {
-      setSubmitting(true);
-      const recordId = selectedRecord._id || selectedRecord.id;
-      
-      if (actionType === 'pickup') {
-        await api.put(`/rto/${recordId}/request-pickup`, {
-          note: actionNote.trim()
-        });
-        showToast('Pickup request submitted successfully', 'success');
-      } else if (actionType === 'return') {
-        await api.put(`/rto/${recordId}/request-return`, {
-          note: actionNote.trim()
-        });
-        showToast('Return request submitted successfully', 'success');
-      }
-      
-      await fetchRTOData();
-      setActionModal(false);
-      setActionNote('');
-      setSelectedRecord(null);
-    } catch (error) {
-      console.error('Error performing action:', error);
-      showToast(error.response?.data?.message || 'Failed to submit request', 'error');
-    } finally {
-      setSubmitting(false);
-    }
+  const handleTrack = (awb) => {
+    navigate(`/merchant/tracking/${awb}`);
   };
 
   const getStatusBadge = (status) => {
-    const normalizedStatus = (status || 'pending').toLowerCase();
+    const normalizedStatus = (status || '').toUpperCase();
     const badges = {
-      pending: { 
-        icon: '🟡', 
-        label: 'Pending',
-        color: '#f97316',
-        bg: '#fff7ed'
-      },
-      initiated: { 
+      'INITIATED': { 
         icon: '🟡', 
         label: 'Initiated',
         color: '#f97316',
         bg: '#fff7ed'
       },
-      in_transit: { 
+      'PICKUP_SCHEDULED': { 
         icon: '🔵', 
+        label: 'Pickup Scheduled',
+        color: '#3b82f6',
+        bg: '#eff6ff'
+      },
+      'PICKED_UP': { 
+        icon: '📦', 
+        label: 'Picked Up',
+        color: '#8b5cf6',
+        bg: '#f5f3ff'
+      },
+      'IN_TRANSIT': { 
+        icon: '🚚', 
         label: 'In Transit',
         color: '#3b82f6',
         bg: '#eff6ff'
       },
-      picked_up: { 
-        icon: '🔵', 
-        label: 'Picked Up',
-        color: '#3b82f6',
-        bg: '#eff6ff'
+      'RECEIVED_AT_WAREHOUSE': { 
+        icon: '🏠', 
+        label: 'Warehouse',
+        color: '#8b5cf6',
+        bg: '#f5f3ff'
       },
-      completed: { 
-        icon: '🟢', 
+      'COMPLETED': { 
+        icon: '✅', 
         label: 'Completed',
-        color: '#22c55e',
-        bg: '#f0fdf4'
-      },
-      delivered: { 
-        icon: '🟢', 
-        label: 'Delivered',
-        color: '#22c55e',
-        bg: '#f0fdf4'
-      },
-      closed: { 
-        icon: '🟢', 
-        label: 'Closed',
         color: '#22c55e',
         bg: '#f0fdf4'
       }
     };
-    return badges[normalizedStatus] || badges.pending;
-  };
-
-  const getSubStatus = (status) => {
-    const normalizedStatus = (status || 'pending').toLowerCase();
-    const subStatusMap = {
-      'pending': 'Awaiting Pickup',
-      'initiated': 'Return Initiated',
-      'in_transit': 'Return in Transit',
-      'picked_up': 'Picked by Courier',
-      'completed': 'Return Completed',
-      'delivered': 'Delivered to Origin',
-      'closed': 'Case Closed'
-    };
-    return subStatusMap[normalizedStatus] || normalizedStatus;
+    return badges[normalizedStatus] || badges.INITIATED;
   };
 
   const getReasonBadge = (reason) => {
@@ -317,6 +255,17 @@ const MerchantRTO = () => {
       'Shadowfax': '⚡'
     };
     return icons[courier] || '📦';
+  };
+
+  const getTimeline = () => {
+    return [
+      'INITIATED',
+      'PICKUP_SCHEDULED',
+      'PICKED_UP',
+      'IN_TRANSIT',
+      'RECEIVED_AT_WAREHOUSE',
+      'COMPLETED'
+    ];
   };
 
   // ====================== STYLES ======================
@@ -408,7 +357,7 @@ const MerchantRTO = () => {
     },
     statsContainer: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(4, 1fr)',
+      gridTemplateColumns: 'repeat(5, 1fr)',
       gap: '16px',
       marginBottom: '24px'
     },
@@ -572,23 +521,17 @@ const MerchantRTO = () => {
       fontWeight: '500',
       maxWidth: '120px'
     },
-    reasonSubText: {
-      fontSize: '11px',
-      color: '#94a3b8'
-    },
-    attemptsContainer: {
+    statusContainer: {
       display: 'flex',
       flexDirection: 'column',
       gap: '2px'
     },
-    attemptsText: {
-      fontSize: '13px',
-      fontWeight: '500',
-      color: '#0f172a'
-    },
-    nextAttemptText: {
-      fontSize: '11px',
-      color: '#94a3b8'
+    statusBadge: {
+      display: 'inline-block',
+      padding: '4px 14px',
+      borderRadius: '20px',
+      fontSize: '12px',
+      fontWeight: '500'
     },
     createdContainer: {
       display: 'flex',
@@ -604,74 +547,44 @@ const MerchantRTO = () => {
       fontSize: '11px',
       color: '#94a3b8'
     },
-    statusContainer: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '2px'
-    },
-    statusBadge: {
-      display: 'inline-block',
-      padding: '4px 14px',
-      borderRadius: '20px',
-      fontSize: '12px',
-      fontWeight: '500'
-    },
-    subStatusText: {
-      fontSize: '11px',
-      color: '#94a3b8'
-    },
     actionContainer: {
       display: 'flex',
-      gap: '6px',
-      flexWrap: 'wrap'
+      gap: '4px',
+      flexWrap: 'nowrap',
+      alignItems: 'center'
     },
     viewButton: {
-      padding: '6px 12px',
+      padding: '5px 10px',
       border: '1.5px solid #e2e8f0',
-      borderRadius: '8px',
+      borderRadius: '6px',
       cursor: 'pointer',
-      fontSize: '12px',
+      fontSize: '11px',
       fontWeight: '500',
       backgroundColor: '#fff',
       color: '#64748b',
       transition: 'all 0.2s ease',
-      whiteSpace: 'nowrap'
+      whiteSpace: 'nowrap',
+      height: '28px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '4px'
     },
-    pickupButton: {
-      padding: '6px 12px',
+    trackButton: {
+      padding: '5px 10px',
       border: 'none',
-      borderRadius: '8px',
+      borderRadius: '6px',
       cursor: 'pointer',
-      fontSize: '12px',
+      fontSize: '11px',
       fontWeight: '600',
       background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
       color: '#fff',
       transition: 'all 0.2s ease',
-      boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)',
-      whiteSpace: 'nowrap'
-    },
-    returnButton: {
-      padding: '6px 12px',
-      border: 'none',
-      borderRadius: '8px',
-      cursor: 'pointer',
-      fontSize: '12px',
-      fontWeight: '600',
-      background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
-      color: '#fff',
-      transition: 'all 0.2s ease',
-      boxShadow: '0 2px 8px rgba(249, 115, 22, 0.3)',
-      whiteSpace: 'nowrap'
-    },
-    completedStatus: {
-      color: '#22c55e',
-      fontWeight: '600',
-      fontSize: '13px'
-    },
-    inTransitStatus: {
-      color: '#3b82f6',
-      fontWeight: '600',
-      fontSize: '13px'
+      boxShadow: '0 2px 6px rgba(59, 130, 246, 0.3)',
+      whiteSpace: 'nowrap',
+      height: '28px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '4px'
     },
     modalOverlay: {
       position: 'fixed',
@@ -690,7 +603,7 @@ const MerchantRTO = () => {
       backgroundColor: '#fff',
       padding: '32px',
       borderRadius: '24px',
-      maxWidth: '600px',
+      maxWidth: '650px',
       width: '100%',
       maxHeight: '90vh',
       overflow: 'auto',
@@ -724,70 +637,48 @@ const MerchantRTO = () => {
       color: '#0f172a',
       display: 'flex',
       alignItems: 'center',
-      gap: '8px'
+      gap: '8px',
+      flexWrap: 'wrap'
     },
-    attemptItem: {
+    timelineContainer: {
+      padding: '10px 0',
+      borderBottom: '1px solid #f1f5f9'
+    },
+    timelineItem: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px',
       padding: '8px 12px',
-      marginBottom: '6px',
-      backgroundColor: '#f8fafc',
+      marginBottom: '4px',
       borderRadius: '8px',
       fontSize: '13px',
-      color: '#1e293b',
-      border: '1px solid #e2e8f0'
+      fontWeight: '500'
     },
-    attemptDate: {
-      color: '#64748b',
-      fontSize: '12px',
-      marginRight: '12px'
+    timelineActive: {
+      backgroundColor: '#f0fdf4',
+      color: '#16a34a'
     },
-    textarea: {
-      width: '100%',
-      padding: '12px',
-      border: '1.5px solid #e2e8f0',
-      borderRadius: '10px',
-      marginTop: '12px',
-      marginBottom: '16px',
-      fontSize: '14px',
-      fontFamily: 'inherit',
-      minHeight: '80px',
-      resize: 'vertical',
-      outline: 'none',
-      transition: 'all 0.2s ease',
-      background: '#fff',
-      color: '#1e293b'
-    },
-    modalButtons: {
-      display: 'flex',
-      gap: '12px',
-      justifyContent: 'flex-end',
-      marginTop: '16px'
-    },
-    loadingContainer: {
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      height: '400px',
-      fontSize: '16px',
+    timelineInactive: {
+      backgroundColor: '#f8fafc',
       color: '#94a3b8'
     },
-    emptyState: {
-      textAlign: 'center',
-      padding: '60px 20px'
-    },
-    emptyIcon: {
-      fontSize: '64px',
-      marginBottom: '16px'
-    },
-    emptyTitle: {
-      margin: '0',
-      color: '#0f172a',
-      fontSize: '20px',
-      fontWeight: '600'
-    },
-    emptySub: {
-      margin: '8px 0 16px',
+    resultCount: {
+      fontSize: '13px',
       color: '#64748b',
-      fontSize: '14px'
+      marginTop: '8px',
+      marginBottom: '12px',
+      fontWeight: '500'
+    },
+    closeButton: {
+      padding: '10px 24px',
+      border: '1.5px solid #e2e8f0',
+      borderRadius: '10px',
+      cursor: 'pointer',
+      fontSize: '14px',
+      fontWeight: '500',
+      backgroundColor: '#fff',
+      color: '#64748b',
+      transition: 'all 0.2s ease'
     },
     toast: {
       position: 'fixed',
@@ -821,41 +712,32 @@ const MerchantRTO = () => {
       alignItems: 'center',
       gap: '4px'
     },
-    resultCount: {
-      fontSize: '13px',
+    emptyState: {
+      textAlign: 'center',
+      padding: '60px 20px'
+    },
+    emptyIcon: {
+      fontSize: '64px',
+      marginBottom: '16px'
+    },
+    emptyTitle: {
+      margin: '0',
+      color: '#0f172a',
+      fontSize: '20px',
+      fontWeight: '600'
+    },
+    emptySub: {
+      margin: '8px 0 16px',
       color: '#64748b',
-      marginTop: '8px',
-      marginBottom: '12px',
-      fontWeight: '500'
+      fontSize: '14px'
     },
-    closeButton: {
-      padding: '10px 24px',
-      border: '1.5px solid #e2e8f0',
-      borderRadius: '10px',
-      cursor: 'pointer',
-      fontSize: '14px',
-      fontWeight: '500',
-      backgroundColor: '#fff',
-      color: '#64748b',
-      transition: 'all 0.2s ease'
-    },
-    submitActionButton: {
-      padding: '10px 24px',
-      border: 'none',
-      borderRadius: '10px',
-      cursor: 'pointer',
-      fontSize: '14px',
-      fontWeight: '600',
-      color: '#fff',
-      transition: 'all 0.2s ease'
-    },
-    pickupSubmitButton: {
-      background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-      boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
-    },
-    returnSubmitButton: {
-      background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
-      boxShadow: '0 4px 12px rgba(249, 115, 22, 0.3)'
+    loadingContainer: {
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      height: '400px',
+      fontSize: '16px',
+      color: '#94a3b8'
     }
   };
 
@@ -887,13 +769,13 @@ const MerchantRTO = () => {
           </div>
         )}
 
-        {/* Header with Orange Gradient - Same as NDR */}
+        {/* Header */}
         <div style={styles.header}>
           <div style={styles.headerLeft}>
             <div style={styles.headerIcon}>🔄</div>
             <div style={styles.headerText}>
               <h1 style={styles.title}>RTO Management</h1>
-              <p style={styles.subtitle}>Return to Origin tracking and resolution</p>
+              <p style={styles.subtitle}>Return to Origin tracking and monitoring</p>
             </div>
           </div>
           <div style={styles.headerActions}>
@@ -917,7 +799,7 @@ const MerchantRTO = () => {
           </div>
         </div>
 
-        {/* Stats Cards - 4 Cards */}
+        {/* Stats Cards */}
         <div style={styles.statsContainer}>
           <div style={styles.statCard}>
             <div style={styles.statLabel}>Total RTO</div>
@@ -925,14 +807,19 @@ const MerchantRTO = () => {
             <div style={styles.statSub}>All return cases</div>
           </div>
           <div style={styles.statCard}>
-            <div style={styles.statLabel}>Pending</div>
-            <div style={{ ...styles.statValue, color: '#ff9800' }}>{stats.pending}</div>
-            <div style={styles.statSub}>Awaiting action</div>
+            <div style={styles.statLabel}>Initiated</div>
+            <div style={{ ...styles.statValue, color: '#f97316' }}>{stats.initiated}</div>
+            <div style={styles.statSub}>Return initiated</div>
           </div>
           <div style={styles.statCard}>
             <div style={styles.statLabel}>In Transit</div>
-            <div style={{ ...styles.statValue, color: '#3b82f6' }}>{stats.inTransit}</div>
+            <div style={{ ...styles.statValue, color: '#3b82f6' }}>{stats.transit}</div>
             <div style={styles.statSub}>Return in progress</div>
+          </div>
+          <div style={styles.statCard}>
+            <div style={styles.statLabel}>Returned</div>
+            <div style={{ ...styles.statValue, color: '#8b5cf6' }}>{stats.returned}</div>
+            <div style={styles.statSub}>Warehouse received</div>
           </div>
           <div style={styles.statCard}>
             <div style={styles.statLabel}>Completed</div>
@@ -948,7 +835,7 @@ const MerchantRTO = () => {
             <input
               type="text"
               style={styles.searchInput}
-              placeholder="Search AWB / Order ID..."
+              placeholder="Search AWB / Order ID / Customer..."
               value={searchAWB}
               onChange={(e) => setSearchAWB(e.target.value)}
             />
@@ -960,10 +847,13 @@ const MerchantRTO = () => {
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
-              <option value="all">All Status</option>
-              <option value="pending">🟡 Pending</option>
-              <option value="in_transit">🔵 In Transit</option>
-              <option value="completed">🟢 Completed</option>
+              <option value="ALL">All Status</option>
+              <option value="INITIATED">🟡 Initiated</option>
+              <option value="PICKUP_SCHEDULED">🔵 Pickup Scheduled</option>
+              <option value="PICKED_UP">📦 Picked Up</option>
+              <option value="IN_TRANSIT">🚚 In Transit</option>
+              <option value="RECEIVED_AT_WAREHOUSE">🏠 Warehouse</option>
+              <option value="COMPLETED">✅ Completed</option>
             </select>
           </div>
           <div style={styles.filterGroup}>
@@ -1025,9 +915,8 @@ const MerchantRTO = () => {
                   <th style={styles.th}>Customer</th>
                   <th style={styles.th}>Courier</th>
                   <th style={styles.th}>RTO Reason</th>
-                  <th style={styles.th}>Attempts</th>
-                  <th style={styles.th}>Created</th>
                   <th style={styles.th}>Status</th>
+                  <th style={styles.th}>Created</th>
                   <th style={styles.th}>Action</th>
                 </tr>
               </thead>
@@ -1036,23 +925,26 @@ const MerchantRTO = () => {
                   const statusBadge = getStatusBadge(record.status);
                   const reasonBadge = getReasonBadge(record.rtoReason);
                   const courierIcon = getCourierIcon(record.courier);
-                  const subStatus = getSubStatus(record.status);
-                  const canTakeAction = (record.status || '').toLowerCase() === 'pending' || 
-                                       (record.status || '').toLowerCase() === 'initiated';
                   
                   return (
                     <tr key={record._id || record.id} style={styles.tr}>
                       <td style={styles.td}>
                         <div style={styles.awbContainer}>
                           <span style={styles.awbText}>{record.awb || ''}</span>
-                          <span style={styles.orderIdText}>{record.orderId || '-'}</span>
+                          <span style={styles.orderIdText}>
+                            {record.orderId?.orderNumber || '-'}
+                          </span>
                         </div>
                       </td>
                       
                       <td style={styles.td}>
                         <div style={styles.customerContainer}>
-                          <span style={styles.customerName}>{record.customerName || 'N/A'}</span>
-                          <span style={styles.customerPhone}>📞 {record.customerPhone || 'N/A'}</span>
+                          <span style={styles.customerName}>
+                            {record.orderId?.customerName || 'N/A'}
+                          </span>
+                          <span style={styles.customerPhone}>
+                            📞 {record.orderId?.customerPhone || 'N/A'}
+                          </span>
                         </div>
                       </td>
                       
@@ -1072,25 +964,18 @@ const MerchantRTO = () => {
                           }}>
                             {record.rtoReason || 'N/A'}
                           </span>
-                          {record.rtoSubReason && (
-                            <span style={styles.reasonSubText}>{record.rtoSubReason}</span>
-                          )}
                         </div>
                       </td>
                       
                       <td style={styles.td}>
-                        <div style={styles.attemptsContainer}>
-                          <span style={styles.attemptsText}>
-                            {record.returnAttempts || 0} of {record.maxAttempts || 3}
+                        <div style={styles.statusContainer}>
+                          <span style={{
+                            ...styles.statusBadge,
+                            backgroundColor: statusBadge.bg,
+                            color: statusBadge.color
+                          }}>
+                            {statusBadge.icon} {statusBadge.label}
                           </span>
-                          {record.nextAttemptDate && (
-                            <span style={styles.nextAttemptText}>
-                              📅 {new Date(record.nextAttemptDate).toLocaleDateString('en-IN', {
-                                day: '2-digit',
-                                month: 'short'
-                              })}
-                            </span>
-                          )}
                         </div>
                       </td>
                       
@@ -1119,19 +1004,6 @@ const MerchantRTO = () => {
                       </td>
                       
                       <td style={styles.td}>
-                        <div style={styles.statusContainer}>
-                          <span style={{
-                            ...styles.statusBadge,
-                            backgroundColor: statusBadge.bg,
-                            color: statusBadge.color
-                          }}>
-                            {statusBadge.icon} {statusBadge.label}
-                          </span>
-                          <span style={styles.subStatusText}>{subStatus}</span>
-                        </div>
-                      </td>
-                      
-                      <td style={styles.td}>
                         <div style={styles.actionContainer}>
                           <button
                             style={styles.viewButton}
@@ -1139,34 +1011,12 @@ const MerchantRTO = () => {
                           >
                             👁️ View
                           </button>
-                          {canTakeAction && (
-                            <>
-                              <button
-                                style={styles.pickupButton}
-                                onClick={() => handleAction(record, 'pickup')}
-                              >
-                                📦 Pickup
-                              </button>
-                              <button
-                                style={styles.returnButton}
-                                onClick={() => handleAction(record, 'return')}
-                              >
-                                ↩️ Return
-                              </button>
-                            </>
-                          )}
-                          {(record.status || '').toLowerCase() === 'completed' && (
-                            <span style={styles.completedStatus}>✅ Completed</span>
-                          )}
-                          {(record.status || '').toLowerCase() === 'delivered' && (
-                            <span style={styles.completedStatus}>✅ Delivered</span>
-                          )}
-                          {(record.status || '').toLowerCase() === 'in_transit' && (
-                            <span style={styles.inTransitStatus}>🚚 In Transit</span>
-                          )}
-                          {(record.status || '').toLowerCase() === 'picked_up' && (
-                            <span style={styles.inTransitStatus}>📦 Picked Up</span>
-                          )}
+                          <button
+                            style={styles.trackButton}
+                            onClick={() => handleTrack(record.awb)}
+                          >
+                            📍 Track
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -1216,39 +1066,46 @@ const MerchantRTO = () => {
                     </button>
                   </span>
                 </div>
+                
                 <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>Order ID</span>
+                  <span style={styles.detailLabel}>Order Number</span>
                   <span style={styles.detailValue}>
-                    {selectedRecord.orderId || '-'}
+                    {selectedRecord.orderId?.orderNumber || '-'}
                   </span>
                 </div>
+                
                 <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>Customer</span>
+                  <span style={styles.detailLabel}>Customer Name</span>
                   <span style={styles.detailValue}>
-                    <strong>{selectedRecord.customerName || ''}</strong>
+                    <strong>{selectedRecord.orderId?.customerName || 'N/A'}</strong>
                   </span>
                 </div>
+                
                 <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>Phone</span>
+                  <span style={styles.detailLabel}>Customer Phone</span>
                   <span style={styles.detailValue}>
-                    {selectedRecord.customerPhone || ''}
+                    {selectedRecord.orderId?.customerPhone || 'N/A'}
                   </span>
                 </div>
+                
                 <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>Address</span>
+                  <span style={styles.detailLabel}>Delivery Address</span>
                   <span style={styles.detailValue}>
-                    {selectedRecord.address || ''}<br />
+                    {selectedRecord.orderId?.address || 'N/A'}
+                    <br />
                     <span style={{ fontSize: '12px', color: '#94a3b8' }}>
-                      Pincode: {selectedRecord.pincode || ''}
+                      Pincode: {selectedRecord.orderId?.pincode || 'N/A'}
                     </span>
                   </span>
                 </div>
+                
                 <div style={styles.detailRow}>
                   <span style={styles.detailLabel}>Courier</span>
                   <span style={styles.detailValue}>
-                    {getCourierIcon(selectedRecord.courier)} {selectedRecord.courier || ''}
+                    {getCourierIcon(selectedRecord.courier)} {selectedRecord.courier || 'N/A'}
                   </span>
                 </div>
+                
                 <div style={styles.detailRow}>
                   <span style={styles.detailLabel}>RTO Reason</span>
                   <span style={styles.detailValue}>
@@ -1261,56 +1118,35 @@ const MerchantRTO = () => {
                       backgroundColor: getReasonBadge(selectedRecord.rtoReason).bg,
                       color: getReasonBadge(selectedRecord.rtoReason).color
                     }}>
-                      {selectedRecord.rtoReason || ''}
+                      {selectedRecord.rtoReason || 'N/A'}
                     </span>
-                    <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '2px' }}>
-                      {selectedRecord.rtoSubReason || ''}
-                    </div>
-                  </span>
-                </div>
-                <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>Expected Return</span>
-                  <span style={styles.detailValue}>
-                    {selectedRecord.expectedReturnDate ? 
-                      new Date(selectedRecord.expectedReturnDate).toLocaleDateString('en-IN', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric'
-                      }) : 
-                      'Pending Courier Update'
-                    }
-                  </span>
-                </div>
-                <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>Attempts</span>
-                  <span style={styles.detailValue}>
-                    Attempt {selectedRecord.returnAttempts || 0} of {selectedRecord.maxAttempts || 3}
-                    {selectedRecord.nextAttemptDate && (
+                    {selectedRecord.rtoSubReason && (
                       <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>
-                        📅 Next: {new Date(selectedRecord.nextAttemptDate).toLocaleDateString('en-IN', {
-                          day: '2-digit',
-                          month: 'short',
-                          year: 'numeric'
-                        })}
+                        {selectedRecord.rtoSubReason}
                       </div>
                     )}
                   </span>
                 </div>
+                
                 <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>Last Attempt</span>
+                  <span style={styles.detailLabel}>Current Status</span>
                   <span style={styles.detailValue}>
-                    {selectedRecord.lastAttemptDate ? 
-                      new Date(selectedRecord.lastAttemptDate).toLocaleDateString('en-IN', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric'
-                      }) : 
-                      'No attempts yet'
-                    }
+                    <span style={{
+                      display: 'inline-block',
+                      padding: '4px 14px',
+                      borderRadius: '20px',
+                      fontSize: '12px',
+                      fontWeight: '500',
+                      backgroundColor: getStatusBadge(selectedRecord.status).bg,
+                      color: getStatusBadge(selectedRecord.status).color
+                    }}>
+                      {getStatusBadge(selectedRecord.status).icon} {getStatusBadge(selectedRecord.status).label}
+                    </span>
                   </span>
                 </div>
+                
                 <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>Created</span>
+                  <span style={styles.detailLabel}>Created Date</span>
                   <span style={styles.detailValue}>
                     {selectedRecord.createdAt ? 
                       new Date(selectedRecord.createdAt).toLocaleString('en-IN', {
@@ -1324,51 +1160,43 @@ const MerchantRTO = () => {
                     }
                   </span>
                 </div>
-                <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>Current Status</span>
-                  <span style={styles.detailValue}>
-                    <span style={{
-                      display: 'inline-block',
-                      padding: '4px 14px',
-                      borderRadius: '20px',
-                      fontSize: '12px',
-                      fontWeight: '500',
-                      backgroundColor: getStatusBadge(selectedRecord.status).bg,
-                      color: getStatusBadge(selectedRecord.status).color
-                    }}>
-                      {getStatusBadge(selectedRecord.status).icon} {getStatusBadge(selectedRecord.status).label}
-                    </span>
-                    <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>
-                      {getSubStatus(selectedRecord.status)}
-                    </div>
-                  </span>
-                </div>
-                <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>Remarks</span>
-                  <span style={styles.detailValue}>{selectedRecord.remarks || 'No remarks'}</span>
-                </div>
-                <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>Courier Remarks</span>
-                  <span style={styles.detailValue}>{selectedRecord.courierRemarks || 'No remarks from courier'}</span>
-                </div>
-                <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>Attempt History</span>
-                  <span style={styles.detailValue}>
-                    {selectedRecord.attemptHistory && selectedRecord.attemptHistory.length > 0 ? (
-                      selectedRecord.attemptHistory.map((attempt, index) => (
-                        <div key={index} style={styles.attemptItem}>
-                          <span style={styles.attemptDate}>{attempt.date}</span>
-                          {attempt.status}
-                        </div>
-                      ))
-                    ) : (
-                      'No attempt history available'
-                    )}
-                  </span>
+                
+                {/* Timeline */}
+                <div style={styles.timelineContainer}>
+                  <div style={{ fontWeight: '600', marginBottom: '8px', color: '#0f172a' }}>
+                    📊 Timeline
+                  </div>
+                  {getTimeline().map((item) => {
+                    const currentStatus = (selectedRecord.status || '').toUpperCase();
+                    const isActive = currentStatus === item;
+                    const isPast = getTimeline().indexOf(item) < getTimeline().indexOf(currentStatus);
+                    const isCompleted = currentStatus === 'COMPLETED';
+                    
+                    let statusIcon = '⚪';
+                    if (isActive || (isPast && !isCompleted)) {
+                      statusIcon = '🟢';
+                    } else if (isCompleted && item === 'COMPLETED') {
+                      statusIcon = '✅';
+                    }
+                    
+                    return (
+                      <div
+                        key={item}
+                        style={{
+                          ...styles.timelineItem,
+                          ...(isActive || (isPast && !isCompleted) ? styles.timelineActive : styles.timelineInactive)
+                        }}
+                      >
+                        <span>{statusIcon}</span>
+                        <span>{item.replace(/_/g, ' ')}</span>
+                        {isActive && <span style={{ marginLeft: 'auto', fontSize: '11px', color: '#16a34a' }}>● Current</span>}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
-              <div style={styles.modalButtons}>
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '16px' }}>
                 <button
                   style={styles.closeButton}
                   onClick={() => {
@@ -1377,108 +1205,6 @@ const MerchantRTO = () => {
                   }}
                 >
                   Close
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Action Modal */}
-        {actionModal && selectedRecord && (
-          <div style={styles.modalOverlay}>
-            <div style={styles.modalContent}>
-              <div style={styles.modalTitle}>
-                {actionType === 'pickup' ? '📦 Request Pickup' : '↩️ Process Return'}
-              </div>
-              <div>
-                <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>AWB</span>
-                  <span style={styles.detailValue}>
-                    <span style={{ fontFamily: 'monospace', fontWeight: '600' }}>
-                      {selectedRecord.awb || ''}
-                    </span>
-                    <button
-                      style={styles.awbCopyButton}
-                      onClick={() => handleCopyAWB(selectedRecord.awb)}
-                      title="Copy AWB"
-                    >
-                      📋 Copy
-                    </button>
-                  </span>
-                </div>
-                <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>Order ID</span>
-                  <span style={styles.detailValue}>
-                    {selectedRecord.orderId || '-'}
-                  </span>
-                </div>
-                <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>Customer</span>
-                  <span style={styles.detailValue}>
-                    {selectedRecord.customerName || ''}
-                  </span>
-                </div>
-                <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>Current Status</span>
-                  <span style={styles.detailValue}>
-                    <span style={{
-                      display: 'inline-block',
-                      padding: '4px 14px',
-                      borderRadius: '20px',
-                      fontSize: '12px',
-                      fontWeight: '500',
-                      backgroundColor: getStatusBadge(selectedRecord.status).bg,
-                      color: getStatusBadge(selectedRecord.status).color
-                    }}>
-                      {getStatusBadge(selectedRecord.status).icon} {getStatusBadge(selectedRecord.status).label}
-                    </span>
-                  </span>
-                </div>
-                <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>Request Type</span>
-                  <span style={styles.detailValue}>
-                    <strong>
-                      {actionType === 'pickup' ? '📦 Pickup Request' : '↩️ Return Request'}
-                    </strong>
-                  </span>
-                </div>
-                <div style={{ marginTop: '16px' }}>
-                  <label style={{ fontWeight: '500', color: '#0f172a', display: 'block', marginBottom: '4px' }}>
-                    Action Note <span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <textarea
-                    style={styles.textarea}
-                    placeholder={actionType === 'pickup' 
-                      ? 'Enter reason for pickup request...' 
-                      : 'Enter reason for return process...'}
-                    value={actionNote}
-                    onChange={(e) => setActionNote(e.target.value)}
-                  />
-                </div>
-              </div>
-              <div style={styles.modalButtons}>
-                <button
-                  style={styles.closeButton}
-                  onClick={() => {
-                    setActionModal(false);
-                    setActionNote('');
-                    setSelectedRecord(null);
-                  }}
-                  disabled={submitting}
-                >
-                  Cancel
-                </button>
-                <button
-                  style={{
-                    ...styles.submitActionButton,
-                    ...(actionType === 'pickup' ? styles.pickupSubmitButton : styles.returnSubmitButton),
-                    opacity: submitting ? 0.6 : 1,
-                    cursor: submitting ? 'not-allowed' : 'pointer'
-                  }}
-                  onClick={submitAction}
-                  disabled={submitting}
-                >
-                  {submitting ? '⏳ Submitting...' : (actionType === 'pickup' ? 'Request Pickup' : 'Process Return')}
                 </button>
               </div>
             </div>
