@@ -1,15 +1,36 @@
-// NDR.jsx - Merchant NDR Page (Final Version)
+// NDR.jsx - Merchant NDR Page (Updated with Complete View Modal)
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../../components/Sidebar';
 import api from '../../services/api';
+import { 
+  FaSearch, 
+  FaDownload, 
+  FaEye, 
+  FaBox, 
+  FaClock, 
+  FaCheckCircle, 
+  FaExclamationTriangle,
+  FaUndo,
+  FaFilter,
+  FaSync,
+  FaCopy,
+  FaTruck,
+  FaPhone,
+  FaTimes,
+  FaUser,
+  FaMapMarkerAlt,
+  FaCalendarAlt,
+  FaFileAlt,
+  FaInfoCircle
+} from 'react-icons/fa';
 
 const MerchantNDR = () => {
   const [ndrRecords, setNdrRecords] = useState([]);
   const [filteredRecords, setFilteredRecords] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchAWB, setSearchAWB] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [courierFilter, setCourierFilter] = useState('all');
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [courierFilter, setCourierFilter] = useState('ALL');
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [viewModal, setViewModal] = useState(false);
   const [actionModal, setActionModal] = useState(false);
@@ -44,6 +65,7 @@ const MerchantNDR = () => {
       setFilteredRecords(data);
       
       const uniqueCouriers = [
+        'ALL',
         ...new Set(
           data
             .map(record => record.courier)
@@ -168,25 +190,27 @@ const MerchantNDR = () => {
 
   useEffect(() => {
     filterRecords();
-  }, [searchAWB, statusFilter, courierFilter, ndrRecords]);
+  }, [search, statusFilter, courierFilter, ndrRecords]);
 
   const filterRecords = () => {
     let filtered = ndrRecords;
 
-    if (searchAWB) {
+    if (search) {
+      const searchLower = search.toLowerCase();
       filtered = filtered.filter(record =>
-        ((record.awb || '').toLowerCase()).includes(searchAWB.toLowerCase()) ||
-        ((record.orderId?.orderNumber || '').toLowerCase()).includes(searchAWB.toLowerCase())
+        ((record.awb || '').toLowerCase()).includes(searchLower) ||
+        ((record.orderId?.orderNumber || '').toLowerCase()).includes(searchLower) ||
+        ((record.customerName || record.orderId?.customerName || '').toLowerCase()).includes(searchLower)
       );
     }
 
-    if (statusFilter !== 'all') {
+    if (statusFilter !== 'ALL') {
       filtered = filtered.filter(record => 
         ((record.status || '').toLowerCase()) === statusFilter.toLowerCase()
       );
     }
 
-    if (courierFilter !== 'all') {
+    if (courierFilter !== 'ALL') {
       filtered = filtered.filter(record => 
         ((record.courier || '').toLowerCase()) === courierFilter.toLowerCase()
       );
@@ -206,7 +230,6 @@ const MerchantNDR = () => {
     setActionModal(true);
   };
 
-  // ✅ FIXED: API endpoints matching backend routes
   const submitAction = async () => {
     if (!actionNote.trim()) {
       showToast('Please enter remarks before submitting', 'error');
@@ -218,13 +241,11 @@ const MerchantNDR = () => {
       const recordId = selectedRecord._id || selectedRecord.id;
       
       if (actionType === 'reattempt') {
-        // ✅ Using PATCH with /reattempt endpoint
         await api.patch(`/ndr/${recordId}/reattempt`, {
           note: actionNote.trim()
         });
         showToast('Reattempt request submitted successfully', 'success');
       } else if (actionType === 'rto') {
-        // ✅ Using PATCH with /rto endpoint
         await api.patch(`/ndr/${recordId}/rto`, {
           note: actionNote.trim()
         });
@@ -243,63 +264,24 @@ const MerchantNDR = () => {
     }
   };
 
-  // ✅ Updated Status Badges
-  const getStatusBadge = (status) => {
+  // ✅ Updated Status Badge with consistent sizing
+  const getStatusStyle = (status) => {
     const normalizedStatus = (status || 'pending').toLowerCase();
-    const badges = {
-      pending: { 
-        icon: '🟡', 
-        label: 'Pending',
-        color: '#f97316',
-        bg: '#fff7ed'
-      },
-      reattempt_requested: { 
-        icon: '🔄', 
-        label: 'Reattempt Requested',
-        color: '#8b5cf6',
-        bg: '#f5f3ff'
-      },
-      reattempt: { 
-        icon: '🔄', 
-        label: 'Reattempting',
-        color: '#3b82f6',
-        bg: '#eff6ff'
-      },
-      rto_requested: { 
-        icon: '📦', 
-        label: 'RTO Requested',
-        color: '#f59e0b',
-        bg: '#fffbeb'
-      },
-      resolved: { 
-        icon: '🟢', 
-        label: 'Resolved',
-        color: '#22c55e',
-        bg: '#f0fdf4'
-      },
-      rto: { 
-        icon: '🔴', 
-        label: 'RTO',
-        color: '#ef4444',
-        bg: '#fef2f2'
-      },
-      delivered: { 
-        icon: '✅', 
-        label: 'Delivered',
-        color: '#22c55e',
-        bg: '#f0fdf4'
-      },
-      failed: { 
-        icon: '❌', 
-        label: 'Failed',
-        color: '#ef4444',
-        bg: '#fef2f2'
-      }
+    const styles = {
+      pending: { background: "#fef3c7", color: "#92400e" },
+      reattempt_requested: { background: "#f3e8ff", color: "#6d28d9" },
+      reattempt: { background: "#dbeafe", color: "#1e40af" },
+      rto_requested: { background: "#fef3c7", color: "#92400e" },
+      resolved: { background: "#dcfce7", color: "#166534" },
+      rto: { background: "#fee2e2", color: "#991b1b" },
+      delivered: { background: "#dcfce7", color: "#166534" },
+      failed: { background: "#fee2e2", color: "#991b1b" },
+      ready_for_reattempt: { background: "#dbeafe", color: "#1e40af" },
+      out_for_delivery: { background: "#dbeafe", color: "#1d4ed8" },
     };
-    return badges[normalizedStatus] || badges.pending;
+    return styles[normalizedStatus] || { background: "#f1f5f9", color: "#475569" };
   };
 
-  // ✅ Updated Sub Status
   const getSubStatus = (status) => {
     const normalizedStatus = (status || 'pending').toLowerCase();
     const subStatusMap = {
@@ -310,23 +292,24 @@ const MerchantNDR = () => {
       'resolved': 'Delivery Completed',
       'rto': 'Return to Origin Initiated',
       'delivered': 'Successfully Delivered',
-      'failed': 'Delivery Failed'
+      'failed': 'Delivery Failed',
+      'ready_for_reattempt': 'Ready for Reattempt'
     };
     return subStatusMap[normalizedStatus] || normalizedStatus;
   };
 
   const getReasonBadge = (reason) => {
     const reasonColors = {
-      'Customer Not Available': { bg: '#fff7ed', color: '#ea580c' },
-      'Address Issue': { bg: '#fef2f2', color: '#dc2626' },
-      'Customer Refused': { bg: '#faf5ff', color: '#7c3aed' },
-      'Phone Unreachable': { bg: '#eff6ff', color: '#2563eb' },
-      'Delivery Delayed': { bg: '#fffbeb', color: '#d97706' },
-      'Wrong Contact Number': { bg: '#fef3c7', color: '#92400e' },
-      'Address Not Found': { bg: '#ffedd5', color: '#9a3412' },
-      'Incorrect Address': { bg: '#fef2f2', color: '#b91c1c' }
+      'Customer Not Available': { background: '#fff7ed', color: '#ea580c' },
+      'Address Issue': { background: '#fef2f2', color: '#dc2626' },
+      'Customer Refused': { background: '#faf5ff', color: '#7c3aed' },
+      'Phone Unreachable': { background: '#eff6ff', color: '#2563eb' },
+      'Delivery Delayed': { background: '#fffbeb', color: '#d97706' },
+      'Wrong Contact Number': { background: '#fef3c7', color: '#92400e' },
+      'Address Not Found': { background: '#ffedd5', color: '#9a3412' },
+      'Incorrect Address': { background: '#fef2f2', color: '#b91c1c' }
     };
-    return reasonColors[reason] || { bg: '#f5f5f5', color: '#333' };
+    return reasonColors[reason] || { background: '#f5f5f5', color: '#333' };
   };
 
   const getCourierIcon = (courier) => {
@@ -340,1290 +323,1102 @@ const MerchantNDR = () => {
       'Ecom Express': '🚛',
       'Shadowfax': '⚡'
     };
-    return icons[courier] || '📦';
+    return icons[courier] || '📧';
   };
 
-  // Styles matching CreateShipment pattern
-  const styles = {
-    mainContainer: {
-      display: 'flex',
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)'
+  // ✅ Updated Styles matching Shipments page exactly
+  const s = {
+    container: { 
+      display: "flex", 
+      flexDirection: "column",
+      background: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)", 
+      minHeight: "100vh", 
+      fontFamily: "'Inter', sans-serif" 
     },
-    content: {
-      flex: 1,
-      marginLeft: '280px',
-      padding: '30px',
-      transition: 'margin-left 0.3s ease'
+    sidebarWrapper: { width: "100%", flexShrink: 0 },
+    main: { flex: 1, padding: "20px", overflowX: "hidden" },
+    card: { 
+      background: "#ffffff", 
+      padding: "24px", 
+      borderRadius: "16px", 
+      border: "1px solid #e2e8f0", 
+      marginBottom: "24px",
+      boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+      transition: "box-shadow 0.3s ease"
     },
-    header: {
-      background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
-      padding: '28px 32px',
-      borderRadius: '24px',
-      marginBottom: '24px',
-      boxShadow: '0 20px 25px -5px rgba(249, 115, 22, 0.1), 0 10px 10px -5px rgba(249, 115, 22, 0.05)',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center'
+    statsGrid: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+      gap: "12px",
+      marginBottom: "24px"
     },
-    headerLeft: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '16px'
-    },
-    headerIcon: {
-      width: '56px',
-      height: '56px',
-      background: 'rgba(255,255,255,0.2)',
-      borderRadius: '50%',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontSize: '28px',
-      color: '#fff'
-    },
-    headerText: {
-      color: '#fff'
-    },
-    title: {
-      fontSize: '24px',
-      fontWeight: '700',
-      margin: '0 0 4px 0',
-      letterSpacing: '-0.5px',
-      color: '#fff'
-    },
-    subtitle: {
-      fontSize: '13px',
-      color: 'rgba(255,255,255,0.85)',
-      margin: 0
-    },
-    headerActions: {
-      display: 'flex',
-      gap: '10px'
-    },
-    refreshButton: {
-      padding: '10px 20px',
-      background: 'rgba(255,255,255,0.15)',
-      border: '1px solid rgba(255,255,255,0.2)',
-      borderRadius: '10px',
-      cursor: 'pointer',
-      fontSize: '13px',
-      fontWeight: '600',
-      color: '#fff',
-      transition: 'all 0.2s ease',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '6px'
-    },
-    exportButton: {
-      padding: '10px 20px',
-      background: '#fff',
-      border: 'none',
-      borderRadius: '10px',
-      cursor: 'pointer',
-      fontSize: '13px',
-      fontWeight: '600',
-      color: '#ea580c',
-      transition: 'all 0.2s ease',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '6px',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-    },
-    statsContainer: {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(5, 1fr)',
-      gap: '16px',
-      marginBottom: '24px'
-    },
-    statCard: {
-      background: '#ffffff',
-      padding: '20px',
-      borderRadius: '16px',
-      border: '1px solid rgba(226, 232, 240, 0.8)',
-      boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+    statCard: (color) => ({
+      background: "#ffffff",
+      padding: "16px 20px",
+      borderRadius: "14px",
+      border: "1px solid #e2e8f0",
+      textAlign: "center",
+      boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+      transition: "all 0.2s ease"
+    }),
+    statIcon: (color) => ({
+      fontSize: "20px",
+      color: color,
+      marginBottom: "6px"
+    }),
+    statValue: {
+      fontSize: "24px",
+      fontWeight: "700",
+      color: "#0f172a"
     },
     statLabel: {
-      fontSize: '13px',
-      color: '#64748b',
-      marginBottom: '6px',
-      fontWeight: '500'
+      fontSize: "11px",
+      color: "#64748b",
+      fontWeight: "500",
+      textTransform: "uppercase",
+      letterSpacing: "0.3px"
     },
-    statValue: {
-      fontSize: '28px',
-      fontWeight: '700',
-      color: '#0f172a',
-      margin: '0'
+    tableHead: { 
+      background: "#f8fafc",
+      borderBottom: "1px solid #e2e8f0"
     },
-    statSub: {
-      fontSize: '12px',
-      color: '#94a3b8',
-      marginTop: '4px'
+    td: { 
+      padding: "18px 16px",
+      borderBottom: "1px solid #f1f5f9",
+      fontSize: "14px",
+      color: "#334155",
+      background: "#ffffff"
     },
-    filtersContainer: {
-      background: '#ffffff',
-      padding: '16px 20px',
-      borderRadius: '14px',
-      border: '1px solid rgba(226, 232, 240, 0.8)',
-      boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-      marginBottom: '24px',
-      display: 'flex',
-      gap: '16px',
-      flexWrap: 'wrap',
-      alignItems: 'center'
+    btn: (bg) => ({ 
+      background: bg, 
+      color: "#fff", 
+      border: "none", 
+      padding: "8px 14px", 
+      borderRadius: "10px", 
+      cursor: "pointer", 
+      marginRight: "5px", 
+      fontSize: "12px", 
+      fontWeight: "600",
+      transition: "all 0.2s ease",
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "4px"
+    }),
+    pageTitle: {
+      fontSize: "28px",
+      fontWeight: "700",
+      color: "#0f172a",
+      marginBottom: "8px",
+      letterSpacing: "-0.5px"
     },
-    filterGroup: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '8px'
+    pageSubtitle: {
+      fontSize: "14px",
+      color: "#64748b",
+      marginBottom: "24px"
     },
-    filterLabel: {
-      fontSize: '13px',
-      color: '#64748b',
-      fontWeight: '500'
+    searchWrapper: {
+      background: "#ffffff",
+      padding: "8px 20px",
+      borderRadius: "14px",
+      border: "1px solid #e2e8f0",
+      marginBottom: "24px",
+      display: "flex",
+      alignItems: "center",
+      gap: "12px",
+      transition: "all 0.2s ease",
+      flexWrap: "wrap"
     },
     searchInput: {
-      padding: '10px 14px',
-      border: '1.5px solid #e2e8f0',
-      borderRadius: '10px',
-      fontSize: '14px',
-      minWidth: '220px',
-      outline: 'none',
-      transition: 'all 0.2s ease',
-      background: '#fff',
-      color: '#1e293b'
+      border: "none",
+      outline: "none",
+      flex: 1,
+      fontSize: "14px",
+      padding: "12px 0",
+      background: "transparent",
+      minWidth: "200px"
     },
     filterSelect: {
-      padding: '10px 14px',
-      border: '1.5px solid #e2e8f0',
-      borderRadius: '10px',
-      fontSize: '14px',
-      backgroundColor: '#fff',
-      outline: 'none',
-      minWidth: '140px',
-      cursor: 'pointer',
-      transition: 'all 0.2s ease',
-      color: '#1e293b'
+      padding: "10px 16px",
+      borderRadius: "10px",
+      border: "1px solid #e2e8f0",
+      fontSize: "13px",
+      fontWeight: "500",
+      color: "#334155",
+      background: "#ffffff",
+      cursor: "pointer",
+      outline: "none",
+      transition: "all 0.2s ease"
     },
-    tableContainer: {
-      background: '#ffffff',
-      borderRadius: '16px',
-      border: '1px solid rgba(226, 232, 240, 0.8)',
-      boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-      overflow: 'hidden',
-      overflowX: 'auto'
+    tableWrapper: {
+      overflowX: "auto",
+      borderRadius: "16px"
     },
     table: {
-      width: '100%',
-      borderCollapse: 'collapse',
-      fontSize: '14px',
-      minWidth: '900px'
+      width: "100%",
+      borderCollapse: "collapse",
+      minWidth: "1100px"
     },
     th: {
-      background: '#f8fafc',
-      padding: '14px 16px',
-      textAlign: 'left',
-      fontWeight: '600',
-      color: '#475569',
-      borderBottom: '2px solid #e2e8f0',
-      fontSize: '12px',
-      textTransform: 'uppercase',
-      letterSpacing: '0.5px',
-      whiteSpace: 'nowrap'
+      padding: "16px",
+      textAlign: "left",
+      fontSize: "12px",
+      fontWeight: "600",
+      color: "#475569",
+      textTransform: "uppercase",
+      letterSpacing: "0.5px"
     },
-    tr: {
-      transition: 'all 0.2s ease'
-    },
-    td: {
-      padding: '14px 16px',
-      borderBottom: '1px solid #f1f5f9',
-      verticalAlign: 'middle',
-      color: '#1e293b'
-    },
-    awbContainer: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '2px'
-    },
+    statusBadge: (status) => ({
+      ...getStatusStyle(status),
+      padding: "5px 14px",
+      borderRadius: "100px",
+      fontSize: "12px",
+      fontWeight: "600",
+      display: "inline-block",
+      minWidth: "80px",
+      textAlign: "center",
+      letterSpacing: "0.3px"
+    }),
     awbText: {
-      fontFamily: 'monospace',
-      fontSize: '13px',
-      fontWeight: '600',
-      color: '#0f172a',
-      letterSpacing: '0.3px'
-    },
-    orderIdText: {
-      fontSize: '11px',
-      color: '#94a3b8'
-    },
-    customerContainer: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '2px'
-    },
-    customerName: {
-      fontSize: '13px',
-      fontWeight: '500',
-      color: '#0f172a'
-    },
-    customerPhone: {
-      fontSize: '12px',
-      color: '#94a3b8'
-    },
-    courierTag: {
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: '6px',
-      padding: '4px 12px',
-      backgroundColor: '#f1f5f9',
-      borderRadius: '20px',
-      fontSize: '13px',
-      color: '#1e293b'
-    },
-    courierIcon: {
-      fontSize: '14px'
-    },
-    reasonContainer: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '2px'
-    },
-    reasonBadge: {
-      display: 'inline-block',
-      padding: '3px 12px',
-      borderRadius: '12px',
-      fontSize: '11px',
-      fontWeight: '500',
-      maxWidth: '120px'
-    },
-    reasonSubText: {
-      fontSize: '11px',
-      color: '#94a3b8'
-    },
-    attemptsContainer: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '2px'
-    },
-    attemptsText: {
-      fontSize: '13px',
-      fontWeight: '500',
-      color: '#0f172a'
-    },
-    nextAttemptText: {
-      fontSize: '11px',
-      color: '#94a3b8'
-    },
-    createdContainer: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '1px'
-    },
-    createdDate: {
-      fontSize: '13px',
-      fontWeight: '500',
-      color: '#0f172a'
-    },
-    createdTime: {
-      fontSize: '11px',
-      color: '#94a3b8'
-    },
-    statusContainer: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '2px'
-    },
-    statusBadge: {
-      display: 'inline-block',
-      padding: '4px 14px',
-      borderRadius: '20px',
-      fontSize: '12px',
-      fontWeight: '500'
-    },
-    subStatusText: {
-      fontSize: '11px',
-      color: '#94a3b8'
-    },
-    actionContainer: {
-      display: 'flex',
-      gap: '6px',
-      flexWrap: 'wrap'
-    },
-    viewButton: {
-      padding: '6px 12px',
-      border: '1.5px solid #e2e8f0',
-      borderRadius: '8px',
-      cursor: 'pointer',
-      fontSize: '12px',
-      fontWeight: '500',
-      backgroundColor: '#fff',
-      color: '#64748b',
-      transition: 'all 0.2s ease',
-      whiteSpace: 'nowrap'
-    },
-    reattemptButton: {
-      padding: '6px 12px',
-      border: 'none',
-      borderRadius: '8px',
-      cursor: 'pointer',
-      fontSize: '12px',
-      fontWeight: '600',
-      background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
-      color: '#fff',
-      transition: 'all 0.2s ease',
-      boxShadow: '0 2px 8px rgba(249, 115, 22, 0.3)',
-      whiteSpace: 'nowrap'
-    },
-    rtoButton: {
-      padding: '6px 12px',
-      border: 'none',
-      borderRadius: '8px',
-      cursor: 'pointer',
-      fontSize: '12px',
-      fontWeight: '600',
-      background: '#ef4444',
-      color: '#fff',
-      transition: 'all 0.2s ease',
-      boxShadow: '0 2px 8px rgba(239, 68, 68, 0.3)',
-      whiteSpace: 'nowrap'
-    },
-    resolvedStatus: {
-      color: '#22c55e',
-      fontWeight: '600',
-      fontSize: '13px'
-    },
-    rtoStatus: {
-      color: '#ef4444',
-      fontWeight: '600',
-      fontSize: '13px'
-    },
-    waitingStatus: {
-      color: '#8b5cf6',
-      fontWeight: '500',
-      fontSize: '13px'
-    },
-    reattemptingStatus: {
-      color: '#3b82f6',
-      fontWeight: '500',
-      fontSize: '13px'
-    },
-    rtoRequestedStatus: {
-      color: '#f59e0b',
-      fontWeight: '500',
-      fontSize: '13px'
+      fontWeight: "700",
+      color: "#2563eb",
+      fontFamily: "monospace",
+      fontSize: "13px"
     },
     modalOverlay: {
-      position: 'fixed',
+      position: "fixed",
       top: 0,
       left: 0,
-      width: '100%',
-      height: '100%',
-      backgroundColor: 'rgba(0,0,0,0.5)',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      zIndex: 1000,
-      backdropFilter: 'blur(4px)'
+      width: "100%",
+      height: "100%",
+      background: "rgba(0,0,0,0.6)",
+      backdropFilter: "blur(4px)",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 9999
     },
     modalContent: {
-      backgroundColor: '#fff',
-      padding: '32px',
-      borderRadius: '24px',
-      maxWidth: '600px',
-      width: '100%',
-      maxHeight: '90vh',
-      overflow: 'auto',
-      boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
-      border: '1px solid rgba(226, 232, 240, 0.8)'
+      background: "#fff",
+      width: "650px",
+      maxWidth: "90vw",
+      maxHeight: "80vh",
+      borderRadius: "20px",
+      boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)"
+    },
+    modalHeader: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: "20px 24px",
+      borderBottom: "1px solid #f1f5f9"
     },
     modalTitle: {
-      fontSize: '22px',
-      fontWeight: '600',
-      color: '#0f172a',
-      marginBottom: '20px',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '8px',
-      borderBottom: '1px solid #e2e8f0',
-      paddingBottom: '16px'
+      margin: 0,
+      fontSize: "18px",
+      fontWeight: "600",
+      color: "#0f172a"
+    },
+    modalCloseBtn: {
+      border: "none",
+      background: "none",
+      cursor: "pointer",
+      color: "#94a3b8",
+      fontSize: "16px"
+    },
+    modalBody: {
+      padding: "20px 24px",
+      maxHeight: "55vh",
+      overflowY: "auto"
     },
     detailRow: {
-      display: 'flex',
-      padding: '10px 0',
-      borderBottom: '1px solid #f1f5f9'
+      display: "flex",
+      padding: "12px 0",
+      borderBottom: "1px solid #f1f5f9",
+      alignItems: "flex-start"
     },
     detailLabel: {
-      width: '140px',
-      fontWeight: '500',
-      color: '#64748b',
-      flexShrink: 0
+      width: "140px",
+      fontWeight: "500",
+      color: "#64748b",
+      flexShrink: 0,
+      fontSize: "13px"
     },
     detailValue: {
       flex: 1,
-      color: '#0f172a',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '8px'
-    },
-    attemptItem: {
-      padding: '8px 12px',
-      marginBottom: '6px',
-      backgroundColor: '#f8fafc',
-      borderRadius: '8px',
-      fontSize: '13px',
-      color: '#1e293b',
-      border: '1px solid #e2e8f0'
-    },
-    attemptDate: {
-      color: '#64748b',
-      fontSize: '12px',
-      marginRight: '12px'
+      color: "#0f172a",
+      fontSize: "14px"
     },
     textarea: {
-      width: '100%',
-      padding: '12px',
-      border: '1.5px solid #e2e8f0',
-      borderRadius: '10px',
-      marginTop: '12px',
-      marginBottom: '16px',
-      fontSize: '14px',
-      fontFamily: 'inherit',
-      minHeight: '80px',
-      resize: 'vertical',
-      outline: 'none',
-      transition: 'all 0.2s ease',
-      background: '#fff',
-      color: '#1e293b'
+      width: "100%",
+      padding: "12px",
+      border: "1.5px solid #e2e8f0",
+      borderRadius: "10px",
+      marginTop: "8px",
+      fontSize: "14px",
+      fontFamily: "inherit",
+      minHeight: "80px",
+      resize: "vertical",
+      outline: "none",
+      transition: "all 0.2s ease"
     },
-    modalButtons: {
-      display: 'flex',
-      gap: '12px',
-      justifyContent: 'flex-end',
-      marginTop: '16px'
-    },
-    loadingContainer: {
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      height: '400px',
-      fontSize: '16px',
-      color: '#94a3b8'
-    },
-    emptyState: {
-      textAlign: 'center',
-      padding: '60px 20px'
-    },
-    emptyIcon: {
-      fontSize: '64px',
-      marginBottom: '16px'
-    },
-    emptyTitle: {
-      margin: '0',
-      color: '#0f172a',
-      fontSize: '20px',
-      fontWeight: '600'
-    },
-    emptySub: {
-      margin: '8px 0 16px',
-      color: '#64748b',
-      fontSize: '14px'
-    },
-    toast: {
-      position: 'fixed',
-      top: '20px',
-      right: '20px',
-      padding: '16px 24px',
-      borderRadius: '12px',
-      color: '#fff',
-      zIndex: 9999,
-      boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
-      animation: 'slideIn 0.3s ease',
-      maxWidth: '400px',
-      fontWeight: '500'
-    },
-    toastSuccess: {
-      background: 'linear-gradient(135deg, #22c55e, #16a34a)'
-    },
-    toastError: {
-      background: 'linear-gradient(135deg, #ef4444, #dc2626)'
-    },
-    awbCopyButton: {
-      background: 'none',
-      border: 'none',
-      cursor: 'pointer',
-      fontSize: '14px',
-      padding: '4px 8px',
-      borderRadius: '6px',
-      color: '#64748b',
-      transition: 'all 0.2s ease',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '4px'
-    },
-    resultCount: {
-      fontSize: '13px',
-      color: '#64748b',
-      marginTop: '8px',
-      marginBottom: '12px',
-      fontWeight: '500'
-    },
-    closeButton: {
-      padding: '10px 24px',
-      border: '1.5px solid #e2e8f0',
-      borderRadius: '10px',
-      cursor: 'pointer',
-      fontSize: '14px',
-      fontWeight: '500',
-      backgroundColor: '#fff',
-      color: '#64748b',
-      transition: 'all 0.2s ease'
-    },
-    submitActionButton: {
-      padding: '10px 24px',
-      border: 'none',
-      borderRadius: '10px',
-      cursor: 'pointer',
-      fontSize: '14px',
-      fontWeight: '600',
-      color: '#fff',
-      transition: 'all 0.2s ease'
-    },
-    reattemptSubmitButton: {
-      background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
-      boxShadow: '0 4px 12px rgba(249, 115, 22, 0.3)'
-    },
-    rtoSubmitButton: {
-      background: '#ef4444',
-      boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)'
+    sectionTitle: {
+      fontSize: "14px",
+      fontWeight: "600",
+      color: "#0f172a",
+      margin: "16px 0 8px 0",
+      paddingBottom: "8px",
+      borderBottom: "2px solid #f1f5f9"
     }
   };
 
-  if (loading) {
-    return (
-      <div style={styles.mainContainer}>
-        <Sidebar />
-        <div style={styles.content}>
-          <div style={styles.loadingContainer}>
-            <div>Loading NDR records...</div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const desktopStyles = `
+    @media (min-width: 768px) {
+      .ndr-container {
+        flex-direction: row !important;
+      }
+      .sidebar-wrapper {
+        width: 280px !important;
+      }
+      .ndr-main {
+        padding: 30px !important;
+      }
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .search-wrapper:focus-within {
+      border-color: #f97316;
+      box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+    }
+
+    tr:hover td {
+      background: #f8fafc;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    select:focus {
+      border-color: #f97316;
+      box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+    }
+
+    .action-btn {
+      transition: all 0.2s ease;
+    }
+
+    .action-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .copy-btn:hover {
+      background: #f1f5f9 !important;
+    }
+
+    .toast {
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .status-badge {
+      white-space: nowrap;
+    }
+  `;
+
+  // Sort records by creation date (newest first)
+  const sortedRecords = [...filteredRecords].sort((a, b) => {
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  });
 
   return (
-    <div style={styles.mainContainer}>
-      <Sidebar />
-      
-      <div style={styles.content}>
-        {/* Toast Notification */}
-        {toast.visible && (
-          <div style={{
-            ...styles.toast,
-            ...(toast.type === 'success' ? styles.toastSuccess : styles.toastError)
-          }}>
-            {toast.type === 'success' ? '✅' : '❌'} {toast.message}
-          </div>
-        )}
+    <>
+      <style>{desktopStyles}</style>
+      <div className="ndr-container" style={s.container}>
+        <div className="sidebar-wrapper" style={s.sidebarWrapper}>
+          <Sidebar />
+        </div>
 
-        {/* Header with Orange Gradient */}
-        <div style={styles.header}>
-          <div style={styles.headerLeft}>
-            <div style={styles.headerIcon}>📋</div>
-            <div style={styles.headerText}>
-              <h1 style={styles.title}>NDR Management</h1>
-              <p style={styles.subtitle}>Non-Delivery Report tracking and resolution</p>
+        <main className="ndr-main" style={s.main}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <div>
+              <h1 style={s.pageTitle}>NDR Management</h1>
+              <p style={s.pageSubtitle}>Non-Delivery Report tracking and resolution</p>
             </div>
-          </div>
-          <div style={styles.headerActions}>
-            <button 
-              style={{
-                ...styles.refreshButton,
-                opacity: refreshing ? 0.6 : 1,
-                cursor: refreshing ? 'not-allowed' : 'pointer'
-              }}
-              onClick={handleRefresh}
-              disabled={refreshing}
-            >
-              {refreshing ? '⏳' : '🔄'} Refresh
-            </button>
-            <button 
-              style={styles.exportButton}
-              onClick={handleExportCSV}
-            >
-              📊 Export CSV
-            </button>
-          </div>
-        </div>
-
-        {/* Stats Cards */}
-        <div style={styles.statsContainer}>
-          <div style={styles.statCard}>
-            <div style={styles.statLabel}>Total NDR</div>
-            <div style={{ ...styles.statValue, color: '#f97316' }}>{stats.total}</div>
-            <div style={styles.statSub}>All non-delivery cases</div>
-          </div>
-          <div style={styles.statCard}>
-            <div style={styles.statLabel}>Pending</div>
-            <div style={{ ...styles.statValue, color: '#ff9800' }}>{stats.pending}</div>
-            <div style={styles.statSub}>Awaiting action</div>
-          </div>
-          <div style={styles.statCard}>
-            <div style={styles.statLabel}>Reattempt Requested</div>
-            <div style={{ ...styles.statValue, color: '#8b5cf6' }}>{stats.reattemptRequested}</div>
-            <div style={styles.statSub}>Waiting for admin</div>
-          </div>
-          <div style={styles.statCard}>
-            <div style={styles.statLabel}>Resolved</div>
-            <div style={{ ...styles.statValue, color: '#22c55e' }}>{stats.resolved}</div>
-            <div style={styles.statSub}>Delivery completed</div>
-          </div>
-          <div style={styles.statCard}>
-            <div style={styles.statLabel}>Marked RTO</div>
-            <div style={{ ...styles.statValue, color: '#ef4444' }}>{stats.rto}</div>
-            <div style={styles.statSub}>Return to origin</div>
-          </div>
-        </div>
-
-        {/* Filters */}
-        <div style={styles.filtersContainer}>
-          <div style={styles.filterGroup}>
-            <span style={styles.filterLabel}>🔍</span>
-            <input
-              type="text"
-              style={styles.searchInput}
-              placeholder="Search AWB / Order ID..."
-              value={searchAWB}
-              onChange={(e) => setSearchAWB(e.target.value)}
-            />
-          </div>
-          <div style={styles.filterGroup}>
-            <span style={styles.filterLabel}>Status:</span>
-            <select
-              style={styles.filterSelect}
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="all">All Status</option>
-              <option value="pending">🟡 Pending</option>
-              <option value="reattempt_requested">🔄 Reattempt Requested</option>
-              <option value="resolved">🟢 Resolved</option>
-              <option value="rto">🔴 RTO</option>
-            </select>
-          </div>
-          <div style={styles.filterGroup}>
-            <span style={styles.filterLabel}>Courier:</span>
-            <select
-              style={styles.filterSelect}
-              value={courierFilter}
-              onChange={(e) => setCourierFilter(e.target.value)}
-            >
-              <option value="all">All Couriers</option>
-              {couriers.map(courier => (
-                <option key={courier} value={courier}>
-                  {getCourierIcon(courier)} {courier}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Result Count */}
-        <div style={styles.resultCount}>
-          Showing {filteredRecords.length} of {ndrRecords.length} NDR Cases
-        </div>
-
-        {/* Table */}
-        <div style={styles.tableContainer}>
-          {filteredRecords.length === 0 ? (
-            <div style={styles.emptyState}>
-              <div style={styles.emptyIcon}>🎉</div>
-              <h3 style={styles.emptyTitle}>No NDR cases found</h3>
-              <p style={styles.emptySub}>All deliveries are going smoothly! Try adjusting your filters.</p>
-              <button 
-                style={{
-                  padding: '10px 24px',
-                  background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
-                  border: 'none',
-                  borderRadius: '10px',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  color: '#fff',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}
+            <div style={{ display: "flex", gap: "10px" }}>
+              <button
                 onClick={handleRefresh}
                 disabled={refreshing}
+                style={{
+                  ...s.btn("#1e293b"),
+                  opacity: refreshing ? 0.6 : 1,
+                  cursor: refreshing ? 'not-allowed' : 'pointer'
+                }}
               >
-                {refreshing ? '⏳' : '🔄'} Refresh
+                <FaSync size={11} /> {refreshing ? 'Refreshing...' : 'Refresh'}
+              </button>
+              <button
+                onClick={handleExportCSV}
+                style={s.btn("#059669")}
+              >
+                <FaDownload size={11} /> Export CSV
               </button>
             </div>
-          ) : (
-            <table style={styles.table}>
-              <thead>
-                <tr>
-                  <th style={styles.th}>AWB</th>
-                  <th style={styles.th}>Customer</th>
-                  <th style={styles.th}>Courier</th>
-                  <th style={styles.th}>Reason</th>
-                  <th style={styles.th}>Attempts</th>
-                  <th style={styles.th}>Created</th>
-                  <th style={styles.th}>Status</th>
-                  <th style={styles.th}>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredRecords.map((record) => {
-                  const statusBadge = getStatusBadge(record.status);
-                  const reasonBadge = getReasonBadge(record.ndrReason);
-                  const courierIcon = getCourierIcon(record.courier);
-                  const subStatus = getSubStatus(record.status);
-                  const canTakeAction = (record.status || '').toLowerCase() === 'pending';
-                  
-                  const customerName = record.customerName || record.orderId?.customerName || '';
-                  const customerPhone = record.customerPhone || record.orderId?.customerPhone || '';
-                  
-                  return (
-                    <tr key={record._id || record.id} style={styles.tr}>
-                      {/* AWB Column */}
-                      <td style={styles.td}>
-                        <div style={styles.awbContainer}>
-                          <span style={styles.awbText}>{record.awb || ''}</span>
-                          <span style={styles.orderIdText}>{record.orderId?.orderNumber || '-'}</span>
-                        </div>
-                      </td>
-                      
-                      {/* Customer Column */}
-                      <td style={styles.td}>
-                        <div style={styles.customerContainer}>
-                          <span style={styles.customerName}>{customerName || 'N/A'}</span>
-                          <span style={styles.customerPhone}>📞 {customerPhone || 'N/A'}</span>
-                        </div>
-                      </td>
-                      
-                      {/* Courier Column */}
-                      <td style={styles.td}>
-                        <span style={styles.courierTag}>
-                          <span style={styles.courierIcon}>{courierIcon}</span>
-                          <span>{record.courier || 'N/A'}</span>
-                        </span>
-                      </td>
-                      
-                      {/* Reason Column */}
-                      <td style={styles.td}>
-                        <div style={styles.reasonContainer}>
-                          <span style={{
-                            ...styles.reasonBadge,
-                            backgroundColor: reasonBadge.bg,
-                            color: reasonBadge.color
-                          }}>
-                            {record.ndrReason || 'N/A'}
-                          </span>
-                          {record.ndrSubReason && (
-                            <span style={styles.reasonSubText}>{record.ndrSubReason}</span>
-                          )}
-                        </div>
-                      </td>
-                      
-                      {/* Attempts Column */}
-                      <td style={styles.td}>
-                        <div style={styles.attemptsContainer}>
-                          <span style={styles.attemptsText}>
-                            {record.deliveryAttempts || 0} of {record.maxAttempts || 3}
-                          </span>
-                          {record.nextAttemptDate && (
-                            <span style={styles.nextAttemptText}>
-                              📅 {new Date(record.nextAttemptDate).toLocaleDateString('en-IN', {
-                                day: '2-digit',
-                                month: 'short'
-                              })}
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      
-                      {/* Created Column */}
-                      <td style={styles.td}>
-                        <div style={styles.createdContainer}>
-                          <span style={styles.createdDate}>
-                            {record.createdAt ? 
-                              new Date(record.createdAt).toLocaleDateString('en-IN', {
-                                day: '2-digit',
-                                month: 'short',
-                                year: 'numeric'
-                              }) : 
-                              'N/A'
-                            }
-                          </span>
-                          <span style={styles.createdTime}>
-                            {record.createdAt ? 
-                              new Date(record.createdAt).toLocaleTimeString('en-IN', {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              }) : 
-                              ''
-                            }
-                          </span>
-                        </div>
-                      </td>
-                      
-                      {/* Status Column */}
-                      <td style={styles.td}>
-                        <div style={styles.statusContainer}>
-                          <span style={{
-                            ...styles.statusBadge,
-                            backgroundColor: statusBadge.bg,
-                            color: statusBadge.color
-                          }}>
-                            {statusBadge.icon} {statusBadge.label}
-                          </span>
-                          <span style={styles.subStatusText}>{subStatus}</span>
-                        </div>
-                      </td>
-                      
-                      {/* Action Column */}
-                      <td style={styles.td}>
-                        <div style={styles.actionContainer}>
-                          <button
-                            style={styles.viewButton}
-                            onClick={() => handleView(record)}
-                          >
-                            👁️ View
-                          </button>
-                          {canTakeAction && (
-                            <>
-                              <button
-                                style={styles.reattemptButton}
-                                onClick={() => handleAction(record, 'reattempt')}
-                              >
-                                🔄 Reattempt
-                              </button>
-                              <button
-                                style={styles.rtoButton}
-                                onClick={() => handleAction(record, 'rto')}
-                              >
-                                📦 RTO
-                              </button>
-                            </>
-                          )}
-                          {(record.status || '').toLowerCase() === 'reattempt_requested' && (
-                            <span style={styles.waitingStatus}>⏳ Awaiting Admin</span>
-                          )}
-                          {(record.status || '').toLowerCase() === 'rto_requested' && (
-                            <span style={styles.rtoRequestedStatus}>⏳ Awaiting Admin</span>
-                          )}
-                          {(record.status || '').toLowerCase() === 'reattempt' && (
-                            <span style={styles.reattemptingStatus}>🔄 Reattempting</span>
-                          )}
-                          {(record.status || '').toLowerCase() === 'resolved' && (
-                            <span style={styles.resolvedStatus}>✅ Delivered</span>
-                          )}
-                          {(record.status || '').toLowerCase() === 'rto' && (
-                            <span style={styles.rtoStatus}>↺ RTO</span>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          )}
-        </div>
+          </div>
 
-        {/* View Modal */}
-        {viewModal && selectedRecord && (
-          <div style={styles.modalOverlay} onClick={() => {
-            setViewModal(false);
-            setSelectedRecord(null);
-          }}>
-            <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-              <div style={styles.modalTitle}>
-                📄 NDR Details
-                <span style={{
-                  display: 'inline-block',
-                  padding: '4px 14px',
-                  borderRadius: '20px',
-                  fontSize: '11px',
-                  fontWeight: '500',
-                  backgroundColor: getStatusBadge(selectedRecord.status).bg,
-                  color: getStatusBadge(selectedRecord.status).color,
-                  marginLeft: 'auto'
+          {/* Statistics Cards */}
+          <div style={s.statsGrid}>
+            <div className="stat-card" style={s.statCard("#f97316")}>
+              <FaBox style={s.statIcon("#f97316")} />
+              <div style={s.statValue}>{stats.total}</div>
+              <div style={s.statLabel}>Total NDR</div>
+            </div>
+            <div className="stat-card" style={s.statCard("#d97706")}>
+              <FaClock style={s.statIcon("#d97706")} />
+              <div style={s.statValue}>{stats.pending}</div>
+              <div style={s.statLabel}>Pending</div>
+            </div>
+            <div className="stat-card" style={s.statCard("#8b5cf6")}>
+              <FaUndo style={s.statIcon("#8b5cf6")} />
+              <div style={s.statValue}>{stats.reattemptRequested}</div>
+              <div style={s.statLabel}>Reattempt Requested</div>
+            </div>
+            <div className="stat-card" style={s.statCard("#16a34a")}>
+              <FaCheckCircle style={s.statIcon("#16a34a")} />
+              <div style={s.statValue}>{stats.resolved}</div>
+              <div style={s.statLabel}>Resolved</div>
+            </div>
+            <div className="stat-card" style={s.statCard("#dc2626")}>
+              <FaExclamationTriangle style={s.statIcon("#dc2626")} />
+              <div style={s.statValue}>{stats.rto}</div>
+              <div style={s.statLabel}>Marked RTO</div>
+            </div>
+          </div>
+
+          {/* Search + Status Filter */}
+          <div className="search-wrapper" style={s.searchWrapper}>
+            <FaSearch style={{ color: "#94a3b8" }} />
+            <input 
+              type="text" 
+              placeholder="Search by AWB, Order ID or Customer Name..." 
+              style={s.searchInput} 
+              onChange={(e) => setSearch(e.target.value)} 
+            />
+            
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+              <FaFilter style={{ color: "#94a3b8", fontSize: "14px" }} />
+              <select
+                style={s.filterSelect}
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="ALL">All Status</option>
+                <option value="PENDING">Awaiting Action</option>
+                <option value="REATTEMPT_REQUESTED">Reattempt Requested</option>
+                <option value="RESOLVED">Resolved</option>
+                <option value="RTO">RTO</option>
+              </select>
+              
+              <select
+                style={s.filterSelect}
+                value={courierFilter}
+                onChange={(e) => setCourierFilter(e.target.value)}
+              >
+                <option value="ALL">All Couriers</option>
+                {couriers.filter(c => c !== 'ALL').map(courier => (
+                  <option key={courier} value={courier}>
+                    {getCourierIcon(courier)} {courier}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div style={{ ...s.card, padding: 0, overflow: "hidden" }}>
+            <div
+              style={{
+                padding: "20px 24px",
+                borderBottom: "1px solid #e2e8f0",
+                background: "#fff"
+              }}
+            >
+              <h3
+                style={{
+                  margin: 0,
+                  color: "#0f172a",
+                  fontSize: "18px",
+                  fontWeight: "700"
+                }}
+              >
+                NDR Records
+                <span style={{ 
+                  fontSize: "13px", 
+                  fontWeight: "400", 
+                  color: "#64748b",
+                  marginLeft: "10px"
                 }}>
-                  {getStatusBadge(selectedRecord.status).icon} {getStatusBadge(selectedRecord.status).label}
+                  ({sortedRecords.length} cases)
+                </span>
+              </h3>
+            </div>
+            
+            <div style={s.tableWrapper}>
+              {loading ? (
+                <div style={{ padding: "60px", textAlign: "center", color: "#64748b" }}>
+                  <FaSync style={{ fontSize: "24px", marginBottom: "12px", animation: "spin 1s linear infinite" }} />
+                  <div>Loading NDR records...</div>
+                </div>
+              ) : sortedRecords.length === 0 ? (
+                <div style={{ padding: "60px", textAlign: "center", color: "#94a3b8" }}>
+                  <div style={{ fontSize: "48px", marginBottom: "12px" }}>🎉</div>
+                  <div style={{ fontSize: "18px", fontWeight: "600", color: "#0f172a", marginBottom: "8px" }}>
+                    No NDR cases found
+                  </div>
+                  <div style={{ fontSize: "14px" }}>All deliveries are going smoothly! Try adjusting your filters.</div>
+                </div>
+              ) : (
+                <table style={s.table}>
+                  <thead>
+                    <tr style={s.tableHead}>
+                      {[
+                        "AWB",
+                        "CUSTOMER",
+                        "COURIER",
+                        "ATTEMPTS",
+                        "CREATED",
+                        "STATUS",
+                        "ACTIONS"
+                      ].map((h) => (
+                        <th key={h} style={s.th}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sortedRecords.map((record) => {
+                      const statusStyle = getStatusStyle(record.status);
+                      const courierIcon = getCourierIcon(record.courier);
+                      const subStatus = getSubStatus(record.status);
+                      const canTakeAction = (record.status || '').toLowerCase() === 'pending';
+                      const isReattemptRequested = (record.status || '').toLowerCase() === 'reattempt_requested';
+                      const isRTORequested = (record.status || '').toLowerCase() === 'rto_requested';
+                      const isReattempt = (record.status || '').toLowerCase() === 'reattempt';
+                      const isResolved = (record.status || '').toLowerCase() === 'resolved';
+                      const isRTO = (record.status || '').toLowerCase() === 'rto';
+                      
+                      const customerName = record.customerName || record.orderId?.customerName || 'N/A';
+                      const customerPhone = record.customerPhone || record.orderId?.customerPhone || 'N/A';
+                      
+                      return (
+                        <tr key={record._id || record.id}>
+                          <td style={s.td}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                              <span style={s.awbText}>{record.awb || 'N/A'}</span>
+                              <button
+                                onClick={() => handleCopyAWB(record.awb)}
+                                style={{
+                                  background: "none",
+                                  border: "none",
+                                  cursor: "pointer",
+                                  padding: "4px",
+                                  borderRadius: "6px",
+                                  color: "#94a3b8",
+                                  transition: "all 0.2s ease"
+                                }}
+                                className="copy-btn"
+                                title="Copy AWB"
+                              >
+                                <FaCopy size={12} />
+                              </button>
+                            </div>
+                            <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "2px" }}>
+                              {record.orderId?.orderNumber || '-'}
+                            </div>
+                          </td>
+                          
+                          <td style={s.td}>
+                            <div style={{ fontWeight: "600", color: "#0f172a", fontSize: "14px" }}>
+                              {customerName}
+                            </div>
+                            <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "2px" }}>
+                              <FaPhone size={10} style={{ marginRight: "4px" }} />
+                              {customerPhone}
+                            </div>
+                          </td>
+                          
+                          <td style={s.td}>
+                            <span
+                              style={{
+                                background: "#f1f5f9",
+                                padding: "6px 10px",
+                                borderRadius: "999px",
+                                fontSize: "12px",
+                                color: "#475569",
+                                fontWeight: "500",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "4px"
+                              }}
+                            >
+                              <span>{courierIcon}</span>
+                              <span>{record.courier || 'N/A'}</span>
+                            </span>
+                          </td>
+                          
+                          <td style={s.td}>
+                            <div style={{ fontWeight: "500", fontSize: "13px", color: "#0f172a" }}>
+                              {record.deliveryAttempts || 0} / {record.maxAttempts || 3}
+                            </div>
+                            {record.nextAttemptDate && (
+                              <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "2px" }}>
+                                📅 {new Date(record.nextAttemptDate).toLocaleDateString('en-GB')}
+                              </div>
+                            )}
+                          </td>
+                          
+                          <td style={s.td}>
+                            <div style={{ fontSize: "13px", fontWeight: "500", color: "#0f172a" }}>
+                              {record.createdAt ? 
+                                new Date(record.createdAt).toLocaleDateString('en-GB') : 
+                                'N/A'
+                              }
+                            </div>
+                            <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "2px" }}>
+                              {record.createdAt ? 
+                                new Date(record.createdAt).toLocaleTimeString('en-GB', {
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                }) : 
+                                ''
+                              }
+                            </div>
+                          </td>
+                          
+                          <td style={s.td}>
+                            <span className="status-badge" style={s.statusBadge(record.status)}>
+                              {record.status || 'PENDING'}
+                            </span>
+                            <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "2px", textAlign: "center" }}>
+                              {subStatus}
+                            </div>
+                          </td>
+                          
+                          <td style={s.td}>
+                            <div style={{ display: "flex", gap: "5px", flexWrap: "nowrap" }}>
+                              <button
+                                onClick={() => handleView(record)}
+                                style={s.btn("#1e293b")}
+                              >
+                                <FaEye size={11} /> View
+                              </button>
+                              
+                              {canTakeAction && (
+                                <>
+                                  <button
+                                    onClick={() => handleAction(record, 'reattempt')}
+                                    style={s.btn("#f97316")}
+                                    className="action-btn"
+                                  >
+                                    <FaUndo size={11} /> Reattempt
+                                  </button>
+                                  <button
+                                    onClick={() => handleAction(record, 'rto')}
+                                    style={s.btn("#dc2626")}
+                                    className="action-btn"
+                                  >
+                                    <FaTimes size={11} /> RTO
+                                  </button>
+                                </>
+                              )}
+                              
+                              {(isReattemptRequested || isRTORequested) && (
+                                <span style={{ 
+                                  fontSize: "11px", 
+                                  fontWeight: "500", 
+                                  color: "#8b5cf6",
+                                  padding: "8px 12px",
+                                  background: "#f3e8ff",
+                                  borderRadius: "8px",
+                                  whiteSpace: "nowrap"
+                                }}>
+                                  Awaiting Admin
+                                </span>
+                              )}
+                              
+                              {isReattempt && (
+                                <span style={{ 
+                                  fontSize: "11px", 
+                                  fontWeight: "500", 
+                                  color: "#3b82f6",
+                                  padding: "8px 12px",
+                                  background: "#dbeafe",
+                                  borderRadius: "8px",
+                                  whiteSpace: "nowrap"
+                                }}>
+                                  Reattempting
+                                </span>
+                              )}
+                              
+                              {isResolved && (
+                                <span style={{ 
+                                  fontSize: "11px", 
+                                  fontWeight: "600", 
+                                  color: "#16a34a",
+                                  padding: "8px 12px",
+                                  background: "#dcfce7",
+                                  borderRadius: "8px",
+                                  whiteSpace: "nowrap"
+                                }}>
+                                  ✓ Delivered
+                                </span>
+                              )}
+                              
+                              {isRTO && (
+                                <span style={{ 
+                                  fontSize: "11px", 
+                                  fontWeight: "600", 
+                                  color: "#dc2626",
+                                  padding: "8px 12px",
+                                  background: "#fee2e2",
+                                  borderRadius: "8px",
+                                  whiteSpace: "nowrap"
+                                }}>
+                                  ✗ RTO
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        </main>
+      </div>
+
+      {/* ✅ Updated View Modal with Complete Details */}
+      {viewModal && selectedRecord && (
+        <div style={s.modalOverlay} onClick={() => {
+          setViewModal(false);
+          setSelectedRecord(null);
+        }}>
+          <div style={s.modalContent} onClick={(e) => e.stopPropagation()}>
+            <div style={s.modalHeader}>
+              <h2 style={s.modalTitle}>
+                <FaInfoCircle style={{ color: "#f97316", marginRight: "8px" }} />
+                NDR Details
+                <span style={{
+                  display: "inline-block",
+                  padding: "4px 14px",
+                  borderRadius: "999px",
+                  fontSize: "12px",
+                  fontWeight: "600",
+                  background: getStatusStyle(selectedRecord.status).background,
+                  color: getStatusStyle(selectedRecord.status).color,
+                  marginLeft: "auto"
+                }}>
+                  {selectedRecord.status || 'PENDING'}
+                </span>
+              </h2>
+              <button onClick={() => {
+                setViewModal(false);
+                setSelectedRecord(null);
+              }} style={s.modalCloseBtn}>
+                <FaTimes />
+              </button>
+            </div>
+            <div style={s.modalBody}>
+              {/* Order & Customer Information */}
+              <div style={s.sectionTitle}>
+                <FaUser style={{ marginRight: "8px", color: "#f97316" }} />
+                Order & Customer Information
+              </div>
+              
+              <div style={s.detailRow}>
+                <span style={s.detailLabel}>AWB Number</span>
+                <span style={s.detailValue}>
+                  <span style={{ fontFamily: "monospace", fontWeight: "600", color: "#2563eb" }}>
+                    {selectedRecord.awb || 'N/A'}
+                  </span>
+                  <button
+                    onClick={() => handleCopyAWB(selectedRecord.awb)}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      padding: "4px 8px",
+                      borderRadius: "6px",
+                      color: "#94a3b8",
+                      marginLeft: "8px"
+                    }}
+                  >
+                    <FaCopy size={12} /> Copy
+                  </button>
                 </span>
               </div>
               
-              <div>
-                <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>AWB</span>
-                  <span style={styles.detailValue}>
-                    <span style={{ fontFamily: 'monospace', fontWeight: '600' }}>
-                      {selectedRecord.awb || ''}
-                    </span>
-                    <button
-                      style={styles.awbCopyButton}
-                      onClick={() => handleCopyAWB(selectedRecord.awb)}
-                      title="Copy AWB"
-                    >
-                      📋 Copy
-                    </button>
-                  </span>
-                </div>
-                <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>Order ID</span>
-                  <span style={styles.detailValue}>
-                    {selectedRecord.orderId?.orderNumber || '-'}
-                  </span>
-                </div>
-                <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>Customer</span>
-                  <span style={styles.detailValue}>
-                    <strong>{selectedRecord.customerName || selectedRecord.orderId?.customerName || ''}</strong>
-                  </span>
-                </div>
-                <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>Phone</span>
-                  <span style={styles.detailValue}>
-                    {selectedRecord.customerPhone || selectedRecord.orderId?.customerPhone || ''}
-                  </span>
-                </div>
-                <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>Address</span>
-                  <span style={styles.detailValue}>
-                    {selectedRecord.address || ''}<br />
-                    <span style={{ fontSize: '12px', color: '#94a3b8' }}>
-                      Pincode: {selectedRecord.pincode || ''}
-                    </span>
-                  </span>
-                </div>
-                <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>Courier</span>
-                  <span style={styles.detailValue}>
-                    {getCourierIcon(selectedRecord.courier)} {selectedRecord.courier || ''}
-                  </span>
-                </div>
-                <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>NDR Reason</span>
-                  <span style={styles.detailValue}>
-                    <span style={{
-                      display: 'inline-block',
-                      padding: '3px 12px',
-                      borderRadius: '12px',
-                      fontSize: '11px',
-                      fontWeight: '500',
-                      backgroundColor: getReasonBadge(selectedRecord.ndrReason).bg,
-                      color: getReasonBadge(selectedRecord.ndrReason).color
-                    }}>
-                      {selectedRecord.ndrReason || ''}
-                    </span>
-                    <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '2px' }}>
-                      {selectedRecord.ndrSubReason || ''}
-                    </div>
-                  </span>
-                </div>
-                <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>Expected Delivery</span>
-                  <span style={styles.detailValue}>
-                    {selectedRecord.expectedDeliveryDate ? 
-                      new Date(selectedRecord.expectedDeliveryDate).toLocaleDateString('en-IN', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric'
-                      }) : 
-                      'Pending Courier Update'
-                    }
-                  </span>
-                </div>
-                <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>Attempts</span>
-                  <span style={styles.detailValue}>
-                    Attempt {selectedRecord.deliveryAttempts || 0} of {selectedRecord.maxAttempts || 3}
-                    {selectedRecord.nextAttemptDate && (
-                      <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>
-                        📅 Next: {new Date(selectedRecord.nextAttemptDate).toLocaleDateString('en-IN', {
-                          day: '2-digit',
-                          month: 'short',
-                          year: 'numeric'
-                        })}
-                      </div>
-                    )}
-                  </span>
-                </div>
-                <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>Last Attempt</span>
-                  <span style={styles.detailValue}>
-                    {selectedRecord.lastAttemptDate ? 
-                      new Date(selectedRecord.lastAttemptDate).toLocaleDateString('en-IN', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric'
-                      }) : 
-                      'No attempts yet'
-                    }
-                  </span>
-                </div>
-                <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>Created</span>
-                  <span style={styles.detailValue}>
-                    {selectedRecord.createdAt ? 
-                      new Date(selectedRecord.createdAt).toLocaleString('en-IN', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      }) : 
-                      'N/A'
-                    }
-                  </span>
-                </div>
-                <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>Current Status</span>
-                  <span style={styles.detailValue}>
-                    <span style={{
-                      display: 'inline-block',
-                      padding: '4px 14px',
-                      borderRadius: '20px',
-                      fontSize: '12px',
-                      fontWeight: '500',
-                      backgroundColor: getStatusBadge(selectedRecord.status).bg,
-                      color: getStatusBadge(selectedRecord.status).color
-                    }}>
-                      {getStatusBadge(selectedRecord.status).icon} {getStatusBadge(selectedRecord.status).label}
-                    </span>
-                    <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>
-                      {getSubStatus(selectedRecord.status)}
-                    </div>
-                  </span>
-                </div>
-                <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>Remarks</span>
-                  <span style={styles.detailValue}>{selectedRecord.remarks || 'No remarks'}</span>
-                </div>
-                <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>Courier Remarks</span>
-                  <span style={styles.detailValue}>{selectedRecord.courierRemarks || 'No remarks from courier'}</span>
-                </div>
-                <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>Attempt History</span>
-                  <span style={styles.detailValue}>
-                    {selectedRecord.attemptHistory && selectedRecord.attemptHistory.length > 0 ? (
-                      selectedRecord.attemptHistory.map((attempt, index) => (
-                        <div key={index} style={styles.attemptItem}>
-                          <span style={styles.attemptDate}>{attempt.date}</span>
-                          {attempt.status}
-                        </div>
-                      ))
-                    ) : (
-                      'No attempt history available'
-                    )}
-                  </span>
-                </div>
+              <div style={s.detailRow}>
+                <span style={s.detailLabel}>Order ID</span>
+                <span style={s.detailValue}>
+                  <strong>{selectedRecord.orderId?.orderNumber || '-'}</strong>
+                </span>
+              </div>
+              
+              <div style={s.detailRow}>
+                <span style={s.detailLabel}>Customer Name</span>
+                <span style={s.detailValue}>
+                  <strong>{selectedRecord.customerName || selectedRecord.orderId?.customerName || 'N/A'}</strong>
+                </span>
+              </div>
+              
+              <div style={s.detailRow}>
+                <span style={s.detailLabel}>Phone Number</span>
+                <span style={s.detailValue}>
+                  <FaPhone style={{ marginRight: "6px", color: "#94a3b8" }} />
+                  {selectedRecord.customerPhone || selectedRecord.orderId?.customerPhone || 'N/A'}
+                </span>
+              </div>
+              
+              <div style={s.detailRow}>
+                <span style={s.detailLabel}>Email</span>
+                <span style={s.detailValue}>
+                  {selectedRecord.orderId?.customerEmail || 'N/A'}
+                </span>
+              </div>
+              
+              <div style={s.detailRow}>
+                <span style={s.detailLabel}>Address</span>
+                <span style={s.detailValue}>
+                  <FaMapMarkerAlt style={{ marginRight: "6px", color: "#94a3b8" }} />
+                  {selectedRecord.address || 'N/A'}
+                  <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "4px" }}>
+                    Pincode: {selectedRecord.pincode || 'N/A'}
+                  </div>
+                </span>
               </div>
 
-              <div style={styles.modalButtons}>
-                <button
-                  style={styles.closeButton}
-                  onClick={() => {
-                    setViewModal(false);
-                    setSelectedRecord(null);
-                  }}
-                >
-                  Close
-                </button>
+              {/* Delivery Information */}
+              <div style={s.sectionTitle}>
+                <FaTruck style={{ marginRight: "8px", color: "#f97316" }} />
+                Delivery Information
               </div>
+              
+              <div style={s.detailRow}>
+                <span style={s.detailLabel}>Courier</span>
+                <span style={s.detailValue}>
+                  {getCourierIcon(selectedRecord.courier)} {selectedRecord.courier || 'N/A'}
+                </span>
+              </div>
+              
+              <div style={s.detailRow}>
+                <span style={s.detailLabel}>NDR Reason</span>
+                <span style={s.detailValue}>
+                  <span style={{
+                    display: "inline-block",
+                    padding: "4px 14px",
+                    borderRadius: "12px",
+                    fontSize: "12px",
+                    fontWeight: "500",
+                    background: getReasonBadge(selectedRecord.ndrReason).background,
+                    color: getReasonBadge(selectedRecord.ndrReason).color
+                  }}>
+                    {selectedRecord.ndrReason || 'N/A'}
+                  </span>
+                  {selectedRecord.ndrSubReason && (
+                    <div style={{ fontSize: "13px", color: "#64748b", marginTop: "4px" }}>
+                      Sub Reason: {selectedRecord.ndrSubReason}
+                    </div>
+                  )}
+                </span>
+              </div>
+              
+              <div style={s.detailRow}>
+                <span style={s.detailLabel}>Delivery Attempts</span>
+                <span style={s.detailValue}>
+                  <div style={{ fontWeight: "500" }}>
+                    {selectedRecord.deliveryAttempts || 0} of {selectedRecord.maxAttempts || 3}
+                  </div>
+                  {selectedRecord.lastAttemptDate && (
+                    <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "2px" }}>
+                      Last Attempt: {new Date(selectedRecord.lastAttemptDate).toLocaleString('en-GB')}
+                    </div>
+                  )}
+                  {selectedRecord.nextAttemptDate && (
+                    <div style={{ fontSize: "12px", color: "#f97316", marginTop: "2px" }}>
+                      📅 Next Attempt: {new Date(selectedRecord.nextAttemptDate).toLocaleString('en-GB')}
+                    </div>
+                  )}
+                </span>
+              </div>
+              
+              <div style={s.detailRow}>
+                <span style={s.detailLabel}>Expected Delivery</span>
+                <span style={s.detailValue}>
+                  {selectedRecord.expectedDeliveryDate ? 
+                    new Date(selectedRecord.expectedDeliveryDate).toLocaleString('en-GB') : 
+                    'Pending Courier Update'
+                  }
+                </span>
+              </div>
+
+              {/* Status Information */}
+              <div style={s.sectionTitle}>
+                <FaClock style={{ marginRight: "8px", color: "#f97316" }} />
+                Status Information
+              </div>
+              
+              <div style={s.detailRow}>
+                <span style={s.detailLabel}>Current Status</span>
+                <span style={s.detailValue}>
+                  <span style={s.statusBadge(selectedRecord.status)}>
+                    {selectedRecord.status || 'PENDING'}
+                  </span>
+                  <div style={{ fontSize: "13px", color: "#64748b", marginTop: "4px" }}>
+                    {getSubStatus(selectedRecord.status)}
+                  </div>
+                </span>
+              </div>
+              
+              <div style={s.detailRow}>
+                <span style={s.detailLabel}>Created At</span>
+                <span style={s.detailValue}>
+                  <FaCalendarAlt style={{ marginRight: "6px", color: "#94a3b8" }} />
+                  {selectedRecord.createdAt ? 
+                    new Date(selectedRecord.createdAt).toLocaleString('en-GB') : 
+                    'N/A'
+                  }
+                </span>
+              </div>
+              
+              <div style={s.detailRow}>
+                <span style={s.detailLabel}>Updated At</span>
+                <span style={s.detailValue}>
+                  {selectedRecord.updatedAt ? 
+                    new Date(selectedRecord.updatedAt).toLocaleString('en-GB') : 
+                    'N/A'
+                  }
+                </span>
+              </div>
+
+              {/* Remarks */}
+              <div style={s.sectionTitle}>
+                <FaFileAlt style={{ marginRight: "8px", color: "#f97316" }} />
+                Remarks & Notes
+              </div>
+              
+              <div style={s.detailRow}>
+                <span style={s.detailLabel}>Remarks</span>
+                <span style={s.detailValue}>
+                  {selectedRecord.remarks || 'No remarks added'}
+                </span>
+              </div>
+              
+              <div style={s.detailRow}>
+                <span style={s.detailLabel}>Courier Remarks</span>
+                <span style={s.detailValue}>
+                  {selectedRecord.courierRemarks || 'No remarks from courier'}
+                </span>
+              </div>
+
+              {/* Attempt History */}
+              {selectedRecord.attemptHistory && selectedRecord.attemptHistory.length > 0 && (
+                <>
+                  <div style={s.sectionTitle}>
+                    <FaClock style={{ marginRight: "8px", color: "#f97316" }} />
+                    Attempt History
+                  </div>
+                  {selectedRecord.attemptHistory.map((attempt, index) => (
+                    <div key={index} style={{
+                      padding: "8px 12px",
+                      marginBottom: "6px",
+                      backgroundColor: "#f8fafc",
+                      borderRadius: "8px",
+                      fontSize: "13px",
+                      color: "#1e293b",
+                      border: "1px solid #e2e8f0"
+                    }}>
+                      <span style={{ color: "#64748b", fontSize: "12px", marginRight: "12px" }}>
+                        {attempt.date || 'N/A'}
+                      </span>
+                      {attempt.status || 'Attempt'}
+                      {attempt.remark && (
+                        <span style={{ color: "#94a3b8", fontSize: "12px", marginLeft: "8px" }}>
+                          - {attempt.remark}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </>
+              )}
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Action Modal */}
-        {actionModal && selectedRecord && (
-          <div style={styles.modalOverlay}>
-            <div style={styles.modalContent}>
-              <div style={styles.modalTitle}>
+      {/* Action Modal */}
+      {actionModal && selectedRecord && (
+        <div style={s.modalOverlay} onClick={() => {
+          setActionModal(false);
+          setActionNote('');
+          setSelectedRecord(null);
+        }}>
+          <div style={s.modalContent} onClick={(e) => e.stopPropagation()}>
+            <div style={s.modalHeader}>
+              <h2 style={s.modalTitle}>
                 {actionType === 'reattempt' ? '🔄 Request Reattempt' : '📦 Mark as RTO'}
+              </h2>
+              <button onClick={() => {
+                setActionModal(false);
+                setActionNote('');
+                setSelectedRecord(null);
+              }} style={s.modalCloseBtn}>
+                <FaTimes />
+              </button>
+            </div>
+            <div style={s.modalBody}>
+              <div style={s.detailRow}>
+                <span style={s.detailLabel}>AWB</span>
+                <span style={s.detailValue}>
+                  <span style={{ fontFamily: "monospace", fontWeight: "600", color: "#2563eb" }}>
+                    {selectedRecord.awb || ''}
+                  </span>
+                </span>
               </div>
-              <div>
-                <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>AWB</span>
-                  <span style={styles.detailValue}>
-                    <span style={{ fontFamily: 'monospace', fontWeight: '600' }}>
-                      {selectedRecord.awb || ''}
-                    </span>
-                    <button
-                      style={styles.awbCopyButton}
-                      onClick={() => handleCopyAWB(selectedRecord.awb)}
-                      title="Copy AWB"
-                    >
-                      📋 Copy
-                    </button>
-                  </span>
-                </div>
-                <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>Order ID</span>
-                  <span style={styles.detailValue}>
-                    {selectedRecord.orderId?.orderNumber || '-'}
-                  </span>
-                </div>
-                <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>Customer</span>
-                  <span style={styles.detailValue}>
-                    {selectedRecord.customerName || selectedRecord.orderId?.customerName || ''}
-                  </span>
-                </div>
-                <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>Current Status</span>
-                  <span style={styles.detailValue}>
-                    <span style={{
-                      display: 'inline-block',
-                      padding: '4px 14px',
-                      borderRadius: '20px',
-                      fontSize: '12px',
-                      fontWeight: '500',
-                      backgroundColor: getStatusBadge(selectedRecord.status).bg,
-                      color: getStatusBadge(selectedRecord.status).color
-                    }}>
-                      {getStatusBadge(selectedRecord.status).icon} {getStatusBadge(selectedRecord.status).label}
-                    </span>
-                  </span>
-                </div>
-                <div style={styles.detailRow}>
-                  <span style={styles.detailLabel}>Request Type</span>
-                  <span style={styles.detailValue}>
-                    <strong>
-                      {actionType === 'reattempt' ? '🔄 Reattempt Request' : '📦 RTO Mark'}
-                    </strong>
-                  </span>
-                </div>
-                <div style={{ marginTop: '16px' }}>
-                  <label style={{ fontWeight: '500', color: '#0f172a', display: 'block', marginBottom: '4px' }}>
-                    Action Note <span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <textarea
-                    style={styles.textarea}
-                    placeholder={actionType === 'reattempt' 
-                      ? 'Enter reason for reattempt request...' 
-                      : 'Enter reason for marking as RTO...'}
-                    value={actionNote}
-                    onChange={(e) => setActionNote(e.target.value)}
-                  />
-                </div>
+              <div style={s.detailRow}>
+                <span style={s.detailLabel}>Order ID</span>
+                <span style={s.detailValue}>{selectedRecord.orderId?.orderNumber || '-'}</span>
               </div>
-              <div style={styles.modalButtons}>
+              <div style={s.detailRow}>
+                <span style={s.detailLabel}>Customer</span>
+                <span style={s.detailValue}>{selectedRecord.customerName || selectedRecord.orderId?.customerName || ''}</span>
+              </div>
+              <div style={s.detailRow}>
+                <span style={s.detailLabel}>Current Status</span>
+                <span style={s.detailValue}>
+                  <span style={s.statusBadge(selectedRecord.status)}>
+                    {selectedRecord.status || 'PENDING'}
+                  </span>
+                </span>
+              </div>
+              <div style={s.detailRow}>
+                <span style={s.detailLabel}>NDR Reason</span>
+                <span style={s.detailValue}>
+                  <span style={{
+                    display: "inline-block",
+                    padding: "3px 12px",
+                    borderRadius: "12px",
+                    fontSize: "11px",
+                    fontWeight: "500",
+                    background: getReasonBadge(selectedRecord.ndrReason).background,
+                    color: getReasonBadge(selectedRecord.ndrReason).color
+                  }}>
+                    {selectedRecord.ndrReason || 'N/A'}
+                  </span>
+                </span>
+              </div>
+              
+              <div style={{ marginTop: "16px" }}>
+                <label style={{ fontWeight: "500", color: "#0f172a", display: "block", marginBottom: "4px" }}>
+                  Action Note <span style={{ color: "#ef4444" }}>*</span>
+                </label>
+                <textarea
+                  style={s.textarea}
+                  placeholder={actionType === 'reattempt' 
+                    ? 'Enter reason for reattempt request...' 
+                    : 'Enter reason for marking as RTO...'}
+                  value={actionNote}
+                  onChange={(e) => setActionNote(e.target.value)}
+                />
+              </div>
+              
+              <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end", marginTop: "16px" }}>
                 <button
-                  style={styles.closeButton}
                   onClick={() => {
                     setActionModal(false);
                     setActionNote('');
                     setSelectedRecord(null);
+                  }}
+                  style={{
+                    padding: "10px 24px",
+                    border: "1.5px solid #e2e8f0",
+                    borderRadius: "10px",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    background: "#fff",
+                    color: "#64748b",
+                    transition: "all 0.2s ease"
                   }}
                   disabled={submitting}
                 >
                   Cancel
                 </button>
                 <button
+                  onClick={submitAction}
+                  disabled={submitting}
                   style={{
-                    ...styles.submitActionButton,
-                    ...(actionType === 'reattempt' ? styles.reattemptSubmitButton : styles.rtoSubmitButton),
+                    ...s.btn(actionType === 'reattempt' ? "#f97316" : "#dc2626"),
+                    padding: "10px 24px",
+                    fontSize: "14px",
                     opacity: submitting ? 0.6 : 1,
                     cursor: submitting ? 'not-allowed' : 'pointer'
                   }}
-                  onClick={submitAction}
-                  disabled={submitting}
                 >
                   {submitting ? '⏳ Submitting...' : (actionType === 'reattempt' ? 'Request Reattempt' : 'Mark RTO')}
                 </button>
               </div>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Global Styles */}
+      {/* Toast Notification */}
+      {toast.visible && (
+        <div style={{
+          position: "fixed",
+          top: "20px",
+          right: "20px",
+          padding: "16px 24px",
+          borderRadius: "12px",
+          color: "#fff",
+          zIndex: 9999,
+          boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
+          maxWidth: "400px",
+          fontWeight: "500",
+          background: toast.type === 'success' ? "linear-gradient(135deg, #22c55e, #16a34a)" : "linear-gradient(135deg, #ef4444, #dc2626)",
+          animation: "slideIn 0.3s ease"
+        }}>
+          {toast.type === 'success' ? '✅' : '❌'} {toast.message}
+        </div>
+      )}
+
       <style>{`
-        @keyframes slideIn {
-          from {
-            transform: translateX(100%);
-            opacity: 0;
-          }
-          to {
-            transform: translateX(0);
-            opacity: 1;
-          }
-        }
-
-        select:focus, input:focus, textarea:focus {
-          border-color: #f97316 !important;
-          box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1) !important;
-        }
-
-        select:hover, input:hover {
-          border-color: #f97316 !important;
-        }
-
-        button:hover {
-          transform: translateY(-1px);
-        }
-
-        button:active {
-          transform: translateY(0);
-        }
-
-        .view-btn:hover {
-          border-color: #f97316 !important;
-          color: #f97316 !important;
-        }
-
-        .reattempt-btn:hover {
-          transform: translateY(-2px) !important;
-          box-shadow: 0 4px 16px rgba(249, 115, 22, 0.4) !important;
-        }
-
-        .rto-btn:hover {
-          transform: translateY(-2px) !important;
-          box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4) !important;
-        }
-
-        .refresh-btn:hover {
-          background: rgba(255,255,255,0.25) !important;
-        }
-
-        .export-btn:hover {
-          transform: translateY(-2px) !important;
-          box-shadow: 0 6px 20px rgba(249, 115, 22, 0.3) !important;
-        }
-
-        .awb-copy:hover {
-          color: #f97316 !important;
-        }
-
-        tbody tr:hover {
-          background-color: #f8fafc !important;
-        }
-
-        ::-webkit-scrollbar {
-          width: 8px;
-          height: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-          background: #f1f5f9;
-          border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-          background: linear-gradient(135deg, #f97316, #ea580c);
-          border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-          background: #ea580c;
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
       `}</style>
-    </div>
+    </>
   );
 };
 

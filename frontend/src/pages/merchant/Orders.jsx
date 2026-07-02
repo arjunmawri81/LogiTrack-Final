@@ -593,7 +593,7 @@ const Orders = () => {
                     padding: '4px 0'
                   }}>
                     <button onClick={handleBulkShipment} style={dropdownItemStyle}>
-                      <FaTruck /> Bulk Shipment
+                      <FaTruck /> Bulk Ship
                     </button>
                     <button onClick={handleBulkLabels} style={dropdownItemStyle}>
                       <FaDownload /> Download Labels

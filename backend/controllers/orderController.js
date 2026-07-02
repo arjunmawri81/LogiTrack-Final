@@ -5,6 +5,13 @@ const csv = require("csv-parser");
 const XLSX = require("xlsx");
 
 // ================================
+// HELPER FUNCTION
+// ================================
+const generateOrderNumber = () => {
+  return `ORD${Date.now()}${Math.floor(100000 + Math.random() * 900000)}`;
+};
+
+// ================================
 // CREATE ORDER (DEBUG VERSION)
 // ================================
 const createOrder = async (req, res) => {
@@ -12,10 +19,14 @@ const createOrder = async (req, res) => {
     console.log("BODY =>", req.body);
     console.log("USER =>", req.user);
 
-    const order = await Order.create({
+    // ✅ Auto-generate order number if not provided
+    const orderData = {
       merchantId: req.user.id,
+      orderNumber: req.body.orderNumber || generateOrderNumber(),
       ...req.body,
-    });
+    };
+
+    const order = await Order.create(orderData);
 
     return res.status(201).json({
       success: true,
@@ -43,8 +54,8 @@ const getOrders = async (req, res) => {
     const orders = await Order.find({
       merchantId: req.user.id,
     })
-    .populate("shipmentId")  // ✅ Populate shipment details
-    .populate("invoiceId")   // ✅ Populate invoice details
+    .populate("shipmentId")
+    .populate("invoiceId")
     .sort({ createdAt: -1 });
 
     console.log("ORDERS FOUND =>", orders.length);
@@ -72,7 +83,6 @@ const getOrderById = async (req, res) => {
   try {
     let order;
 
-    // Admin & Super Admin can view any order
     if (
       req.user.role === "ADMIN" ||
       req.user.role === "SUPER_ADMIN"
@@ -80,9 +90,7 @@ const getOrderById = async (req, res) => {
       order = await Order.findById(req.params.id)
         .populate("shipmentId")
         .populate("invoiceId");
-    }
-    // Merchant can view only own orders
-    else {
+    } else {
       order = await Order.findOne({
         _id: req.params.id,
         merchantId: req.user.id,
@@ -115,7 +123,6 @@ const getOrderById = async (req, res) => {
 // ================================
 const updateOrder = async (req, res) => {
   try {
-    // ✅ CHECK IF SHIPMENT ALREADY EXISTS
     const shipment = await Shipment.findOne({
       orderId: req.params.id,
     });
@@ -163,7 +170,6 @@ const updateOrder = async (req, res) => {
 // ================================
 const deleteOrder = async (req, res) => {
   try {
-    // ✅ CHECK IF SHIPMENT ALREADY EXISTS
     const shipment = await Shipment.findOne({
       orderId: req.params.id,
     });
@@ -266,34 +272,107 @@ const searchOrders = async (req, res) => {
 };
 
 // ================================
-// UPLOAD CSV ORDERS
+// UPLOAD CSV ORDERS (FIXED)
 // ================================
 const uploadCSVOrders = async (req, res) => {
   try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "No CSV file uploaded",
+      });
+    }
+
     const results = [];
+    const errors = [];
 
     fs.createReadStream(req.file.path)
       .pipe(csv())
-      .on("data", (data) => results.push(data))
+      .on("data", (data) => {
+        // ✅ Validate required fields
+        if (!data.customerName || !data.customerPhone || !data.customerAddress) {
+          errors.push({
+            row: results.length + 1,
+            message: "Missing required fields: customerName, customerPhone, customerAddress",
+          });
+          return;
+        }
+
+        results.push(data);
+      })
       .on("end", async () => {
-        const orders = results.map((row) => ({
+        // ✅ Delete the temporary file
+        fs.unlinkSync(req.file.path);
+
+        if (errors.length > 0) {
+          return res.status(400).json({
+            success: false,
+            message: "CSV validation failed",
+            errors,
+          });
+        }
+
+        if (results.length === 0) {
+          return res.status(400).json({
+            success: false,
+            message: "No valid data found in CSV",
+          });
+        }
+
+        // ✅ Map all fields including additional ones
+        const orders = results.map((row, index) => ({
           merchantId: req.user.id,
+          orderNumber: generateOrderNumber(),
+          
+          // Customer Details
           customerName: row.customerName,
           customerPhone: row.customerPhone,
           customerAddress: row.customerAddress,
-          productName: row.productName,
-          amount: Number(row.amount),
+          customerEmail: row.customerEmail || "",
+          city: row.city || "",
+          state: row.state || "",
+          pincode: row.pincode || "",
+          
+          // Product Details
+          productName: row.productName || "",
+          productDescription: row.productDescription || "",
+          quantity: Number(row.quantity) || 1,
+          weight: Number(row.weight) || 0,
+          SKU: row.SKU || "",
+          
+          // Order Details
+          amount: Number(row.amount) || 0,
+          paymentMode: row.paymentMode || "COD",
+          paymentStatus: row.paymentStatus || "PENDING",
+          
+          // Additional Fields
+          notes: row.notes || "",
+          insurance: row.insurance === "true" || false,
+          isGift: row.isGift === "true" || false,
+          giftMessage: row.giftMessage || "",
+          
+          // Status
+          status: "PENDING",
         }));
 
-        await Order.insertMany(orders);
+        const insertedOrders = await Order.insertMany(orders);
 
         res.status(200).json({
           success: true,
           message: "CSV Uploaded Successfully",
-          totalOrders: orders.length,
+          totalOrders: insertedOrders.length,
+          orders: insertedOrders,
         });
       });
   } catch (error) {
+    // ✅ Clean up file if exists
+    if (req.file && req.file.path) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (err) {
+        console.log("Error deleting file:", err);
+      }
+    }
     res.status(500).json({
       success: false,
       message: error.message,
@@ -302,31 +381,106 @@ const uploadCSVOrders = async (req, res) => {
 };
 
 // ================================
-// UPLOAD EXCEL ORDERS
+// UPLOAD EXCEL ORDERS (FIXED)
 // ================================
 const uploadExcelOrders = async (req, res) => {
   try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "No Excel file uploaded",
+      });
+    }
+
     const workbook = XLSX.readFile(req.file.path);
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const data = XLSX.utils.sheet_to_json(sheet);
 
-    const orders = data.map((row) => ({
+    // ✅ Delete the temporary file
+    fs.unlinkSync(req.file.path);
+
+    if (data.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No data found in Excel file",
+      });
+    }
+
+    // ✅ Validate and map all fields
+    const errors = [];
+    const validData = [];
+
+    data.forEach((row, index) => {
+      if (!row.customerName || !row.customerPhone || !row.customerAddress) {
+        errors.push({
+          row: index + 1,
+          message: "Missing required fields: customerName, customerPhone, customerAddress",
+        });
+        return;
+      }
+      validData.push(row);
+    });
+
+    if (errors.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Excel validation failed",
+        errors,
+      });
+    }
+
+    const orders = validData.map((row, index) => ({
       merchantId: req.user.id,
+      orderNumber: generateOrderNumber(),
+      
+      // Customer Details
       customerName: row.customerName,
       customerPhone: row.customerPhone,
       customerAddress: row.customerAddress,
-      productName: row.productName,
-      amount: Number(row.amount),
+      customerEmail: row.customerEmail || "",
+      city: row.city || "",
+      state: row.state || "",
+      pincode: row.pincode || "",
+      
+      // Product Details
+      productName: row.productName || "",
+      productDescription: row.productDescription || "",
+      quantity: Number(row.quantity) || 1,
+      weight: Number(row.weight) || 0,
+      SKU: row.SKU || "",
+      
+      // Order Details
+      amount: Number(row.amount) || 0,
+      paymentMode: row.paymentMode || "COD",
+      paymentStatus: row.paymentStatus || "PENDING",
+      
+      // Additional Fields
+      notes: row.notes || "",
+      insurance: row.insurance === "true" || false,
+      isGift: row.isGift === "true" || false,
+      giftMessage: row.giftMessage || "",
+      
+      // Status
+      status: "PENDING",
     }));
 
-    await Order.insertMany(orders);
+    const insertedOrders = await Order.insertMany(orders);
 
     res.status(200).json({
       success: true,
       message: "Excel Uploaded Successfully",
-      totalOrders: orders.length,
+      totalOrders: insertedOrders.length,
+      orders: insertedOrders,
     });
   } catch (error) {
+    // ✅ Clean up file if exists
+    if (req.file && req.file.path) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (err) {
+        console.log("Error deleting file:", err);
+      }
+    }
     res.status(500).json({
       success: false,
       message: error.message,
@@ -339,7 +493,6 @@ const uploadExcelOrders = async (req, res) => {
 // ================================
 const cancelOrder = async (req, res) => {
   try {
-    // ✅ Security - Only merchant's own order
     const order = await Order.findOne({
       _id: req.params.id,
       merchantId: req.user.id,
@@ -352,7 +505,6 @@ const cancelOrder = async (req, res) => {
       });
     }
 
-    // ✅ IMPROVED: Better status check - prevents cancellation after pickup
     if (
       order.shipmentId ||
       [
@@ -368,7 +520,6 @@ const cancelOrder = async (req, res) => {
       });
     }
 
-    // Check if already cancelled
     if (order.status === "CANCELLED") {
       return res.status(400).json({
         success: false,
@@ -376,7 +527,6 @@ const cancelOrder = async (req, res) => {
       });
     }
 
-    // Update order status to CANCELLED
     order.status = "CANCELLED";
     await order.save();
 
@@ -407,12 +557,11 @@ const bulkCancelOrders = async (req, res) => {
       });
     }
 
-    // ✅ Updated: Better conditions for bulk cancellation
     const result = await Order.updateMany(
       {
         _id: { $in: orderIds },
-        merchantId: req.user.id, // ✅ Security: Only merchant's orders
-        shipmentId: null, // Only orders without shipment
+        merchantId: req.user.id,
+        shipmentId: null,
         status: { 
           $nin: [
             "READY_FOR_PICKUP",
@@ -420,7 +569,7 @@ const bulkCancelOrders = async (req, res) => {
             "OUT_FOR_DELIVERY",
             "DELIVERED", 
             "CANCELLED"
-          ] // Don't cancel these statuses
+          ]
         },
       },
       {

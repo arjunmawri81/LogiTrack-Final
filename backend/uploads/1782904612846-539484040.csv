@@ -1,0 +1,2 @@
+customerName,customerPhone,customerEmail,customerAddress,city,state,pincode,productName,sku,quantity,weight,length,breadth,height,paymentMode,amount,shippingCharge,notes
+Rahul Sharma,9876543210,rahul@example.com,"House 12, MG Road",Delhi,Delhi,110001,T-Shirt,TS001,1,0.5,25,20,5,PREPAID,999,80,Fragile

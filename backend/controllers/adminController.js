@@ -8,8 +8,29 @@ const Invoice = require("../models/Invoice");
 const Wallet = require("../models/Wallet");
 const RateCard = require("../models/RateCard");
 const NDR = require("../models/NDR");
-const RTO = require("../models/RTO"); // ✅ ADDED
+const RTO = require("../models/RTO");
 const bcrypt = require("bcryptjs");
+
+// ================================
+// HELPER FUNCTIONS FOR AUTHORIZATION
+// ================================
+const isSuperAdmin = (user) => user?.role === "SUPER_ADMIN";
+const isAdmin = (user) => user?.role === "ADMIN";
+const isMerchant = (user) => user?.role === "MERCHANT";
+
+const canManageUser = (currentUser, targetUser) => {
+  // SUPER_ADMIN can manage everyone except themselves
+  if (isSuperAdmin(currentUser)) {
+    return targetUser._id.toString() !== currentUser._id.toString();
+  }
+  
+  // ADMIN can only manage MERCHANT users
+  if (isAdmin(currentUser)) {
+    return isMerchant(targetUser);
+  }
+  
+  return false;
+};
 
 // ================================
 // DASHBOARD STATS
@@ -17,34 +38,18 @@ const bcrypt = require("bcryptjs");
 const getDashboardStats = async (req, res) => {
   try {
     const totalUsers = await User.countDocuments();
-
-    const totalMerchants = await User.countDocuments({
-      role: "MERCHANT",
-    });
-
+    const totalMerchants = await User.countDocuments({ role: "MERCHANT" });
     const pendingMerchants = await User.countDocuments({
       role: "MERCHANT",
       isApproved: false,
     });
-
     const totalOrders = await Order.countDocuments();
-
-    const pendingOrders = await Order.countDocuments({
-      status: "PENDING",
-    });
-
+    const pendingOrders = await Order.countDocuments({ status: "PENDING" });
     const totalShipments = await Shipment.countDocuments();
-
-    const deliveredShipments =
-      await Shipment.countDocuments({
-        status: "DELIVERED",
-      });
-
+    const deliveredShipments = await Shipment.countDocuments({ status: "DELIVERED" });
     const invoices = await Invoice.find();
-
     const totalRevenue = invoices.reduce(
-      (sum, invoice) =>
-        sum + (invoice.totalAmount || 0),
+      (sum, invoice) => sum + (invoice.totalAmount || 0),
       0
     );
 
@@ -68,7 +73,7 @@ const getDashboardStats = async (req, res) => {
 };
 
 // ================================
-// USER MANAGEMENT
+// USER MANAGEMENT (FIXED)
 // ================================
 const getUsers = async (req, res) => {
   try {
@@ -107,21 +112,53 @@ const getUserById = async (req, res) => {
   }
 };
 
+// ✅ FIXED: updateUserStatus with role protection
 const updateUserStatus = async (req, res) => {
   try {
     const { isBlocked, isActive } = req.body;
-    const user = await User.findByIdAndUpdate(
-      req.params.id,
-      { isBlocked, isActive },
-      { new: true }
-    ).select("-password");
-
-    if (!user) {
+    
+    // 🔒 Check if target user exists
+    const targetUser = await User.findById(req.params.id);
+    if (!targetUser) {
       return res.status(404).json({
         success: false,
         message: "User not found",
       });
     }
+
+    // 🔒 SUPER_ADMIN cannot be blocked/unblocked
+    if (isSuperAdmin(targetUser)) {
+      return res.status(403).json({
+        success: false,
+        message: "SUPER_ADMIN cannot be blocked or unblocked.",
+      });
+    }
+
+    // 🔒 ADMIN can only manage MERCHANT users
+    if (isAdmin(req.user) && !isMerchant(targetUser)) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to manage this user.",
+      });
+    }
+
+    // 🔒 SUPER_ADMIN cannot block themselves
+    if (
+      isSuperAdmin(req.user) && 
+      targetUser._id.toString() === req.user.id
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Cannot modify your own account.",
+      });
+    }
+
+    // ✅ Proceed with update
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { isBlocked, isActive },
+      { new: true }
+    ).select("-password");
 
     res.status(200).json({
       success: true,
@@ -136,15 +173,48 @@ const updateUserStatus = async (req, res) => {
   }
 };
 
+// ✅ FIXED: deleteUser with role protection
 const deleteUser = async (req, res) => {
   try {
-    const user = await User.findByIdAndDelete(req.params.id);
-    if (!user) {
+    // 🔒 Check if target user exists
+    const targetUser = await User.findById(req.params.id);
+    if (!targetUser) {
       return res.status(404).json({
         success: false,
         message: "User not found",
       });
     }
+
+    // 🔒 SUPER_ADMIN cannot be deleted
+    if (isSuperAdmin(targetUser)) {
+      return res.status(403).json({
+        success: false,
+        message: "SUPER_ADMIN cannot be deleted.",
+      });
+    }
+
+    // 🔒 ADMIN can only delete MERCHANT users
+    if (isAdmin(req.user) && !isMerchant(targetUser)) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to delete this user.",
+      });
+    }
+
+    // 🔒 SUPER_ADMIN cannot delete themselves
+    if (
+      isSuperAdmin(req.user) && 
+      targetUser._id.toString() === req.user.id
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Cannot delete your own account.",
+      });
+    }
+
+    // ✅ Proceed with deletion
+    const user = await User.findByIdAndDelete(req.params.id);
+    
     res.status(200).json({
       success: true,
       message: "User deleted successfully",
@@ -158,11 +228,13 @@ const deleteUser = async (req, res) => {
 };
 
 // ================================
-// MERCHANT MANAGEMENT
+// MERCHANT MANAGEMENT (FIXED)
 // ================================
 const getMerchants = async (req, res) => {
   try {
-    const merchants = await User.find({ role: "MERCHANT" }).select("-password").sort({ createdAt: -1 });
+    const merchants = await User.find({ role: "MERCHANT" })
+      .select("-password")
+      .sort({ createdAt: -1 });
     res.status(200).json({
       success: true,
       count: merchants.length,
@@ -180,8 +252,7 @@ const getMerchantDetails = async (req, res) => {
   try {
     const merchantId = req.params.id;
 
-    const merchant = await User.findById(merchantId)
-      .select("-password");
+    const merchant = await User.findById(merchantId).select("-password");
 
     if (!merchant) {
       return res.status(404).json({
@@ -190,29 +261,13 @@ const getMerchantDetails = async (req, res) => {
       });
     }
 
-    const totalOrders =
-      await Order.countDocuments({
-        merchant: merchantId,
-      });
-
-    const totalShipments =
-      await Shipment.countDocuments({
-        merchantId: merchantId,
-      });
-
-    const wallet =
-      await Wallet.findOne({
-        merchantId: merchantId,
-      });
-
-    const rateCards =
-      await RateCard.find({
-        merchantId: merchantId,
-      });
+    const totalOrders = await Order.countDocuments({ merchant: merchantId });
+    const totalShipments = await Shipment.countDocuments({ merchantId: merchantId });
+    const wallet = await Wallet.findOne({ merchantId: merchantId });
+    const rateCards = await RateCard.find({ merchantId: merchantId });
 
     res.status(200).json({
       success: true,
-
       merchant: {
         _id: merchant._id,
         companyName: merchant.companyName,
@@ -226,17 +281,11 @@ const getMerchantDetails = async (req, res) => {
         state: merchant.state,
         pincode: merchant.pincode,
         kycStatus: merchant.kycStatus,
-        status: merchant.isApproved
-          ? "Approved"
-          : "Pending",
+        status: merchant.isApproved ? "Approved" : "Pending",
       },
-
       totalOrders,
       totalShipments,
-
-      walletBalance:
-        wallet?.balance || 0,
-
+      walletBalance: wallet?.balance || 0,
       rateCards,
     });
   } catch (error) {
@@ -249,11 +298,13 @@ const getMerchantDetails = async (req, res) => {
 
 const getPendingMerchants = async (req, res) => {
   try {
-    const pendingMerchants = await User.find({ 
-      role: "MERCHANT", 
-      isApproved: false 
-    }).select("-password").sort({ createdAt: -1 });
-    
+    const pendingMerchants = await User.find({
+      role: "MERCHANT",
+      isApproved: false,
+    })
+      .select("-password")
+      .sort({ createdAt: -1 });
+
     res.status(200).json({
       success: true,
       count: pendingMerchants.length,
@@ -269,11 +320,13 @@ const getPendingMerchants = async (req, res) => {
 
 const getApprovedMerchants = async (req, res) => {
   try {
-    const approvedMerchants = await User.find({ 
-      role: "MERCHANT", 
-      isApproved: true 
-    }).select("-password").sort({ createdAt: -1 });
-    
+    const approvedMerchants = await User.find({
+      role: "MERCHANT",
+      isApproved: true,
+    })
+      .select("-password")
+      .sort({ createdAt: -1 });
+
     res.status(200).json({
       success: true,
       count: approvedMerchants.length,
@@ -300,7 +353,7 @@ const approveMerchant = async (req, res) => {
       });
     }
 
-    if (merchant.role !== "MERCHANT") {
+    if (!isMerchant(merchant)) {
       return res.status(400).json({
         success: false,
         message: "User is not a merchant",
@@ -337,7 +390,7 @@ const rejectMerchant = async (req, res) => {
   try {
     const { id } = req.params;
     const merchant = await User.findById(id);
-    
+
     if (!merchant) {
       return res.status(404).json({
         success: false,
@@ -345,7 +398,7 @@ const rejectMerchant = async (req, res) => {
       });
     }
 
-    if (merchant.role !== "MERCHANT") {
+    if (!isMerchant(merchant)) {
       return res.status(400).json({
         success: false,
         message: "User is not a merchant",
@@ -375,20 +428,41 @@ const rejectMerchant = async (req, res) => {
   }
 };
 
+// ✅ FIXED: blockMerchant with protection
 const blockMerchant = async (req, res) => {
   try {
-    const merchant = await User.findByIdAndUpdate(
-      req.params.id,
-      { isBlocked: true },
-      { new: true }
-    ).select("-password");
-
-    if (!merchant) {
+    const targetUser = await User.findById(req.params.id);
+    
+    if (!targetUser) {
       return res.status(404).json({
         success: false,
         message: "Merchant not found",
       });
     }
+
+    if (!isMerchant(targetUser)) {
+      return res.status(400).json({
+        success: false,
+        message: "User is not a merchant",
+      });
+    }
+
+    // 🔒 SUPER_ADMIN cannot block themselves
+    if (
+      isSuperAdmin(req.user) && 
+      targetUser._id.toString() === req.user.id
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Cannot block your own account.",
+      });
+    }
+
+    const merchant = await User.findByIdAndUpdate(
+      req.params.id,
+      { isBlocked: true },
+      { new: true }
+    ).select("-password");
 
     res.status(200).json({
       success: true,
@@ -403,42 +477,76 @@ const blockMerchant = async (req, res) => {
   }
 };
 
+// ✅ FIXED: unblockMerchant with protection
 const unblockMerchant = async (req, res) => {
   try {
-    const merchant = await User.findById(req.params.id);
-
-    if (!merchant) {
+    const targetUser = await User.findById(req.params.id);
+    
+    if (!targetUser) {
       return res.status(404).json({
         success: false,
         message: "Merchant not found",
       });
     }
 
-    merchant.isBlocked = false;
+    if (!isMerchant(targetUser)) {
+      return res.status(400).json({
+        success: false,
+        message: "User is not a merchant",
+      });
+    }
 
-    await merchant.save();
+    const merchant = await User.findByIdAndUpdate(
+      req.params.id,
+      { isBlocked: false },
+      { new: true }
+    ).select("-password");
 
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
-      message: "Merchant Unblocked Successfully",
+      message: "Merchant unblocked successfully",
+      merchant,
     });
   } catch (error) {
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
       message: error.message,
     });
   }
 };
 
+// ✅ FIXED: deleteMerchant with protection
 const deleteMerchant = async (req, res) => {
   try {
-    const merchant = await User.findByIdAndDelete(req.params.id);
-    if (!merchant) {
+    const targetUser = await User.findById(req.params.id);
+    
+    if (!targetUser) {
       return res.status(404).json({
         success: false,
         message: "Merchant not found",
       });
     }
+
+    if (!isMerchant(targetUser)) {
+      return res.status(400).json({
+        success: false,
+        message: "User is not a merchant",
+      });
+    }
+
+    // 🔒 SUPER_ADMIN cannot delete themselves
+    if (
+      isSuperAdmin(req.user) && 
+      targetUser._id.toString() === req.user.id
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Cannot delete your own account.",
+      });
+    }
+
+    const merchant = await User.findByIdAndDelete(req.params.id);
+    
     res.status(200).json({
       success: true,
       message: "Merchant deleted successfully",
@@ -452,11 +560,19 @@ const deleteMerchant = async (req, res) => {
 };
 
 // ================================
-// ADMIN MANAGEMENT
+// ADMIN MANAGEMENT (FIXED)
 // ================================
 const createAdmin = async (req, res) => {
   try {
     const { name, email, password, role = "ADMIN" } = req.body;
+
+    // 🔒 Only SUPER_ADMIN can create admins
+    if (!isSuperAdmin(req.user)) {
+      return res.status(403).json({
+        success: false,
+        message: "Only SUPER_ADMIN can create admins.",
+      });
+    }
 
     const exists = await User.findOne({ email });
     if (exists) {
@@ -496,7 +612,8 @@ const createAdmin = async (req, res) => {
 
 const getAllAdmins = async (req, res) => {
   try {
-    const admins = await User.find({ role: { $in: ["ADMIN", "SUPER_ADMIN"] } }).select("-password");
+    const admins = await User.find({ role: { $in: ["ADMIN", "SUPER_ADMIN"] } })
+      .select("-password");
     res.status(200).json({
       success: true,
       count: admins.length,
@@ -510,15 +627,44 @@ const getAllAdmins = async (req, res) => {
   }
 };
 
+// ✅ FIXED: deleteAdmin with protection
 const deleteAdmin = async (req, res) => {
   try {
-    const admin = await User.findByIdAndDelete(req.params.id);
-    if (!admin) {
+    // 🔒 Only SUPER_ADMIN can delete admins
+    if (!isSuperAdmin(req.user)) {
+      return res.status(403).json({
+        success: false,
+        message: "Only SUPER_ADMIN can delete admins.",
+      });
+    }
+
+    const targetUser = await User.findById(req.params.id);
+    
+    if (!targetUser) {
       return res.status(404).json({
         success: false,
         message: "Admin not found",
       });
     }
+
+    // 🔒 Cannot delete SUPER_ADMIN
+    if (isSuperAdmin(targetUser)) {
+      return res.status(403).json({
+        success: false,
+        message: "SUPER_ADMIN cannot be deleted.",
+      });
+    }
+
+    // 🔒 Cannot delete yourself
+    if (targetUser._id.toString() === req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: "Cannot delete your own account.",
+      });
+    }
+
+    const admin = await User.findByIdAndDelete(req.params.id);
+    
     res.status(200).json({
       success: true,
       message: "Admin deleted successfully",
@@ -714,12 +860,8 @@ const bulkUpdateStatus = async (req, res) => {
     }
 
     const result = await Order.updateMany(
-      {
-        _id: { $in: orderIds },
-      },
-      {
-        status,
-      }
+      { _id: { $in: orderIds } },
+      { status }
     );
 
     res.status(200).json({
@@ -754,13 +896,8 @@ const bulkAssignCourier = async (req, res) => {
     }
 
     const result = await Order.updateMany(
-      {
-        _id: { $in: orderIds },
-      },
-      {
-        courierPartner,
-        status: "PROCESSING",
-      }
+      { _id: { $in: orderIds } },
+      { courierPartner, status: "PROCESSING" }
     );
 
     res.status(200).json({
@@ -786,10 +923,7 @@ const getShipments = async (req, res) => {
         "orderId",
         "orderNumber customerName customerPhone customerAddress amount paymentMode weight productName shippingCharge"
       )
-      .populate(
-        "merchantId",
-        "name companyName email phone"
-      )
+      .populate("merchantId", "name companyName email phone")
       .sort({ createdAt: -1 });
 
     res.status(200).json({
@@ -883,7 +1017,7 @@ const approveReattempt = async (req, res) => {
     ndr.approvedAt = new Date();
 
     ndr.deliveryAttempts = (ndr.deliveryAttempts || 0) + 1;
-    
+
     const nextDate = new Date();
     nextDate.setDate(nextDate.getDate() + 2);
     ndr.nextAttemptDate = nextDate;
@@ -913,7 +1047,7 @@ const approveReattempt = async (req, res) => {
 };
 
 // ================================
-// APPROVE RTO (ADMIN) - ✅ UPDATED WITH RTO CREATION
+// APPROVE RTO (ADMIN)
 // ================================
 const approveRTO = async (req, res) => {
   try {
@@ -933,17 +1067,13 @@ const approveRTO = async (req, res) => {
       });
     }
 
-    // Update NDR status
     ndr.status = "RTO";
     ndr.actionTaken = "RTO";
-
     ndr.adminNote = req.body?.adminNote || "";
     ndr.approvedBy = req.user.id;
     ndr.approvedAt = new Date();
-
     await ndr.save();
 
-    // Update Shipment
     await Shipment.findByIdAndUpdate(
       ndr.shipmentId,
       {
@@ -953,22 +1083,16 @@ const approveRTO = async (req, res) => {
       { new: true }
     );
 
-    // ✅ ✅ ✅ CREATE RTO RECORD - THIS IS THE FIX!
-    const shipment = await Shipment.findById(ndr.shipmentId)
-      .populate("orderId");
+    const shipment = await Shipment.findById(ndr.shipmentId).populate("orderId");
 
-    const existingRTO = await RTO.findOne({
-      shipmentId: ndr.shipmentId,
-    });
+    const existingRTO = await RTO.findOne({ shipmentId: ndr.shipmentId });
 
     if (!existingRTO) {
       await RTO.create({
         merchantId: ndr.merchantId,
         shipmentId: ndr.shipmentId,
         orderId: ndr.orderId,
-
         awb: shipment?.awb || ndr.awb,
-
         customerName: shipment?.orderId?.customerName || ndr.customerName,
         customerPhone: shipment?.orderId?.customerPhone || ndr.customerPhone,
         customerEmail: shipment?.orderId?.customerEmail || ndr.customerEmail,
@@ -976,24 +1100,18 @@ const approveRTO = async (req, res) => {
         pincode: shipment?.orderId?.pincode || ndr.pincode,
         city: shipment?.orderId?.city || ndr.city,
         state: shipment?.orderId?.state || ndr.state,
-
         courier: shipment?.courier || ndr.courier,
-
         rtoReason: ndr.reason || ndr.ndrReason || "RTO Approved by Admin",
         rtoSubReason: ndr.subReason || ndr.ndrSubReason || "",
         remarks: ndr.remarks || ndr.adminNote || "RTO created from NDR approval",
-
-        status: "IN_TRANSIT", // INITIATED → PICKUP_SCHEDULED → PICKED_UP → IN_TRANSIT → RECEIVED_AT_WAREHOUSE → COMPLETED
-        
+        status: "IN_TRANSIT",
         returnAttempts: 0,
         maxAttempts: 3,
-        
         rtoRequestedAt: new Date(),
         rtoApprovedAt: new Date(),
         rtoApprovedBy: req.user.id,
-        
         createdBy: "admin",
-        source: "ndr_rto_approval"
+        source: "ndr_rto_approval",
       });
     }
 
@@ -1033,19 +1151,13 @@ const rejectNDRRequest = async (req, res) => {
 
     ndr.status = "PENDING";
     ndr.actionTaken = "NONE";
-
     ndr.adminNote = req.body?.adminNote || "";
     ndr.rejectReason = req.body?.rejectReason || "";
-
     ndr.approvedBy = req.user.id;
     ndr.approvedAt = new Date();
-
     await ndr.save();
 
-    const shipmentStatus =
-      previousStatus === "REATTEMPT_REQUESTED"
-        ? "NDR"
-        : "NDR";
+    const shipmentStatus = previousStatus === "REATTEMPT_REQUESTED" ? "NDR" : "NDR";
 
     await Shipment.findByIdAndUpdate(
       ndr.shipmentId,
@@ -1071,7 +1183,7 @@ const rejectNDRRequest = async (req, res) => {
 };
 
 // ================================
-// ADMIN RTO MANAGEMENT - ✅ NEW FUNCTION
+// ADMIN RTO MANAGEMENT
 // ================================
 const getAdminRTO = async (req, res) => {
   try {
@@ -1085,10 +1197,8 @@ const getAdminRTO = async (req, res) => {
       success: true,
       rtos,
     });
-
   } catch (err) {
     console.error(err);
-
     res.status(500).json({
       success: false,
       message: err.message,
@@ -1104,45 +1214,26 @@ const getCommission = async (req, res) => {
     const invoices = await Invoice.find();
 
     const totalRevenue = invoices.reduce(
-      (sum, invoice) =>
-        sum + (invoice.totalAmount || 0),
+      (sum, invoice) => sum + (invoice.totalAmount || 0),
       0
     );
 
     const commissionRate = 10;
-
-    const totalCommission =
-      (totalRevenue * commissionRate) / 100;
-
-    const activeMerchants =
-      await User.countDocuments({
-        role: "MERCHANT",
-        isApproved: true,
-      });
-
-    const monthlyCommission =
-      Math.round(totalCommission * 0.30);
-
-    const todayCommission =
-      Math.round(totalCommission * 0.05);
-
-    const netRevenue =
-      totalRevenue - totalCommission;
-
-    const merchants = await User.find({
+    const totalCommission = (totalRevenue * commissionRate) / 100;
+    const activeMerchants = await User.countDocuments({
       role: "MERCHANT",
+      isApproved: true,
     });
+    const monthlyCommission = Math.round(totalCommission * 0.30);
+    const todayCommission = Math.round(totalCommission * 0.05);
+    const netRevenue = totalRevenue - totalCommission;
+
+    const merchants = await User.find({ role: "MERCHANT" });
 
     const merchantBreakdown = await Promise.all(
       merchants.map(async (merchant) => {
-        const orders = await Order.countDocuments({
-          merchantId: merchant._id,
-        });
-
-        const merchantInvoices = await Invoice.find({
-          merchantId: merchant._id,
-        });
-
+        const orders = await Order.countDocuments({ merchantId: merchant._id });
+        const merchantInvoices = await Invoice.find({ merchantId: merchant._id });
         const revenue = merchantInvoices.reduce(
           (sum, inv) => sum + (inv.totalAmount || 0),
           0
@@ -1153,11 +1244,8 @@ const getCommission = async (req, res) => {
           merchantName: merchant.name,
           orders,
           revenue,
-          commission:
-            Math.round(revenue * commissionRate / 100),
-          status: merchant.isApproved
-            ? "ACTIVE"
-            : "PENDING",
+          commission: Math.round((revenue * commissionRate) / 100),
+          status: merchant.isApproved ? "ACTIVE" : "PENDING",
         };
       })
     );
@@ -1182,7 +1270,6 @@ const getCommission = async (req, res) => {
   }
 };
 
-// GET REVENUE (WITH DATE FILTER)
 const getRevenue = async (req, res) => {
   try {
     const { range, from, to } = req.query;
@@ -1192,29 +1279,20 @@ const getRevenue = async (req, res) => {
     if (range === "today") {
       const start = new Date();
       start.setHours(0, 0, 0, 0);
-
-      filter.createdAt = {
-        $gte: start,
-      };
+      filter.createdAt = { $gte: start };
     }
 
     if (range === "week") {
       const start = new Date();
       start.setDate(start.getDate() - 7);
-
-      filter.createdAt = {
-        $gte: start,
-      };
+      filter.createdAt = { $gte: start };
     }
 
     if (range === "month") {
       const start = new Date();
       start.setDate(1);
       start.setHours(0, 0, 0, 0);
-
-      filter.createdAt = {
-        $gte: start,
-      };
+      filter.createdAt = { $gte: start };
     }
 
     if (from && to) {
@@ -1224,12 +1302,10 @@ const getRevenue = async (req, res) => {
       };
     }
 
-    const invoices = await Invoice.find(filter)
-      .populate("merchantId", "name companyName");
+    const invoices = await Invoice.find(filter).populate("merchantId", "name companyName");
 
     const totalRevenue = invoices.reduce(
-      (sum, invoice) =>
-        sum + (invoice.totalAmount || 0),
+      (sum, invoice) => sum + (invoice.totalAmount || 0),
       0
     );
 
@@ -1239,15 +1315,11 @@ const getRevenue = async (req, res) => {
     const monthlyRevenue = {};
 
     invoices.forEach((invoice) => {
-      const month = new Date(invoice.createdAt)
-        .toLocaleString("default", {
-          month: "short",
-          year: "numeric",
-        });
-
-      monthlyRevenue[month] =
-        (monthlyRevenue[month] || 0) +
-        (invoice.totalAmount || 0);
+      const month = new Date(invoice.createdAt).toLocaleString("default", {
+        month: "short",
+        year: "numeric",
+      });
+      monthlyRevenue[month] = (monthlyRevenue[month] || 0) + (invoice.totalAmount || 0);
     });
 
     const recentInvoices = await Invoice.find(filter)
@@ -1255,9 +1327,7 @@ const getRevenue = async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(10);
 
-    const topMerchants = await User.find({
-      role: "MERCHANT",
-    }).select("name companyName");
+    const topMerchants = await User.find({ role: "MERCHANT" }).select("name companyName");
 
     res.status(200).json({
       success: true,
@@ -1284,9 +1354,9 @@ const getRevenue = async (req, res) => {
 const getRateCards = async (req, res) => {
   try {
     const { merchantId } = req.params;
-    
+
     const rateCards = await RateCard.find({ merchantId });
-    
+
     res.status(200).json({
       success: true,
       count: rateCards.length,
@@ -1303,19 +1373,19 @@ const getRateCards = async (req, res) => {
 const getRateCardByCourier = async (req, res) => {
   try {
     const { merchantId, courier } = req.params;
-    
-    const rateCard = await RateCard.findOne({ 
-      merchantId, 
-      courierPartner: courier 
+
+    const rateCard = await RateCard.findOne({
+      merchantId,
+      courierPartner: courier,
     });
-    
+
     if (!rateCard) {
       return res.status(404).json({
         success: false,
         message: "Rate card not found for this courier",
       });
     }
-    
+
     res.status(200).json({
       success: true,
       rateCard,
@@ -1343,10 +1413,7 @@ const saveRateCard = async (req, res) => {
       serviceability,
     } = req.body;
 
-    let rateCard = await RateCard.findOne({ 
-      merchantId, 
-      courierPartner 
-    });
+    let rateCard = await RateCard.findOne({ merchantId, courierPartner });
 
     if (rateCard) {
       rateCard.forwardRates = forwardRates;
@@ -1398,19 +1465,19 @@ const saveRateCard = async (req, res) => {
 const deleteRateCard = async (req, res) => {
   try {
     const { merchantId, courier } = req.params;
-    
-    const rateCard = await RateCard.findOneAndDelete({ 
-      merchantId, 
-      courierPartner: courier 
+
+    const rateCard = await RateCard.findOneAndDelete({
+      merchantId,
+      courierPartner: courier,
     });
-    
+
     if (!rateCard) {
       return res.status(404).json({
         success: false,
         message: "Rate card not found",
       });
     }
-    
+
     res.status(200).json({
       success: true,
       message: "Rate card deleted successfully",
@@ -1429,13 +1496,13 @@ const deleteRateCard = async (req, res) => {
 module.exports = {
   // Dashboard
   getDashboardStats,
-  
+
   // Users
   getUsers,
   getUserById,
-  updateUserStatus,
-  deleteUser,
-  
+  updateUserStatus, // ✅ FIXED
+  deleteUser, // ✅ FIXED
+
   // Merchants
   getMerchants,
   getMerchantDetails,
@@ -1443,44 +1510,44 @@ module.exports = {
   getApprovedMerchants,
   approveMerchant,
   rejectMerchant,
-  blockMerchant,
-  unblockMerchant,
-  deleteMerchant,
-  
+  blockMerchant, // ✅ FIXED
+  unblockMerchant, // ✅ FIXED
+  deleteMerchant, // ✅ FIXED
+
   // Admins
-  createAdmin,
+  createAdmin, // ✅ FIXED
   getAllAdmins,
-  deleteAdmin,
-  
+  deleteAdmin, // ✅ FIXED
+
   // Orders & Shipments
   getOrders,
   getOrderByIdAdmin,
   updateOrderStatus,
   getShipments,
   getShipmentByIdAdmin,
-  
+
   // Order Management (Admin)
   updateOrderAdmin,
   assignCourier,
   cancelOrderAdmin,
-  
+
   // Bulk Operations
   bulkUpdateStatus,
   bulkAssignCourier,
-  
+
   // NDR Management (Admin)
   getAdminNDR,
   approveReattempt,
   approveRTO,
   rejectNDRRequest,
-  
-  // Admin RTO Management - ✅ NEW
+
+  // Admin RTO Management
   getAdminRTO,
-  
+
   // Commission & Revenue
   getCommission,
   getRevenue,
-  
+
   // Rate Cards
   getRateCards,
   getRateCardByCourier,
