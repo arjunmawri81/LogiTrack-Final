@@ -1,15 +1,29 @@
 const Courier = require("../models/Courier");
 
-// ================================
+// ==============================
 // CREATE COURIER
-// ================================
+// ==============================
 const createCourier = async (req, res) => {
   try {
+    const exists = await Courier.findOne({
+      $or: [
+        { name: req.body.name },
+        { code: req.body.code },
+      ],
+    });
+
+    if (exists) {
+      return res.status(400).json({
+        success: false,
+        message: "Courier already exists",
+      });
+    }
+
     const courier = await Courier.create(req.body);
 
     res.status(201).json({
       success: true,
-      message: "Courier Created Successfully",
+      message: "Courier created successfully",
       courier,
     });
   } catch (error) {
@@ -20,13 +34,14 @@ const createCourier = async (req, res) => {
   }
 };
 
-// ================================
-// GET ALL COURIERS
-// ================================
+// ==============================
+// GET ALL COURIERS (SUPER ADMIN)
+// ==============================
 const getCouriers = async (req, res) => {
   try {
-    const couriers = await Courier.find({
-      isActive: true,
+    const couriers = await Courier.find().sort({
+      priority: 1,
+      name: 1,
     });
 
     res.status(200).json({
@@ -42,43 +57,22 @@ const getCouriers = async (req, res) => {
   }
 };
 
-// ================================
-// RATE CALCULATOR
-// ================================
-const calculateRate = async (
-  req,
-  res
-) => {
+// ==============================
+// GET ACTIVE COURIERS (MERCHANT)
+// ==============================
+const getActiveCouriers = async (req, res) => {
   try {
-    const {
-      courierId,
-      weight,
-    } = req.body;
-
-    const courier =
-      await Courier.findById(
-        courierId
-      );
-
-    if (!courier) {
-      return res.status(404).json({
-        success: false,
-        message: "Courier not found",
-      });
-    }
-
-    const rate =
-      courier.baseRate +
-      courier.ratePerKg *
-        Number(weight);
+    const couriers = await Courier.find({
+      isActive: true,
+    }).sort({
+      priority: 1,
+      name: 1,
+    });
 
     res.status(200).json({
       success: true,
-      courier: courier.name,
-      weight,
-      shippingCost: rate,
-      estimatedDays:
-        courier.estimatedDays,
+      count: couriers.length,
+      couriers,
     });
   } catch (error) {
     res.status(500).json({
@@ -88,32 +82,131 @@ const calculateRate = async (
   }
 };
 
-// ================================
-// SERVICEABILITY CHECK
-// ================================
-const checkServiceability =
-  async (req, res) => {
-    try {
-      const { pincode } = req.body;
+// ==============================
+// GET SINGLE COURIER
+// ==============================
+const getCourierById = async (req, res) => {
+  try {
+    const courier = await Courier.findById(req.params.id);
 
-      res.status(200).json({
-        success: true,
-        pincode,
-        serviceable: true,
-        message:
-          "Service available",
-      });
-    } catch (error) {
-      res.status(500).json({
+    if (!courier) {
+      return res.status(404).json({
         success: false,
-        message: error.message,
+        message: "Courier not found",
       });
     }
-  };
+
+    res.status(200).json({
+      success: true,
+      courier,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ==============================
+// UPDATE COURIER
+// ==============================
+const updateCourier = async (req, res) => {
+  try {
+    const courier = await Courier.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    if (!courier) {
+      return res.status(404).json({
+        success: false,
+        message: "Courier not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Courier updated successfully",
+      courier,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ==============================
+// ENABLE / DISABLE COURIER
+// ==============================
+const toggleCourierStatus = async (req, res) => {
+  try {
+    const courier = await Courier.findById(req.params.id);
+
+    if (!courier) {
+      return res.status(404).json({
+        success: false,
+        message: "Courier not found",
+      });
+    }
+
+    courier.isActive = !courier.isActive;
+
+    await courier.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Courier ${
+        courier.isActive ? "Activated" : "Disabled"
+      } successfully`,
+      courier,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ==============================
+// DELETE COURIER
+// ==============================
+const deleteCourier = async (req, res) => {
+  try {
+    const courier = await Courier.findByIdAndDelete(req.params.id);
+
+    if (!courier) {
+      return res.status(404).json({
+        success: false,
+        message: "Courier not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Courier deleted successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 
 module.exports = {
   createCourier,
   getCouriers,
-  calculateRate,
-  checkServiceability,
+  getActiveCouriers,
+  getCourierById,
+  updateCourier,
+  toggleCourierStatus,
+  deleteCourier,
 };

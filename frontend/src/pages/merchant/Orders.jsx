@@ -34,7 +34,7 @@ const Orders = () => {
   const [selectedOrders, setSelectedOrders] = useState([]);
   const [exporting, setExporting] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [openMenuId, setOpenMenuId] = useState(null); // Track which order's menu is open
+  const [openMenuId, setOpenMenuId] = useState(null);
   
   // New state for filters
   const [activeTab, setActiveTab] = useState('ALL');
@@ -92,8 +92,12 @@ const Orders = () => {
     // Status tab filter
     if (activeTab !== 'ALL' && o.status !== activeTab) return false;
 
-    // Courier filter
-    if (courierFilter !== 'ALL' && o.courier !== courierFilter) return false;
+    // STEP 2: Courier filter - using shipmentId.courier
+    if (
+      courierFilter !== "ALL" &&
+      o.shipmentId?.courier?.toLowerCase() !== courierFilter.toLowerCase()
+    )
+      return false;
 
     // Date filter
     if (dateFilter !== 'ALL') {
@@ -181,7 +185,7 @@ const Orders = () => {
     }
   };
 
-  // Export to Excel
+  // STEP 3: Export to Excel with shipmentId.courier
   const exportToExcel = () => {
     try {
       setExporting(true);
@@ -191,7 +195,7 @@ const Orders = () => {
         'AWB': order.awb || 'N/A',
         'Customer Name': order.customerName || 'N/A',
         'Customer Phone': order.customerPhone || 'N/A',
-        'Courier': order.courier || 'N/A',
+        'Courier': order.shipmentId?.courier || 'N/A',
         'Amount': order.amount || 0,
         'Status': order.status || 'PENDING',
         'Created Date': order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-IN') : 'N/A',
@@ -1027,6 +1031,7 @@ const Orders = () => {
                         }}>
                           {order.customerPhone || "N/A"}
                         </td>
+                        {/* STEP 1: Courier display with proper capitalization */}
                         <td style={{
                           padding: "12px 16px",
                           fontSize: "13px",
@@ -1038,7 +1043,10 @@ const Orders = () => {
                             borderRadius: '4px',
                             fontSize: '12px'
                           }}>
-                            {order.courier || '-'}
+                            {order.shipmentId?.courier
+                              ? order.shipmentId.courier.charAt(0).toUpperCase() +
+                                order.shipmentId.courier.slice(1)
+                              : "-"}
                           </span>
                         </td>
                         <td style={{
@@ -1061,20 +1069,6 @@ const Orders = () => {
                           }}>
                             {order.status || "PENDING"}
                           </span>
-                          {hasShipment && (
-                            <span style={{
-                              marginLeft: "6px",
-                              background: "#dbeafe",
-                              color: "#1e40af",
-                              padding: "2px 8px",
-                              borderRadius: "999px",
-                              fontSize: "10px",
-                              fontWeight: "600",
-                              display: "inline-block",
-                            }}>
-                              Shipped
-                            </span>
-                          )}
                         </td>
                         <td style={{
                           padding: "12px 16px",

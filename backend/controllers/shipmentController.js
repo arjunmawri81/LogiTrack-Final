@@ -43,13 +43,12 @@ const generateInvoiceNumber = () => {
 };
 
 // ===============================
-// CREATE SHIPMENT (UPDATED WITH INSURANCE)
+// CREATE SHIPMENT (UPDATED WITH INSURANCE & RATE CARD ENGINE)
 // ===============================
 const createShipment = async (req, res) => {
   try {
     console.log("REQ USER =>", req.user);
 
-    // ✅ UPDATED: Added insuranceEnabled to destructuring
     const {
       orderId,
       courier,
@@ -63,8 +62,8 @@ const createShipment = async (req, res) => {
       });
     }
 
-    // ✅ Normalize courier name to lowercase for consistency
-    const normalizedCourier = courier.trim().toLowerCase();
+    // ✅ CHANGED: Normalize courier name to UPPERCASE for consistency with RateCard
+    const normalizedCourier = courier.trim().toUpperCase();
 
     // 1. Find Order
     const order = await Order.findOne({
@@ -92,17 +91,33 @@ const createShipment = async (req, res) => {
       });
     }
 
-    // 3. DYNAMIC SHIPPING CHARGE CALCULATION BASED ON RATE CARD
-    const rateCard = await RateCard.findOne({
+    // =====================================
+    // ✅ UPDATED: RATE CARD ENGINE WITH rate5kg SUPPORT
+    // 1. Merchant Rate
+    // 2. Default Rate (Super Admin)
+    // =====================================
+
+    // Merchant Custom Rate
+    let rateCard = await RateCard.findOne({
       merchantId: req.user.id,
       courierPartner: normalizedCourier,
       isActive: true,
     });
 
+    // Default Rate (Super Admin)
+    if (!rateCard) {
+      rateCard = await RateCard.findOne({
+        merchantId: null,
+        courierPartner: normalizedCourier,
+        isActive: true,
+      });
+    }
+
+    // Future Courier API Fallback
     if (!rateCard) {
       return res.status(404).json({
         success: false,
-        message: `Rate Card Not Found for courier: ${courier.trim()}`,
+        message: "No pricing available for this courier. Please contact administrator.",
       });
     }
 
@@ -110,16 +125,19 @@ const createShipment = async (req, res) => {
 
     let SHIPPING_CHARGE = 0;
 
+    // ✅ UPDATED: Weight logic with rate5kg support
     if (weight <= 0.5) {
       SHIPPING_CHARGE = rateCard.forwardRates?.rate500gm || 0;
     } else if (weight <= 1) {
       SHIPPING_CHARGE = rateCard.forwardRates?.rate1kg || 0;
     } else if (weight <= 2) {
       SHIPPING_CHARGE = rateCard.forwardRates?.rate2kg || 0;
+    } else if (weight <= 5) {
+      SHIPPING_CHARGE = rateCard.forwardRates?.rate5kg || 0;
     } else {
       SHIPPING_CHARGE = 
-        (rateCard.forwardRates?.rate2kg || 0) +
-        (Math.ceil(weight - 2) * (rateCard.forwardRates?.additionalKg || 0));
+        (rateCard.forwardRates?.rate5kg || 0) +
+        (Math.ceil(weight - 5) * (rateCard.forwardRates?.additionalKg || 0));
     }
 
     // ✅ Add COD charge if payment mode is COD
@@ -163,7 +181,6 @@ const createShipment = async (req, res) => {
     // 5. Generate AWB and Create Shipment
     const awb = await generateAWB();
 
-    // ✅ STEP 1: Debug log before shipment creation
     console.log("===== BEFORE SHIPMENT CREATE =====");
     console.log({
       orderId,
@@ -175,7 +192,6 @@ const createShipment = async (req, res) => {
       insurancePremium,
     });
 
-    // ✅ STEP 1: Using normalizedCourier instead of courier.trim()
     const shipment = await Shipment.create({
       orderId,
       merchantId: req.user.id,
@@ -237,7 +253,6 @@ const createShipment = async (req, res) => {
       status: "PAID",
     });
 
-    // ✅ UPDATED: Added insuranceCharge to invoice
     const invoice = await Invoice.create({
       invoiceNumber: generateInvoiceNumber(),
       merchantId: req.user.id,
@@ -253,22 +268,16 @@ const createShipment = async (req, res) => {
 
     console.log("INVOICE CREATED =>", invoice);
 
-    // ✅ STEP 2: CRITICAL FIX - Use findByIdAndUpdate with new: true
-    console.log("===== UPDATING SHIPMENT WITH INVOICE ID USING findByIdAndUpdate =====");
-    console.log("Shipment ID:", shipment._id);
-    console.log("Invoice ID:", invoice._id);
-    
     const updatedShipment = await Shipment.findByIdAndUpdate(
       shipment._id,
       {
         invoiceId: invoice._id,
       },
       {
-        new: true, // ✅ Returns the updated document
+        new: true,
       }
     );
     
-    // ✅ ADD THIS CHECK RIGHT AFTER THE UPDATE
     const checkShipment = await Shipment.findById(shipment._id);
     console.log("UPDATED SHIPMENT INVOICE =>", checkShipment.invoiceId);
     
@@ -297,7 +306,6 @@ const createShipment = async (req, res) => {
     console.log("===== ORDER SAVED =====");
     console.log("ORDER UPDATED WITH SHIPMENT & INVOICE =>", order);
 
-    // ✅ Get the final shipment with populated invoiceId
     const finalShipment = await Shipment.findById(shipment._id)
       .populate("orderId")
       .populate("invoiceId");
@@ -349,7 +357,8 @@ const createBulkShipments = async (req, res) => {
       });
     }
 
-    const normalizedCourier = courier.trim().toLowerCase();
+    // ✅ CHANGED: Normalize to UPPERCASE
+    const normalizedCourier = courier.trim().toUpperCase();
     const shipments = [];
     const failedOrders = [];
     const skippedOrders = [];
@@ -440,7 +449,6 @@ const createBulkShipments = async (req, res) => {
 // ===============================
 const getShipments = async (req, res) => {
   try {
-    // ✅ UPDATED: Nested populate for orderId.invoiceId
     const shipments = await Shipment.find({
       merchantId: req.user.id,
     })
@@ -545,7 +553,6 @@ const updateShipmentStatus = async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    // ✅ Change 1: Allowed Status Validation
     const allowedStatuses = [
       "READY_FOR_PICKUP",
       "IN_TRANSIT",
@@ -571,7 +578,6 @@ const updateShipmentStatus = async (req, res) => {
       });
     }
 
-    // ✅ Change 2: Delivered Lock
     if (shipment.status === "DELIVERED") {
       return res.status(400).json({
         success: false,
@@ -579,10 +585,8 @@ const updateShipmentStatus = async (req, res) => {
       });
     }
 
-    // Update shipment status
     shipment.status = status;
 
-    // ✅ FIX: Order Status Mapping
     const order = await Order.findById(shipment.orderId);
 
     if (order) {
@@ -599,7 +603,6 @@ const updateShipmentStatus = async (req, res) => {
       await order.save();
     }
 
-    // ✅ AUTO CREATE NDR WHEN SHIPMENT STATUS IS NDR
     if (status === "NDR") {
       console.log("========== NDR HIT ==========");
 
@@ -626,7 +629,6 @@ const updateShipmentStatus = async (req, res) => {
       }
     }
 
-    // ✅ Change 3: Tracking Timeline with proper location and timestamp
     shipment.trackingEvents.push({
       status,
       location: "Admin Panel",
@@ -634,7 +636,6 @@ const updateShipmentStatus = async (req, res) => {
       timestamp: new Date(),
     });
 
-    // Set delivery date if status is DELIVERED
     if (status === "DELIVERED") {
       shipment.deliveryDate = new Date();
     }
@@ -668,7 +669,6 @@ const schedulePickup = async (req, res) => {
       });
     }
 
-    // Update order status
     const order = await Order.findById(shipment.orderId);
     if (order) {
       order.status = "READY_FOR_PICKUP";
@@ -770,7 +770,6 @@ const generateLabel = async (req, res) => {
     doc.text(`Payment: ${shipment.orderId.paymentMode}`);
     doc.text(`Amount: ₹${shipment.orderId.amount}`);
     
-    // ✅ Show insurance info if enabled
     if (shipment.insuranceEnabled) {
       doc.text(`Insurance: ₹${shipment.insuranceAmount} (Premium: ₹${shipment.insurancePremium})`);
     }
@@ -846,12 +845,10 @@ const bulkLabels = async (req, res) => {
       });
     }
 
-    // Create ZIP file with all labels
     const zip = new AdmZip();
 
     for (const shipment of shipments) {
       try {
-        // Generate PDF for each shipment
         const doc = new PDFDocument({ size: "A6", margin: 20 });
         const chunks = [];
 
@@ -897,7 +894,6 @@ const bulkLabels = async (req, res) => {
       }
     }
 
-    // Wait for all PDFs to be generated
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     const zipBuffer = zip.toBuffer();

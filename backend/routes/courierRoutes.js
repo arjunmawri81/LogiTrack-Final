@@ -1,4 +1,5 @@
 const express = require("express");
+
 const router = express.Router();
 
 const {
@@ -9,40 +10,78 @@ const {
 const {
   createCourier,
   getCouriers,
-  calculateRate,
-  checkServiceability,
+  getActiveCouriers,
+  getCourierById,
+  updateCourier,
+  toggleCourierStatus,
+  deleteCourier,
 } = require("../controllers/courierController");
+
+// ========================================
+// SUPER ADMIN ROUTES
+// ========================================
 
 // Create Courier
 router.post(
   "/",
   authMiddleware,
-  authorizeRoles(
-    "ADMIN",
-    "SUPER_ADMIN"
-  ),
+  authorizeRoles("SUPER_ADMIN"),
   createCourier
 );
 
-// Get Couriers
+// Get All Couriers (Super Admin)
 router.get(
-  "/",
+  "/all",
   authMiddleware,
+  authorizeRoles("SUPER_ADMIN"),
   getCouriers
 );
 
-// Rate Calculator
-router.post(
-  "/rate",
+// Get Single Courier
+router.get(
+  "/:id",
   authMiddleware,
-  calculateRate
+  authorizeRoles("SUPER_ADMIN"),
+  getCourierById
 );
 
-// Serviceability
-router.post(
-  "/serviceability",
+// Update Courier
+router.put(
+  "/:id",
   authMiddleware,
-  checkServiceability
+  authorizeRoles("SUPER_ADMIN"),
+  updateCourier
+);
+
+// Enable / Disable Courier
+router.patch(
+  "/:id/status",
+  authMiddleware,
+  authorizeRoles("SUPER_ADMIN"),
+  toggleCourierStatus
+);
+
+// Delete Courier
+router.delete(
+  "/:id",
+  authMiddleware,
+  authorizeRoles("SUPER_ADMIN"),
+  deleteCourier
+);
+
+// ========================================
+// ACTIVE COURIERS (ADMIN + MERCHANT)
+// ========================================
+
+router.get(
+  "/active/list",
+  authMiddleware,
+  authorizeRoles(
+    "SUPER_ADMIN",
+    "ADMIN",
+    "MERCHANT"
+  ),
+  getActiveCouriers
 );
 
 module.exports = router;

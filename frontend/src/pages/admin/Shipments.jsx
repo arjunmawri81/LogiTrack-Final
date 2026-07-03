@@ -471,17 +471,27 @@ const Shipments = () => {
                 <table style={{
                   width: "100%",
                   borderCollapse: "collapse",
-                  minWidth: "900px",
+                  minWidth: "1200px",
+                  tableLayout: "fixed",
                 }}>
+                  <colgroup>
+                    <col style={{ width: "15%" }} />
+                    <col style={{ width: "12%" }} />
+                    <col style={{ width: "15%" }} />
+                    <col style={{ width: "10%" }} />
+                    <col style={{ width: "10%" }} />
+                    <col style={{ width: "12%" }} />
+                    <col style={{ width: "26%" }} />
+                  </colgroup>
                   <thead>
                     <tr style={{ background: "#f8fafc", borderBottom: "2px solid #e2e8f0" }}>
-                      <th style={{ padding: "14px 16px", textAlign: "left", fontSize: "12px", fontWeight: "600", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px" }}>AWB</th>
-                      <th style={{ padding: "14px 16px", textAlign: "left", fontSize: "12px", fontWeight: "600", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px" }}>Order No</th>
-                      <th style={{ padding: "14px 16px", textAlign: "left", fontSize: "12px", fontWeight: "600", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px" }}>Customer</th>
-                      <th style={{ padding: "14px 16px", textAlign: "left", fontSize: "12px", fontWeight: "600", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px" }}>Courier</th>
-                      <th style={{ padding: "14px 16px", textAlign: "left", fontSize: "12px", fontWeight: "600", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px" }}>Status</th>
-                      <th style={{ padding: "14px 16px", textAlign: "left", fontSize: "12px", fontWeight: "600", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px" }}>Last Updated</th>
-                      <th style={{ padding: "14px 16px", textAlign: "center", fontSize: "12px", fontWeight: "600", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px" }}>Actions</th>
+                      <th style={{ padding: "14px 12px", textAlign: "left", fontSize: "12px", fontWeight: "600", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px" }}>AWB</th>
+                      <th style={{ padding: "14px 12px", textAlign: "left", fontSize: "12px", fontWeight: "600", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px" }}>Order No</th>
+                      <th style={{ padding: "14px 12px", textAlign: "left", fontSize: "12px", fontWeight: "600", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px" }}>Customer</th>
+                      <th style={{ padding: "14px 12px", textAlign: "left", fontSize: "12px", fontWeight: "600", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px" }}>Courier</th>
+                      <th style={{ padding: "14px 12px", textAlign: "left", fontSize: "12px", fontWeight: "600", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px" }}>Status</th>
+                      <th style={{ padding: "14px 12px", textAlign: "left", fontSize: "12px", fontWeight: "600", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px" }}>Last Updated</th>
+                      <th style={{ padding: "14px 12px", textAlign: "center", fontSize: "12px", fontWeight: "600", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px" }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -497,54 +507,60 @@ const Shipments = () => {
                           onMouseEnter={(e) => e.currentTarget.style.background = "#f8fafc"}
                           onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
                           >
-                            <td style={{ padding: "12px 16px", fontSize: "13px", fontWeight: "500", color: "#0f172a" }}>
+                            <td style={{ padding: "12px 12px", fontSize: "12px", fontWeight: "500", color: "#0f172a", wordBreak: "break-all" }}>
                               {shipment.awb}
                             </td>
-                            <td style={{ padding: "12px 16px", fontSize: "13px", color: "#0f172a" }}>
+                            <td style={{ padding: "12px 12px", fontSize: "12px", color: "#0f172a", wordBreak: "break-all" }}>
                               {shipment.orderId?.orderNumber || "N/A"}
                             </td>
-                            <td style={{ padding: "12px 16px", fontSize: "13px" }}>
+                            <td style={{ padding: "12px 12px", fontSize: "12px" }}>
                               <div style={{ display: "flex", flexDirection: "column" }}>
-                                <span style={{ fontWeight: "500", color: "#0f172a", display: "flex", alignItems: "center", gap: "6px" }}>
-                                  <FaUser size={12} style={{ color: "#94a3b8" }} />
+                                <span style={{ fontWeight: "500", color: "#0f172a", display: "flex", alignItems: "center", gap: "6px", fontSize: "12px" }}>
+                                  <FaUser size={11} style={{ color: "#94a3b8" }} />
                                   {shipment.orderId?.customerName || "N/A"}
                                 </span>
-                                <span style={{ fontSize: "12px", color: "#64748b", display: "flex", alignItems: "center", gap: "6px", marginTop: "2px" }}>
-                                  <FaPhone size={10} />
+                                <span style={{ fontSize: "11px", color: "#64748b", display: "flex", alignItems: "center", gap: "6px", marginTop: "2px" }}>
+                                  <FaPhone size={9} />
                                   {shipment.orderId?.customerPhone || "N/A"}
                                 </span>
                               </div>
                             </td>
-                            <td style={{ padding: "12px 16px", fontSize: "13px", color: "#0f172a" }}>
+                            <td style={{ padding: "12px 12px", fontSize: "12px", color: "#0f172a" }}>
                               {shipment.courier}
                             </td>
-                            <td style={{ padding: "12px 16px" }}>
+                            <td style={{ padding: "12px 12px" }}>
                               <span style={{
                                 display: "inline-block",
-                                padding: "4px 12px",
+                                padding: "3px 10px",
                                 borderRadius: "20px",
                                 background: getStatusColor(shipment.status),
                                 color: "#fff",
-                                fontSize: "11px",
+                                fontSize: "10px",
                                 fontWeight: "600",
                                 letterSpacing: "0.3px",
                               }}>
                                 {shipment.status?.replace(/_/g, " ")}
                               </span>
                             </td>
-                            <td style={{ padding: "12px 16px" }}>
+                            <td style={{ padding: "12px 12px" }}>
                               <div style={{ display: "flex", flexDirection: "column" }}>
-                                <span style={{ fontSize: "13px", fontWeight: "500", color: "#0f172a" }}>
+                                <span style={{ fontSize: "12px", fontWeight: "500", color: "#0f172a" }}>
                                   {shipment.updatedAt ? new Date(shipment.updatedAt).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' }) : "---"}
                                 </span>
-                                <span style={{ fontSize: "11px", color: "#94a3b8", display: "flex", alignItems: "center", gap: "4px" }}>
-                                  <FaClockIcon size={10} />
+                                <span style={{ fontSize: "10px", color: "#94a3b8", display: "flex", alignItems: "center", gap: "4px" }}>
+                                  <FaClockIcon size={9} />
                                   {shipment.updatedAt ? formatLastUpdated(shipment.updatedAt) : "---"}
                                 </span>
                               </div>
                             </td>
-                            <td style={{ padding: "8px 16px" }}>
-                              <div style={{ display: "flex", gap: "4px", flexWrap: "wrap", justifyContent: "center" }}>
+                            <td style={{ padding: "8px 12px" }}>
+                              <div style={{ 
+                                display: "flex", 
+                                gap: "3px", 
+                                flexWrap: "nowrap",
+                                justifyContent: "center",
+                                alignItems: "center",
+                              }}>
                                 <button
                                   onClick={() => navigate(`/admin/shipments/${shipment._id}`)}
                                   style={{
@@ -552,21 +568,24 @@ const Shipments = () => {
                                     background: "#3b82f6",
                                     color: "#fff",
                                     border: "none",
-                                    borderRadius: "6px",
+                                    borderRadius: "4px",
                                     cursor: "pointer",
-                                    fontSize: "11px",
+                                    fontSize: "10px",
                                     display: "inline-flex",
                                     alignItems: "center",
-                                    gap: "4px",
+                                    gap: "2px",
                                     transition: "all 0.15s",
+                                    whiteSpace: "nowrap",
+                                    fontWeight: "500",
+                                    letterSpacing: "0.2px",
+                                    flex: "0 0 auto",
                                   }}
                                   onMouseEnter={(e) => e.currentTarget.style.background = "#2563eb"}
                                   onMouseLeave={(e) => e.currentTarget.style.background = "#3b82f6"}
                                 >
-                                  <FaEye size={11} /> View
+                                  <FaEye size={9} /> View
                                 </button>
                                 
-                                {/* IN_TRANSIT Button */}
                                 <button
                                   onClick={() => updateShipmentStatus(shipment._id, "IN_TRANSIT")}
                                   disabled={isDelivered || updatingId === shipment._id}
@@ -575,17 +594,20 @@ const Shipments = () => {
                                     background: isDelivered ? "#94a3b8" : "#3b82f6",
                                     color: "#fff",
                                     border: "none",
-                                    borderRadius: "6px",
+                                    borderRadius: "4px",
                                     cursor: (isDelivered || updatingId === shipment._id) ? "not-allowed" : "pointer",
                                     opacity: (isDelivered || updatingId === shipment._id) ? 0.5 : 1,
-                                    fontSize: "11px",
+                                    fontSize: "10px",
+                                    whiteSpace: "nowrap",
+                                    fontWeight: "500",
+                                    letterSpacing: "0.2px",
                                     transition: "all 0.15s",
+                                    flex: "0 0 auto",
                                   }}
                                 >
                                   {updatingId === shipment._id ? "..." : "Transit"}
                                 </button>
                                 
-                                {/* OUT_FOR_DELIVERY Button */}
                                 <button
                                   onClick={() => updateShipmentStatus(shipment._id, "OUT_FOR_DELIVERY")}
                                   disabled={isDelivered || updatingId === shipment._id}
@@ -594,16 +616,20 @@ const Shipments = () => {
                                     background: isDelivered ? "#94a3b8" : "#8b5cf6",
                                     color: "#fff",
                                     border: "none",
-                                    borderRadius: "6px",
+                                    borderRadius: "4px",
                                     cursor: (isDelivered || updatingId === shipment._id) ? "not-allowed" : "pointer",
                                     opacity: (isDelivered || updatingId === shipment._id) ? 0.5 : 1,
-                                    fontSize: "11px",
+                                    fontSize: "10px",
+                                    whiteSpace: "nowrap",
+                                    fontWeight: "500",
+                                    letterSpacing: "0.2px",
+                                    transition: "all 0.15s",
+                                    flex: "0 0 auto",
                                   }}
                                 >
                                   {updatingId === shipment._id ? "..." : "OFD"}
                                 </button>
                                 
-                                {/* DELIVERED Button */}
                                 <button
                                   onClick={() => updateShipmentStatus(shipment._id, "DELIVERED")}
                                   disabled={isDelivered || updatingId === shipment._id}
@@ -612,16 +638,20 @@ const Shipments = () => {
                                     background: isDelivered ? "#94a3b8" : "#22c55e",
                                     color: "#fff",
                                     border: "none",
-                                    borderRadius: "6px",
+                                    borderRadius: "4px",
                                     cursor: (isDelivered || updatingId === shipment._id) ? "not-allowed" : "pointer",
                                     opacity: (isDelivered || updatingId === shipment._id) ? 0.5 : 1,
-                                    fontSize: "11px",
+                                    fontSize: "10px",
+                                    whiteSpace: "nowrap",
+                                    fontWeight: "500",
+                                    letterSpacing: "0.2px",
+                                    transition: "all 0.15s",
+                                    flex: "0 0 auto",
                                   }}
                                 >
                                   {updatingId === shipment._id ? "..." : "Delivered"}
                                 </button>
                                 
-                                {/* NDR Button */}
                                 <button
                                   onClick={() => updateShipmentStatus(shipment._id, "NDR")}
                                   disabled={isDelivered || updatingId === shipment._id}
@@ -630,16 +660,20 @@ const Shipments = () => {
                                     background: isDelivered ? "#94a3b8" : "#f97316",
                                     color: "#fff",
                                     border: "none",
-                                    borderRadius: "6px",
+                                    borderRadius: "4px",
                                     cursor: (isDelivered || updatingId === shipment._id) ? "not-allowed" : "pointer",
                                     opacity: (isDelivered || updatingId === shipment._id) ? 0.5 : 1,
-                                    fontSize: "11px",
+                                    fontSize: "10px",
+                                    whiteSpace: "nowrap",
+                                    fontWeight: "500",
+                                    letterSpacing: "0.2px",
+                                    transition: "all 0.15s",
+                                    flex: "0 0 auto",
                                   }}
                                 >
                                   {updatingId === shipment._id ? "..." : "NDR"}
                                 </button>
                                 
-                                {/* RTO Button */}
                                 <button
                                   onClick={() => updateShipmentStatus(shipment._id, "RTO")}
                                   disabled={isDelivered || updatingId === shipment._id}
@@ -648,10 +682,15 @@ const Shipments = () => {
                                     background: isDelivered ? "#94a3b8" : "#ef4444",
                                     color: "#fff",
                                     border: "none",
-                                    borderRadius: "6px",
+                                    borderRadius: "4px",
                                     cursor: (isDelivered || updatingId === shipment._id) ? "not-allowed" : "pointer",
                                     opacity: (isDelivered || updatingId === shipment._id) ? 0.5 : 1,
-                                    fontSize: "11px",
+                                    fontSize: "10px",
+                                    whiteSpace: "nowrap",
+                                    fontWeight: "500",
+                                    letterSpacing: "0.2px",
+                                    transition: "all 0.15s",
+                                    flex: "0 0 auto",
                                   }}
                                 >
                                   {updatingId === shipment._id ? "..." : "RTO"}
@@ -770,7 +809,6 @@ const Shipments = () => {
                                   <FaEye /> View
                                 </button>
                                 
-                                {/* IN_TRANSIT Button - Mobile */}
                                 <button
                                   onClick={() => updateShipmentStatus(shipment._id, "IN_TRANSIT")}
                                   disabled={isDelivered || updatingId === shipment._id}
@@ -792,7 +830,6 @@ const Shipments = () => {
                                 </button>
                               </div>
                               <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                                {/* OUT_FOR_DELIVERY Button - Mobile */}
                                 <button
                                   onClick={() => updateShipmentStatus(shipment._id, "OUT_FOR_DELIVERY")}
                                   disabled={isDelivered || updatingId === shipment._id}
@@ -813,7 +850,6 @@ const Shipments = () => {
                                   {updatingId === shipment._id ? "..." : "OFD"}
                                 </button>
                                 
-                                {/* DELIVERED Button - Mobile */}
                                 <button
                                   onClick={() => updateShipmentStatus(shipment._id, "DELIVERED")}
                                   disabled={isDelivered || updatingId === shipment._id}
@@ -835,7 +871,6 @@ const Shipments = () => {
                                 </button>
                               </div>
                               <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                                {/* NDR Button - Mobile */}
                                 <button
                                   onClick={() => updateShipmentStatus(shipment._id, "NDR")}
                                   disabled={isDelivered || updatingId === shipment._id}
@@ -856,7 +891,6 @@ const Shipments = () => {
                                   {updatingId === shipment._id ? "..." : "NDR"}
                                 </button>
                                 
-                                {/* RTO Button - Mobile */}
                                 <button
                                   onClick={() => updateShipmentStatus(shipment._id, "RTO")}
                                   disabled={isDelivered || updatingId === shipment._id}
@@ -905,6 +939,15 @@ const Shipments = () => {
 
       {/* Responsive Styles */}
       <style>{`
+        @media screen and (max-width: 1024px) {
+          .desktop-table {
+            overflow-x: auto !important;
+          }
+          .desktop-table table {
+            min-width: 1100px !important;
+          }
+        }
+        
         @media screen and (max-width: 768px) {
           .desktop-table {
             display: none !important;

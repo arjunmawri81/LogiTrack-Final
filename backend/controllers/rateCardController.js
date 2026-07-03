@@ -1,5 +1,6 @@
 const RateCard = require("../models/RateCard");
-const Order = require("../models/Order"); // ✅ ADDED
+const Order = require("../models/Order");
+const Courier = require("../models/Courier");
 
 // ================================
 // SAVE RATE CARD (CREATE OR UPDATE)
@@ -8,7 +9,8 @@ const saveRateCard = async (req, res) => {
   try {
     const {
       merchantId,
-      courierPartner,
+      courierId,        // ✅ PRIMARY: Use ObjectId
+      courierPartner,   // ⚠️ DEPRECATED: Only for backward compatibility during migration
       forwardRates,
       zoneRates,
       codCharge,
@@ -19,29 +21,88 @@ const saveRateCard = async (req, res) => {
       serviceability,
     } = req.body;
 
-    // ✅ Validation: Required fields
-    if (!merchantId || !courierPartner) {
-      return res.status(400).json({
+    // ✅ Role-Based Access Control
+    const userRole = req.user?.role;
+
+    if (userRole === "SUPER_ADMIN") {
+      // merchantId is optional - can be null for default rates
+    } else if (userRole === "ADMIN") {
+      if (!merchantId) {
+        return res.status(400).json({
+          success: false,
+          message: "Merchant ID is required for ADMIN role.",
+        });
+      }
+      if (merchantId === null || merchantId === "null" || merchantId === "") {
+        return res.status(403).json({
+          success: false,
+          message: "ADMIN cannot create default rate cards. Only SUPER_ADMIN can.",
+        });
+      }
+    } else {
+      return res.status(403).json({
         success: false,
-        message: "Merchant ID and Courier Partner are required",
+        message: "Unauthorized. You don't have permission to create rate cards.",
       });
     }
 
-    // ✅ Null Safety: Normalize courierPartner to lowercase with fallback
-    const normalizedCourier = (courierPartner || "")
-      .trim()
-      .toLowerCase();
+    // ✅ PRIMARY: Courier ID is required
+    if (!courierId) {
+      return res.status(400).json({
+        success: false,
+        message: "Courier ID is required",
+      });
+    }
 
-    // ✅ Check if rate card exists (duplicate prevention)
+    // Validate courier exists
+    const courier = await Courier.findById(courierId);
+    if (!courier) {
+      return res.status(404).json({
+        success: false,
+        message: "Courier not found with the provided ID",
+      });
+    }
+
+    let finalCourierId = courierId;
+    let finalCourierPartner = courier.name.toUpperCase();
+
+    // ⚠️ BACKWARD COMPATIBLE: Support courierPartner during migration
+    // TODO: Remove this after frontend migration is complete
+    if (courierPartner) {
+      const normalizedName = courierPartner.trim().toUpperCase();
+      const existingCourier = await Courier.findOne({ 
+        name: { $regex: new RegExp(`^${normalizedName}$`, 'i') } 
+      });
+      
+      if (existingCourier && existingCourier._id.toString() !== courierId) {
+        return res.status(409).json({
+          success: false,
+          message: `Courier name mismatch: "${courierPartner}" doesn't match the courier ID provided.`,
+        });
+      }
+      finalCourierPartner = normalizedName;
+    }
+
+    // ✅ Prepare forwardRates with rate5kg
+    const forwardRatesData = {
+      rate500gm: forwardRates?.rate500gm || 0,
+      rate1kg: forwardRates?.rate1kg || 0,
+      rate2kg: forwardRates?.rate2kg || 0,
+      rate5kg: forwardRates?.rate5kg || 0,
+      additionalKg: forwardRates?.additionalKg || 0,
+    };
+
+    // Check if rate card exists
     let rateCard = await RateCard.findOne({
-      merchantId,
-      courierPartner: normalizedCourier,
+      merchantId: merchantId || null,
+      courierId: finalCourierId,
     });
 
     if (rateCard) {
       // Update existing
-      rateCard.courierPartner = normalizedCourier; // ✅ Ensure lowercase
-      rateCard.forwardRates = forwardRates;
+      rateCard.courierId = finalCourierId;
+      rateCard.courierPartner = finalCourierPartner;
+      rateCard.forwardRates = forwardRatesData;
       rateCard.zoneRates = zoneRates;
       rateCard.codCharge = codCharge;
       rateCard.rtoCharge = rtoCharge;
@@ -54,6 +115,7 @@ const saveRateCard = async (req, res) => {
       rateCard.updatedAt = new Date();
 
       await rateCard.save();
+      await rateCard.populate('courierId');
 
       return res.status(200).json({
         success: true,
@@ -62,24 +124,12 @@ const saveRateCard = async (req, res) => {
       });
     }
 
-    // ✅ Duplicate Prevention: Extra check before create
-    const existingRateCard = await RateCard.findOne({
-      merchantId,
-      courierPartner: normalizedCourier,
-    });
-
-    if (existingRateCard) {
-      return res.status(409).json({
-        success: false,
-        message: "Rate card already exists for this courier",
-      });
-    }
-
     // Create new
     rateCard = await RateCard.create({
-      merchantId,
-      courierPartner: normalizedCourier, // ✅ Save lowercase
-      forwardRates,
+      merchantId: merchantId || null,
+      courierId: finalCourierId,
+      courierPartner: finalCourierPartner,
+      forwardRates: forwardRatesData,
       zoneRates,
       codCharge,
       rtoCharge,
@@ -94,13 +144,14 @@ const saveRateCard = async (req, res) => {
       },
     });
 
+    await rateCard.populate('courierId');
+
     res.status(201).json({
       success: true,
       message: "Rate Card Created Successfully",
       rateCard,
     });
   } catch (error) {
-    // ✅ Handle duplicate key error (if unique index exists)
     if (error.code === 11000) {
       return res.status(409).json({
         success: false,
@@ -115,7 +166,7 @@ const saveRateCard = async (req, res) => {
 };
 
 // ================================
-// GET ALL MERCHANT RATE CARDS (SORTED)
+// GET ALL MERCHANT RATE CARDS (WITH MERGE LOGIC)
 // ================================
 const getMerchantRateCards = async (req, res) => {
   try {
@@ -128,15 +179,59 @@ const getMerchantRateCards = async (req, res) => {
       });
     }
 
-    // ✅ Sorted by courierPartner for cleaner UI
-    const rateCards = await RateCard.find({
+    const defaultCards = await RateCard.find({
+      merchantId: null,
+      isActive: true,
+    }).populate('courierId');
+
+    const merchantCards = await RateCard.find({
       merchantId,
-    }).sort({ courierPartner: 1 });
+      isActive: true,
+    }).populate('courierId');
+
+    const mergedMap = new Map();
+
+    defaultCards.forEach((card) => {
+      const key = card.courierId?._id?.toString() || card.courierPartner?.toUpperCase();
+      if (key) {
+        mergedMap.set(key, {
+          ...card.toObject(),
+          pricingType: "DEFAULT",
+          isDefault: true,
+          courier: card.courierId,
+        });
+      }
+    });
+
+    merchantCards.forEach((card) => {
+      const key = card.courierId?._id?.toString() || card.courierPartner?.toUpperCase();
+      if (key) {
+        mergedMap.set(key, {
+          ...card.toObject(),
+          pricingType: "MERCHANT",
+          isDefault: false,
+          courier: card.courierId,
+        });
+      }
+    });
+
+    const allRateCards = Array.from(mergedMap.values());
+
+    allRateCards.sort((a, b) => {
+      const nameA = a.courier?.name || a.courierPartner || '';
+      const nameB = b.courier?.name || b.courierPartner || '';
+      return nameA.localeCompare(nameB);
+    });
 
     res.status(200).json({
       success: true,
-      count: rateCards.length,
-      rateCards,
+      count: allRateCards.length,
+      rateCards: allRateCards,
+      summary: {
+        defaultCouriers: allRateCards.filter(c => c.pricingType === "DEFAULT").length,
+        merchantCouriers: allRateCards.filter(c => c.pricingType === "MERCHANT").length,
+        total: allRateCards.length,
+      },
     });
   } catch (error) {
     res.status(500).json({
@@ -151,24 +246,28 @@ const getMerchantRateCards = async (req, res) => {
 // ================================
 const getCourierRateCard = async (req, res) => {
   try {
-    const { merchantId, courier } = req.params;
+    const { merchantId, courierId } = req.params;
 
-    if (!merchantId || !courier) {
+    if (!merchantId || !courierId) {
       return res.status(400).json({
         success: false,
-        message: "Merchant ID and Courier are required",
+        message: "Merchant ID and Courier ID are required",
       });
     }
 
-    // ✅ Null Safety: Normalize courier name to lowercase with fallback
-    const normalizedCourier = (courier || "")
-      .trim()
-      .toLowerCase();
-
-    const rateCard = await RateCard.findOne({
+    let rateCard = await RateCard.findOne({
       merchantId,
-      courierPartner: normalizedCourier,
-    });
+      courierId,
+      isActive: true,
+    }).populate('courierId');
+
+    if (!rateCard) {
+      rateCard = await RateCard.findOne({
+        merchantId: null,
+        courierId,
+        isActive: true,
+      }).populate('courierId');
+    }
 
     if (!rateCard) {
       return res.status(404).json({
@@ -180,6 +279,7 @@ const getCourierRateCard = async (req, res) => {
     res.status(200).json({
       success: true,
       rateCard,
+      pricingType: rateCard.merchantId ? "MERCHANT" : "DEFAULT",
     });
   } catch (error) {
     res.status(500).json({
@@ -190,7 +290,68 @@ const getCourierRateCard = async (req, res) => {
 };
 
 // ================================
-// DELETE RATE CARD
+// GET RATE CARD BY COURIER NAME (BACKWARD COMPATIBLE)
+// ================================
+const getRateCardByCourierName = async (req, res) => {
+  try {
+    const { merchantId, courierName } = req.params;
+
+    if (!merchantId || !courierName) {
+      return res.status(400).json({
+        success: false,
+        message: "Merchant ID and Courier Name are required",
+      });
+    }
+
+    const normalizedName = courierName.trim().toUpperCase();
+
+    const courier = await Courier.findOne({ 
+      name: { $regex: new RegExp(`^${normalizedName}$`, 'i') } 
+    });
+
+    if (!courier) {
+      return res.status(404).json({
+        success: false,
+        message: "Courier not found",
+      });
+    }
+
+    let rateCard = await RateCard.findOne({
+      merchantId,
+      courierId: courier._id,
+      isActive: true,
+    }).populate('courierId');
+
+    if (!rateCard) {
+      rateCard = await RateCard.findOne({
+        merchantId: null,
+        courierId: courier._id,
+        isActive: true,
+      }).populate('courierId');
+    }
+
+    if (!rateCard) {
+      return res.status(404).json({
+        success: false,
+        message: "Rate Card Not Found for this courier",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      rateCard,
+      pricingType: rateCard.merchantId ? "MERCHANT" : "DEFAULT",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ================================
+// DELETE RATE CARD (SOFT DELETE)
 // ================================
 const deleteRateCard = async (req, res) => {
   try {
@@ -203,7 +364,7 @@ const deleteRateCard = async (req, res) => {
       });
     }
 
-    const rateCard = await RateCard.findByIdAndDelete(id);
+    const rateCard = await RateCard.findById(id);
 
     if (!rateCard) {
       return res.status(404).json({
@@ -212,9 +373,33 @@ const deleteRateCard = async (req, res) => {
       });
     }
 
+    const userRole = req.user?.role;
+
+    if (userRole === "SUPER_ADMIN") {
+      rateCard.isActive = false;
+      await rateCard.save();
+    } else if (userRole === "ADMIN") {
+      if (!rateCard.merchantId) {
+        return res.status(403).json({
+          success: false,
+          message: "ADMIN cannot delete default rate cards.",
+        });
+      }
+      rateCard.isActive = false;
+      await rateCard.save();
+    } else {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized. You don't have permission to delete rate cards.",
+      });
+    }
+
+    await rateCard.populate('courierId');
+
     res.status(200).json({
       success: true,
-      message: "Rate Card Deleted Successfully",
+      message: "Rate Card Deactivated Successfully",
+      rateCard,
     });
   } catch (error) {
     res.status(500).json({
@@ -225,7 +410,66 @@ const deleteRateCard = async (req, res) => {
 };
 
 // ================================
-// GET RECOMMENDED COURIERS (SHIPMOZO STYLE)
+// REACTIVATE RATE CARD
+// ================================
+const reactivateRateCard = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Rate Card ID is required",
+      });
+    }
+
+    const rateCard = await RateCard.findById(id);
+
+    if (!rateCard) {
+      return res.status(404).json({
+        success: false,
+        message: "Rate Card Not Found",
+      });
+    }
+
+    const userRole = req.user?.role;
+
+    if (userRole === "SUPER_ADMIN") {
+      rateCard.isActive = true;
+      await rateCard.save();
+    } else if (userRole === "ADMIN") {
+      if (!rateCard.merchantId) {
+        return res.status(403).json({
+          success: false,
+          message: "ADMIN cannot reactivate default rate cards.",
+        });
+      }
+      rateCard.isActive = true;
+      await rateCard.save();
+    } else {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized. You don't have permission to reactivate rate cards.",
+      });
+    }
+
+    await rateCard.populate('courierId');
+
+    res.status(200).json({
+      success: true,
+      message: "Rate Card Reactivated Successfully",
+      rateCard,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ================================
+// GET RECOMMENDED COURIERS (WITH COURIER COLLECTION)
 // ================================
 const getRecommendedCouriers = async (req, res) => {
   try {
@@ -238,190 +482,119 @@ const getRecommendedCouriers = async (req, res) => {
       });
     }
 
-    // ✅ STEP 1: Default couriers with fallback rates
-    const defaultCouriers = [
-      {
-        courierPartner: "delhivery",
-        forwardRates: {
-          rate500gm: 45,
-          rate1kg: 60,
-          rate2kg: 85,
-          additionalKg: 20,
-        },
-        codCharge: 0,
-        fuelCharge: 5,
-        isActive: true,
-      },
-      {
-        courierPartner: "xpressbees",
-        forwardRates: {
-          rate500gm: 48,
-          rate1kg: 65,
-          rate2kg: 90,
-          additionalKg: 22,
-        },
-        codCharge: 0,
-        fuelCharge: 5,
-        isActive: true,
-      },
-      {
-        courierPartner: "shadowfax",
-        forwardRates: {
-          rate500gm: 50,
-          rate1kg: 68,
-          rate2kg: 95,
-          additionalKg: 22,
-        },
-        codCharge: 0,
-        fuelCharge: 5,
-        isActive: true,
-      },
-      {
-        courierPartner: "ecom",
-        forwardRates: {
-          rate500gm: 55,
-          rate1kg: 72,
-          rate2kg: 100,
-          additionalKg: 25,
-        },
-        codCharge: 0,
-        fuelCharge: 5,
-        isActive: true,
-      },
-      {
-        courierPartner: "dtdc",
-        forwardRates: {
-          rate500gm: 60,
-          rate1kg: 80,
-          rate2kg: 110,
-          additionalKg: 30,
-        },
-        codCharge: 0,
-        fuelCharge: 5,
-        isActive: true,
-      },
-    ];
+    const allCouriers = await Courier.find({ isActive: true });
 
-    // ✅ STEP 2: Get admin configured rate cards
-    const adminCards = await RateCard.find({
+    if (allCouriers.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No active couriers available. Please contact administrator.",
+      });
+    }
+
+    const defaultCards = await RateCard.find({
+      merchantId: null,
+      isActive: true,
+    }).populate('courierId');
+
+    const merchantCards = await RateCard.find({
       merchantId,
       isActive: true,
-    });
+    }).populate('courierId');
 
-    console.log("MERCHANT ID =>", merchantId);
-    console.log("ADMIN CARDS FOUND =>", adminCards.length);
-    
-    adminCards.forEach((card) => {
-      console.log(
-        "ADMIN COURIER =>",
-        card.courierPartner,
-        "RATES =>",
-        card.forwardRates
-      );
-    });
+    const rateCardMap = new Map();
 
-    // ✅ STEP 3: Merge logic - Use admin rates if available, else use default
-    const rateCards = defaultCouriers.map((defaultCourier) => {
-      const adminRate = adminCards.find(
-        (a) =>
-          a.courierPartner.toLowerCase() ===
-          defaultCourier.courierPartner.toLowerCase()
-      );
-
-      // If admin has configured this courier, use admin's rates
-      if (adminRate) {
-        return {
-          courierPartner: adminRate.courierPartner,
-          forwardRates: adminRate.forwardRates || defaultCourier.forwardRates,
-          codCharge: adminRate.codCharge || defaultCourier.codCharge || 0,
-          fuelCharge: adminRate.fuelCharge || defaultCourier.fuelCharge || 5,
-          isActive: adminRate.isActive,
-          _id: adminRate._id,
-          serviceability: adminRate.serviceability,
-        };
+    defaultCards.forEach((card) => {
+      if (card.courierId) {
+        const key = card.courierId._id.toString();
+        rateCardMap.set(key, {
+          ...card.toObject(),
+          pricingType: "DEFAULT",
+        });
       }
-
-      // Otherwise use default rates
-      return {
-        courierPartner: defaultCourier.courierPartner,
-        forwardRates: defaultCourier.forwardRates,
-        codCharge: defaultCourier.codCharge || 0,
-        fuelCharge: defaultCourier.fuelCharge || 5,
-        isActive: defaultCourier.isActive,
-        _id: null,
-        serviceability: {
-          codEnabled: true,
-          prepaidEnabled: true,
-          rtoEnabled: true,
-          reversePickup: true,
-        },
-      };
     });
 
-    console.log("TOTAL COURIERS AFTER MERGE =>", rateCards.length);
+    merchantCards.forEach((card) => {
+      if (card.courierId) {
+        const key = card.courierId._id.toString();
+        rateCardMap.set(key, {
+          ...card.toObject(),
+          pricingType: "MERCHANT",
+        });
+      }
+    });
 
-    // ✅ ETA Mapping (temporary - will come from real API later)
-    const etaMap = {
-      delhivery: "3 Days",
-      xpressbees: "2 Days",
-      dtdc: "4 Days",
-      ecom: "3 Days",
-      bluedart: "2 Days",
-      shadowfax: "2 Days",
-    };
+    const couriersWithRates = allCouriers.map((courier) => {
+      const rateCard = rateCardMap.get(courier._id.toString());
+      const hasRate = !!rateCard;
 
-    // ✅ Calculate rate for each courier based on weight
-    const couriers = rateCards.map((card) => {
       let forwardRate = 0;
-      const w = Number(weight);
+      let codCharge = 0;
+      let fuelCharge = 0;
+      let total = 0;
 
-      if (w <= 0.5) {
-        forwardRate = card.forwardRates?.rate500gm || 0;
-      } else if (w <= 1) {
-        forwardRate = card.forwardRates?.rate1kg || 0;
-      } else if (w <= 2) {
-        forwardRate = card.forwardRates?.rate2kg || 0;
-      } else {
-        forwardRate =
-          (card.forwardRates?.rate2kg || 0) +
-          Math.ceil(w - 2) *
-            (card.forwardRates?.additionalKg || 0);
+      if (hasRate) {
+        const w = Number(weight);
+
+        if (w <= 0.5) {
+          forwardRate = rateCard.forwardRates?.rate500gm || 0;
+        } else if (w <= 1) {
+          forwardRate = rateCard.forwardRates?.rate1kg || 0;
+        } else if (w <= 2) {
+          forwardRate = rateCard.forwardRates?.rate2kg || 0;
+        } else if (w <= 5) {
+          forwardRate = rateCard.forwardRates?.rate5kg || 0;
+        } else {
+          forwardRate =
+            (rateCard.forwardRates?.rate5kg || 0) +
+            Math.ceil(w - 5) *
+            (rateCard.forwardRates?.additionalKg || 0);
+        }
+
+        codCharge = rateCard.codCharge || 0;
+        fuelCharge = rateCard.fuelCharge || 0;
+        total = forwardRate + codCharge + fuelCharge;
       }
 
-      // ✅ Get charges
-      const codCharge = card.codCharge || 0;
-      const fuelCharge = card.fuelCharge || 0;
-
-      // ✅ Calculate total
-      const total = forwardRate + codCharge + fuelCharge;
-
-      // ✅ Get ETA
-      const eta = etaMap[card.courierPartner] || "3 Days";
-
       return {
-        courier: card.courierPartner,
+        courierId: courier._id,
+        courierName: courier.name,
+        logo: courier.logo || null,
+        estimatedDays: courier.estimatedDays || 3,
+        isCourierActive: courier.isActive,
+        
+        hasRate: hasRate,
         forwardRate: forwardRate,
         codCharge: codCharge,
         fuelCharge: fuelCharge,
         total: total,
-        eta: eta,
-        rateCardId: card._id,
-        isActive: card.isActive,
-        serviceability: card.serviceability,
-        isDefault: card._id === null, // Flag to identify default rates
+        rateCardId: hasRate ? rateCard._id : null,
+        pricingType: hasRate ? rateCard.pricingType : "NOT_CONFIGURED",
+        isDefault: hasRate ? rateCard.merchantId === null : true,
+        serviceability: hasRate ? rateCard.serviceability : null,
       };
     });
 
-    // ✅ Sort by total (cheapest first)
-    couriers.sort((a, b) => a.total - b.total);
+    const availableCouriers = couriersWithRates.filter(c => c.hasRate);
 
-    // ✅ Return all couriers with rates and the best recommendation
+    if (availableCouriers.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No pricing available for any courier. Please contact administrator.",
+      });
+    }
+
+    availableCouriers.sort((a, b) => a.total - b.total);
+
     res.status(200).json({
       success: true,
-      recommended: couriers.length > 0 ? couriers[0] : null,
-      couriers: couriers,
-      totalCouriers: couriers.length,
-      hasAdminRates: adminCards.length > 0,
+      recommended: availableCouriers.length > 0 ? availableCouriers[0] : null,
+      couriers: availableCouriers,
+      totalCouriers: availableCouriers.length,
+      summary: {
+        defaultRates: availableCouriers.filter(c => c.pricingType === "DEFAULT").length,
+        merchantRates: availableCouriers.filter(c => c.pricingType === "MERCHANT").length,
+        total: availableCouriers.length,
+      },
     });
   } catch (error) {
     console.error("Recommended couriers error:", error);
@@ -437,16 +610,15 @@ const getRecommendedCouriers = async (req, res) => {
 // ================================
 const calculatePricing = async (req, res) => {
   try {
-    const { orderId, courier } = req.body;
+    const { orderId, courierId } = req.body;
 
-    if (!orderId || !courier) {
+    if (!orderId || !courierId) {
       return res.status(400).json({
         success: false,
-        message: "Order ID and Courier are required",
+        message: "Order ID and Courier ID are required",
       });
     }
 
-    // ✅ Find the order
     const order = await Order.findById(orderId);
 
     if (!order) {
@@ -456,21 +628,38 @@ const calculatePricing = async (req, res) => {
       });
     }
 
-    // ✅ Find the rate card for this merchant and courier
-    const rateCard = await RateCard.findOne({
+    const courier = await Courier.findById(courierId);
+    if (!courier) {
+      return res.status(404).json({
+        success: false,
+        message: "Courier not found",
+      });
+    }
+
+    let rateCard = await RateCard.findOne({
       merchantId: order.merchantId,
-      courierPartner: courier.toLowerCase().trim(),
+      courierId,
       isActive: true,
-    });
+    }).populate('courierId');
+
+    let pricingType = "MERCHANT";
+
+    if (!rateCard) {
+      rateCard = await RateCard.findOne({
+        merchantId: null,
+        courierId,
+        isActive: true,
+      }).populate('courierId');
+      pricingType = "DEFAULT";
+    }
 
     if (!rateCard) {
       return res.status(404).json({
         success: false,
-        message: `Rate card not found for courier: ${courier}`,
+        message: "No pricing available for this courier. Please contact administrator.",
       });
     }
 
-    // ✅ Calculate shipping charge based on weight
     let shippingCharge = 0;
     const weight = Number(order.weight || 0);
 
@@ -480,22 +669,20 @@ const calculatePricing = async (req, res) => {
       shippingCharge = rateCard.forwardRates?.rate1kg || 0;
     } else if (weight <= 2) {
       shippingCharge = rateCard.forwardRates?.rate2kg || 0;
+    } else if (weight <= 5) {
+      shippingCharge = rateCard.forwardRates?.rate5kg || 0;
     } else {
       shippingCharge =
-        (rateCard.forwardRates?.rate2kg || 0) +
-        Math.ceil(weight - 2) *
-          (rateCard.forwardRates?.additionalKg || 0);
+        (rateCard.forwardRates?.rate5kg || 0) +
+        Math.ceil(weight - 5) *
+        (rateCard.forwardRates?.additionalKg || 0);
     }
 
-    // ✅ Calculate COD charge if payment mode is COD
     const codCharge = order.paymentMode === "COD"
       ? rateCard.codCharge || 0
       : 0;
 
-    // ✅ Get fuel charge
     const fuelCharge = rateCard.fuelCharge || 0;
-
-    // ✅ Calculate total charge
     const totalCharge = shippingCharge + codCharge + fuelCharge;
 
     res.status(200).json({
@@ -506,7 +693,10 @@ const calculatePricing = async (req, res) => {
       totalCharge,
       weight: weight,
       paymentMode: order.paymentMode,
-      courier: rateCard.courierPartner,
+      courier: rateCard.courierId || courier,
+      courierName: rateCard.courierId?.name || courier.name,
+      pricingType: pricingType,
+      rateCardSource: pricingType === "MERCHANT" ? "Merchant Rate" : "Default Rate",
     });
   } catch (error) {
     console.error("Calculate pricing error:", error);
@@ -524,7 +714,9 @@ module.exports = {
   saveRateCard,
   getMerchantRateCards,
   getCourierRateCard,
+  getRateCardByCourierName,
   deleteRateCard,
+  reactivateRateCard,
   getRecommendedCouriers,
-  calculatePricing, 
+  calculatePricing,
 };

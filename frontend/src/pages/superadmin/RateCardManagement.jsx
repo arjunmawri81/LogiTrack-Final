@@ -58,6 +58,7 @@ const RateCardManagement = () => {
       rate500gm: "",
       rate1kg: "",
       rate2kg: "",
+      rate5kg: "",      // ✅ NEW: 5kg slab
       additionalKg: "",
     },
     codCharges: {
@@ -98,7 +99,6 @@ const RateCardManagement = () => {
       setLoading(prev => ({ ...prev, merchant: true }));
       const response = await api.get(`/admin/merchant/${merchantId}`);
       
-      // ✅ FIXED: Handle nested userId.name properly
       setMerchantInfo({
         companyName: response.data.merchant?.companyName || "",
         merchantName: response.data.merchant?.userId?.name || 
@@ -155,9 +155,9 @@ const RateCardManagement = () => {
       console.error("Error fetching assigned rates:", error);
       // Fallback to dummy data
       setAssignedRates([
-        { courier: "Delhivery", rate500gm: 45, rate1kg: 60, rate2kg: 85, status: "Active" },
-        { courier: "Xpressbees", rate500gm: 48, rate1kg: 65, rate2kg: 90, status: "Active" },
-        { courier: "Ecom", rate500gm: 50, rate1kg: 70, rate2kg: 95, status: "Active" },
+        { courier: "Delhivery", rate500gm: 45, rate1kg: 60, rate2kg: 85, rate5kg: 110, status: "Active" },
+        { courier: "Xpressbees", rate500gm: 48, rate1kg: 65, rate2kg: 90, rate5kg: 115, status: "Active" },
+        { courier: "Ecom", rate500gm: 50, rate1kg: 70, rate2kg: 95, rate5kg: 120, status: "Active" },
       ]);
     }
   };
@@ -177,6 +177,7 @@ const RateCardManagement = () => {
             rate500gm: data.rates.forwardRates?.rate500gm || "",
             rate1kg: data.rates.forwardRates?.rate1kg || "",
             rate2kg: data.rates.forwardRates?.rate2kg || "",
+            rate5kg: data.rates.forwardRates?.rate5kg || "",      // ✅ NEW
             additionalKg: data.rates.forwardRates?.additionalKg || "",
           },
           codCharges: {
@@ -216,6 +217,7 @@ const RateCardManagement = () => {
         rate500gm: "",
         rate1kg: "",
         rate2kg: "",
+        rate5kg: "",      // ✅ NEW
         additionalKg: "",
       },
       codCharges: {
@@ -313,6 +315,7 @@ const RateCardManagement = () => {
       forward500gm: rates.forwardRates.rate500gm || 0,
       forward1kg: rates.forwardRates.rate1kg || 0,
       forward2kg: rates.forwardRates.rate2kg || 0,
+      forward5kg: rates.forwardRates.rate5kg || 0,      // ✅ NEW
       local: zoneRates.local || 0,
       regional: zoneRates.regional || 0,
       national: zoneRates.national || 0,
@@ -523,7 +526,7 @@ const RateCardManagement = () => {
           </div>
         </div>
 
-        {/* ================= MERCHANT SUMMARY CARDS - UPDATED with 5 cards ================= */}
+        {/* ================= MERCHANT SUMMARY CARDS ================= */}
         <div
           style={{
             display: "grid",
@@ -635,7 +638,7 @@ const RateCardManagement = () => {
           </div>
         )}
 
-        {/* ================= 2-COLUMN LAYOUT - Shipmozo Style ================= */}
+        {/* ================= 2-COLUMN LAYOUT ================= */}
         {!loading.rates && (
           <div
             style={{
@@ -672,7 +675,7 @@ const RateCardManagement = () => {
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "repeat(2, 1fr)",
+                    gridTemplateColumns: "repeat(3, 1fr)",
                     gap: "12px",
                   }}
                 >
@@ -751,6 +754,36 @@ const RateCardManagement = () => {
                       value={rates.forwardRates.rate2kg}
                       onChange={(e) =>
                         handleChange("forwardRates", "rate2kg", e.target.value)
+                      }
+                      style={{
+                        width: "100%",
+                        padding: "10px 12px",
+                        borderRadius: "8px",
+                        border: "1px solid #e2e8f0",
+                        fontSize: "14px",
+                        outline: "none",
+                        transition: "border-color 0.2s",
+                      }}
+                    />
+                  </div>
+                  {/* ✅ NEW: 5kg Field */}
+                  <div>
+                    <label
+                      style={{
+                        display: "block",
+                        fontSize: "13px",
+                        color: "#64748b",
+                        marginBottom: "4px",
+                      }}
+                    >
+                      5kg
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="₹"
+                      value={rates.forwardRates.rate5kg}
+                      onChange={(e) =>
+                        handleChange("forwardRates", "rate5kg", e.target.value)
                       }
                       style={{
                         width: "100%",
@@ -1181,7 +1214,7 @@ const RateCardManagement = () => {
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "repeat(3, 1fr)",
+                    gridTemplateColumns: "repeat(2, 1fr)",
                     gap: "12px",
                     marginBottom: "16px",
                   }}
@@ -1202,6 +1235,13 @@ const RateCardManagement = () => {
                     <p style={{ fontSize: "13px", color: "#64748b" }}>2kg</p>
                     <p style={{ fontSize: "18px", fontWeight: "600", color: "#0f172a" }}>
                       ₹{calculatePreview().forward2kg}
+                    </p>
+                  </div>
+                  {/* ✅ NEW: 5kg Preview */}
+                  <div>
+                    <p style={{ fontSize: "13px", color: "#64748b" }}>5kg</p>
+                    <p style={{ fontSize: "18px", fontWeight: "600", color: "#0f172a" }}>
+                      ₹{calculatePreview().forward5kg}
                     </p>
                   </div>
                   <div>
@@ -1366,6 +1406,7 @@ const RateCardManagement = () => {
                   <th style={thStyle}>500gm</th>
                   <th style={thStyle}>1kg</th>
                   <th style={thStyle}>2kg</th>
+                  <th style={thStyle}>5kg</th>      {/* ✅ NEW: 5kg Column */}
                   <th style={thStyle}>Status</th>
                   <th style={thStyle}>Action</th>
                 </tr>
@@ -1379,6 +1420,7 @@ const RateCardManagement = () => {
                     <td style={tdStyle}>₹{item.rate500gm || item.forwardRates?.rate500gm || 0}</td>
                     <td style={tdStyle}>₹{item.rate1kg || item.forwardRates?.rate1kg || 0}</td>
                     <td style={tdStyle}>₹{item.rate2kg || item.forwardRates?.rate2kg || 0}</td>
+                    <td style={tdStyle}>₹{item.rate5kg || item.forwardRates?.rate5kg || 0}</td>      {/* ✅ NEW: 5kg Value */}
                     <td style={tdStyle}>
                       <span
                         style={{
