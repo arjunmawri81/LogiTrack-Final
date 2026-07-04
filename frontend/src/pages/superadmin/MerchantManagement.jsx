@@ -81,8 +81,6 @@ const MerchantManagement = () => {
   // Navigate to Rate Card Management
   const openRateCard = (merchantId) => {
     window.location.href = `/superadmin/ratecard/${merchantId}`;
-    // OR if using React Router:
-    // navigate(`/superadmin/ratecard/${merchantId}`);
   };
 
   const fontStyle = {
@@ -307,7 +305,7 @@ const MerchantManagement = () => {
                         </td>
                         <td style={tdStyle}>
                           <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
-                            {/* View Button - Fixed Size & Centered */}
+                            {/* View Button */}
                             <button
                               onClick={() => viewMerchant(merchant._id)}
                               style={{
@@ -339,7 +337,7 @@ const MerchantManagement = () => {
                               <FaEye size={14} /> View
                             </button>
 
-                            {/* Rates Button - Fixed Size & Centered */}
+                            {/* Rates Button */}
                             <button
                               onClick={() => openRateCard(merchant._id)}
                               style={{
@@ -504,7 +502,7 @@ const MerchantManagement = () => {
         </div>
       </div>
 
-      {/* MERCHANT DETAILS MODAL */}
+      {/* MERCHANT DETAILS MODAL - Merchant Info Only */}
       {showModal && (
         <div
           style={{
@@ -538,7 +536,6 @@ const MerchantManagement = () => {
             }}
           >
             {loading ? (
-              // Loading State
               <div style={{ padding: "60px 40px", textAlign: "center" }}>
                 <div style={{ 
                   fontSize: "16px", 
@@ -560,7 +557,6 @@ const MerchantManagement = () => {
                 </div>
               </div>
             ) : (
-              // Modal Content
               <>
                 {/* Modal Header */}
                 <div style={{
@@ -616,9 +612,9 @@ const MerchantManagement = () => {
                   </button>
                 </div>
 
-                {/* Modal Body */}
+                {/* Modal Body - Merchant Info Only */}
                 <div style={{ padding: "28px" }}>
-                  {/* Stats Cards - Updated with Rate Cards Count */}
+                  {/* Stats Cards */}
                   <div style={{
                     display: "grid",
                     gridTemplateColumns: "repeat(4, 1fr)",
@@ -670,7 +666,6 @@ const MerchantManagement = () => {
                         ₹{selectedMerchant?.walletBalance || 0}
                       </div>
                     </div>
-                    {/* ✅ NEW: Rate Cards Count Card */}
                     <div style={{
                       background: "#f8fafc",
                       padding: "16px 20px",
@@ -688,12 +683,11 @@ const MerchantManagement = () => {
                     </div>
                   </div>
 
-                  {/* Info Grid */}
+                  {/* Merchant Info Grid */}
                   <div style={{
                     display: "grid",
                     gridTemplateColumns: "1fr 1fr",
-                    gap: "12px",
-                    marginBottom: "24px"
+                    gap: "12px"
                   }}>
                     <div style={infoCardStyle}>
                       <div style={{ fontSize: "11px", fontWeight: "500", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>
@@ -779,133 +773,6 @@ const MerchantManagement = () => {
                         </span>
                       </div>
                     </div>
-                  </div>
-
-                  {/* ✅ UPDATED: COURIER PRICING CONFIGURATION WITH PROFESSIONAL TABLE */}
-                  <div
-                    style={{
-                      border: "1px solid #e2e8f0",
-                      borderRadius: "12px",
-                      padding: "20px",
-                      marginTop: "20px"
-                    }}
-                  >
-                    {/* Header with Edit Button */}
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        marginBottom: "15px"
-                      }}
-                    >
-                      <h3
-                        style={{
-                          fontSize: "16px",
-                          fontWeight: "600",
-                          color: "#0f172a",
-                          margin: 0
-                        }}
-                      >
-                        Courier Pricing Configuration
-                      </h3>
-
-                      <button
-                        onClick={() => openRateCard(selectedMerchant?.merchant?._id || selectedMerchant?._id)}
-                        style={{
-                          padding: "6px 14px",
-                          border: "none",
-                          borderRadius: "8px",
-                          background: "#ea580c",
-                          color: "#fff",
-                          cursor: "pointer",
-                          fontSize: "13px",
-                          fontWeight: "600",
-                          transition: "all 0.15s"
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = "#c2410c"}
-                        onMouseLeave={(e) => e.currentTarget.style.background = "#ea580c"}
-                      >
-                        Edit Rates
-                      </button>
-                    </div>
-
-                    {selectedMerchant?.rateCards?.length > 0 ? (
-                      <div style={{ overflowX: "auto" }}>
-                        <table
-                          style={{
-                            width: "100%",
-                            borderCollapse: "collapse",
-                            marginTop: "10px",
-                          }}
-                        >
-                          <thead>
-                            <tr
-                              style={{
-                                background: "#f8fafc",
-                              }}
-                            >
-                              <th style={rateTh}>Courier</th>
-                              <th style={rateTh}>500gm</th>
-                              <th style={rateTh}>1kg</th>
-                              <th style={rateTh}>2kg</th>
-                              <th style={rateTh}>Add KG</th>
-                              <th style={rateTh}>COD</th>
-                              <th style={rateTh}>Status</th>
-                            </tr>
-                          </thead>
-
-                          <tbody>
-                            {selectedMerchant.rateCards.map((rate) => (
-                              <tr key={rate._id}>
-                                <td style={rateTd}>
-                                  🚚 {rate.courierPartner}
-                                </td>
-
-                                <td style={rateTd}>
-                                  ₹{rate.forwardRates?.rate500gm || 0}
-                                </td>
-
-                                <td style={rateTd}>
-                                  ₹{rate.forwardRates?.rate1kg || 0}
-                                </td>
-
-                                <td style={rateTd}>
-                                  ₹{rate.forwardRates?.rate2kg || 0}
-                                </td>
-
-                                <td style={rateTd}>
-                                  ₹{rate.forwardRates?.additionalKg || 0}
-                                </td>
-
-                                <td style={rateTd}>
-                                  ₹{rate.codCharge || 0}
-                                </td>
-
-                                <td style={rateTd}>
-                                  <span
-                                    style={{
-                                      background: rate.isActive !== false ? "#dcfce7" : "#fee2e2",
-                                      color: rate.isActive !== false ? "#15803d" : "#dc2626",
-                                      padding: "4px 10px",
-                                      borderRadius: "20px",
-                                      fontSize: "12px",
-                                      fontWeight: "600",
-                                    }}
-                                  >
-                                    {rate.isActive !== false ? "Active" : "Inactive"}
-                                  </span>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    ) : (
-                      <p style={{ color: "#94a3b8", fontSize: "14px" }}>
-                        No Rates Assigned
-                      </p>
-                    )}
                   </div>
                 </div>
 
@@ -993,24 +860,6 @@ const infoCardStyle = {
   padding: "12px 16px",
   borderRadius: "8px",
   border: "1px solid #f1f5f9"
-};
-
-// ✅ NEW: Rate Table Styles
-const rateTh = {
-  padding: "12px",
-  textAlign: "left",
-  borderBottom: "1px solid #e2e8f0",
-  fontSize: "12px",
-  fontWeight: "600",
-  color: "#64748b",
-  background: "#f8fafc",
-};
-
-const rateTd = {
-  padding: "12px",
-  borderBottom: "1px solid #f1f5f9",
-  fontSize: "14px",
-  color: "#334155",
 };
 
 export default MerchantManagement;

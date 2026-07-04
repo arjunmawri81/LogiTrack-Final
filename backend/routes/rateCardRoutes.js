@@ -40,7 +40,7 @@ router.get(
 // GET SINGLE COURIER RATE CARD
 // ====================================
 router.get(
-  "/merchant/:merchantId/:courier",
+  "/merchant/:merchantId/:courierId",  // ✅ CHANGED: :courier → :courierId
   authMiddleware,
   authorizeRoles("SUPER_ADMIN"),
   getCourierRateCard

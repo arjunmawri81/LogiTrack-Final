@@ -17,6 +17,7 @@ const saveRateCard = async (req, res) => {
       rtoCharge,
       reversePickup,
       fuelCharge,
+      enabled,          // ✅ NEW: Added here
       isActive,
       serviceability,
     } = req.body;
@@ -108,7 +109,14 @@ const saveRateCard = async (req, res) => {
       rateCard.rtoCharge = rtoCharge;
       rateCard.reversePickup = reversePickup;
       rateCard.fuelCharge = fuelCharge;
-      rateCard.isActive = isActive !== undefined ? isActive : true;
+      
+      // ✅ CHANGE 2: Added enabled field update
+      rateCard.enabled =
+        enabled !== undefined ? enabled : rateCard.enabled;
+      
+      rateCard.isActive =
+        isActive !== undefined ? isActive : true;
+      
       if (serviceability) {
         rateCard.serviceability = serviceability;
       }
@@ -135,6 +143,10 @@ const saveRateCard = async (req, res) => {
       rtoCharge,
       reversePickup,
       fuelCharge,
+      
+      // ✅ CHANGE 3: Added enabled field for new rate card
+      enabled: enabled !== undefined ? enabled : false,
+      
       isActive: isActive !== undefined ? isActive : true,
       serviceability: serviceability || {
         codEnabled: true,
