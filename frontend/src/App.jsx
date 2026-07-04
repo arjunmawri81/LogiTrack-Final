@@ -39,7 +39,7 @@ import Serviceability from "./pages/merchant/Serviceability";
 import RateCalculator from "./pages/merchant/RateCalculator";
 import Tickets from "./pages/merchant/Tickets";
 import MerchantNDR from "./pages/merchant/MerchantNDR";
-import MerchantRTO from "./pages/merchant/MerchantRTO"; // ✅ CORRECTED IMPORT
+import MerchantRTO from "./pages/merchant/MerchantRTO";
 
 // ======================
 // ADMIN PAGES
@@ -47,7 +47,7 @@ import MerchantRTO from "./pages/merchant/MerchantRTO"; // ✅ CORRECTED IMPORT
 import AdminDashboard from "./pages/admin/Dashboard";
 import Users from "./pages/admin/Users";
 import Merchants from "./pages/admin/Merchants";
-import Couriers from "./pages/admin/Couriers";
+// ❌ REMOVED: import Couriers from "./pages/admin/Couriers";
 import Pricing from "./pages/admin/Pricing";
 import AdminRevenue from "./pages/admin/Revenue";
 import AdminReports from "./pages/admin/Reports";
@@ -76,6 +76,8 @@ import Revenue from "./pages/superadmin/Revenue";
 import AuditLogs from "./pages/superadmin/AuditLogs";
 import SuperAdminSettings from "./pages/superadmin/Settings";
 import RateCardManagement from "./pages/superadmin/RateCardManagement";
+// ✅ NEW IMPORT: Couriers from superadmin
+import Couriers from "./pages/superadmin/Couriers";
 
 // ======================
 // STAFF & WAREHOUSE PAGES
@@ -131,8 +133,6 @@ function App() {
         {/* Tracking & NDR Routes */}
         <Route path="/merchant/tracking" element={<MerchantRoute><Tracking /></MerchantRoute>} />
         <Route path="/merchant/ndr" element={<MerchantRoute><MerchantNDR /></MerchantRoute>} />
-        
-        {/* ✅ MERCHANT RTO ROUTE - CORRECTED */}
         <Route path="/merchant/rto" element={<MerchantRoute><MerchantRTO /></MerchantRoute>} />
         
         {/* Other Merchant Routes */}
@@ -155,7 +155,8 @@ function App() {
         <Route path="/admin/orders/edit/:id" element={<AdminRoute><AdminEditOrder /></AdminRoute>} />
         <Route path="/admin/shipments" element={<AdminRoute><AdminShipments /></AdminRoute>} />
         <Route path="/admin/shipments/:id" element={<AdminRoute><AdminShipmentDetails /></AdminRoute>} />
-        <Route path="/admin/couriers" element={<AdminRoute><Couriers /></AdminRoute>} />
+        {/* ❌ REMOVED: Admin Couriers Route */}
+        {/* <Route path="/admin/couriers" element={<AdminRoute><Couriers /></AdminRoute>} /> */}
         <Route path="/admin/pricing" element={<AdminRoute><Pricing /></AdminRoute>} />
         <Route path="/admin/revenue" element={<AdminRoute><AdminRevenue /></AdminRoute>} />
         <Route path="/admin/reports" element={<AdminRoute><AdminReports /></AdminRoute>} />
@@ -171,6 +172,8 @@ function App() {
         <Route path="/superadmin/users" element={<SuperAdminRoute><UserManagement /></SuperAdminRoute>} />
         <Route path="/superadmin/orders" element={<SuperAdminRoute><OrderManagement /></SuperAdminRoute>} />
         <Route path="/superadmin/merchants" element={<SuperAdminRoute><MerchantManagement /></SuperAdminRoute>} />
+        {/* ✅ NEW: Super Admin Couriers Route */}
+        <Route path="/superadmin/couriers" element={<SuperAdminRoute><Couriers /></SuperAdminRoute>} />
         <Route path="/superadmin/ratecard/:merchantId" element={<SuperAdminRoute><RateCardManagement /></SuperAdminRoute>} />
         <Route path="/superadmin/commission" element={<SuperAdminRoute><Commission /></SuperAdminRoute>} />
         <Route path="/superadmin/revenue" element={<SuperAdminRoute><Revenue /></SuperAdminRoute>} />

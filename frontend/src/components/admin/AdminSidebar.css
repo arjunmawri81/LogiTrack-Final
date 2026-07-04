@@ -124,7 +124,7 @@
   color: white;
 }
 
-/* Support Tickets - Specific Active State (Optional Enhancement) */
+/* Support Tickets - Specific Active State */
 .sidebar-menu a[href="/admin/tickets"].active {
   background: linear-gradient(90deg, #8b5cf6, #7c3aed);
   box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
@@ -133,6 +133,28 @@
 .sidebar-menu a[href="/admin/tickets"]:hover {
   background: rgba(139, 92, 246, 0.1);
   color: #a78bfa;
+}
+
+/* NDR - Specific Active State */
+.sidebar-menu a[href="/admin/ndr"].active {
+  background: linear-gradient(90deg, #ef4444, #dc2626);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.sidebar-menu a[href="/admin/ndr"]:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #fca5a5;
+}
+
+/* RTO - Specific Active State */
+.sidebar-menu a[href="/admin/rto"].active {
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.sidebar-menu a[href="/admin/rto"]:hover {
+  background: rgba(245, 158, 11, 0.1);
+  color: #fbbf24;
 }
 
 /* Logout */
@@ -176,6 +198,10 @@
   border-radius: 20px;
 }
 
+.sidebar-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
 /* Mobile */
 @media (max-width: 768px) {
   .sidebar {
@@ -215,7 +241,7 @@
   }
 }
 
-/* Additional: Support Tickets Badge (Optional - if you want to show count) */
+/* Optional: Support Tickets Badge (if you want to show count) */
 .sidebar-menu a[href="/admin/tickets"] {
   position: relative;
 }

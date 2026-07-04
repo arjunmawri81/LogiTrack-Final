@@ -10,6 +10,7 @@ import {
   FaCog,
   FaClipboardList,
   FaSignOutAlt,
+  FaTruck, // ✅ ADDED: FaTruck import
 } from "react-icons/fa";
 
 const SuperAdminSidebar = () => {
@@ -57,6 +58,14 @@ const SuperAdminSidebar = () => {
           <NavLink to="/superadmin/merchants" className={({ isActive }) => isActive ? "active" : ""}>
             <FaUsers style={{ fontSize: "20px" }} />
             <span>Merchants</span>
+          </NavLink>
+        </li>
+
+        {/* ✅ NEW: Couriers Menu Item */}
+        <li>
+          <NavLink to="/superadmin/couriers" className={({ isActive }) => isActive ? "active" : ""}>
+            <FaTruck style={{ fontSize: "20px" }} />
+            <span>Couriers</span>
           </NavLink>
         </li>
 

@@ -12,7 +12,7 @@ import {
   FaBox,
   FaExclamationTriangle,
   FaUndo,
-  FaTicketAlt, // ADDED
+  FaTicketAlt,
 } from "react-icons/fa";
 
 import "./AdminSidebar.css"; // Merchant wala CSS use karo
@@ -88,7 +88,8 @@ const AdminSidebar = () => {
           </NavLink>
         </li>
 
-        <li>
+        {/* ❌ REMOVED: Couriers item */}
+        {/* <li>
           <NavLink
             to="/admin/couriers"
             className={({ isActive }) => (isActive ? "active" : "")}
@@ -96,7 +97,7 @@ const AdminSidebar = () => {
             <FaTruck />
             <span>Couriers</span>
           </NavLink>
-        </li>
+        </li> */}
 
         <li>
           <NavLink
@@ -118,7 +119,7 @@ const AdminSidebar = () => {
           </NavLink>
         </li>
 
-        {/* Support Tickets - ADDED */}
+        {/* Support Tickets */}
         <li>
           <NavLink
             to="/admin/tickets"
