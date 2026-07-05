@@ -22,24 +22,24 @@ const shipmentSchema = new mongoose.Schema(
       match: [/^[A-Za-z0-9-_]{6,40}$/, 'AWB must be 6-40 characters and can include letters, numbers, hyphens, and underscores']
     },
 
+    // ✅ UPDATED: Removed enum restriction
     courier: {
       type: String,
       required: true,
-      enum: [
-        "dtdc",
-        "delhivery", 
-        "xpressbees",
-        "bluedart",
-        "ecom",
-        "shadowfax",
-        "other"
-      ],
+      trim: true,
     },
 
     courierPartner: {
       type: String,
       trim: true,
       default: "",
+    },
+
+    // ✅ ADDED: courierId field for proper relationship
+    courierId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Courier",
+      required: true,
     },
 
     status: {
@@ -215,7 +215,7 @@ const shipmentSchema = new mongoose.Schema(
   }
 );
 
-// ============ PRE-SAVE HOOK (UPDATED - Removed next()) ============
+// ============ PRE-SAVE HOOK ============
 shipmentSchema.pre("save", function () {
   if (!this.trackingEvents || this.trackingEvents.length === 0) {
     this.trackingEvents = [
@@ -363,6 +363,7 @@ shipmentSchema.index({ orderId: 1 }, { unique: true });
 shipmentSchema.index({ status: 1 });
 shipmentSchema.index({ courier: 1 });
 shipmentSchema.index({ courierPartner: 1 });
+shipmentSchema.index({ courierId: 1 }); // ✅ ADDED: Index for courierId
 shipmentSchema.index({ expectedDeliveryDate: 1 });
 
 // Compound indexes for common queries

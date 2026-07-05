@@ -37,16 +37,6 @@ const CreateShipment = () => {
   const [insuranceEnabled, setInsuranceEnabled] = useState(false);
   const [insuranceAmount, setInsuranceAmount] = useState(0);
 
-  // ETA mapping (temporary - will come from API)
-  const etaMap = {
-    delhivery: "3 Days",
-    xpressbees: "2 Days",
-    dtdc: "4 Days",
-    ecom: "3 Days",
-    bluedart: "2 Days",
-    shadowfax: "3 Days",
-  };
-
   // Insurance charge calculation
   const INSURANCE_CHARGE = 12;
 
@@ -126,7 +116,7 @@ const CreateShipment = () => {
     try {
       const res = await api.post("/ratecards/calculate", {
         orderId: formData.orderId,
-        courier: formData.courier
+        courierId: formData.courier, // ✅ Changed from courier to courierId
       });
       
       if (res.data.success) {
@@ -157,26 +147,6 @@ const CreateShipment = () => {
       fuelCharge: fuelCharge,
       totalCharge: baseCharge + codCharge + fuelCharge
     });
-  };
-
-  // Courier Name Mapping
-  const courierMap = {
-    dtdc: "DTDC",
-    delhivery: "Delhivery",
-    xpressbees: "XpressBees",
-    bluedart: "BlueDart",
-    ecom: "Ecom",
-    shadowfax: "Shadowfax",
-  };
-
-  // Reverse mapping for display
-  const reverseCourierMap = {
-    "DTDC": "dtdc",
-    "Delhivery": "delhivery",
-    "XpressBees": "xpressbees",
-    "BlueDart": "bluedart",
-    "Ecom": "ecom",
-    "Shadowfax": "shadowfax",
   };
 
   // Fetch Recommendations
@@ -213,14 +183,11 @@ const CreateShipment = () => {
         setRecommended(res.data.recommended);
         setCourierRates(res.data.couriers || []);
 
-        // Auto-select recommended courier
-        if (res.data.recommended?.courier) {
-          const recommendedCourier = res.data.recommended.courier;
-          const displayCourier = courierMap[recommendedCourier] || recommendedCourier;
-          
+        // ✅ Auto-select recommended courier using courierId
+        if (res.data.recommended?.courierId) {
           setFormData((prev) => ({
             ...prev,
-            courier: displayCourier
+            courier: res.data.recommended.courierId,
           }));
         }
       }
@@ -262,7 +229,7 @@ const CreateShipment = () => {
       if (isBulk && bulkOrderIds.length > 0) {
         const payload = {
           orderIds: bulkOrderIds,
-          courier: reverseCourierMap[formData.courier] || formData.courier.toLowerCase(),
+          courierId: formData.courier, // ✅ Changed from courier to courierId
           insuranceEnabled: insuranceEnabled,
           insuranceAmount: insuranceEnabled ? insuranceAmount : 0
         };
@@ -274,7 +241,7 @@ const CreateShipment = () => {
         // Single shipment
         const payload = {
           ...formData,
-          courier: reverseCourierMap[formData.courier] || formData.courier.toLowerCase(),
+          courierId: formData.courier, // ✅ Changed from courier to courierId
           insuranceEnabled: insuranceEnabled,
           insuranceAmount: insuranceEnabled ? insuranceAmount : 0
         };
@@ -965,7 +932,7 @@ const CreateShipment = () => {
                         
                         return (
                           <div
-                            key={c.courier}
+                            key={c.courierId} // ✅ Changed from courier to courierId
                             style={{
                               display: "flex",
                               justifyContent: "space-between",
@@ -988,7 +955,7 @@ const CreateShipment = () => {
                                 #{index + 1}
                               </span>
                               <span style={{ fontWeight: "500", color: "#0f172a" }}>
-                                {courierMap[c.courier] || c.courier}
+                                {c.courierName} {/* ✅ Changed from courierMap to courierName */}
                               </span>
                               {isCheapest && (
                                 <span style={{ 
@@ -1065,11 +1032,11 @@ const CreateShipment = () => {
                             {courierRates.slice(0, 5).map((c, index) => {
                               const total = Number(c.total || 0);
                               const isCheapest = index === 0;
-                              const eta = c.eta || etaMap[c.courier] || "N/A";
+                              const eta = c.estimatedDays ? `${c.estimatedDays} Days` : "N/A"; // ✅ Changed from etaMap to estimatedDays
 
                               return (
                                 <tr
-                                  key={c.courier}
+                                  key={c.courierId} // ✅ Changed from courier to courierId
                                   style={{
                                     borderTop: "1px solid #e2e8f0",
                                     background: isCheapest ? "#f0fdf4" : "transparent"
@@ -1080,7 +1047,7 @@ const CreateShipment = () => {
                                       padding: "10px 8px",
                                     }}
                                   >
-                                    {courierMap[c.courier] || c.courier}
+                                    {c.courierName} {/* ✅ Changed from courierMap to courierName */}
                                     {isCheapest && (
                                       <span
                                         style={{
@@ -1172,7 +1139,7 @@ const CreateShipment = () => {
                         color: "#15803d",
                         fontWeight: "500"
                       }}>
-                        ⭐ Best: {courierMap[recommended.courier] || recommended.courier}
+                        ⭐ Best: {recommended.courierName || recommended.courierId}
                       </span>
                     )}
                   </div>
@@ -1182,18 +1149,18 @@ const CreateShipment = () => {
                     onChange={(e) => setFormData({ ...formData, courier: e.target.value })}
                     style={{
                       ...styles.select,
-                      borderColor: recommended && formData.courier === (courierMap[recommended.courier] || recommended.courier) ? "#86efac" : "#e2e8f0",
-                      background: recommended && formData.courier === (courierMap[recommended.courier] || recommended.courier) ? "#f0fdf4" : "#fff"
+                      borderColor: recommended && formData.courier === recommended.courierId ? "#86efac" : "#e2e8f0",
+                      background: recommended && formData.courier === recommended.courierId ? "#f0fdf4" : "#fff"
                     }}
                     required
                   >
                     <option value="">Choose a courier partner</option>
                     {courierRates.map((c) => (
                       <option
-                        key={c.courier}
-                        value={courierMap[c.courier] || c.courier}
+                        key={c.courierId} // ✅ Changed from courier to courierId
+                        value={c.courierId} // ✅ Changed from courierMap to courierId
                       >
-                        {courierMap[c.courier] || c.courier}
+                        {c.courierName} {/* ✅ Changed from courierMap to courierName */}
                       </option>
                     ))}
                   </select>

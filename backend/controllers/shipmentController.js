@@ -3,11 +3,12 @@ const Order = require("../models/Order");
 const Invoice = require("../models/Invoice");
 const Wallet = require("../models/Wallet");
 const RateCard = require("../models/RateCard");
+const Courier = require("../models/Courier"); // ✅ Added Courier model import
 const QRCode = require("qrcode");
 const PDFDocument = require("pdfkit");
 const bwipjs = require("bwip-js");
-const NDR = require("../models/NDR"); // ✅ Added NDR model
-const AdmZip = require("adm-zip"); // ✅ Added for bulk labels
+const NDR = require("../models/NDR");
+const AdmZip = require("adm-zip");
 
 // ===============================
 // GENERATE UNIQUE AWB
@@ -43,27 +44,26 @@ const generateInvoiceNumber = () => {
 };
 
 // ===============================
-// CREATE SHIPMENT (UPDATED WITH INSURANCE & RATE CARD ENGINE)
+// CREATE SHIPMENT (UPDATED WITH courierId SUPPORT)
 // ===============================
 const createShipment = async (req, res) => {
   try {
     console.log("REQ USER =>", req.user);
 
+    // ✅ CHANGED: Accept courierId instead of courier
     const {
       orderId,
-      courier,
+      courierId,
       insuranceEnabled = false,
     } = req.body;
 
-    if (!orderId || !courier) {
+    // ✅ CHANGED: Validate courierId instead of courier
+    if (!orderId || !courierId) {
       return res.status(400).json({
         success: false,
-        message: "OrderId and Courier are required",
+        message: "OrderId and CourierId are required",
       });
     }
-
-    // ✅ CHANGED: Normalize courier name to UPPERCASE for consistency with RateCard
-    const normalizedCourier = courier.trim().toUpperCase();
 
     // 1. Find Order
     const order = await Order.findOne({
@@ -92,7 +92,19 @@ const createShipment = async (req, res) => {
     }
 
     // =====================================
-    // ✅ UPDATED: RATE CARD ENGINE WITH rate5kg SUPPORT
+    // ✅ UPDATED: Get Courier Details
+    // =====================================
+    const courier = await Courier.findById(courierId);
+
+    if (!courier) {
+      return res.status(404).json({
+        success: false,
+        message: "Courier not found",
+      });
+    }
+
+    // =====================================
+    // ✅ UPDATED: RATE CARD ENGINE WITH courierId
     // 1. Merchant Rate
     // 2. Default Rate (Super Admin)
     // =====================================
@@ -100,7 +112,7 @@ const createShipment = async (req, res) => {
     // Merchant Custom Rate
     let rateCard = await RateCard.findOne({
       merchantId: req.user.id,
-      courierPartner: normalizedCourier,
+      courierId, // ✅ Changed from courierPartner to courierId
       isActive: true,
     });
 
@@ -108,7 +120,7 @@ const createShipment = async (req, res) => {
     if (!rateCard) {
       rateCard = await RateCard.findOne({
         merchantId: null,
-        courierPartner: normalizedCourier,
+        courierId, // ✅ Changed from courierPartner to courierId
         isActive: true,
       });
     }
@@ -185,18 +197,21 @@ const createShipment = async (req, res) => {
     console.log({
       orderId,
       merchantId: req.user.id,
-      courier: normalizedCourier,
+      courier: courier.name, // ✅ Changed to courier.name
+      courierId: courier._id, // ✅ Added courierId
       awb,
       insuranceEnabled,
       insuranceAmount: order.amount || 0,
       insurancePremium,
     });
 
+    // ✅ CHANGED: Use courier.name and courier.code
     const shipment = await Shipment.create({
       orderId,
       merchantId: req.user.id,
-      courier: normalizedCourier,
-      courierPartner: normalizedCourier,
+      courier: courier.name, // ✅ Changed from normalizedCourier
+      courierPartner: courier.code, // ✅ Changed from normalizedCourier
+      courierId: courier._id, // ✅ Added courierId
       awb,
       status: "PENDING",
       insuranceEnabled,
@@ -321,7 +336,7 @@ const createShipment = async (req, res) => {
       shippingCharge: SHIPPING_CHARGE,
       insurancePremium,
       insuranceEnabled,
-      rateCardUsed: rateCard.courierPartner,
+      rateCardUsed: courier.name, // ✅ Changed from courierPartner to courier.name
       weight: order.weight,
       paymentMode: order.paymentMode,
     });
@@ -337,11 +352,11 @@ const createShipment = async (req, res) => {
 };
 
 // ===============================
-// BULK CREATE SHIPMENTS
+// BULK CREATE SHIPMENTS (UPDATED WITH courierId)
 // ===============================
 const createBulkShipments = async (req, res) => {
   try {
-    const { orderIds, courier } = req.body;
+    const { orderIds, courierId } = req.body; // ✅ Changed from courier to courierId
 
     if (!orderIds || orderIds.length === 0) {
       return res.status(400).json({
@@ -350,15 +365,23 @@ const createBulkShipments = async (req, res) => {
       });
     }
 
-    if (!courier) {
+    if (!courierId) { // ✅ Changed from courier to courierId
       return res.status(400).json({
         success: false,
-        message: "Courier is required",
+        message: "CourierId is required",
       });
     }
 
-    // ✅ CHANGED: Normalize to UPPERCASE
-    const normalizedCourier = courier.trim().toUpperCase();
+    // ✅ Get Courier Details
+    const courier = await Courier.findById(courierId);
+
+    if (!courier) {
+      return res.status(404).json({
+        success: false,
+        message: "Courier not found",
+      });
+    }
+
     const shipments = [];
     const failedOrders = [];
     const skippedOrders = [];
@@ -390,12 +413,13 @@ const createBulkShipments = async (req, res) => {
         // Generate AWB
         const awb = "AWB" + Date.now() + Math.floor(Math.random() * 10000);
 
-        // Create shipment
+        // Create shipment with courier details
         const shipment = await Shipment.create({
           orderId,
           merchantId: req.user.id,
-          courier: normalizedCourier,
-          courierPartner: normalizedCourier,
+          courier: courier.name, // ✅ Changed from normalizedCourier
+          courierPartner: courier.code, // ✅ Changed from normalizedCourier
+          courierId: courier._id, // ✅ Added courierId
           awb,
           status: "PENDING",
           trackingEvents: [
@@ -459,6 +483,7 @@ const getShipments = async (req, res) => {
         },
       })
       .populate("invoiceId")
+      .populate("courierId") // ✅ Added courierId populate
       .sort({ createdAt: -1 });
 
     return res.status(200).json({
@@ -486,7 +511,8 @@ const getShipmentById = async (req, res) => {
           path: "invoiceId",
         },
       })
-      .populate("invoiceId");
+      .populate("invoiceId")
+      .populate("courierId"); // ✅ Added courierId populate
 
     if (!shipment) {
       return res.status(404).json({
@@ -524,7 +550,8 @@ const trackShipment = async (req, res) => {
           path: "invoiceId",
         },
       })
-      .populate("invoiceId");
+      .populate("invoiceId")
+      .populate("courierId"); // ✅ Added courierId populate
 
     if (!shipment) {
       return res.status(404).json({
@@ -546,7 +573,7 @@ const trackShipment = async (req, res) => {
 };
 
 // ===============================
-// UPDATE SHIPMENT STATUS (FIXED WITH ORDER STATUS MAPPING)
+// UPDATE SHIPMENT STATUS
 // ===============================
 const updateShipmentStatus = async (req, res) => {
   try {
@@ -820,7 +847,7 @@ const getTrackingTimeline = async (req, res) => {
 };
 
 // ===============================
-// BULK LABELS (NEW FUNCTION)
+// BULK LABELS
 // ===============================
 const bulkLabels = async (req, res) => {
   try {
