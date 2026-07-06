@@ -1,19 +1,33 @@
 const PDFDocument = require("pdfkit");
 const Invoice = require("../models/Invoice");
+const Order = require("../models/Order");
 
 // ================================
 // DOWNLOAD INVOICE PDF
 // ================================
 const downloadInvoice = async (req, res) => {
   try {
-    const invoice = await Invoice.findById(req.params.id)
+    // ✅ FIX 1: Security - Find invoice by ID AND merchantId
+    const invoice = await Invoice.findOne({
+      _id: req.params.id,
+      merchantId: req.user.id,
+    })
       .populate("merchantId")
-      .populate("orderId");
+      .populate("orderId")
+      .populate("shipmentId");
 
     if (!invoice) {
       return res.status(404).json({
         success: false,
-        message: "Invoice Not Found",
+        message: "Invoice Not Found or Unauthorized",
+      });
+    }
+
+    // Check if order exists before accessing its fields
+    if (!invoice.orderId) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found for this invoice",
       });
     }
 
@@ -22,7 +36,6 @@ const downloadInvoice = async (req, res) => {
     });
 
     res.setHeader("Content-Type", "application/pdf");
-
     res.setHeader(
       "Content-Disposition",
       `attachment; filename=${invoice.invoiceNumber}.pdf`
@@ -41,7 +54,7 @@ const downloadInvoice = async (req, res) => {
 
     doc
       .fontSize(18)
-      .text("Invoice", {
+      .text("INVOICE", {
         align: "center",
       });
 
@@ -52,9 +65,32 @@ const downloadInvoice = async (req, res) => {
 
     doc.text(`Invoice Number: ${invoice.invoiceNumber}`);
     doc.text(
-      `Invoice Date: ${invoice.createdAt.toDateString()}`
+      `Invoice Date: ${invoice.createdAt ? invoice.createdAt.toDateString() : 'N/A'}`
     );
     doc.text(`Status: ${invoice.status}`);
+    doc.text(`Payment Method: ${invoice.paymentMethod || 'N/A'}`);
+
+    doc.moveDown();
+
+    // Order Details
+    doc.fontSize(14).text("Order Details");
+    doc.moveDown(0.5);
+
+    doc.fontSize(12);
+    
+    const order = invoice.orderId;
+    doc.text(`Order Number: ${order.orderNumber || 'N/A'}`);
+    doc.text(`Customer Name: ${order.customerName || 'N/A'}`);
+    doc.text(`Customer Phone: ${order.customerPhone || 'N/A'}`);
+    doc.text(`Customer Address: ${order.customerAddress || 'N/A'}`);
+    
+    if (order.awb) {
+      doc.text(`AWB: ${order.awb}`);
+    }
+    
+    if (order.courierPartner) {
+      doc.text(`Courier: ${order.courierPartner}`);
+    }
 
     doc.moveDown();
 
@@ -80,22 +116,47 @@ const downloadInvoice = async (req, res) => {
 
     doc.fontSize(12);
 
-    doc.text(`Base Amount: ₹${invoice.amount}`);
+    doc.text(`Base Amount: ₹${invoice.amount || 0}`);
 
     doc.text(
-      `Tax Amount: ₹${invoice.taxAmount || 0}`
+      `Tax Amount (18%): ₹${invoice.taxAmount || 0}`
     );
 
     doc.text(
       `Shipping Charge: ₹${invoice.shippingCharge || 0}`
     );
 
+    if (invoice.insuranceCharge) {
+      doc.text(
+        `Insurance Charge: ₹${invoice.insuranceCharge || 0}`
+      );
+    }
+
     doc.moveDown();
+
+    // Draw a line separator
+    doc
+      .moveTo(50, doc.y)
+      .lineTo(550, doc.y)
+      .stroke();
+
+    doc.moveDown(0.5);
 
     doc.fontSize(16);
 
+    // ✅ FIX 2: Use invoice.totalAmount if available, else calculate
+    const totalAmount =
+      invoice.totalAmount ??
+      (
+        (invoice.amount || 0) +
+        (invoice.taxAmount || 0) +
+        (invoice.shippingCharge || 0) +
+        (invoice.insuranceCharge || 0)
+      );
+
     doc.text(
-      `Total Amount: ₹${invoice.totalAmount || 0}`
+      `Total Amount: ₹${totalAmount.toFixed(2)}`,
+      { align: "right" }
     );
 
     doc.moveDown(2);
@@ -125,23 +186,16 @@ const downloadInvoice = async (req, res) => {
 // ================================
 const getInvoices = async (req, res) => {
   try {
-    console.log(
-      "REQ USER ID =>",
-      req.user.id
-    );
+    console.log("REQ USER ID =>", req.user.id);
 
-    // ✅ FIX: Added populate("shipmentId") to get shipment details
     const invoices = await Invoice.find({
       merchantId: req.user.id,
     })
       .populate("orderId")
-      .populate("shipmentId")  // ← THIS WAS MISSING
+      .populate("shipmentId")
       .sort({ createdAt: -1 });
 
-    console.log(
-      "INVOICES FOUND =>",
-      invoices.length
-    );
+    console.log("INVOICES FOUND =>", invoices.length);
 
     res.status(200).json({
       success: true,
@@ -191,10 +245,7 @@ const getInvoiceSummary = async (req, res) => {
       totalRevenue,
     });
   } catch (error) {
-    console.log(
-      "GET INVOICE SUMMARY ERROR =>",
-      error
-    );
+    console.log("GET INVOICE SUMMARY ERROR =>", error);
 
     res.status(500).json({
       success: false,

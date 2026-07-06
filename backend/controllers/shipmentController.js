@@ -3,12 +3,14 @@ const Order = require("../models/Order");
 const Invoice = require("../models/Invoice");
 const Wallet = require("../models/Wallet");
 const RateCard = require("../models/RateCard");
-const Courier = require("../models/Courier"); // ✅ Added Courier model import
+const Courier = require("../models/Courier");
 const QRCode = require("qrcode");
 const PDFDocument = require("pdfkit");
 const bwipjs = require("bwip-js");
 const NDR = require("../models/NDR");
 const AdmZip = require("adm-zip");
+const fs = require("fs");
+const path = require("path");
 
 // ===============================
 // GENERATE UNIQUE AWB
@@ -44,20 +46,219 @@ const generateInvoiceNumber = () => {
 };
 
 // ===============================
-// CREATE SHIPMENT (UPDATED WITH courierId SUPPORT)
+// HELPER: Get Logo Image
+// ===============================
+const getLogoBuffer = (logoPath) => {
+  if (!logoPath) return null;
+  
+  try {
+    if (logoPath.startsWith('http://') || logoPath.startsWith('https://')) {
+      return logoPath;
+    }
+    
+    if (logoPath.startsWith('data:image')) {
+      return logoPath;
+    }
+    
+    const fullPath = path.join(__dirname, '..', logoPath);
+    if (fs.existsSync(fullPath)) {
+      return fullPath;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error("Logo loading error:", error);
+    return null;
+  }
+};
+
+// ===============================
+// HELPER: Render Complete Label (Logo + Text + Barcode + QR)
+// ===============================
+async function renderLabel(doc, shipment, settings = {}, labelWidth = null, labelHeight = null, x = 0, y = 0) {
+  const {
+    logo = true,
+    customerPhone = true,
+    dimensions = true,
+    weight = true,
+    paymentType = true,
+    invoiceNumber = true,
+    invoiceDate = true,
+    companyName = true,
+    returnAddress = true,
+    qrCode = true,
+    useMerchantLogo = true,
+    uploadedLogo = null,
+    barcodeType = "AWB",
+  } = settings;
+
+  // Save current position if we're drawing in a specific area
+  const hasPosition = x !== 0 || y !== 0;
+  if (hasPosition) {
+    doc.save();
+    doc.translate(x, y);
+  }
+
+  // ===== LOGO =====
+  if (logo) {
+    let logoImage = null;
+    
+    if (useMerchantLogo && shipment.merchantId?.logo) {
+      logoImage = getLogoBuffer(shipment.merchantId.logo);
+    } else if (uploadedLogo) {
+      logoImage = uploadedLogo;
+    }
+    
+    if (logoImage) {
+      try {
+        doc.image(logoImage, {
+          fit: [80, 80],
+          align: 'center',
+          valign: 'top',
+        });
+        doc.moveDown();
+      } catch (err) {
+        console.error("Logo loading error:", err);
+      }
+    }
+  }
+
+  // ===== TEXT CONTENT =====
+  doc.fontSize(18).text("LOGITRACK SHIPPING LABEL", { align: "center" });
+  doc.moveDown();
+  
+  doc.fontSize(12).text(`AWB: ${shipment.awb}`);
+  doc.text(`Courier: ${shipment.courier}`);
+  doc.moveDown();
+  
+  if (shipment.orderId) {
+    doc.text(`Customer: ${shipment.orderId.customerName || 'N/A'}`);
+    
+    if (customerPhone) {
+      doc.text(`Phone: ${shipment.orderId.customerPhone || 'N/A'}`);
+    }
+    
+    doc.text(`Address: ${shipment.orderId.customerAddress || 'N/A'}`);
+    
+    if (dimensions) {
+      doc.text(
+        `Dimensions: ${shipment.orderId.length || "-"} x ${
+          shipment.orderId.width || "-"
+        } x ${shipment.orderId.height || "-"} cm`
+      );
+    }
+    
+    if (weight) {
+      doc.text(`Weight: ${shipment.orderId.weight || "-"} kg`);
+    }
+    
+    if (paymentType) {
+      doc.text(`Payment: ${shipment.orderId.paymentMode || 'N/A'}`);
+    }
+    
+    if (invoiceNumber) {
+      doc.text(`Invoice: ${shipment.invoiceId?.invoiceNumber || "-"}`);
+    }
+    
+    if (invoiceDate && shipment.invoiceId) {
+      doc.text(`Invoice Date: ${shipment.invoiceId.createdAt.toDateString()}`);
+    }
+    
+    doc.text(`Amount: ₹${shipment.orderId.amount || 0}`);
+  }
+
+  if (shipment.insuranceEnabled) {
+    doc.text(`Insurance: ₹${shipment.insuranceAmount} (Premium: ₹${shipment.insurancePremium})`);
+  }
+  
+  if (companyName) {
+    doc.text(`Company: ${shipment.merchantId?.companyName || "LogiTrack"}`);
+  }
+  
+  if (returnAddress) {
+    doc.text(`Return Address: ${shipment.merchantId?.address || "Merchant Address"}`);
+  }
+  
+  doc.moveDown();
+
+  // ===== BARCODE =====
+  let barcodeValue = shipment.awb;
+  
+  if (shipment.orderId) {
+    if (barcodeType === "ORDER_ID") {
+      barcodeValue = shipment.orderId.orderNumber || shipment.awb;
+    } else if (barcodeType === "REFERENCE_ID") {
+      barcodeValue = shipment.orderId.referenceId || shipment.orderId.orderNumber || shipment.awb;
+    }
+  }
+
+  try {
+    const barcodeBuffer = await bwipjs.toBuffer({
+      bcid: "code128",
+      text: barcodeValue,
+      scale: labelWidth ? 2 : 3,
+      height: labelWidth ? 8 : 10,
+    });
+
+    if (labelWidth) {
+      // Multi-label: fit barcode in available space
+      doc.image(barcodeBuffer, { 
+        width: Math.min(labelWidth - 40, 180),
+        x: 20,
+        y: (labelHeight || 200) - 60
+      });
+    } else {
+      // Single label: full width
+      doc.image(barcodeBuffer, { width: 180 });
+    }
+  } catch (err) {
+    console.error("Barcode generation error:", err);
+  }
+
+  // ===== QR CODE =====
+  if (qrCode) {
+    try {
+      const qrBuffer = await QRCode.toBuffer(shipment.awb, {
+        errorCorrectionLevel: 'H',
+        margin: 2,
+        scale: labelWidth ? 3 : 4,
+      });
+
+      if (labelWidth) {
+        // Multi-label: QR in top-right corner
+        doc.image(qrBuffer, { 
+          width: 50, 
+          x: labelWidth - 70,
+          y: 20
+        });
+      } else {
+        // Single label: QR on right side
+        doc.image(qrBuffer, { width: 80, align: 'right' });
+      }
+    } catch (err) {
+      console.error("QR generation error:", err);
+    }
+  }
+
+  // Restore position if we translated
+  if (hasPosition) {
+    doc.restore();
+  }
+}
+
+// ===============================
+// CREATE SHIPMENT
 // ===============================
 const createShipment = async (req, res) => {
   try {
     console.log("REQ USER =>", req.user);
 
-    // ✅ CHANGED: Accept courierId instead of courier
     const {
       orderId,
       courierId,
       insuranceEnabled = false,
     } = req.body;
 
-    // ✅ CHANGED: Validate courierId instead of courier
     if (!orderId || !courierId) {
       return res.status(400).json({
         success: false,
@@ -65,7 +266,6 @@ const createShipment = async (req, res) => {
       });
     }
 
-    // 1. Find Order
     const order = await Order.findOne({
       _id: orderId,
       merchantId: req.user.id,
@@ -78,7 +278,6 @@ const createShipment = async (req, res) => {
       });
     }
 
-    // 2. DUPLICATE SHIPMENT CHECK
     const existingShipment = await Shipment.findOne({
       orderId,
       merchantId: req.user.id,
@@ -91,9 +290,6 @@ const createShipment = async (req, res) => {
       });
     }
 
-    // =====================================
-    // ✅ UPDATED: Get Courier Details
-    // =====================================
     const courier = await Courier.findById(courierId);
 
     if (!courier) {
@@ -103,29 +299,20 @@ const createShipment = async (req, res) => {
       });
     }
 
-    // =====================================
-    // ✅ UPDATED: RATE CARD ENGINE WITH courierId
-    // 1. Merchant Rate
-    // 2. Default Rate (Super Admin)
-    // =====================================
-
-    // Merchant Custom Rate
     let rateCard = await RateCard.findOne({
       merchantId: req.user.id,
-      courierId, // ✅ Changed from courierPartner to courierId
+      courierId,
       isActive: true,
     });
 
-    // Default Rate (Super Admin)
     if (!rateCard) {
       rateCard = await RateCard.findOne({
         merchantId: null,
-        courierId, // ✅ Changed from courierPartner to courierId
+        courierId,
         isActive: true,
       });
     }
 
-    // Future Courier API Fallback
     if (!rateCard) {
       return res.status(404).json({
         success: false,
@@ -137,7 +324,6 @@ const createShipment = async (req, res) => {
 
     let SHIPPING_CHARGE = 0;
 
-    // ✅ UPDATED: Weight logic with rate5kg support
     if (weight <= 0.5) {
       SHIPPING_CHARGE = rateCard.forwardRates?.rate500gm || 0;
     } else if (weight <= 1) {
@@ -152,27 +338,23 @@ const createShipment = async (req, res) => {
         (Math.ceil(weight - 5) * (rateCard.forwardRates?.additionalKg || 0));
     }
 
-    // ✅ Add COD charge if payment mode is COD
     if (order.paymentMode === "COD") {
       SHIPPING_CHARGE += rateCard.codCharge || 0;
     }
 
-    // ✅ INSURANCE PREMIUM CALCULATION
     let insurancePremium = 0;
 
     if (insuranceEnabled) {
       insurancePremium = Math.ceil(
-        (order.amount || 0) * 0.02 // 2% of order amount
+        (order.amount || 0) * 0.02
       );
 
       SHIPPING_CHARGE += insurancePremium;
     }
 
-    // ✅ Save shipping charge in order
     order.shippingCharge = SHIPPING_CHARGE;
     await order.save();
 
-    // 4. Wallet Check
     let wallet = await Wallet.findOne({
       merchantId: req.user.id,
     });
@@ -190,28 +372,26 @@ const createShipment = async (req, res) => {
       });
     }
 
-    // 5. Generate AWB and Create Shipment
     const awb = await generateAWB();
 
     console.log("===== BEFORE SHIPMENT CREATE =====");
     console.log({
       orderId,
       merchantId: req.user.id,
-      courier: courier.name, // ✅ Changed to courier.name
-      courierId: courier._id, // ✅ Added courierId
+      courier: courier.name,
+      courierId: courier._id,
       awb,
       insuranceEnabled,
       insuranceAmount: order.amount || 0,
       insurancePremium,
     });
 
-    // ✅ CHANGED: Use courier.name and courier.code
     const shipment = await Shipment.create({
       orderId,
       merchantId: req.user.id,
-      courier: courier.name, // ✅ Changed from normalizedCourier
-      courierPartner: courier.code, // ✅ Changed from normalizedCourier
-      courierId: courier._id, // ✅ Added courierId
+      courier: courier.name,
+      courierPartner: courier.code,
+      courierId: courier._id,
       awb,
       status: "PENDING",
       insuranceEnabled,
@@ -230,7 +410,6 @@ const createShipment = async (req, res) => {
     console.log("===== SHIPMENT CREATED =====");
     console.log(shipment);
 
-    // 6. Wallet Deduction
     console.log("===== BEFORE WALLET SAVE =====");
     console.log({
       currentBalance: wallet.balance,
@@ -253,7 +432,6 @@ const createShipment = async (req, res) => {
       transactionCount: wallet.transactions.length,
     });
 
-    // 7. Create Invoice
     console.log("===== BEFORE INVOICE CREATE =====");
     console.log({
       invoiceNumber: generateInvoiceNumber(),
@@ -300,7 +478,6 @@ const createShipment = async (req, res) => {
     console.log("UPDATED SHIPMENT =>", updatedShipment);
     console.log("UPDATED INVOICE ID =>", updatedShipment.invoiceId);
 
-    // ✅ UPDATE ORDER WITH SHIPMENT AND INVOICE REFERENCES
     console.log("===== BEFORE ORDER SAVE =====");
     console.log({
       orderId: order._id,
@@ -336,7 +513,7 @@ const createShipment = async (req, res) => {
       shippingCharge: SHIPPING_CHARGE,
       insurancePremium,
       insuranceEnabled,
-      rateCardUsed: courier.name, // ✅ Changed from courierPartner to courier.name
+      rateCardUsed: courier.name,
       weight: order.weight,
       paymentMode: order.paymentMode,
     });
@@ -352,11 +529,11 @@ const createShipment = async (req, res) => {
 };
 
 // ===============================
-// BULK CREATE SHIPMENTS (UPDATED WITH courierId)
+// BULK CREATE SHIPMENTS
 // ===============================
 const createBulkShipments = async (req, res) => {
   try {
-    const { orderIds, courierId } = req.body; // ✅ Changed from courier to courierId
+    const { orderIds, courierId } = req.body;
 
     if (!orderIds || orderIds.length === 0) {
       return res.status(400).json({
@@ -365,14 +542,13 @@ const createBulkShipments = async (req, res) => {
       });
     }
 
-    if (!courierId) { // ✅ Changed from courier to courierId
+    if (!courierId) {
       return res.status(400).json({
         success: false,
         message: "CourierId is required",
       });
     }
 
-    // ✅ Get Courier Details
     const courier = await Courier.findById(courierId);
 
     if (!courier) {
@@ -388,7 +564,6 @@ const createBulkShipments = async (req, res) => {
 
     for (const orderId of orderIds) {
       try {
-        // Check if order exists and belongs to merchant
         const order = await Order.findOne({
           _id: orderId,
           merchantId: req.user.id,
@@ -399,7 +574,6 @@ const createBulkShipments = async (req, res) => {
           continue;
         }
 
-        // Check if shipment already exists
         const existingShipment = await Shipment.findOne({
           orderId,
           merchantId: req.user.id,
@@ -410,16 +584,14 @@ const createBulkShipments = async (req, res) => {
           continue;
         }
 
-        // Generate AWB
         const awb = "AWB" + Date.now() + Math.floor(Math.random() * 10000);
 
-        // Create shipment with courier details
         const shipment = await Shipment.create({
           orderId,
           merchantId: req.user.id,
-          courier: courier.name, // ✅ Changed from normalizedCourier
-          courierPartner: courier.code, // ✅ Changed from normalizedCourier
-          courierId: courier._id, // ✅ Added courierId
+          courier: courier.name,
+          courierPartner: courier.code,
+          courierId: courier._id,
           awb,
           status: "PENDING",
           trackingEvents: [
@@ -434,7 +606,6 @@ const createBulkShipments = async (req, res) => {
 
         shipments.push(shipment);
 
-        // ✅ UPDATE ORDER WITH SHIPMENT REFERENCE
         order.shipmentId = shipment._id;
         order.awb = shipment.awb;
         order.courierPartner = shipment.courier;
@@ -469,7 +640,7 @@ const createBulkShipments = async (req, res) => {
 };
 
 // ===============================
-// GET ALL SHIPMENTS (UPDATED WITH NESTED POPULATE)
+// GET ALL SHIPMENTS
 // ===============================
 const getShipments = async (req, res) => {
   try {
@@ -483,7 +654,7 @@ const getShipments = async (req, res) => {
         },
       })
       .populate("invoiceId")
-      .populate("courierId") // ✅ Added courierId populate
+      .populate("courierId")
       .sort({ createdAt: -1 });
 
     return res.status(200).json({
@@ -512,7 +683,7 @@ const getShipmentById = async (req, res) => {
         },
       })
       .populate("invoiceId")
-      .populate("courierId"); // ✅ Added courierId populate
+      .populate("courierId");
 
     if (!shipment) {
       return res.status(404).json({
@@ -551,7 +722,7 @@ const trackShipment = async (req, res) => {
         },
       })
       .populate("invoiceId")
-      .populate("courierId"); // ✅ Added courierId populate
+      .populate("courierId");
 
     if (!shipment) {
       return res.status(404).json({
@@ -761,14 +932,17 @@ const generateShipmentQR = async (req, res) => {
 };
 
 // ===============================
-// GENERATE PDF LABEL (SECURED)
+// GENERATE PDF LABEL - REFACTORED
 // ===============================
 const generateLabel = async (req, res) => {
   try {
     const shipment = await Shipment.findOne({
       _id: req.params.id,
       merchantId: req.user.id,
-    }).populate("orderId");
+    })
+      .populate("merchantId")
+      .populate("orderId")
+      .populate("invoiceId");
 
     if (!shipment) {
       return res.status(404).json({
@@ -777,42 +951,249 @@ const generateLabel = async (req, res) => {
       });
     }
 
-    const doc = new PDFDocument({ size: "A6", margin: 20 });
+    if (!shipment.orderId) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found for this shipment",
+      });
+    }
+
+    let settings = {};
+    if (req.body.settings) {
+      settings = JSON.parse(req.body.settings);
+    } else {
+      settings = req.body;
+    }
+
+    if (req.file) {
+      settings.uploadedLogo = req.file.path;
+    }
+
+    const format = settings.format || "A6";
+
+    // Determine page size and layout
+    let pageSize = "A6";
+    let margin = 20;
+    let labelsPerPage = 1;
+    let isMultiLabel = false;
+
+    if (format === "A4_2") {
+      pageSize = "A4";
+      margin = 20;
+      isMultiLabel = true;
+      labelsPerPage = 2;
+    } else if (format === "A4_4") {
+      pageSize = "A4";
+      margin = 20;
+      isMultiLabel = true;
+      labelsPerPage = 4;
+    } else if (format === "THERMAL" || format === "4x6") {
+      pageSize = [288, 432];
+      margin = 15;
+      isMultiLabel = false;
+      labelsPerPage = 1;
+    }
+
+    const doc = new PDFDocument({
+      size: pageSize,
+      margin,
+    });
+
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `inline; filename=${shipment.awb}.pdf`);
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=${shipment.awb}_${format}.pdf`
+    );
 
     doc.pipe(res);
 
-    doc.fontSize(18).text("LOGITRACK SHIPPING LABEL", { align: "center" });
-    doc.moveDown();
-    
-    doc.fontSize(12).text(`AWB: ${shipment.awb}`);
-    doc.text(`Courier: ${shipment.courier}`);
-    doc.moveDown();
-    
-    doc.text(`Customer: ${shipment.orderId.customerName}`);
-    doc.text(`Phone: ${shipment.orderId.customerPhone}`);
-    doc.text(`Address: ${shipment.orderId.customerAddress}`);
-    doc.text(`Order No: ${shipment.orderId.orderNumber}`);
-    doc.text(`Payment: ${shipment.orderId.paymentMode}`);
-    doc.text(`Amount: ₹${shipment.orderId.amount}`);
-    
-    if (shipment.insuranceEnabled) {
-      doc.text(`Insurance: ₹${shipment.insuranceAmount} (Premium: ₹${shipment.insurancePremium})`);
-    }
-    
-    doc.moveDown();
+    if (isMultiLabel) {
+      // Multi-label on A4
+      const pageWidth = doc.page.width;
+      const pageHeight = doc.page.height;
 
-    const barcodeBuffer = await bwipjs.toBuffer({
-      bcid: "code128",
-      text: shipment.awb,
-      scale: 3,
-      height: 10,
+      const cols = labelsPerPage === 2 ? 2 : 2;
+      const rows = labelsPerPage === 2 ? 1 : 2;
+      const labelWidth = (pageWidth - margin * 2) / cols;
+      const labelHeight = (pageHeight - margin * 2) / rows;
+
+      // Draw same shipment multiple times on one page
+      for (let i = 0; i < labelsPerPage; i++) {
+        const x = (i % cols) * labelWidth;
+        const y = Math.floor(i / cols) * labelHeight;
+
+        // Draw label border
+        doc.save();
+        doc.translate(margin + x, margin + y);
+        doc.rect(0, 0, labelWidth - 10, labelHeight - 10).stroke();
+        doc.restore();
+
+        // Render label with position and size
+        await renderLabel(
+          doc, 
+          shipment, 
+          settings, 
+          labelWidth - 10, 
+          labelHeight - 10, 
+          margin + x, 
+          margin + y
+        );
+      }
+    } else {
+      // Single label
+      await renderLabel(doc, shipment, settings);
+    }
+
+    doc.end();
+
+  } catch (error) {
+    console.error("Generate label error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ===============================
+// BULK LABELS - REFACTORED (Simple & Clean)
+// ===============================
+const bulkLabels = async (req, res) => {
+  try {
+    let settings = {};
+    if (req.body.settings) {
+      settings = JSON.parse(req.body.settings);
+    } else {
+      settings = req.body;
+    }
+
+    if (req.file) {
+      settings.uploadedLogo = req.file.path;
+    }
+
+    // Get shipmentIds from req.body directly
+    let shipmentIds = req.body.shipmentIds;
+    if (typeof shipmentIds === "string") {
+      shipmentIds = JSON.parse(shipmentIds);
+    }
+
+    const format = settings.format || "A6";
+
+    if (!shipmentIds || !Array.isArray(shipmentIds) || shipmentIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No shipment IDs provided",
+      });
+    }
+
+    const shipments = await Shipment.find({
+      _id: { $in: shipmentIds },
+      merchantId: req.user.id,
+    })
+      .populate("merchantId")
+      .populate("orderId")
+      .populate("invoiceId");
+
+    if (shipments.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No shipments found",
+      });
+    }
+
+    // Determine page size and layout
+    let pageSize = "A6";
+    let margin = 20;
+    let labelsPerPage = 1;
+    let isMultiLabel = false;
+
+    if (format === "A4_2") {
+      pageSize = "A4";
+      margin = 20;
+      isMultiLabel = true;
+      labelsPerPage = 2;
+    } else if (format === "A4_4") {
+      pageSize = "A4";
+      margin = 20;
+      isMultiLabel = true;
+      labelsPerPage = 4;
+    } else if (format === "THERMAL" || format === "4x6") {
+      pageSize = [288, 432];
+      margin = 15;
+      isMultiLabel = false;
+      labelsPerPage = 1;
+    }
+
+    // Create PDF
+    const doc = new PDFDocument({
+      size: pageSize,
+      margin,
     });
 
-    doc.image(barcodeBuffer, { width: 180 });
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=bulk_labels_${format}_${Date.now()}.pdf`
+    );
+
+    doc.pipe(res);
+
+    if (isMultiLabel) {
+      // A4 with multiple labels per page
+      const pageWidth = doc.page.width;
+      const pageHeight = doc.page.height;
+
+      const cols = labelsPerPage === 2 ? 2 : 2;
+      const rows = labelsPerPage === 2 ? 1 : 2;
+      const labelWidth = (pageWidth - margin * 2) / cols;
+      const labelHeight = (pageHeight - margin * 2) / rows;
+
+      let labelIndex = 0;
+
+      for (const shipment of shipments) {
+        const positionInPage = labelIndex % labelsPerPage;
+        
+        // Add new page when needed
+        if (positionInPage === 0 && labelIndex > 0) {
+          doc.addPage();
+        }
+
+        const x = (positionInPage % cols) * labelWidth;
+        const y = Math.floor(positionInPage / cols) * labelHeight;
+
+        // Draw label border
+        doc.save();
+        doc.translate(margin + x, margin + y);
+        doc.rect(0, 0, labelWidth - 10, labelHeight - 10).stroke();
+        doc.restore();
+
+        // Render label with position and size
+        await renderLabel(
+          doc, 
+          shipment, 
+          settings, 
+          labelWidth - 10, 
+          labelHeight - 10, 
+          margin + x, 
+          margin + y
+        );
+
+        labelIndex++;
+      }
+    } else {
+      // Single label per page (A6 or Thermal)
+      for (let i = 0; i < shipments.length; i++) {
+        if (i > 0) {
+          doc.addPage();
+        }
+        await renderLabel(doc, shipments[i], settings);
+      }
+    }
+
     doc.end();
+
   } catch (error) {
+    console.error("Bulk labels error:", error);
     res.status(500).json({
       success: false,
       message: error.message,
@@ -839,98 +1220,6 @@ const getTrackingTimeline = async (req, res) => {
       timeline: shipment.trackingEvents || [],
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-// ===============================
-// BULK LABELS
-// ===============================
-const bulkLabels = async (req, res) => {
-  try {
-    const { shipmentIds } = req.body;
-
-    if (!shipmentIds || !Array.isArray(shipmentIds) || shipmentIds.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "No shipment IDs provided",
-      });
-    }
-
-    const shipments = await Shipment.find({
-      _id: { $in: shipmentIds },
-      merchantId: req.user.id,
-    }).populate("orderId");
-
-    if (shipments.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "No shipments found",
-      });
-    }
-
-    const zip = new AdmZip();
-
-    for (const shipment of shipments) {
-      try {
-        const doc = new PDFDocument({ size: "A6", margin: 20 });
-        const chunks = [];
-
-        doc.on('data', chunk => chunks.push(chunk));
-        doc.on('end', () => {
-          const pdfBuffer = Buffer.concat(chunks);
-          zip.addFile(`label_${shipment.awb}.pdf`, pdfBuffer);
-        });
-
-        doc.fontSize(18).text("LOGITRACK SHIPPING LABEL", { align: "center" });
-        doc.moveDown();
-        
-        doc.fontSize(12).text(`AWB: ${shipment.awb}`);
-        doc.text(`Courier: ${shipment.courier}`);
-        doc.moveDown();
-        
-        if (shipment.orderId) {
-          doc.text(`Customer: ${shipment.orderId.customerName || 'N/A'}`);
-          doc.text(`Phone: ${shipment.orderId.customerPhone || 'N/A'}`);
-          doc.text(`Address: ${shipment.orderId.customerAddress || 'N/A'}`);
-          doc.text(`Order No: ${shipment.orderId.orderNumber || 'N/A'}`);
-          doc.text(`Amount: ₹${shipment.orderId.amount || 0}`);
-        }
-
-        if (shipment.insuranceEnabled) {
-          doc.text(`Insurance: ₹${shipment.insuranceAmount} (Premium: ₹${shipment.insurancePremium})`);
-        }
-
-        doc.moveDown();
-
-        const barcodeBuffer = await bwipjs.toBuffer({
-          bcid: "code128",
-          text: shipment.awb,
-          scale: 3,
-          height: 10,
-        });
-
-        doc.image(barcodeBuffer, { width: 180 });
-        doc.end();
-
-      } catch (error) {
-        console.error(`Error generating label for ${shipment.awb}:`, error);
-      }
-    }
-
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    const zipBuffer = zip.toBuffer();
-
-    res.setHeader('Content-Type', 'application/zip');
-    res.setHeader('Content-Disposition', `attachment; filename=labels_${Date.now()}.zip`);
-    res.send(zipBuffer);
-
-  } catch (error) {
-    console.error("Bulk labels error:", error);
     res.status(500).json({
       success: false,
       message: error.message,

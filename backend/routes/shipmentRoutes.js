@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const { authMiddleware } = require("../middleware/authMiddleware");
+const logoUpload = require("../middleware/logoUploadMiddleware");
 
 const {
   createShipment,
@@ -14,7 +15,7 @@ const {
   generateShipmentQR,
   getTrackingTimeline,
   generateLabel,
-  bulkLabels, // ✅ ADDED
+  bulkLabels,
 } = require("../controllers/shipmentController");
 
 // ===============================
@@ -30,7 +31,12 @@ router.post("/bulk", authMiddleware, createBulkShipments);
 // ===============================
 // BULK LABELS DOWNLOAD
 // ===============================
-router.post("/bulk-labels", authMiddleware, bulkLabels); // ✅ ADDED
+router.post(
+  "/bulk-labels",
+  authMiddleware,
+  logoUpload.single("logo"),
+  bulkLabels
+);
 
 // ===============================
 // GET ALL SHIPMENTS
@@ -39,8 +45,6 @@ router.get("/", authMiddleware, getShipments);
 
 // ===============================
 // TRACK SHIPMENT BY AWB
-// Example:
-// GET /api/shipments/track/AWB123456
 // ===============================
 router.get("/track/:id", authMiddleware, trackShipment);
 
@@ -62,7 +66,12 @@ router.post("/:id/pickup", authMiddleware, schedulePickup);
 // ===============================
 // GENERATE SHIPPING LABEL PDF
 // ===============================
-router.get("/:id/label", authMiddleware, generateLabel);
+router.post(
+  "/:id/label",
+  authMiddleware,
+  logoUpload.single("logo"),
+  generateLabel
+);
 
 // ===============================
 // GENERATE QR CODE

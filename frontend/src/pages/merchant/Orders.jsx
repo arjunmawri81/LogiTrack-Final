@@ -1,7 +1,8 @@
-// Orders.jsx - Updated with bulk shipment navigation fix
+// Orders.jsx - Final with all fixes (Updated)
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
+import LabelSettingsModal from "../../components/LabelSettingsModal";
 import api from "../../services/api";
 import * as XLSX from 'xlsx';
 import {
@@ -36,7 +37,14 @@ const Orders = () => {
   const [uploading, setUploading] = useState(false);
   const [openMenuId, setOpenMenuId] = useState(null);
   
-  // New state for filters
+  const [downloadingLabel, setDownloadingLabel] = useState(false);
+  
+  const [showBulkDropdown, setShowBulkDropdown] = useState(false);
+  
+  const [showLabelModal, setShowLabelModal] = useState(false);
+  const [labelModalMode, setLabelModalMode] = useState(null);
+  const [singleShipmentId, setSingleShipmentId] = useState(null);
+  
   const [activeTab, setActiveTab] = useState('ALL');
   const [courierFilter, setCourierFilter] = useState('ALL');
   const [dateFilter, setDateFilter] = useState('ALL');
@@ -46,6 +54,18 @@ const Orders = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [showCourierDropdown, setShowCourierDropdown] = useState(false);
   const [showDateDropdown, setShowDateDropdown] = useState(false);
+
+  const getUniqueCouriers = () => {
+    const courierSet = new Set();
+    orders.forEach(order => {
+      if (order.shipmentId?.courier) {
+        courierSet.add(order.shipmentId.courier);
+      }
+    });
+    return Array.from(courierSet);
+  };
+
+  const couriers = getUniqueCouriers();
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -66,20 +86,20 @@ const Orders = () => {
     fetchOrders();
   }, [fetchOrders]);
 
-  // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (openMenuId && !event.target.closest('.action-menu-container')) {
         setOpenMenuId(null);
       }
+      if (showBulkDropdown && !event.target.closest('.bulk-actions-wrapper')) {
+        setShowBulkDropdown(false);
+      }
     };
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
-  }, [openMenuId]);
+  }, [openMenuId, showBulkDropdown]);
 
-  // Apply all filters
   const filteredOrders = orders.filter((o) => {
-    // Search filter
     const searchLower = search.toLowerCase();
     const matchesSearch = 
       o.customerName?.toLowerCase().includes(searchLower) ||
@@ -88,18 +108,14 @@ const Orders = () => {
       o.awb?.toLowerCase().includes(searchLower);
 
     if (!matchesSearch) return false;
-
-    // Status tab filter
     if (activeTab !== 'ALL' && o.status !== activeTab) return false;
-
-    // STEP 2: Courier filter - using shipmentId.courier
+    
     if (
       courierFilter !== "ALL" &&
       o.shipmentId?.courier?.toLowerCase() !== courierFilter.toLowerCase()
     )
       return false;
 
-    // Date filter
     if (dateFilter !== 'ALL') {
       const orderDate = new Date(o.createdAt);
       const today = new Date();
@@ -164,8 +180,6 @@ const Orders = () => {
     { id: 'RTO', label: 'RTO' }
   ];
 
-  const couriers = ['DTDC', 'Delhivery', 'XpressBees', 'BlueDart'];
-
   const dateOptions = [
     { id: 'ALL', label: 'All Time' },
     { id: 'TODAY', label: 'Today' },
@@ -175,7 +189,6 @@ const Orders = () => {
     { id: 'CUSTOM', label: 'Custom Range' }
   ];
 
-  // Select/Deselect all orders
   const handleSelectAll = (e) => {
     if (e.target.checked) {
       const allIds = filteredOrders.map(order => order._id);
@@ -185,7 +198,6 @@ const Orders = () => {
     }
   };
 
-  // STEP 3: Export to Excel with shipmentId.courier
   const exportToExcel = () => {
     try {
       setExporting(true);
@@ -223,13 +235,12 @@ const Orders = () => {
     }
   };
 
-  // ✅ FIXED: Bulk Shipment Handler - Now navigates to create-shipment with isBulk flag
   const handleBulkShipment = () => {
     if (selectedOrders.length === 0) {
       alert("⚠️ Please select at least one order.");
       return;
     }
-
+    setShowBulkDropdown(false);
     navigate("/merchant/create-shipment", {
       state: {
         orderIds: selectedOrders,
@@ -238,15 +249,17 @@ const Orders = () => {
     });
   };
 
-  // Bulk Labels Fix - Extract shipmentIds from orders
-  const handleBulkLabels = async () => {
+  const handleBulkLabels = async (settings) => {
+    if (downloadingLabel) return;
+    
     if (selectedOrders.length === 0) {
       alert('⚠️ Please select at least one order.');
       return;
     }
 
+    setDownloadingLabel(true);
+
     try {
-      // Extract shipment IDs from selected orders
       const shipmentIds = orders
         .filter(order => selectedOrders.includes(order._id))
         .map(order => order.shipmentId?._id)
@@ -254,29 +267,117 @@ const Orders = () => {
 
       if (shipmentIds.length === 0) {
         alert("⚠️ No shipment labels found for selected orders.");
+        setDownloadingLabel(false);
         return;
+      }
+
+      const formData = new FormData();
+      
+      const settingsData = { ...settings };
+      delete settingsData.logoFile;
+      
+      formData.append("shipmentIds", JSON.stringify(shipmentIds));
+      formData.append("settings", JSON.stringify(settingsData));
+
+      if (settings.logoFile) {
+        formData.append("logo", settings.logoFile);
       }
 
       const response = await api.post(
         "/shipments/bulk-labels",
-        { shipmentIds },
-        { responseType: "blob" }
+        formData,
+        {
+          responseType: 'blob',
+          headers: {
+            "Content-Type": "multipart/form-data"
+          }
+        }
       );
 
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `labels_${Date.now()}.zip`);
+      // ✅ FIXED: Bulk labels download as PDF
+      link.setAttribute(
+        "download",
+        `labels_${settings.format}_${Date.now()}.pdf`
+      );
       document.body.appendChild(link);
       link.click();
       link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      setShowLabelModal(false);
     } catch (error) {
       console.error('Bulk labels error:', error);
-      alert('❌ Failed to download labels.');
+      alert(error.response?.data?.message || "❌ Failed to download labels. Please try again.");
+    } finally {
+      setDownloadingLabel(false);
     }
   };
 
-  // Bulk Cancel Orders
+  const handleSingleLabelClick = (shipmentId) => {
+    if (!shipmentId) {
+      alert('❌ No shipment found for this order.');
+      return;
+    }
+    setSingleShipmentId(shipmentId);
+    setLabelModalMode('single');
+    setShowLabelModal(true);
+  };
+
+  const downloadSingleLabel = async (settings) => {
+    if (downloadingLabel) return;
+    
+    if (!singleShipmentId) {
+      alert('❌ No shipment found.');
+      return;
+    }
+
+    setDownloadingLabel(true);
+
+    try {
+      const formData = new FormData();
+      
+      const settingsData = { ...settings };
+      delete settingsData.logoFile;
+      
+      formData.append("settings", JSON.stringify(settingsData));
+
+      if (settings.logoFile) {
+        formData.append("logo", settings.logoFile);
+      }
+
+      const response = await api.post(
+        `/shipments/${singleShipmentId}/label`,
+        formData,
+        {
+          responseType: 'blob',
+          headers: {
+            "Content-Type": "multipart/form-data"
+          }
+        }
+      );
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `label_${singleShipmentId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      setOpenMenuId(null);
+      
+      setShowLabelModal(false);
+    } catch (error) {
+      console.error('Label download error:', error);
+      alert(error.response?.data?.message || "❌ Failed to download label. Please try again.");
+    } finally {
+      setDownloadingLabel(false);
+    }
+  };
+
   const handleBulkCancel = async () => {
     if (selectedOrders.length === 0) {
       alert('⚠️ Please select at least one order.');
@@ -294,6 +395,7 @@ const Orders = () => {
       
       alert(`✅ ${selectedOrders.length} order(s) cancelled successfully.`);
       setSelectedOrders([]);
+      setShowBulkDropdown(false);
       fetchOrders();
     } catch (error) {
       console.error('Bulk cancel error:', error);
@@ -301,33 +403,6 @@ const Orders = () => {
     }
   };
 
-  // Download Single Label - uses shipmentId
-  const handleDownloadLabel = async (shipmentId) => {
-    if (!shipmentId) {
-      alert('❌ No shipment found for this order.');
-      return;
-    }
-
-    try {
-      const response = await api.get(`/shipments/${shipmentId}/label`, {
-        responseType: 'blob'
-      });
-      
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `label_${shipmentId}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      setOpenMenuId(null);
-    } catch (error) {
-      console.error('Label download error:', error);
-      alert('❌ Failed to download label.');
-    }
-  };
-
-  // Download Single Invoice - uses invoiceId
   const handleDownloadInvoice = async (invoiceId) => {
     if (!invoiceId) {
       alert('❌ No invoice found for this order.');
@@ -346,14 +421,14 @@ const Orders = () => {
       document.body.appendChild(link);
       link.click();
       link.remove();
+      window.URL.revokeObjectURL(url);
       setOpenMenuId(null);
     } catch (error) {
       console.error('Invoice download error:', error);
-      alert('❌ Failed to download invoice.');
+      alert(error.response?.data?.message || "❌ Failed to download invoice.");
     }
   };
 
-  // Cancel Single Order - uses PATCH
   const handleCancelOrder = async (orderId) => {
     if (!window.confirm('⚠️ Are you sure you want to cancel this order?')) {
       return;
@@ -370,7 +445,6 @@ const Orders = () => {
     }
   };
 
-  // CSV Upload Handler
   const handleCSVUpload = async (e) => {
     try {
       const file = e.target.files[0];
@@ -398,7 +472,6 @@ const Orders = () => {
     }
   };
 
-  // Excel Upload Handler
   const handleExcelUpload = async (e) => {
     try {
       const file = e.target.files[0];
@@ -461,7 +534,6 @@ const Orders = () => {
       </div>
 
       <div style={{ flex: 1, padding: "24px 32px", overflowX: "hidden" }}>
-        {/* Header */}
         <div style={{ marginBottom: "25px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "12px" }}>
             <div>
@@ -482,7 +554,6 @@ const Orders = () => {
               </p>
             </div>
             <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-              {/* Upload CSV Button */}
               <label
                 style={{
                   background: uploading ? "#7c3aed" : "#8b5cf6",
@@ -509,7 +580,6 @@ const Orders = () => {
                 />
               </label>
 
-              {/* Upload Excel Button */}
               <label
                 style={{
                   background: uploading ? "#0891b2" : "#06b6d4",
@@ -536,7 +606,6 @@ const Orders = () => {
                 />
               </label>
 
-              {/* Export Excel Button */}
               <button
                 onClick={exportToExcel}
                 disabled={exporting || filteredOrders.length === 0}
@@ -559,9 +628,8 @@ const Orders = () => {
                 <FaFileExcel /> {exporting ? 'Exporting...' : 'Export Excel'}
               </button>
 
-              {/* Bulk Actions Dropdown */}
               {selectedOrders.length > 0 && (
-                <div style={{ position: 'relative', display: 'inline-block' }}>
+                <div className="bulk-actions-wrapper" style={{ position: 'relative', display: 'inline-block' }}>
                   <button
                     style={{
                       background: "#2563eb",
@@ -576,41 +644,48 @@ const Orders = () => {
                       alignItems: "center",
                       gap: "6px"
                     }}
-                    onClick={() => {
-                      const dropdown = document.getElementById('bulkDropdown');
-                      dropdown?.classList.toggle('show');
-                    }}
+                    onClick={() => setShowBulkDropdown(!showBulkDropdown)}
                   >
                     <FaTruck /> Bulk Actions ({selectedOrders.length})
                   </button>
-                  <div id="bulkDropdown" style={{
-                    position: 'absolute',
-                    right: 0,
-                    top: '100%',
-                    marginTop: '4px',
-                    background: '#fff',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                    minWidth: '200px',
-                    display: 'none',
-                    zIndex: 10,
-                    padding: '4px 0'
-                  }}>
-                    <button onClick={handleBulkShipment} style={dropdownItemStyle}>
-                      <FaTruck /> Bulk Ship
-                    </button>
-                    <button onClick={handleBulkLabels} style={dropdownItemStyle}>
-                      <FaDownload /> Download Labels
-                    </button>
-                    <hr style={{ margin: '4px 0', border: 'none', borderTop: '1px solid #e2e8f0' }} />
-                    <button onClick={handleBulkCancel} style={{...dropdownItemStyle, color: '#dc2626' }}>
-                      <FaTimes /> Cancel Orders
-                    </button>
-                  </div>
+                  
+                  {showBulkDropdown && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        right: 0,
+                        top: '100%',
+                        marginTop: '4px',
+                        background: '#fff',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                        minWidth: '200px',
+                        zIndex: 10,
+                        padding: '4px 0'
+                      }}
+                    >
+                      <button onClick={handleBulkShipment} style={dropdownItemStyle}>
+                        <FaTruck /> Bulk Ship
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowBulkDropdown(false);
+                          setLabelModalMode('bulk');
+                          setShowLabelModal(true);
+                        }}
+                        style={dropdownItemStyle}
+                      >
+                        <FaDownload /> Download Labels
+                      </button>
+                      <hr style={{ margin: '4px 0', border: 'none', borderTop: '1px solid #e2e8f0' }} />
+                      <button onClick={handleBulkCancel} style={{...dropdownItemStyle, color: '#dc2626' }}>
+                        <FaTimes /> Cancel Orders
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
 
-              {/* Create Order Button */}
               <button
                 style={{
                   background: "#f97316",
@@ -633,7 +708,6 @@ const Orders = () => {
           </div>
         </div>
 
-        {/* Error message */}
         {error && (
           <div style={{
             background: "#fee2e2",
@@ -664,7 +738,6 @@ const Orders = () => {
           </div>
         )}
 
-        {/* Status Tabs */}
         <div style={{
           display: 'flex',
           gap: '4px',
@@ -708,7 +781,6 @@ const Orders = () => {
           ))}
         </div>
 
-        {/* Search and Filters */}
         <div style={{
           display: 'flex',
           gap: '12px',
@@ -758,7 +830,6 @@ const Orders = () => {
             )}
           </div>
 
-          {/* Courier Filter */}
           <div style={{ position: 'relative' }}>
             <button
               onClick={() => setShowCourierDropdown(!showCourierDropdown)}
@@ -811,7 +882,6 @@ const Orders = () => {
             )}
           </div>
 
-          {/* Date Filter */}
           <div style={{ position: 'relative' }}>
             <button
               onClick={() => setShowDateDropdown(!showDateDropdown)}
@@ -895,7 +965,6 @@ const Orders = () => {
             )}
           </div>
 
-          {/* Clear Filters */}
           {(search || activeTab !== 'ALL' || courierFilter !== 'ALL' || dateFilter !== 'ALL') && (
             <button
               onClick={clearFilters}
@@ -918,7 +987,6 @@ const Orders = () => {
           )}
         </div>
 
-        {/* Table */}
         <div style={{
           background: "#fff",
           borderRadius: "16px",
@@ -1031,7 +1099,6 @@ const Orders = () => {
                         }}>
                           {order.customerPhone || "N/A"}
                         </td>
-                        {/* STEP 1: Courier display with proper capitalization */}
                         <td style={{
                           padding: "12px 16px",
                           fontSize: "13px",
@@ -1078,7 +1145,6 @@ const Orders = () => {
                           {order.createdAt ? format(new Date(order.createdAt), 'dd MMM yyyy') : "N/A"}
                         </td>
                         <td style={{ padding: "12px 16px" }}>
-                          {/* Single Order Action Menu */}
                           <div className="action-menu-container" style={{ position: 'relative', display: 'inline-block' }}>
                             <button
                               onClick={(e) => {
@@ -1124,7 +1190,6 @@ const Orders = () => {
                                 padding: '6px 0',
                                 border: '1px solid #e2e8f0'
                               }}>
-                                {/* View Order */}
                                 <button
                                   onClick={() => {
                                     navigate(`/merchant/orders/${order._id}`);
@@ -1135,7 +1200,6 @@ const Orders = () => {
                                   <FaEye size={14} /> View Order
                                 </button>
 
-                                {/* Edit Order - Only if no shipment */}
                                 {!hasShipment && !isDelivered && !isCancelled && (
                                   <button
                                     onClick={() => {
@@ -1148,7 +1212,6 @@ const Orders = () => {
                                   </button>
                                 )}
 
-                                {/* Create Shipment - Pass order object in state */}
                                 {!hasShipment && !isCancelled && (
                                   <button
                                     onClick={() => {
@@ -1163,7 +1226,6 @@ const Orders = () => {
                                   </button>
                                 )}
 
-                                {/* Track Shipment - uses shipmentId._id */}
                                 {hasShipment && (
                                   <button
                                     onClick={() => {
@@ -1176,17 +1238,15 @@ const Orders = () => {
                                   </button>
                                 )}
 
-                                {/* Show Download Label only when shipment exists */}
                                 {order.shipmentId && (
                                   <button
-                                    onClick={() => handleDownloadLabel(order.shipmentId._id)}
+                                    onClick={() => handleSingleLabelClick(order.shipmentId._id)}
                                     style={{...menuItemStyle, color: '#dc2626'}}
                                   >
                                     <FaTag size={14} /> Download Label
                                   </button>
                                 )}
 
-                                {/* Invoice Button with check */}
                                 <button
                                   onClick={() => {
                                     if (!order.invoiceId?._id) {
@@ -1200,7 +1260,6 @@ const Orders = () => {
                                   <FaFileInvoice size={14} /> Download Invoice
                                 </button>
 
-                                {/* Cancel Order - Only if not delivered, not cancelled, and no shipment */}
                                 {canCancel && (
                                   <>
                                     <hr style={{ margin: '4px 8px', border: 'none', borderTop: '1px solid #e2e8f0' }} />
@@ -1213,7 +1272,6 @@ const Orders = () => {
                                   </>
                                 )}
 
-                                {/* Show disabled options info */}
                                 {hasShipment && (
                                   <div style={{
                                     padding: '8px 16px',
@@ -1251,7 +1309,6 @@ const Orders = () => {
           </div>
         </div>
 
-        {/* Footer */}
         {filteredOrders.length > 0 && (
           <div style={{
             marginTop: "16px",
@@ -1292,11 +1349,25 @@ const Orders = () => {
           </div>
         )}
       </div>
+
+      <LabelSettingsModal
+        open={showLabelModal}
+        onClose={() => setShowLabelModal(false)}
+        isBulk={labelModalMode === "bulk"}
+        selectedCount={selectedOrders.length}
+        downloading={downloadingLabel}
+        onDownload={(settings) => {
+          if (labelModalMode === "bulk") {
+            handleBulkLabels(settings);
+          } else {
+            downloadSingleLabel(settings);
+          }
+        }}
+      />
     </div>
   );
 };
 
-// Helper styles
 const dropdownItemStyle = {
   display: 'flex',
   alignItems: 'center',
@@ -1337,18 +1408,5 @@ const dateInputStyle = {
   width: '100%',
   marginBottom: '4px'
 };
-
-// Add hover effects
-const styleSheet = document.createElement('style');
-styleSheet.textContent = `
-  [style*="dropdownItemStyle"]:hover {
-    background: #f1f5f9;
-  }
-  [style*="menuItemStyle"]:hover {
-    background: #f8fafc;
-  }
-  .show { display: block !important; }
-`;
-document.head.appendChild(styleSheet);
 
 export default Orders;
