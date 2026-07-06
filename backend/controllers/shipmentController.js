@@ -73,9 +73,9 @@ const getLogoBuffer = (logoPath) => {
 };
 
 // ===============================
-// HELPER: Render Complete Label (New Design)
+// HELPER: Render Label V2 (Professional - Premium)
 // ===============================
-async function renderLabel(doc, shipment, settings = {}, labelWidth = null, labelHeight = null, x = 0, y = 0) {
+async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, labelHeight = null, x = 0, y = 0) {
   const {
     logo = true,
     customerPhone = true,
@@ -83,6 +83,7 @@ async function renderLabel(doc, shipment, settings = {}, labelWidth = null, labe
     paymentType = true,
     useMerchantLogo = true,
     uploadedLogo = null,
+    qrCode = true,
   } = settings;
 
   // Save current position if we're drawing in a specific area
@@ -98,17 +99,97 @@ async function renderLabel(doc, shipment, settings = {}, labelWidth = null, labe
   const contentY = hasPosition ? 0 : (doc.page.margins?.top || 40);
   
   let currentY = contentY;
-  const lineHeight = 16;
+  const padding = 10;
+  const fontSize = 7.5;
+  const headerFontSize = 8.5;
+  const boldFont = 'Helvetica-Bold';
+  const regularFont = 'Helvetica';
+  
+  // Total label height
+  const totalHeight = labelHeight || 420;
   
   // ============================================
-  // 1. HEADER: Logo + Title
+  // SECTION 1: SHIP TO + LOGO (18%)
   // ============================================
-  const headerY = currentY;
-  const headerHeight = 28;
-  let logoImage = null;
+  const section1Height = totalHeight * 0.18;
+  const section1Y = currentY;
   
-  // Logo (left)
+  // Outer border only
+  doc.strokeColor('#000000')
+     .lineWidth(0.3)
+     .rect(contentX, section1Y, maxWidth, totalHeight)
+     .stroke();
+  
+  // Left: SHIP TO (adjust based on logo width)
+  const rightWidth = 85;
+  const rightX = contentX + maxWidth - rightWidth - 10;
+  const leftWidth = maxWidth - rightWidth - padding - 15;
+  const leftX = contentX + padding;
+  
+  doc.font(boldFont)
+     .fontSize(headerFontSize)
+     .fillColor('#000000')
+     .text('SHIP TO', leftX, section1Y + padding, {
+       width: leftWidth - padding,
+       align: 'left',
+     });
+  
+  // Customer Name - More prominent (fontSize 9)
+  const nameY = section1Y + padding + 16;
+  doc.font(boldFont)
+     .fontSize(9)
+     .fillColor('#000000')
+     .text(shipment.orderId?.customerName || 'N/A', leftX, nameY, {
+       width: leftWidth - padding,
+       align: 'left',
+     });
+  
+  // Phone
+  const phoneY = nameY + 15;
+  if (customerPhone && shipment.orderId?.customerPhone) {
+    doc.font(regularFont)
+       .fontSize(fontSize)
+       .fillColor('#000000')
+       .text(`Phone: ${shipment.orderId.customerPhone}`, leftX, phoneY, {
+         width: leftWidth - padding,
+         align: 'left',
+       });
+  }
+  
+  // Address - Smaller font (size 7)
+  const addressY = phoneY + 13;
+  let addressText = shipment.orderId?.customerAddress || 'N/A';
+  if (shipment.orderId?.customerCity && shipment.orderId?.customerState) {
+    addressText = `${shipment.orderId.customerAddress || ''}, ${shipment.orderId.customerCity || ''}, ${shipment.orderId.customerState || ''}`;
+  }
+  
+  doc.font(regularFont)
+     .fontSize(7)
+     .fillColor('#333333')
+     .text(addressText, leftX, addressY, {
+       width: leftWidth - padding,
+       align: 'left',
+     });
+  
+  const pincodeY = addressY + 11;
+  let locationText = '';
+  if (shipment.orderId?.customerCity) locationText += shipment.orderId.customerCity;
+  if (shipment.orderId?.customerState) locationText += ` • ${shipment.orderId.customerState}`;
+  if (shipment.orderId?.customerPincode) locationText += ` • ${shipment.orderId.customerPincode}`;
+  
+  if (locationText) {
+    doc.font(regularFont)
+       .fontSize(7)
+       .fillColor('#333333')
+       .text(locationText, leftX, pincodeY, {
+         width: leftWidth - padding,
+         align: 'left',
+       });
+  }
+  
+  // Right: LOGO
   if (logo) {
+    let logoImage = null;
     if (useMerchantLogo && shipment.merchantId?.logo) {
       logoImage = getLogoBuffer(shipment.merchantId.logo);
     } else if (uploadedLogo) {
@@ -117,101 +198,56 @@ async function renderLabel(doc, shipment, settings = {}, labelWidth = null, labe
     
     if (logoImage) {
       try {
-        doc.image(logoImage, contentX, headerY, {
-          width: 28,
-          height: 28,
+        const logoX = rightX + 10;
+        const logoY = section1Y + (section1Height - 40) / 2;
+        doc.image(logoImage, logoX, logoY, {
+          fit: [65, 40],
+          align: 'center',
+          valign: 'center',
         });
       } catch (err) {
         console.error("Logo loading error:", err);
+        // FIX 4: Only grey border, no text
+        doc.strokeColor('#E0E0E0')
+           .lineWidth(0.5)
+           .rect(rightX + 10, section1Y + section1Height/2 - 15, rightWidth - 20, 30)
+           .stroke();
       }
+    } else {
+      // FIX 4: No logo = nothing, or just a very subtle border
+      // Professional labels don't show placeholder text
+      // Only draw a very subtle border if you want
+      // Commented out for clean look
+      // doc.strokeColor('#F0F0F0')
+      //    .lineWidth(0.3)
+      //    .rect(rightX + 10, section1Y + section1Height/2 - 15, rightWidth - 20, 30)
+      //    .stroke();
     }
   }
-
-  // LOGITRACK text (left side, next to logo)
-  doc.font('Helvetica-Bold')
-     .fontSize(16)
-     .fillColor('#000000')
-     .text('LOGITRACK', contentX + (logoImage ? 38 : 0), headerY + 4, {
-       width: 150,
-       height: headerHeight,
-       align: 'left',
-     });
-
-  // SHIPMENT LABEL (right side) - Using calculated position
-  const rightX = contentX + maxWidth - 180;
-  doc.font('Helvetica-Bold')
-     .fontSize(16)
-     .fillColor('#000000')
-     .text('SHIPMENT LABEL', rightX, headerY + 4, {
-       width: 180,
-       height: headerHeight,
-       align: 'right',
-     });
-
-  currentY = headerY + headerHeight + 5;
   
-  // Divider line
-  doc.strokeColor('#000000')
-     .lineWidth(0.5)
-     .moveTo(contentX, currentY)
+  currentY = section1Y + section1Height;
+  
+  // Divider line between section 1 and 2
+  doc.moveTo(contentX, currentY)
      .lineTo(contentX + maxWidth, currentY)
      .stroke();
   
-  currentY += 10;
-
   // ============================================
-  // 2. SHIPMENT INFORMATION BLOCK (2-column)
+  // SECTION 2: BARCODE (52%) + SHIPMENT INFO (48%)
   // ============================================
-  const infoFontSize = 8.5;
-  const infoLineHeight = 16;
+  const section2Height = totalHeight * 0.25;
+  const section2Y = currentY;
   
-  // Column 1: AWB, Courier
-  doc.font('Helvetica')
-     .fontSize(infoFontSize)
-     .fillColor('#000000');
+  const dividerX = contentX + maxWidth * 0.52;
+  doc.moveTo(dividerX, section2Y)
+     .lineTo(dividerX, section2Y + section2Height)
+     .stroke();
   
-  // AWB No
-  doc.text('AWB No', contentX, currentY, { width: 70, align: 'left' });
-  doc.font('Helvetica-Bold')
-     .text(`: ${shipment.awb}`, contentX + 70, currentY, { width: 150, align: 'left' });
-  
-  currentY += infoLineHeight;
-  
-  // Courier
-  doc.font('Helvetica')
-     .text('Courier', contentX, currentY, { width: 70, align: 'left' });
-  doc.font('Helvetica-Bold')
-     .text(`: ${shipment.courier || 'N/A'}`, contentX + 70, currentY, { width: 150, align: 'left' });
-  
-  currentY += infoLineHeight;
-  
-  // Column 2: Order No, Ship Date
-  const col2X = maxWidth / 2 + contentX;
-  let col2Y = currentY - (infoLineHeight * 2);
-  
-  // Order No
-  doc.font('Helvetica')
-     .text('Order No', col2X, col2Y, { width: 70, align: 'left' });
-  doc.font('Helvetica-Bold')
-     .text(`: ${shipment.orderId?.orderNumber || shipment.orderId?._id?.toString()?.slice(-6) || 'N/A'}`, col2X + 70, col2Y, { width: 120, align: 'left' });
-  
-  col2Y += infoLineHeight;
-  
-  // Ship Date
-  doc.font('Helvetica')
-     .text('Ship Date', col2X, col2Y, { width: 70, align: 'left' });
-  doc.font('Helvetica-Bold')
-     .text(`: ${shipment.createdAt ? new Date(shipment.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A'}`, col2X + 70, col2Y, { width: 120, align: 'left' });
-  
-  currentY += infoLineHeight;
-  currentY += 5;
-
-  // ============================================
-  // 3. BARCODE SECTION (Dynamic Width)
-  // ============================================
-  const barcodeY = currentY;
-  const barcodeWidth = Math.min(maxWidth - 40, 230);
-  const barcodeHeight = 65;
+  // LEFT: BIG BARCODE (52%)
+  const leftBarcodeWidth = maxWidth * 0.52 - padding * 2;
+  const barcodeCenterX = contentX + (maxWidth * 0.52) / 2;
+  const barcodeWidth = Math.min(leftBarcodeWidth - 20, 210);
+  const barcodeHeight = section2Height - 35;
   
   let barcodeValue = shipment.awb;
   
@@ -219,203 +255,398 @@ async function renderLabel(doc, shipment, settings = {}, labelWidth = null, labe
     const barcodeBuffer = await bwipjs.toBuffer({
       bcid: "code128",
       text: barcodeValue,
-      scale: 3.5,
-      height: 12,
-      includetext: true,
-      textxalign: 'center',
+      scale: 3,
+      height: 10,
+      includetext: false,
     });
 
-    // Center the barcode
-    const barcodeX = contentX + (maxWidth - barcodeWidth) / 2;
+    const barcodeX = barcodeCenterX - barcodeWidth / 2;
+    const barcodeY = section2Y + 8;
     
     doc.image(barcodeBuffer, barcodeX, barcodeY, {
       width: barcodeWidth,
-      height: barcodeHeight,
+      height: barcodeHeight - 15,
     });
     
-    // Barcode number text below (bold)
-    doc.font('Helvetica-Bold')
-       .fontSize(9)
+    // FIX: AWB Number below barcode - smaller font (size 8)
+    const awbTextY = section2Y + section2Height - 16;
+    const awbTextWidth = maxWidth * 0.52 - padding * 2;
+    
+    // Check if label is thermal (small width)
+    const isThermal = maxWidth < 300;
+    const awbFontSize = isThermal ? 6.5 : 8; // Smaller font for AWB text
+    
+    doc.font(boldFont)
+       .fontSize(awbFontSize)
        .fillColor('#000000')
-       .text(barcodeValue, contentX, barcodeY + barcodeHeight + 3, {
-         width: maxWidth,
+       .text(barcodeValue, contentX + padding, awbTextY, {
+         width: awbTextWidth,
          align: 'center',
+         lineBreak: false,
        });
-       
-    currentY = barcodeY + barcodeHeight + 22;
   } catch (err) {
     console.error("Barcode generation error:", err);
-    currentY += 20;
+    doc.font(boldFont)
+       .fontSize(10)
+       .fillColor('#000000')
+       .text(barcodeValue, contentX + padding, section2Y + section2Height/2 - 6, {
+         width: maxWidth * 0.52 - padding * 2,
+         align: 'center',
+       });
   }
-
-  // ============================================
-  // 4. SHIP TO BOX
-  // ============================================
-  // Draw box border
-  const boxPadding = 8;
-  const boxWidth = maxWidth - 20;
-  const boxHeight = 90;
-  const boxX = contentX + 10;
-  const boxY = currentY;
   
-  doc.strokeColor('#000000')
-     .lineWidth(0.5)
-     .rect(boxX, boxY, boxWidth, boxHeight)
+  // RIGHT: Shipment Info (48%)
+  const infoX = dividerX + padding;
+  const infoWidth = maxWidth * 0.48 - padding * 2;
+  const infoStartY = section2Y + padding + 5;
+  const infoLineHeight = 16;
+  const labelWidth_ = 50;
+  const valueWidth = infoWidth - labelWidth_ - 5;
+  
+  // Courier
+  doc.font(regularFont)
+     .fontSize(6.5)
+     .fillColor('#666666')
+     .text('Courier', infoX, infoStartY, { width: labelWidth_, align: 'left' });
+  
+  let courierName = shipment.courier || 'N/A';
+  const courierAbbreviations = {
+    'Xpressbees': 'XBEE',
+    'Xpressbees Surface': 'XBEE',
+    'Delhivery': 'DLVRY',
+    'Blue Dart': 'BLDART',
+    'DTDC': 'DTDC',
+    'Amazon Shipping': 'AMZN',
+    'Flipkart': 'FLPK',
+    'Ecom Express': 'ECOM',
+    'Shadowfax': 'SHDW',
+    'Porter': 'PRTR',
+  };
+  
+  for (const [key, short] of Object.entries(courierAbbreviations)) {
+    if (courierName.includes(key)) {
+      courierName = short;
+      break;
+    }
+  }
+  
+  if (courierName.length > 10) {
+    courierName = courierName.substring(0, 10) + '...';
+  }
+  
+  doc.font(boldFont)
+     .fontSize(7)
+     .fillColor('#000000')
+     .text(courierName, infoX + labelWidth_, infoStartY, { 
+       width: valueWidth, 
+       align: 'left',
+       ellipsis: true 
+     });
+  
+  // FIX 1: AWB in right panel - show shortened version in one line
+  const awbY = infoStartY + infoLineHeight;
+  doc.font(regularFont)
+     .fontSize(6.5)
+     .fillColor('#666666')
+     .text('AWB', infoX, awbY, { width: labelWidth_, align: 'left' });
+  
+  // Shorten AWB for right panel display
+  let shortAwb = barcodeValue;
+  if (shortAwb.length > 14) {
+    shortAwb = '...' + shortAwb.slice(-10);
+  }
+  
+  doc.font(boldFont)
+     .fontSize(7)
+     .fillColor('#000000')
+     .text(shortAwb, infoX + labelWidth_, awbY, { 
+       width: valueWidth, 
+       align: 'left',
+       lineBreak: false, // FIX 1: One line only
+     });
+  
+  // Weight
+  if (weight) {
+    const weightY = awbY + infoLineHeight;
+    doc.font(regularFont)
+       .fontSize(6.5)
+       .fillColor('#666666')
+       .text('Weight', infoX, weightY, { width: labelWidth_, align: 'left' });
+    doc.font(boldFont)
+       .fontSize(7)
+       .fillColor('#000000')
+       .text(`${shipment.orderId?.weight || 0} Kg`, infoX + labelWidth_, weightY, { 
+         width: valueWidth, 
+         align: 'left' 
+       });
+  }
+  
+  // Payment - Always black
+  const paymentY = awbY + infoLineHeight * 2;
+  const paymentMode = shipment.orderId?.paymentMode || 'N/A';
+  const isCOD = paymentMode.toUpperCase() === 'COD';
+  
+  doc.font(regularFont)
+     .fontSize(6.5)
+     .fillColor('#666666')
+     .text('Payment', infoX, paymentY, { width: labelWidth_, align: 'left' });
+  
+  doc.font(boldFont)
+     .fontSize(7)
+     .fillColor('#000000')
+     .text(`${isCOD ? 'COD' : 'PREPAID'}${isCOD ? ` ₹${shipment.orderId?.amount || 0}` : ''}`, 
+       infoX + labelWidth_, paymentY, { 
+       width: valueWidth, 
+       align: 'left' 
+     });
+  
+  currentY = section2Y + section2Height;
+  
+  // Divider line between section 2 and 3
+  doc.moveTo(contentX, currentY)
+     .lineTo(contentX + maxWidth, currentY)
      .stroke();
   
-  // SHIP TO header
-  doc.font('Helvetica-Bold')
-     .fontSize(10)
+  // ============================================
+  // SECTION 3: SHIP FROM + ORDER DETAILS (20%)
+  // ============================================
+  const section3Height = totalHeight * 0.20;
+  const section3Y = currentY;
+  
+  const dividerX3 = contentX + maxWidth / 2;
+  doc.moveTo(dividerX3, section3Y)
+     .lineTo(dividerX3, section3Y + section3Height)
+     .stroke();
+  
+  // LEFT: SHIP FROM
+  const leftFromX = contentX + padding;
+  const leftFromWidth = maxWidth / 2 - padding * 2;
+  const fromStartY = section3Y + padding + 5;
+  
+  doc.font(boldFont)
+     .fontSize(headerFontSize)
      .fillColor('#000000')
-     .text('SHIP TO', boxX + boxPadding, boxY + boxPadding, {
-       width: boxWidth - boxPadding * 2,
+     .text('SHIP FROM', leftFromX, section3Y + padding, {
+       width: leftFromWidth,
        align: 'left',
      });
   
-  // Customer details
-  const nameY = boxY + boxPadding + 18;
-  const addressY = nameY + 16;
-  const phoneY = addressY + 16;
-  
-  // Customer name (bold)
-  doc.font('Helvetica-Bold')
-     .fontSize(8.5)
+  const companyY = fromStartY + 16;
+  doc.font(boldFont)
+     .fontSize(fontSize + 1)
      .fillColor('#000000')
-     .text(shipment.orderId?.customerName || 'N/A', boxX + boxPadding, nameY, {
-       width: boxWidth - boxPadding * 2,
+     .text(shipment.merchantId?.companyName || 'LogiTrack', leftFromX, companyY, {
+       width: leftFromWidth,
        align: 'left',
      });
   
-  // Address
-  let addressText = shipment.orderId?.customerAddress || 'N/A';
-  if (shipment.orderId?.customerCity || shipment.orderId?.customerState) {
-    addressText = `${shipment.orderId.customerAddress || ''}, ${shipment.orderId.customerCity || ''}, ${shipment.orderId.customerState || ''} - ${shipment.orderId?.customerPincode || ''}`;
-  }
-  
-  doc.font('Helvetica')
-     .fontSize(8.5)
-     .fillColor('#000000')
-     .text(addressText, boxX + boxPadding, addressY, {
-       width: boxWidth - boxPadding * 2,
-       align: 'left',
-     });
-  
-  // Phone
-  if (customerPhone && shipment.orderId?.customerPhone) {
-    doc.font('Helvetica')
-       .fontSize(8.5)
+  const gstY = companyY + 14;
+  if (shipment.merchantId?.gst) {
+    doc.font(regularFont)
+       .fontSize(fontSize)
        .fillColor('#000000')
-       .text(`Phone: ${shipment.orderId.customerPhone}`, boxX + boxPadding, phoneY, {
-         width: boxWidth - boxPadding * 2,
+       .text(`GST: ${shipment.merchantId.gst}`, leftFromX, gstY, {
+         width: leftFromWidth,
          align: 'left',
        });
   }
   
-  currentY = boxY + boxHeight + 15;
-
-  // ============================================
-  // 5. SHIP FROM BOX
-  // ============================================
-  const fromBoxY = currentY;
-  const fromBoxHeight = 55;
+  const fromPhoneY = gstY + 14;
+  if (shipment.merchantId?.phone) {
+    doc.font(regularFont)
+       .fontSize(fontSize)
+       .fillColor('#000000')
+       .text(`Phone: ${shipment.merchantId.phone}`, leftFromX, fromPhoneY, {
+         width: leftFromWidth,
+         align: 'left',
+       });
+  }
   
-  doc.strokeColor('#000000')
-     .lineWidth(0.5)
-     .rect(boxX, fromBoxY, boxWidth, fromBoxHeight)
-     .stroke();
+  // RIGHT: ORDER DETAILS
+  const rightOrderX = dividerX3 + padding;
+  const rightOrderWidth = maxWidth / 2 - padding * 2;
+  const orderStartY = section3Y + padding + 5;
   
-  // SHIP FROM header
-  doc.font('Helvetica-Bold')
-     .fontSize(10)
+  doc.font(boldFont)
+     .fontSize(headerFontSize)
      .fillColor('#000000')
-     .text('SHIP FROM', boxX + boxPadding, fromBoxY + boxPadding, {
-       width: boxWidth - boxPadding * 2,
+     .text('ORDER DETAILS', rightOrderX, section3Y + padding, {
+       width: rightOrderWidth,
        align: 'left',
      });
   
-  // Merchant details
-  const fromNameY = fromBoxY + boxPadding + 18;
-  const fromAddressY = fromNameY + 16;
+  const orderNumY = orderStartY + 16;
+  let orderNumber = shipment.orderId?.orderNumber || shipment.orderId?._id?.toString()?.slice(-6) || 'N/A';
   
-  // Company name
-  doc.font('Helvetica-Bold')
-     .fontSize(8.5)
+  // If order number is too long, show only last 12-14 characters
+  if (orderNumber.length > 14) {
+    orderNumber = '...' + orderNumber.slice(-12);
+  }
+  
+  doc.font(regularFont)
+     .fontSize(6.5)
+     .fillColor('#666666')
+     .text('Order No', rightOrderX, orderNumY, { width: 55, align: 'left' });
+  
+  const isThermal = maxWidth < 300;
+  const orderFontSize = isThermal ? 6.5 : 8;
+  
+  doc.font(boldFont)
+     .fontSize(orderFontSize)
      .fillColor('#000000')
-     .text(shipment.merchantId?.companyName || 'LogiTrack', boxX + boxPadding, fromNameY, {
-       width: boxWidth - boxPadding * 2,
+     .text(orderNumber, rightOrderX + 55, orderNumY, { 
+       width: rightOrderWidth - 55, 
        align: 'left',
+       lineBreak: false
      });
   
-  // Address
-  doc.font('Helvetica')
-     .fontSize(8.5)
-     .fillColor('#000000')
-     .text(shipment.merchantId?.address || 'Merchant Address', boxX + boxPadding, fromAddressY, {
-       width: boxWidth - boxPadding * 2,
-       align: 'left',
-     });
-  
-  currentY = fromBoxY + fromBoxHeight + 15;
-
-  // ============================================
-  // 6. SHIPMENT DETAILS + QR (Same Row)
-  // ============================================
-  const tableY = currentY;
-  const tableHeight = 30;
-  
-  // QR Size - increased to 40 for better reliability
-  const qrSize = 40;
-  const qrSpacing = 5;
-  
-  // Available width for table columns (excluding QR)
-  const tableWidth = boxWidth - qrSize - qrSpacing - 10;
-  const colWidth = (tableWidth - 20) / 4;
-  
-  // Draw table border
-  doc.strokeColor('#000000')
-     .lineWidth(0.5)
-     .rect(boxX, tableY, tableWidth, tableHeight)
-     .stroke();
-  
-  // Column headers
-  const headers = ['Weight', 'Pieces', 'Payment', 'Amount'];
-  const headerX = boxX + 10;
-  
-  doc.font('Helvetica-Bold')
-     .fontSize(8.5)
-     .fillColor('#000000');
-  
-  headers.forEach((header, index) => {
-    doc.text(header, headerX + (index * colWidth), tableY + 8, {
-      width: colWidth - 5,
-      align: 'center',
-    });
-  });
-  
-  // Column values
-  const values = [
-    weight ? `${shipment.orderId?.weight || 0} Kg` : 'N/A',
-    '1',
-    paymentType ? (shipment.orderId?.paymentMode || 'N/A') : 'N/A',
-    `₹${shipment.orderId?.amount || 0}`
-  ];
-  
-  doc.font('Helvetica')
-     .fontSize(8.5)
-     .fillColor('#000000');
-  
-  values.forEach((value, index) => {
-    doc.text(value, headerX + (index * colWidth), tableY + 8 + 14, {
-      width: colWidth - 5,
-      align: 'center',
-    });
-  });
-  
-  // QR Code (Right side of table)
-  if (settings.qrCode !== false) {
+  // Order Barcode
+  const barcodeOrderY = orderNumY + 18;
+  if (orderNumber) {
     try {
-      const qrX = boxX + tableWidth + qrSpacing;
-      const qrY = tableY + (tableHeight - qrSize) / 2;
+      const smallBarcode = await bwipjs.toBuffer({
+        bcid: "code128",
+        text: orderNumber.replace('...', ''),
+        scale: 2.5,
+        height: 8,
+        includetext: false,
+      });
+      
+      const barcodeX = rightOrderX + 10;
+      const barcodeWidthSmall = Math.min(rightOrderWidth - 40, 130);
+      doc.image(smallBarcode, barcodeX, barcodeOrderY, {
+        width: barcodeWidthSmall,
+        height: 22,
+      });
+    } catch (err) {
+      console.error("Order barcode error:", err);
+    }
+  }
+  
+  // COD / PREPAID - Black
+  const paymentStatusY = barcodeOrderY + 26;
+  doc.font(boldFont)
+     .fontSize(9)
+     .fillColor('#000000')
+     .text(isCOD ? 'COD' : 'PREPAID', rightOrderX, paymentStatusY, {
+       width: rightOrderWidth,
+       align: 'left',
+     });
+  
+  currentY = section3Y + section3Height;
+  
+  // Divider line between section 3 and 4
+  doc.moveTo(contentX, currentY)
+     .lineTo(contentX + maxWidth, currentY)
+     .stroke();
+  
+  // ============================================
+  // SECTION 4: ITEM DETAILS (Minimal - 12%)
+  // ============================================
+  const section4Height = totalHeight * 0.12;
+  const section4Y = currentY;
+  
+  doc.font(boldFont)
+     .fontSize(headerFontSize)
+     .fillColor('#000000')
+     .text('ITEM DETAILS', contentX + padding, section4Y + padding, {
+       width: maxWidth - padding * 2,
+       align: 'left',
+     });
+  
+  // Responsive table columns
+  const tableY = section4Y + padding + 16;
+  const descCol = maxWidth * 0.60;
+  const qtyCol = maxWidth * 0.15;
+  const amountCol = maxWidth * 0.25;
+  const startX = contentX + padding;
+  
+  doc.font(boldFont)
+     .fontSize(7)
+     .fillColor('#000000')
+     .text('Description', startX, tableY, { width: descCol - 5, align: 'left' })
+     .text('Qty', startX + descCol, tableY, { width: qtyCol, align: 'center' })
+     .text('Amount', startX + descCol + qtyCol, tableY, { width: amountCol - 5, align: 'right' });
+  
+  // Divider line
+  doc.strokeColor('#CCCCCC')
+     .lineWidth(0.3)
+     .moveTo(startX, tableY + 12)
+     .lineTo(startX + descCol + qtyCol + amountCol, tableY + 12)
+     .stroke();
+  
+  // Item Data - Only 1 row
+  const items = shipment.orderId?.items || [];
+  const itemY = tableY + 16;
+  
+  // FIX 2: Amount padding from right border
+  const amountPadding = 8;
+  
+  if (items.length > 0) {
+    const item = items[0];
+    const desc = item.name || item.productName || item.sku || 'Product';
+    const descDisplay = desc.length > 30 ? desc.substring(0, 30) + '...' : desc;
+    
+    doc.font(regularFont)
+       .fontSize(7.5)
+       .fillColor('#000000')
+       .text(descDisplay, startX + 4, itemY, { width: descCol - 8, align: 'left' })
+       .text(item.quantity || 1, startX + descCol, itemY, { width: qtyCol, align: 'center' })
+       // FIX 2: Add padding from right edge
+       .text(`₹${(item.price || item.amount || 0) * (item.quantity || 1)}`, 
+         startX + descCol + qtyCol + amountPadding, itemY, { 
+         width: amountCol - amountPadding - 4, 
+         align: 'right' 
+       });
+    
+    if (items.length > 1) {
+      doc.font(regularFont)
+         .fontSize(6)
+         .fillColor('#999999')
+         .text(`+ ${items.length - 1} more`, startX + descCol + 10, itemY + 14, { 
+           width: descCol - 20, 
+           align: 'left' 
+         });
+    }
+  } else {
+    doc.font(regularFont)
+       .fontSize(7.5)
+       .fillColor('#000000')
+       .text('Product', startX + 4, itemY, { width: descCol - 8, align: 'left' })
+       .text('1', startX + descCol, itemY, { width: qtyCol, align: 'center' })
+       .text(`₹${shipment.orderId?.amount || 0}`, startX + descCol + qtyCol + amountPadding, itemY, { 
+         width: amountCol - amountPadding - 4, 
+         align: 'right' 
+       });
+  }
+  
+  currentY = section4Y + section4Height;
+  
+  // Divider line between section 4 and 5
+  doc.moveTo(contentX, currentY)
+     .lineTo(contentX + maxWidth, currentY)
+     .stroke();
+  
+  // ============================================
+  // SECTION 5: QR CODE + TERMS (10%)
+  // ============================================
+  const section5Height = totalHeight * 0.10;
+  const section5Y = currentY;
+  
+  const dividerX5 = contentX + maxWidth * 0.25;
+  doc.moveTo(dividerX5, section5Y)
+     .lineTo(dividerX5, section5Y + section5Height)
+     .stroke();
+  
+  // LEFT: QR CODE (25%)
+  const qrLeftX = contentX + padding;
+  const qrWidth = maxWidth * 0.25 - padding * 2;
+  
+  if (qrCode) {
+    try {
+      const qrSize = Math.min(38, section5Height - 16);
+      const qrX = qrLeftX + (qrWidth - qrSize) / 2;
+      const qrY = section5Y + (section5Height - qrSize) / 2;
       
       const qrBuffer = await QRCode.toBuffer(shipment.awb, {
         errorCorrectionLevel: 'H',
@@ -427,47 +658,46 @@ async function renderLabel(doc, shipment, settings = {}, labelWidth = null, labe
         width: qrSize,
         height: qrSize,
       });
-      
-      // "Scan" text below QR
-      doc.font('Helvetica')
-         .fontSize(6)
-         .fillColor('#000000')
-         .text('Scan', qrX, qrY + qrSize + 1, {
-           width: qrSize,
-           align: 'center',
-         });
     } catch (err) {
       console.error("QR generation error:", err);
     }
   }
   
-  currentY = tableY + tableHeight + 15;
-
-  // ============================================
-  // 7. FOOTER
-  // ============================================
-  // Divider line above footer
-  doc.strokeColor('#000000')
-     .lineWidth(0.3)
-     .moveTo(contentX, currentY)
-     .lineTo(contentX + maxWidth, currentY)
-     .stroke();
+  // RIGHT: Terms & Conditions (75%)
+  // FIX 3: More gap between QR and text
+  const termsX = dividerX5 + 18; // Increased from padding to 18
+  const termsWidth = maxWidth * 0.75 - padding * 2 - 8;
   
-  currentY += 5;
-  
-  // Footer text
-  doc.font('Helvetica')
+  doc.font(regularFont)
      .fontSize(7)
-     .fillColor('#000000')
-     .text('Generated by LogiTrack', contentX, currentY, {
-       width: maxWidth,
-       align: 'center',
-     });
+     .fillColor('#555555');
+  
+  const termsStartY = section5Y + padding + 8;
+  const termsLineHeight = 16;
+  
+  const terms = [
+    'Handle With Care',
+    'Track using QR',
+  ];
+  
+  terms.forEach((term, index) => {
+    doc.text(term, termsX, termsStartY + (index * termsLineHeight), {
+      width: termsWidth,
+      align: 'left',
+    });
+  });
 
   // Restore position if we translated
   if (hasPosition) {
     doc.restore();
   }
+}
+
+// ===============================
+// HELPER: Render Complete Label (Keep for backward compatibility)
+// ===============================
+async function renderLabel(doc, shipment, settings = {}, labelWidth = null, labelHeight = null, x = 0, y = 0) {
+  return renderLabelV2(doc, shipment, settings, labelWidth, labelHeight, x, y);
 }
 
 // ===============================
