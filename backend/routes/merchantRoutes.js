@@ -6,6 +6,7 @@ const { authMiddleware } = require("../middleware/authMiddleware");
 const {
   getProfile,
   updateProfile,
+  changePassword, 
 } = require("../controllers/merchantController");
 
 // Get Profile
@@ -20,6 +21,13 @@ router.put(
   "/profile",
   authMiddleware,
   updateProfile
+);
+
+// ✅ Change Password Route
+router.put(
+  "/change-password",
+  authMiddleware,
+  changePassword
 );
 
 module.exports = router;

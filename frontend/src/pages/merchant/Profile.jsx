@@ -30,8 +30,22 @@ const Profile = () => {
         bankAccount: res.data.merchant?.bankAccount || "",
         address: res.data.merchant?.address || "",
       });
+
+      // ✅ Sync user data in localStorage on initial load
+      if (res.data.user) {
+        localStorage.setItem(
+          "user",
+          JSON.stringify(res.data.user)
+        );
+        window.dispatchEvent(new Event("userUpdated"));
+      }
     } catch (error) {
-      console.log(error);
+      // ✅ Change 1: Better error handling with user feedback
+      alert(
+        error?.response?.data?.message ||
+        "Failed to load profile. Please try again."
+      );
+      console.error("Fetch Profile Error:", error);
     }
   };
 
@@ -51,6 +65,21 @@ const Profile = () => {
         profile
       );
 
+      // ✅ Change 2: Update localStorage and notify Sidebar
+      if (res.data.user) {
+        localStorage.setItem(
+          "user",
+          JSON.stringify(res.data.user)
+        );
+
+        window.dispatchEvent(
+          new Event("userUpdated")
+        );
+      }
+
+      // ✅ Fetch latest data after save
+      await fetchProfile();
+
       alert(
         res.data.message ||
           "Profile Updated Successfully"
@@ -62,9 +91,16 @@ const Profile = () => {
         error?.response?.data?.message ||
           "Profile Update Failed"
       );
+      console.error("Save Profile Error:", error);
     } finally {
       setLoading(false);
     }
+  };
+
+  // ✅ Change 3: Async cancel with proper reset
+  const handleCancel = async () => {
+    setEditMode(false);
+    await fetchProfile(); // Reset to original data
   };
 
   return (
@@ -143,6 +179,7 @@ const Profile = () => {
                 value={profile.companyName}
                 onChange={handleChange}
                 readOnly={!editMode}
+                className={!editMode ? "readonly-input" : ""}
               />
 
               <input
@@ -152,6 +189,7 @@ const Profile = () => {
                 value={profile.gstNumber}
                 onChange={handleChange}
                 readOnly={!editMode}
+                className={!editMode ? "readonly-input" : ""}
               />
 
               <input
@@ -161,6 +199,7 @@ const Profile = () => {
                 value={profile.panNumber}
                 onChange={handleChange}
                 readOnly={!editMode}
+                className={!editMode ? "readonly-input" : ""}
               />
 
               <input
@@ -170,6 +209,7 @@ const Profile = () => {
                 value={profile.bankAccount}
                 onChange={handleChange}
                 readOnly={!editMode}
+                className={!editMode ? "readonly-input" : ""}
               />
 
               <textarea
@@ -178,25 +218,38 @@ const Profile = () => {
                 value={profile.address}
                 onChange={handleChange}
                 readOnly={!editMode}
+                className={!editMode ? "readonly-textarea" : ""}
               />
 
               {!editMode ? (
                 <button
-                  onClick={() =>
-                    setEditMode(true)
-                  }
+                  onClick={() => setEditMode(true)}
+                  className="edit-button"
                 >
                   Edit Profile
                 </button>
               ) : (
-                <button
-                  onClick={saveProfile}
-                  disabled={loading}
-                >
-                  {loading
-                    ? "Saving..."
-                    : "Save Changes"}
-                </button>
+                <div style={{ display: "flex", gap: "10px" }}>
+                  <button
+                    onClick={saveProfile}
+                    disabled={loading}
+                    className="save-button"
+                  >
+                    {loading ? "Saving..." : "Save Changes"}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleCancel}
+                    disabled={loading}
+                    className="cancel-button"
+                    style={{
+                      background: "#6b7280",
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
               )}
             </div>
           </div>
