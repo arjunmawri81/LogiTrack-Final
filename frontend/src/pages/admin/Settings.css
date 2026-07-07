@@ -1,0 +1,409 @@
+/* ============================================
+   SETTINGS CONTAINER
+   ============================================ */
+.settings-container {
+  display: flex;
+  min-height: 100vh;
+  background: #f0f2f5;
+}
+
+/* ============================================
+   MAIN CONTENT
+   ============================================ */
+.settings-main {
+  flex: 1;
+  margin-left: 280px;
+  padding: 40px 50px;
+  min-height: 100vh;
+  background: #f0f2f5;
+}
+
+.settings-content {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+.settings-header {
+  margin-bottom: 32px;
+}
+
+.settings-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.5px;
+}
+
+.settings-header p {
+  font-size: 15px;
+  color: #64748b;
+  margin: 0;
+  font-weight: 400;
+}
+
+/* ============================================
+   CARD
+   ============================================ */
+.settings-card {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 40px 44px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(226, 232, 240, 0.6);
+  transition: all 0.3s ease;
+}
+
+.settings-card:hover {
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.08);
+}
+
+/* ============================================
+   CARD HEADER
+   ============================================ */
+.card-header {
+  margin-bottom: 32px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #f1f5f9;
+}
+
+.card-header h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+}
+
+.card-header p {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+}
+
+/* ============================================
+   FORM
+   ============================================ */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.input-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  letter-spacing: 0.3px;
+}
+
+.input-group input {
+  padding: 14px 18px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 15px;
+  background: #fafbfc;
+  color: #0f172a;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.input-group input::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #f97316;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.1);
+}
+
+.input-group input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.input-hint {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+/* ============================================
+   BUTTON
+   ============================================ */
+.save-btn {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-family: inherit;
+}
+
+.save-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ea580c, #c2410c);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(249, 115, 22, 0.35);
+}
+
+.save-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.save-btn:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ============================================
+   SPINNER
+   ============================================ */
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid #ffffff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .settings-main {
+    margin-left: 0;
+    padding: 30px;
+  }
+
+  .settings-card {
+    padding: 32px 30px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .settings-main {
+    padding: 20px;
+  }
+
+  .settings-header h1 {
+    font-size: 28px;
+  }
+
+  .settings-card {
+    padding: 24px 20px;
+    border-radius: 20px;
+  }
+
+  .card-header {
+    margin-bottom: 24px;
+  }
+
+  .card-header h2 {
+    font-size: 20px;
+  }
+
+  .input-group input {
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+
+  .save-btn {
+    padding: 14px;
+    font-size: 15px;
+  }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+  .settings-main {
+    padding: 14px;
+  }
+
+  .settings-header h1 {
+    font-size: 24px;
+  }
+
+  .settings-header p {
+    font-size: 13px;
+  }
+
+  .settings-card {
+    padding: 20px 16px;
+    border-radius: 16px;
+  }
+
+  .card-header h2 {
+    font-size: 18px;
+  }
+
+  .card-header p {
+    font-size: 13px;
+  }
+
+  .input-group label {
+    font-size: 13px;
+  }
+
+  .input-group input {
+    padding: 11px 14px;
+    font-size: 13px;
+    border-radius: 10px;
+  }
+
+  .save-btn {
+    padding: 13px;
+    font-size: 14px;
+    border-radius: 10px;
+  }
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.settings-card {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+/* ============================================
+   SCROLLBAR STYLING
+   ============================================ */
+.settings-main::-webkit-scrollbar {
+  width: 6px;
+}
+
+.settings-main::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.settings-main::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+.settings-main::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ============================================
+   DARK MODE SUPPORT
+   ============================================ */
+@media (prefers-color-scheme: dark) {
+  .settings-container {
+    background: #0f172a;
+  }
+
+  .settings-main {
+    background: #0f172a;
+  }
+
+  .settings-header h1 {
+    color: #f1f5f9;
+  }
+
+  .settings-header p {
+    color: #94a3b8;
+  }
+
+  .settings-card {
+    background: #1e293b;
+    border-color: #334155;
+  }
+
+  .settings-card:hover {
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+  }
+
+  .card-header {
+    border-bottom-color: #334155;
+  }
+
+  .card-header h2 {
+    color: #f1f5f9;
+  }
+
+  .card-header p {
+    color: #94a3b8;
+  }
+
+  .input-group label {
+    color: #e2e8f0;
+  }
+
+  .input-group input {
+    background: #0f172a;
+    border-color: #334155;
+    color: #f1f5f9;
+  }
+
+  .input-group input::placeholder {
+    color: #64748b;
+  }
+
+  .input-group input:focus {
+    background: #1e293b;
+    border-color: #f97316;
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.15);
+  }
+
+  .input-hint {
+    color: #64748b;
+  }
+
+  .settings-main::-webkit-scrollbar-track {
+    background: #0f172a;
+  }
+
+  .settings-main::-webkit-scrollbar-thumb {
+    background: #334155;
+  }
+
+  .settings-main::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+  }
+}

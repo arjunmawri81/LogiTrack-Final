@@ -27,6 +27,9 @@ const {
   getAllAdmins,
   deleteAdmin,
 
+  // ✅ CHANGE PASSWORD (ADMIN)
+  changePassword, // ✅ ADDED
+
   getOrders,
   getOrderByIdAdmin,
   updateOrderStatus,
@@ -50,7 +53,7 @@ const {
   approveRTO,
   rejectNDRRequest,
 
-  // ✅ RTO Management (Admin) - ADDED
+  // ✅ RTO Management (Admin)
   getAdminRTO,
 
 } = require("../controllers/adminController");
@@ -184,6 +187,16 @@ router.delete(
   authMiddleware,
   authorizeRoles("SUPER_ADMIN"),
   deleteAdmin
+);
+
+// ================================
+// SETTINGS - CHANGE PASSWORD ✅ ADDED
+// ================================
+router.put(
+  "/change-password",
+  authMiddleware,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
+  changePassword
 );
 
 // ================================
@@ -331,7 +344,7 @@ router.patch(
 );
 
 // ================================
-// RTO MANAGEMENT (ADMIN) - ✅ ADDED
+// RTO MANAGEMENT (ADMIN)
 // ================================
 
 // Get All RTO Records
