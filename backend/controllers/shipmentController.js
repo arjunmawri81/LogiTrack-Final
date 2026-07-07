@@ -8,6 +8,7 @@ const QRCode = require("qrcode");
 const PDFDocument = require("pdfkit");
 const bwipjs = require("bwip-js");
 const NDR = require("../models/NDR");
+const RTO = require("../models/RTO");
 const AdmZip = require("adm-zip");
 const fs = require("fs");
 const path = require("path");
@@ -1198,7 +1199,7 @@ const trackShipment = async (req, res) => {
 };
 
 // ===============================
-// UPDATE SHIPMENT STATUS
+// UPDATE SHIPMENT STATUS - PRODUCTION READY
 // ===============================
 const updateShipmentStatus = async (req, res) => {
   try {
@@ -1255,6 +1256,9 @@ const updateShipmentStatus = async (req, res) => {
       await order.save();
     }
 
+    // ===============================
+    // NDR LOGIC - Existing
+    // ===============================
     if (status === "NDR") {
       console.log("========== NDR HIT ==========");
 
@@ -1277,6 +1281,76 @@ const updateShipmentStatus = async (req, res) => {
           console.log("NDR CREATED =", ndr);
         } catch (err) {
           console.log("NDR ERROR =", err);
+        }
+      }
+    }
+
+    // ===============================
+    // RTO LOGIC - PRODUCTION LEVEL
+    // ===============================
+    if (status === "RTO") {
+      console.log("========== RTO HIT ==========");
+
+      const existingRTO = await RTO.findOne({
+        shipmentId: shipment._id,
+      });
+
+      console.log("EXISTING RTO =", existingRTO);
+
+      if (!existingRTO) {
+        try {
+          // Fetch order to get customer details
+          const order = await Order.findById(shipment.orderId);
+
+          const rto = await RTO.create({
+            shipmentId: shipment._id,
+            merchantId: shipment.merchantId,
+            orderId: shipment.orderId,
+            awb: shipment.awb,
+            courier: shipment.courier,
+            
+            // Required Field
+            reason: "Returned To Origin",
+            rtoReason: "Shipment marked as RTO by Admin",
+            
+            // Customer Details
+            customerName: order?.customerName || "",
+            customerPhone: order?.customerPhone || "",
+            address: order?.customerAddress || "",
+            pincode: order?.customerPincode || "",
+            city: order?.customerCity || "",
+            state: order?.customerState || "",
+            
+            // Status
+            status: "INITIATED",
+            rtoRequestedAt: new Date(),
+            
+            // Audit Fields
+            createdBy: "admin",
+            source: "manual",
+            lastUpdatedBy: req.user.id, // IMPROVEMENT 2: Track who updated
+            
+            // IMPROVEMENT 3: Initialize attempt history
+            attemptHistory: [
+              {
+                date: new Date(),
+                status: "INITIATED",
+                remarks: "Shipment marked as RTO by Admin",
+                updatedBy: req.user.id,
+              },
+            ],
+          });
+
+          console.log("RTO CREATED =", rto);
+        } catch (err) {
+          // IMPROVEMENT 1: Throw error instead of just console.log
+          console.error("RTO ERROR =", err);
+          
+          return res.status(500).json({
+            success: false,
+            message: "Failed to create RTO record",
+            error: err.message,
+          });
         }
       }
     }

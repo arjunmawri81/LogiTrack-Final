@@ -51,7 +51,7 @@ const Dashboard = () => {
     main: { flex: 1, padding: "30px", overflowX: "hidden" },
     header: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px" },
     title: { fontSize: "32px", fontWeight: "800", color: "#0f172a", margin: 0 },
-    btn: { background: "#f97316", color: "white", padding: "12px 24px", borderRadius: "12px", border: "none", fontWeight: "600", cursor: "pointer" },
+    // ✅ btn style removed (no longer needed)
     grid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "20px", marginBottom: "35px" },
     card: (bg) => ({ background: bg, padding: "24px", borderRadius: "16px", color: "white", boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)" }),
     
@@ -99,12 +99,7 @@ const Dashboard = () => {
             <h1 style={s.title}>Welcome Back, {user?.name || "Merchant"}</h1>
             <p style={{ color: "#64748b", margin: "5px 0 0 0" }}>Manage shipments and activity.</p>
           </div>
-          <button
-            style={s.btn}
-            onClick={() => navigate("/merchant/create-shipment")}
-          >
-            + Create Shipment
-          </button>
+          {/* ✅ Create Shipment button removed */}
         </div>
 
         <div style={s.grid}>
