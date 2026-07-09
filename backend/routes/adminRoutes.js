@@ -27,33 +27,24 @@ const {
   getAllAdmins,
   deleteAdmin,
 
-  // ✅ CHANGE PASSWORD (ADMIN)
-  changePassword, // ✅ ADDED
+  // CHANGE PASSWORD (ADMIN)
+  changePassword,
 
   getOrders,
   getOrderByIdAdmin,
-  updateOrderStatus,
+  cancelOrderAdmin, // ✅ Only cancel remains
   getShipments,
   getShipmentByIdAdmin,
   getCommission,
   getRevenue,
   
-  // Order Management (Admin)
-  updateOrderAdmin,
-  assignCourier,
-  cancelOrderAdmin,
-
-  // Bulk Operations
-  bulkUpdateStatus,
-  bulkAssignCourier,
-
-  // ✅ NDR Management (Admin)
+  // NDR Management (Admin)
   getAdminNDR,
   approveReattempt,
   approveRTO,
   rejectNDRRequest,
 
-  // ✅ RTO Management (Admin)
+  // RTO Management (Admin)
   getAdminRTO,
 
 } = require("../controllers/adminController");
@@ -190,7 +181,7 @@ router.delete(
 );
 
 // ================================
-// SETTINGS - CHANGE PASSWORD ✅ ADDED
+// SETTINGS - CHANGE PASSWORD
 // ================================
 router.put(
   "/change-password",
@@ -200,38 +191,16 @@ router.put(
 );
 
 // ================================
-// ORDERS
+// ORDERS (RESTRICTED - ONLY GET & CANCEL)
 // ================================
+
+// Get All Orders
 router.get(
   "/orders",
   authMiddleware,
   authorizeRoles("ADMIN", "SUPER_ADMIN"),
   getOrders
 );
-
-// ================================
-// BULK OPERATIONS ROUTES (BEFORE ID ROUTES)
-// ================================
-
-// Bulk Status Update
-router.patch(
-  "/orders/bulk-status",
-  authMiddleware,
-  authorizeRoles("ADMIN", "SUPER_ADMIN"),
-  bulkUpdateStatus
-);
-
-// Bulk Courier Assign
-router.patch(
-  "/orders/bulk-courier",
-  authMiddleware,
-  authorizeRoles("ADMIN", "SUPER_ADMIN"),
-  bulkAssignCourier
-);
-
-// ================================
-// ORDER MANAGEMENT ROUTES (WITH ID)
-// ================================
 
 // Get Order by ID
 router.get(
@@ -241,31 +210,7 @@ router.get(
   getOrderByIdAdmin
 );
 
-// Update Order Status
-router.patch(
-  "/orders/:id/status",
-  authMiddleware,
-  authorizeRoles("ADMIN", "SUPER_ADMIN"),
-  updateOrderStatus
-);
-
-// Edit Order (Full Update)
-router.put(
-  "/orders/:id",
-  authMiddleware,
-  authorizeRoles("ADMIN", "SUPER_ADMIN"),
-  updateOrderAdmin
-);
-
-// Assign Courier
-router.patch(
-  "/orders/:id/courier",
-  authMiddleware,
-  authorizeRoles("ADMIN", "SUPER_ADMIN"),
-  assignCourier
-);
-
-// Cancel Order
+// Cancel Order Only
 router.patch(
   "/orders/:id/cancel",
   authMiddleware,

@@ -761,7 +761,7 @@ const changePassword = async (req, res) => {
 };
 
 // ================================
-// ORDERS & SHIPMENTS
+// ORDERS - ONLY GET & CANCEL
 // ================================
 const getOrders = async (req, res) => {
   try {
@@ -802,97 +802,6 @@ const getOrderByIdAdmin = async (req, res) => {
   }
 };
 
-const updateOrderStatus = async (req, res) => {
-  try {
-    const { status } = req.body;
-
-    const order = await Order.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      { new: true }
-    );
-
-    if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: "Order not found",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Order status updated successfully",
-      order,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-const updateOrderAdmin = async (req, res) => {
-  try {
-    const order = await Order.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
-
-    if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: "Order not found",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Order updated successfully",
-      order,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-const assignCourier = async (req, res) => {
-  try {
-    const { courierPartner } = req.body;
-
-    const order = await Order.findByIdAndUpdate(
-      req.params.id,
-      {
-        courierPartner,
-        status: "PROCESSING",
-      },
-      { new: true }
-    );
-
-    if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: "Order not found",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Courier assigned successfully",
-      order,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
 const cancelOrderAdmin = async (req, res) => {
   try {
     const order = await Order.findByIdAndUpdate(
@@ -912,81 +821,6 @@ const cancelOrderAdmin = async (req, res) => {
       success: true,
       message: "Order cancelled successfully",
       order,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-// ================================
-// BULK OPERATIONS
-// ================================
-const bulkUpdateStatus = async (req, res) => {
-  try {
-    const { orderIds, status } = req.body;
-
-    if (!orderIds || !Array.isArray(orderIds) || orderIds.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Please provide valid order IDs",
-      });
-    }
-
-    if (!status) {
-      return res.status(400).json({
-        success: false,
-        message: "Please provide a status to update",
-      });
-    }
-
-    const result = await Order.updateMany(
-      { _id: { $in: orderIds } },
-      { status }
-    );
-
-    res.status(200).json({
-      success: true,
-      message: `${result.modifiedCount} orders updated successfully`,
-      updatedCount: result.modifiedCount,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-const bulkAssignCourier = async (req, res) => {
-  try {
-    const { orderIds, courierPartner } = req.body;
-
-    if (!orderIds || !Array.isArray(orderIds) || orderIds.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Please provide valid order IDs",
-      });
-    }
-
-    if (!courierPartner) {
-      return res.status(400).json({
-        success: false,
-        message: "Please provide a courier partner to assign",
-      });
-    }
-
-    const result = await Order.updateMany(
-      { _id: { $in: orderIds } },
-      { courierPartner, status: "PROCESSING" }
-    );
-
-    res.status(200).json({
-      success: true,
-      message: `${result.modifiedCount} orders assigned to ${courierPartner} successfully`,
-      updatedCount: result.modifiedCount,
     });
   } catch (error) {
     res.status(500).json({
@@ -1574,7 +1408,7 @@ const deleteRateCard = async (req, res) => {
 };
 
 // ================================
-// EXPORTS
+// EXPORTS - REMOVED: updateOrderStatus, updateOrderAdmin, assignCourier, bulkUpdateStatus, bulkAssignCourier
 // ================================
 module.exports = {
   // Dashboard
@@ -1602,24 +1436,17 @@ module.exports = {
   getAllAdmins,
   deleteAdmin,
 
-  // ✅ Change Password (Admin)
+  // Change Password (Admin)
   changePassword,
 
-  // Orders & Shipments
+  // Orders - ONLY get and cancel
   getOrders,
   getOrderByIdAdmin,
-  updateOrderStatus,
-  getShipments,
-  getShipmentByIdAdmin,
-
-  // Order Management (Admin)
-  updateOrderAdmin,
-  assignCourier,
   cancelOrderAdmin,
 
-  // Bulk Operations
-  bulkUpdateStatus,
-  bulkAssignCourier,
+  // Shipments
+  getShipments,
+  getShipmentByIdAdmin,
 
   // NDR Management (Admin)
   getAdminNDR,

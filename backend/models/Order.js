@@ -100,7 +100,6 @@ const orderSchema = new mongoose.Schema(
       required: true,
     },
 
-    // ✅ INSURANCE FIELDS ADDED HERE
     insuranceEnabled: {
       type: Boolean,
       default: false,
@@ -116,6 +115,7 @@ const orderSchema = new mongoose.Schema(
       default: 0,
     },
 
+    // Filled automatically after Shipment Creation
     courierPartner: {
       type: String,
       default: "",
@@ -143,22 +143,11 @@ const orderSchema = new mongoose.Schema(
       default: "",
     },
 
+    // Order Status Only
     status: {
       type: String,
-      enum: [
-        "PENDING",
-        "PROCESSING",
-        "PACKED",
-        "READY_FOR_PICKUP",
-        "SHIPPED",
-        "OUT_FOR_DELIVERY",
-        "DELIVERED",
-        "RETURNED",
-        "CANCELLED",
-        "NDR",
-        "RTO",
-      ],
-      default: "PENDING",
+      enum: ["NEW", "CANCELLED"],
+      default: "NEW",
     },
   },
   {
@@ -166,13 +155,15 @@ const orderSchema = new mongoose.Schema(
   }
 );
 
-orderSchema.pre("save", async function () {
+orderSchema.pre("save", function (next) {
   if (!this.orderNumber) {
     this.orderNumber =
       "ORD" +
       Date.now() +
       Math.floor(1000 + Math.random() * 9000);
   }
+
+  next();
 });
 
 module.exports = mongoose.model("Order", orderSchema);
