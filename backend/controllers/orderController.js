@@ -351,8 +351,8 @@ const uploadCSVOrders = async (req, res) => {
           isGift: row.isGift === "true" || false,
           giftMessage: row.giftMessage || "",
           
-          // Status
-          status: "PENDING",
+          // Status - Changed from "PENDING" to "NEW"
+          status: "NEW",
         }));
 
         const insertedOrders = await Order.insertMany(orders);
@@ -460,8 +460,8 @@ const uploadExcelOrders = async (req, res) => {
       isGift: row.isGift === "true" || false,
       giftMessage: row.giftMessage || "",
       
-      // Status
-      status: "PENDING",
+      // Status - Changed from "PENDING" to "NEW"
+      status: "NEW",
     }));
 
     const insertedOrders = await Order.insertMany(orders);

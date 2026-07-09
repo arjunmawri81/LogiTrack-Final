@@ -761,11 +761,13 @@ const changePassword = async (req, res) => {
 };
 
 // ================================
-// ORDERS - ONLY GET & CANCEL
+// ORDERS - ONLY GET & CANCEL (UPDATED with merchant population)
 // ================================
 const getOrders = async (req, res) => {
   try {
-    const orders = await Order.find().sort({ createdAt: -1 });
+    const orders = await Order.find()
+      .populate("merchantId", "companyName name")
+      .sort({ createdAt: -1 });
     res.status(200).json({
       success: true,
       count: orders.length,
@@ -781,7 +783,8 @@ const getOrders = async (req, res) => {
 
 const getOrderByIdAdmin = async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findById(req.params.id)
+      .populate("merchantId", "companyName name email phone");
 
     if (!order) {
       return res.status(404).json({
@@ -1439,7 +1442,7 @@ module.exports = {
   // Change Password (Admin)
   changePassword,
 
-  // Orders - ONLY get and cancel
+  // Orders - ONLY get and cancel (UPDATED)
   getOrders,
   getOrderByIdAdmin,
   cancelOrderAdmin,

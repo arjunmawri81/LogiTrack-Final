@@ -122,15 +122,6 @@ const Orders = () => {
     };
   };
 
-  const getStatusColor = (status) => {
-    const colors = {
-      NEW: "#fef3c7",
-      SHIPMENT_CREATED: "#dbeafe",
-      CANCELLED: "#f1f5f9",
-    };
-    return colors[status] || "#ffffff";
-  };
-
   return (
     <div
       style={{
@@ -170,7 +161,7 @@ const Orders = () => {
           View and manage all platform orders
         </p>
 
-        {/* Stats Cards - Shipmojo Style */}
+        {/* Stats Cards */}
         <div
           style={{
             display: "grid",
@@ -270,7 +261,7 @@ const Orders = () => {
           )}
         </div>
 
-        {/* Status Tabs - Shipmojo Style */}
+        {/* Status Tabs */}
         <div
           style={{
             display: "flex",
@@ -317,6 +308,7 @@ const Orders = () => {
             overflowX: "auto",
             overflowY: "visible",
             boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+            position: "relative",
           }}
         >
           {loading ? (
@@ -327,14 +319,14 @@ const Orders = () => {
             <table
               style={{
                 width: "100%",
-                minWidth: "100%",
+                minWidth: "1200px",
                 borderCollapse: "collapse",
                 background: "#fff",
               }}
             >
               <thead>
                 <tr style={{ background: "#f8fafc", borderBottom: "1px solid #eef2f6" }}>
-                  <th style={{ textAlign: "left", padding: "16px 20px", color: "#475569", fontSize: "12px", fontWeight: "600", background: "#f8fafc", width: "40px" }}>
+                  <th style={{ textAlign: "left", padding: "16px 12px", color: "#475569", fontSize: "12px", fontWeight: "600", background: "#f8fafc", width: "40px" }}>
                     <input
                       type="checkbox"
                       onChange={(e) => {
@@ -350,25 +342,26 @@ const Orders = () => {
                       }}
                     />
                   </th>
-                  <th style={{ textAlign: "left", padding: "16px 20px", color: "#475569", fontSize: "12px", fontWeight: "600", background: "#f8fafc", width: "140px" }}>Order No</th>
-                  <th style={{ textAlign: "left", padding: "16px 20px", color: "#475569", fontSize: "12px", fontWeight: "600", background: "#f8fafc", width: "180px" }}>Customer</th>
-                  <th style={{ textAlign: "left", padding: "16px 20px", color: "#475569", fontSize: "12px", fontWeight: "600", background: "#f8fafc", width: "140px" }}>Phone</th>
-                  <th style={{ textAlign: "left", padding: "16px 20px", color: "#475569", fontSize: "12px", fontWeight: "600", background: "#f8fafc", width: "120px" }}>City</th>
-                  <th style={{ textAlign: "left", padding: "16px 20px", color: "#475569", fontSize: "12px", fontWeight: "600", background: "#f8fafc", width: "100px" }}>Amount</th>
-                  <th style={{ textAlign: "left", padding: "16px 20px", color: "#475569", fontSize: "12px", fontWeight: "600", background: "#f8fafc", width: "120px" }}>Payment</th>
-                  <th style={{ textAlign: "left", padding: "16px 20px", color: "#475569", fontSize: "12px", fontWeight: "600", background: "#f8fafc", width: "150px" }}>Status</th>
+                  <th style={{ textAlign: "left", padding: "16px 12px", color: "#475569", fontSize: "12px", fontWeight: "600", background: "#f8fafc", width: "120px" }}>Order No</th>
+                  <th style={{ textAlign: "left", padding: "16px 12px", color: "#475569", fontSize: "12px", fontWeight: "600", background: "#f8fafc", width: "140px" }}>Customer</th>
+                  <th style={{ textAlign: "left", padding: "16px 12px", color: "#475569", fontSize: "12px", fontWeight: "600", background: "#f8fafc", width: "140px" }}>Merchant</th>
+                  <th style={{ textAlign: "left", padding: "16px 12px", color: "#475569", fontSize: "12px", fontWeight: "600", background: "#f8fafc", width: "110px" }}>Phone</th>
+                  <th style={{ textAlign: "left", padding: "16px 12px", color: "#475569", fontSize: "12px", fontWeight: "600", background: "#f8fafc", width: "90px" }}>City</th>
+                  <th style={{ textAlign: "left", padding: "16px 12px", color: "#475569", fontSize: "12px", fontWeight: "600", background: "#f8fafc", width: "90px" }}>Amount</th>
+                  <th style={{ textAlign: "left", padding: "16px 12px", color: "#475569", fontSize: "12px", fontWeight: "600", background: "#f8fafc", width: "100px" }}>Payment</th>
+                  <th style={{ textAlign: "left", padding: "16px 12px", color: "#475569", fontSize: "12px", fontWeight: "600", background: "#f8fafc", width: "140px" }}>Status</th>
                   <th
                     style={{
                       position: "sticky",
                       right: 0,
                       background: "#f8fafc",
                       zIndex: 10,
-                      padding: "16px 20px",
-                      textAlign: "left",
+                      padding: "16px 12px",
+                      textAlign: "center",
                       color: "#475569",
                       fontSize: "12px",
                       fontWeight: "600",
-                      width: "80px",
+                      width: "70px",
                     }}
                   >
                     Actions
@@ -402,7 +395,7 @@ const Orders = () => {
                           });
                         }}
                       >
-                        <td style={{ padding: "16px 20px" }}>
+                        <td style={{ padding: "12px 12px", textAlign: "center" }}>
                           <input
                             type="checkbox"
                             checked={selectedOrders.includes(order._id)}
@@ -422,7 +415,7 @@ const Orders = () => {
                             }}
                           />
                         </td>
-                        <td style={{ padding: "16px 20px" }}>
+                        <td style={{ padding: "12px 12px" }}>
                           <button
                             onClick={() =>
                               navigate(`/admin/orders/${order._id}`)
@@ -433,37 +426,57 @@ const Orders = () => {
                               color: "#2563eb",
                               cursor: "pointer",
                               fontWeight: "600",
-                              fontSize: "14px",
+                              fontSize: "13px",
+                              padding: "0",
+                              whiteSpace: "nowrap",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              maxWidth: "100px",
+                              display: "block",
                             }}
                           >
                             {order.orderNumber}
                           </button>
                         </td>
                         <td style={{ 
-                          padding: "16px 20px", 
-                          fontSize: "14px", 
+                          padding: "12px 12px", 
+                          fontSize: "13px", 
                           color: "#1e293b",
                           whiteSpace: "nowrap",
-                          maxWidth: "180px",
                           overflow: "hidden",
                           textOverflow: "ellipsis",
+                          maxWidth: "140px",
                         }}>
                           {order.customerName}
                         </td>
-                        <td style={{ padding: "16px 20px", fontSize: "14px", color: "#1e293b" }}>{order.customerPhone}</td>
-                        <td style={{ padding: "16px 20px", fontSize: "14px", color: "#1e293b" }}>{order.city || "-"}</td>
-                        <td style={{ padding: "16px 20px", fontSize: "14px", fontWeight: "600", color: "#059669" }}>₹{order.amount}</td>
-                        <td style={{ padding: "16px 20px", fontSize: "14px", color: "#1e293b" }}>{order.paymentMode || "-"}</td>
-                        <td style={{ padding: "16px 20px" }}>
+                        <td
+                          style={{
+                            padding: "12px 12px",
+                            fontSize: "13px",
+                            color: "#1e293b",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            maxWidth: "140px",
+                          }}
+                        >
+                          {order.merchantId?.companyName || order.merchantId?.name || "-"}
+                        </td>
+                        <td style={{ padding: "12px 12px", fontSize: "13px", color: "#1e293b" }}>{order.customerPhone}</td>
+                        <td style={{ padding: "12px 12px", fontSize: "13px", color: "#1e293b" }}>{order.city || "-"}</td>
+                        <td style={{ padding: "12px 12px", fontSize: "13px", fontWeight: "600", color: "#059669" }}>₹{order.amount}</td>
+                        <td style={{ padding: "12px 12px", fontSize: "13px", color: "#1e293b" }}>{order.paymentMode || "-"}</td>
+                        <td style={{ padding: "12px 12px" }}>
                           <span
                             style={{
-                              padding: "6px 12px",
+                              padding: "4px 10px",
                               borderRadius: "8px",
                               background: statusBadge.color,
                               color: statusBadge.textColor,
-                              fontSize: "12px",
+                              fontSize: "11px",
                               fontWeight: "600",
                               display: "inline-block",
+                              whiteSpace: "nowrap",
                             }}
                           >
                             {statusBadge.label}
@@ -472,9 +485,13 @@ const Orders = () => {
                             <span
                               style={{
                                 display: "block",
-                                fontSize: "11px",
+                                fontSize: "10px",
                                 color: "#64748b",
-                                marginTop: "4px",
+                                marginTop: "2px",
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                maxWidth: "120px",
                               }}
                             >
                               {order.courierPartner}
@@ -484,102 +501,77 @@ const Orders = () => {
                         </td>
                         <td
                           style={{
-                            padding: "16px 20px",
+                            padding: "12px 12px",
                             position: "sticky",
                             right: 0,
                             background: "#fff",
                             zIndex: 5,
+                            textAlign: "center",
+                            width: "70px",
                           }}
                         >
-                          <button
-                            onClick={() =>
-                              setOpenMenu(
-                                openMenu === order._id
-                                  ? null
-                                  : order._id
-                              )
-                            }
-                            style={{
-                              border: "none",
-                              background: "transparent",
-                              cursor: "pointer",
-                              padding: "8px",
-                              borderRadius: "8px",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.background = "#f1f5f9";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.background = "transparent";
-                            }}
-                          >
-                            <FaEllipsisV size={18} color="#64748b" />
-                          </button>
-
-                          {openMenu === order._id && (
-                            <div
+                          <div style={{ position: "relative", display: "inline-block" }}>
+                            <button
+                              onClick={() =>
+                                setOpenMenu(
+                                  openMenu === order._id
+                                    ? null
+                                    : order._id
+                                )
+                              }
                               style={{
-                                position: "absolute",
-                                right: "50px",
-                                top: "35px",
-                                background: "#fff",
-                                border: "1px solid #e5e7eb",
-                                borderRadius: "12px",
-                                padding: "8px 0",
-                                zIndex: 100,
-                                minWidth: "220px",
-                                width: "220px",
-                                boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
+                                border: "none",
+                                background: "transparent",
+                                cursor: "pointer",
+                                padding: "6px",
+                                borderRadius: "8px",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = "#f1f5f9";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = "transparent";
                               }}
                             >
-                              {/* View Order - Always visible */}
+                              <FaEllipsisV size={16} color="#64748b" />
+                            </button>
+
+                            {openMenu === order._id && (
                               <div
-                                onClick={() => {
-                                  navigate(`/admin/orders/${order._id}`);
-                                  setOpenMenu(null);
-                                }}
                                 style={{
-                                  padding: "12px 16px",
-                                  cursor: "pointer",
-                                  fontSize: "14px",
-                                  fontWeight: "500",
-                                  color: "#1e293b",
-                                  transition: "all 0.2s",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "12px",
-                                }}
-                                onMouseEnter={(e) => {
-                                  e.currentTarget.style.background = "#f8fafc";
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.background = "transparent";
+                                  position: "absolute",
+                                  right: "0",
+                                  top: "100%",
+                                  marginTop: "5px",
+                                  background: "#fff",
+                                  border: "1px solid #e5e7eb",
+                                  borderRadius: "12px",
+                                  padding: "6px 0",
+                                  zIndex: 1000,
+                                  minWidth: "180px",
+                                  width: "180px",
+                                  boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
                                 }}
                               >
-                                <FaEye size={16} color="#3b82f6" />
-                                <span>View Order</span>
-                              </div>
-
-                              {/* Open Shipment - Only if shipment exists */}
-                              {hasShipment(order) && (
+                                {/* View Order */}
                                 <div
                                   onClick={() => {
-                                    navigate(`/admin/shipments/${order.shipmentId || order._id}`);
+                                    navigate(`/admin/orders/${order._id}`);
                                     setOpenMenu(null);
                                   }}
                                   style={{
-                                    padding: "12px 16px",
+                                    padding: "10px 14px",
                                     cursor: "pointer",
-                                    fontSize: "14px",
+                                    fontSize: "13px",
                                     fontWeight: "500",
                                     color: "#1e293b",
                                     transition: "all 0.2s",
                                     display: "flex",
                                     alignItems: "center",
-                                    gap: "12px",
+                                    gap: "10px",
                                   }}
                                   onMouseEnter={(e) => {
                                     e.currentTarget.style.background = "#f8fafc";
@@ -588,50 +580,80 @@ const Orders = () => {
                                     e.currentTarget.style.background = "transparent";
                                   }}
                                 >
-                                  <FaTruck size={16} color="#059669" />
-                                  <span>Open Shipment</span>
+                                  <FaEye size={14} color="#3b82f6" />
+                                  <span>View Order</span>
                                 </div>
-                              )}
 
-                              {/* Cancel Order - Only if not cancelled and no shipment */}
-                              {!hasShipment(order) && order.status !== "CANCELLED" && (
-                                <div
-                                  onClick={() => {
-                                    cancelOrder(order._id);
-                                    setOpenMenu(null);
-                                  }}
-                                  style={{
-                                    padding: "12px 16px",
-                                    cursor: "pointer",
-                                    fontSize: "14px",
-                                    fontWeight: "500",
-                                    color: "#dc2626",
-                                    transition: "all 0.2s",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "12px",
-                                    borderTop: "1px solid #f1f5f9",
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.background = "#fef2f2";
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.background = "transparent";
-                                  }}
-                                >
-                                  <FaTimesCircle size={16} color="#dc2626" />
-                                  <span>Cancel Order</span>
-                                </div>
-                              )}
-                            </div>
-                          )}
+                                {/* Open Shipment */}
+                                {hasShipment(order) && (
+                                  <div
+                                    onClick={() => {
+                                      navigate(`/admin/shipments/${order.shipmentId || order._id}`);
+                                      setOpenMenu(null);
+                                    }}
+                                    style={{
+                                      padding: "10px 14px",
+                                      cursor: "pointer",
+                                      fontSize: "13px",
+                                      fontWeight: "500",
+                                      color: "#1e293b",
+                                      transition: "all 0.2s",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: "10px",
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.style.background = "#f8fafc";
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.style.background = "transparent";
+                                    }}
+                                  >
+                                    <FaTruck size={14} color="#059669" />
+                                    <span>Open Shipment</span>
+                                  </div>
+                                )}
+
+                                {/* Cancel Order */}
+                                {!hasShipment(order) && order.status !== "CANCELLED" && (
+                                  <div
+                                    onClick={() => {
+                                      cancelOrder(order._id);
+                                      setOpenMenu(null);
+                                    }}
+                                    style={{
+                                      padding: "10px 14px",
+                                      cursor: "pointer",
+                                      fontSize: "13px",
+                                      fontWeight: "500",
+                                      color: "#dc2626",
+                                      transition: "all 0.2s",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: "10px",
+                                      borderTop: "1px solid #f1f5f9",
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.style.background = "#fef2f2";
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.style.background = "transparent";
+                                    }}
+                                  >
+                                    <FaTimesCircle size={14} color="#dc2626" />
+                                    <span>Cancel Order</span>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     );
                   })
                 ) : (
                   <tr>
-                    <td colSpan="9" style={{ textAlign: "center", padding: "40px", color: "#94a3b8" }}>
+                    <td colSpan="10" style={{ textAlign: "center", padding: "40px", color: "#94a3b8" }}>
                       {searchTerm ? "No orders match your search" : "No Orders Found"}
                     </td>
                   </tr>

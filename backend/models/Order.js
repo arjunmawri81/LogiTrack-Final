@@ -143,11 +143,24 @@ const orderSchema = new mongoose.Schema(
       default: "",
     },
 
-    // Order Status Only
+    // Order Status - Full lifecycle tracking
     status: {
       type: String,
-      enum: ["NEW", "CANCELLED"],
+      enum: [
+        "NEW",                 // Order Created
+        "PENDING",             // Order Pending Processing
+        "SHIPMENT_CREATED",    // Shipment Created
+        "READY_FOR_PICKUP",    // Courier Accepted
+        "PICKED_UP",
+        "IN_TRANSIT",
+        "OUT_FOR_DELIVERY",
+        "DELIVERED",
+        "NDR",
+        "RTO",
+        "CANCELLED",
+      ],
       default: "NEW",
+      index: true,
     },
   },
   {
@@ -155,15 +168,13 @@ const orderSchema = new mongoose.Schema(
   }
 );
 
-orderSchema.pre("save", function (next) {
+orderSchema.pre("save", function () {
   if (!this.orderNumber) {
     this.orderNumber =
       "ORD" +
       Date.now() +
       Math.floor(1000 + Math.random() * 9000);
   }
-
-  next();
 });
 
 module.exports = mongoose.model("Order", orderSchema);

@@ -6,36 +6,31 @@ const shipmentSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Order",
       required: true,
+      // ✅ No index: true here - using compound index below
     },
 
     merchantId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true,
+      index: true, // ✅ Optional but good for single-field queries
     },
 
     awb: {
       type: String,
       required: true,
-      unique: true,
+      unique: true, // ✅ Unique constraint - no separate index needed
       match: [/^[A-Za-z0-9-_]{6,40}$/, 'AWB must be 6-40 characters and can include letters, numbers, hyphens, and underscores']
     },
 
-    // ✅ UPDATED: Removed enum restriction
+    // ✅ Snapshot of courier name at time of shipment creation
     courier: {
       type: String,
       required: true,
       trim: true,
     },
 
-    courierPartner: {
-      type: String,
-      trim: true,
-      default: "",
-    },
-
-    // ✅ ADDED: courierId field for proper relationship
+    // ✅ Reference to courier master data
     courierId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Courier",
@@ -45,8 +40,9 @@ const shipmentSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: [
-        "PENDING",
-        "READY_FOR_PICKUP",
+        "PICKUP_PENDING",
+        "PICKUP_SCHEDULED",
+        "PICKED_UP",
         "IN_TRANSIT",
         "OUT_FOR_DELIVERY",
         "DELIVERED",
@@ -54,10 +50,16 @@ const shipmentSchema = new mongoose.Schema(
         "RTO",
         "CANCELLED",
       ],
-      default: "PENDING",
+      default: "PICKUP_PENDING",
+      index: true,
     },
 
-    trackingEvents: [
+    lastTrackingUpdate: {
+      type: Date,
+      default: Date.now,
+    },
+
+    tracking: [
       {
         status: {
           type: String,
@@ -67,11 +69,11 @@ const shipmentSchema = new mongoose.Schema(
           type: String,
           default: "",
         },
-        remark: {
+        remarks: {
           type: String,
           default: "",
         },
-        timestamp: {
+        eventTime: {
           type: Date,
           default: Date.now,
         },
@@ -96,6 +98,76 @@ const shipmentSchema = new mongoose.Schema(
     labelUrl: {
       type: String,
       default: "",
+    },
+
+    // ==============================
+    // COURIER PROVIDER DETAILS
+    // ==============================
+
+    // Provider Name
+    provider: {
+      type: String,
+      default: "",
+    },
+
+    // Shipment ID returned by courier
+    providerShipmentId: {
+      type: String,
+      default: "",
+    },
+
+    // Tracking ID returned by courier
+    providerTrackingId: {
+      type: String,
+      default: "",
+    },
+
+    // Status returned by courier API
+    providerStatus: {
+      type: String,
+      default: "",
+    },
+
+    // Tracking URL from courier
+    trackingUrl: {
+      type: String,
+      default: "",
+    },
+
+    // Manifest URL
+    manifestUrl: {
+      type: String,
+      default: "",
+    },
+
+    // Pickup Request ID
+    pickupRequestId: {
+      type: String,
+      default: "",
+    },
+
+    // Courier estimated delivery
+    estimatedDeliveryDate: {
+      type: Date,
+      default: null,
+    },
+
+    // Last API Sync
+    lastSyncedAt: {
+      type: Date,
+      default: null,
+    },
+
+    // Last Webhook Received
+    lastWebhookAt: {
+      type: Date,
+      default: null,
+    },
+
+    // Courier API Raw Response
+    apiResponse: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
     },
 
     manifestId: {
@@ -180,7 +252,7 @@ const shipmentSchema = new mongoose.Schema(
       min: 0,
     },
 
-    remarks: {
+    internalRemarks: {
       type: String,
       default: "",
     },
@@ -216,19 +288,21 @@ const shipmentSchema = new mongoose.Schema(
 );
 
 // ============ PRE-SAVE HOOK ============
-shipmentSchema.pre("save", function () {
-  if (!this.trackingEvents || this.trackingEvents.length === 0) {
-    this.trackingEvents = [
+shipmentSchema.pre("save", function() {
+  if (!this.tracking || this.tracking.length === 0) {
+    this.tracking = [
       {
-        status: this.status || "PENDING",
-        location: "Warehouse",
-        remark: "Shipment Created",
-        timestamp: new Date(),
+        status: this.status || "PICKUP_PENDING",
+        location: "Origin Hub",
+        remarks: "Shipment Created",
+        eventTime: new Date(),
       },
     ];
   }
 
-  if (this.status === "READY_FOR_PICKUP" && !this.pickupDate) {
+  this.lastTrackingUpdate = new Date();
+
+  if (this.status === "PICKED_UP" && !this.pickupDate) {
     this.pickupDate = new Date();
   }
 
@@ -243,29 +317,26 @@ shipmentSchema.pre("save", function () {
 
 // ============ INSTANCE METHODS ============
 
-// Check if shipment is deliverable
 shipmentSchema.methods.isDeliverable = function() {
-  return ["PENDING", "READY_FOR_PICKUP", "IN_TRANSIT", "OUT_FOR_DELIVERY"].includes(this.status);
+  return ["PICKUP_PENDING", "PICKUP_SCHEDULED", "PICKED_UP", "IN_TRANSIT", "OUT_FOR_DELIVERY"].includes(this.status);
 };
 
-// Check if shipment is completed
 shipmentSchema.methods.isCompleted = function() {
   return ["DELIVERED", "CANCELLED", "RTO"].includes(this.status);
 };
 
-// Add tracking event
-shipmentSchema.methods.addTrackingEvent = function(status, location, remark) {
-  this.trackingEvents.push({
+shipmentSchema.methods.addTrackingEvent = function(status, location, remarks) {
+  this.tracking.push({
     status,
     location: location || "",
-    remark: remark || "",
-    timestamp: new Date(),
+    remarks: remarks || "",
+    eventTime: new Date(),
   });
-  
-  this.status = status;
 
-  // Auto-update dates
-  if (status === "READY_FOR_PICKUP" && !this.pickupDate) {
+  this.status = status;
+  this.lastTrackingUpdate = new Date();
+
+  if (status === "PICKED_UP" && !this.pickupDate) {
     this.pickupDate = new Date();
   }
   if (status === "DELIVERED" && !this.deliveryDate) {
@@ -275,16 +346,26 @@ shipmentSchema.methods.addTrackingEvent = function(status, location, remark) {
   return this.save();
 };
 
-// Update NDR status
+shipmentSchema.methods.getLastTrackingEvent = function() {
+  if (!this.tracking.length) return null;
+  return this.tracking[this.tracking.length - 1];
+};
+
 shipmentSchema.methods.updateNDR = function(ndrStatus, ndrDetails) {
   this.ndrStatus = ndrStatus;
   if (ndrDetails) {
     this.ndrDetails = { ...this.ndrDetails, ...ndrDetails };
   }
+  
+  if (ndrStatus === "PENDING") {
+    return this.addTrackingEvent("NDR", "NDR Created", ndrDetails?.reason || "NDR initiated");
+  } else if (ndrStatus === "RESOLVED") {
+    return this.addTrackingEvent(this.status, "NDR Resolved", "NDR issue resolved");
+  }
+  
   return this.save();
 };
 
-// Update RTO status
 shipmentSchema.methods.updateRTO = function(rtoStatus, rtoDetails) {
   this.rtoStatus = rtoStatus;
   if (rtoDetails) {
@@ -293,9 +374,12 @@ shipmentSchema.methods.updateRTO = function(rtoStatus, rtoDetails) {
   
   if (rtoStatus === "INITIATED" && !this.rtoDetails.initiatedDate) {
     this.rtoDetails.initiatedDate = new Date();
+    return this.addTrackingEvent("RTO", "RTO Initiated", rtoDetails?.reason || "RTO initiated");
   }
+  
   if (rtoStatus === "COMPLETED" && !this.rtoDetails.completedDate) {
     this.rtoDetails.completedDate = new Date();
+    return this.addTrackingEvent("RTO", "RTO Completed", "RTO completed");
   }
   
   return this.save();
@@ -303,27 +387,6 @@ shipmentSchema.methods.updateRTO = function(rtoStatus, rtoDetails) {
 
 // ============ VIRTUAL PROPERTIES ============
 
-// Virtual for tracking URL
-shipmentSchema.virtual("trackingUrl").get(function() {
-  if (!this.awb) return null;
-
-  // Note: These URLs are best-effort and may change over time.
-  // Since this is a virtual property, broken URLs won't affect your core logic.
-  const courierTrackingUrls = {
-    dtdc: `https://www.dtdc.in/tracking.asp?awb=${this.awb}`,
-    delhivery: `https://www.delhivery.com/track/${this.awb}`,
-    xpressbees: `https://track.xpressbees.com/${this.awb}`,
-    bluedart: `https://www.bluedart.com/tracking/${this.awb}`,
-    ecom: `https://www.ecomtrack.in/track/${this.awb}`,
-    shadowfax: `https://www.shadowfax.in/tracking/${this.awb}`,
-    other: null,
-  };
-
-  const courierLower = this.courier?.toLowerCase() || "";
-  return courierTrackingUrls[courierLower] || null;
-});
-
-// Virtual for total shipment cost
 shipmentSchema.virtual("totalCost").get(function() {
   return (
     (this.shippingCharge || 0) +
@@ -333,9 +396,26 @@ shipmentSchema.virtual("totalCost").get(function() {
   );
 });
 
-// Virtual for isInsured
 shipmentSchema.virtual("isInsured").get(function() {
   return this.insuranceEnabled === true;
+});
+
+shipmentSchema.virtual("lastScan").get(function() {
+  const lastEvent = this.getLastTrackingEvent();
+  if (lastEvent) {
+    return {
+      status: lastEvent.status,
+      location: lastEvent.location,
+      remarks: lastEvent.remarks,
+      timestamp: lastEvent.eventTime || this.lastTrackingUpdate,
+    };
+  }
+  return {
+    status: this.status,
+    location: "Origin Hub",
+    remarks: "Shipment Created",
+    timestamp: this.createdAt || this.lastTrackingUpdate,
+  };
 });
 
 // ============ JSON/OBJECT TRANSFORM ============
@@ -343,6 +423,7 @@ shipmentSchema.set("toJSON", {
   virtuals: true,
   transform: function(doc, ret) {
     delete ret.__v;
+    ret.lastScan = doc.lastScan;
     return ret;
   },
 });
@@ -351,25 +432,58 @@ shipmentSchema.set("toObject", {
   virtuals: true,
 });
 
-// ============ INDEXES ============
-// Primary query indexes
+// ============ FINAL PRODUCTION INDEXES ============
+
+// ✅ Compound index for merchant queries - covers merchantId + createdAt
 shipmentSchema.index({ merchantId: 1, createdAt: -1 });
+
+// ✅ Compound index for merchant + status filtering
 shipmentSchema.index({ merchantId: 1, status: 1, createdAt: -1 });
 
-// Unique indexes
+// ✅ Unique index for orderId - one shipment per order
 shipmentSchema.index({ orderId: 1 }, { unique: true });
 
-// Filter indexes
-shipmentSchema.index({ status: 1 });
+// ✅ Courier indexes for different query patterns
 shipmentSchema.index({ courier: 1 });
-shipmentSchema.index({ courierPartner: 1 });
-shipmentSchema.index({ courierId: 1 }); // ✅ ADDED: Index for courierId
-shipmentSchema.index({ expectedDeliveryDate: 1 });
+shipmentSchema.index({ courierId: 1 });
 
-// Compound indexes for common queries
+// ✅ Date-based indexes for filtering and sorting
+shipmentSchema.index({ expectedDeliveryDate: 1 });
+shipmentSchema.index({ lastTrackingUpdate: -1 });
+
+// ✅ COD and status combinations
 shipmentSchema.index({ isCOD: 1, status: 1 });
 shipmentSchema.index({ merchantId: 1, isCOD: 1 });
+
+// ✅ Status + createdAt for recent shipments queries
 shipmentSchema.index({ status: 1, createdAt: -1 });
+
+// ✅ AWB + merchant queries (AWB has unique:true, but this covers merchant-specific lookups)
+shipmentSchema.index({ awb: 1, merchantId: 1 });
+
+// ✅ Most specific compound index for merchant AWB lookups with status
+shipmentSchema.index({
+  merchantId: 1,
+  awb: 1,
+  status: 1,
+});
+
+// ============ COURIER PROVIDER INDEXES ============
+
+// ✅ Index for courier provider shipment ID lookups
+shipmentSchema.index({ providerShipmentId: 1 });
+
+// ✅ Index for courier provider tracking ID lookups
+shipmentSchema.index({ providerTrackingId: 1 });
+
+// ✅ Index for provider name queries
+shipmentSchema.index({ provider: 1 });
+
+// ✅ Index for provider status queries
+shipmentSchema.index({ providerStatus: 1 });
+
+// ✅ Index for last sync date queries
+shipmentSchema.index({ lastSyncedAt: -1 });
 
 // ============ EXPORT ============
 module.exports = mongoose.model("Shipment", shipmentSchema);

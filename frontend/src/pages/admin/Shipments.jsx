@@ -17,6 +17,7 @@ import {
   FaChevronUp,
   FaSearch,
   FaFilter,
+  FaBuilding,
 } from "react-icons/fa";
 
 import "./Admin.css";
@@ -28,12 +29,18 @@ const Shipments = () => {
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [updatingId, setUpdatingId] = useState(null);
   const [expandedRows, setExpandedRows] = useState({});
   const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     fetchShipments();
+    
+    // Auto-refresh every 30 seconds
+    const interval = setInterval(() => {
+      fetchShipments();
+    }, 30000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   const fetchShipments = async () => {
@@ -49,36 +56,17 @@ const Shipments = () => {
     }
   };
 
-  const updateShipmentStatus = async (id, status) => {
-    const confirmUpdate = window.confirm(
-      `Update shipment status to ${status}?`
-    );
-
-    if (!confirmUpdate) return;
-
-    try {
-      setUpdatingId(id);
-      await api.patch(`/shipments/${id}/status`, { status });
-      await fetchShipments();
-    } catch (error) {
-      alert(error.response?.data?.message || "Failed to update shipment status");
-    } finally {
-      setUpdatingId(null);
-    }
-  };
-
   const getStatusColor = (status) => {
     const colors = {
-      PENDING: "#f59e0b",
-      READY_FOR_PICKUP: "#06b6d4",
+      PICKUP_PENDING: "#f59e0b",
+      PICKUP_SCHEDULED: "#06b6d4",
+      PICKED_UP: "#3b82f6",
       IN_TRANSIT: "#3b82f6",
       OUT_FOR_DELIVERY: "#8b5cf6",
       DELIVERED: "#10b981",
       RTO: "#ef4444",
       NDR: "#f97316",
       CANCELLED: "#6b7280",
-      SHIPPED: "#3b82f6",
-      DTD: "#8b5cf6",
     };
     return colors[status] || "#6b7280";
   };
@@ -106,27 +94,37 @@ const Shipments = () => {
   };
 
   const filteredShipments = shipments.filter((shipment) => {
+    const merchantName = shipment.merchantId?.companyName || shipment.merchantId?.name || "";
     const searchMatch = 
       shipment.awb?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      shipment.courier?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       shipment.orderId?.orderNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      merchantName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       shipment.orderId?.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      shipment.orderId?.customerPhone?.includes(searchTerm);
+      shipment.orderId?.customerPhone?.includes(searchTerm) ||
+      shipment.courier?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const statusMatch = statusFilter === "ALL" || shipment.status === statusFilter;
 
     return searchMatch && statusMatch;
   });
 
+  // Stats calculations
+  const totalCount = shipments.length;
+  const pickupPendingCount = shipments.filter((s) => s.status === "PICKUP_PENDING").length;
+  const inTransitCount = shipments.filter((s) => 
+    s.status === "IN_TRANSIT" || 
+    s.status === "OUT_FOR_DELIVERY" || 
+    s.status === "PICKED_UP"
+  ).length;
   const deliveredCount = shipments.filter((s) => s.status === "DELIVERED").length;
-  const transitCount = shipments.filter((s) => s.status === "IN_TRANSIT" || s.status === "OUT_FOR_DELIVERY" || s.status === "SHIPPED").length;
-  const failedCount = shipments.filter((s) => s.status === "RTO" || s.status === "NDR").length;
+  const ndrCount = shipments.filter((s) => s.status === "NDR").length;
+  const rtoCount = shipments.filter((s) => s.status === "RTO").length;
 
   const statusOptions = [
     { value: "ALL", label: "All" },
-    { value: "PENDING", label: "Pending" },
-    { value: "READY_FOR_PICKUP", label: "Ready" },
-    { value: "SHIPPED", label: "Shipped" },
+    { value: "PICKUP_PENDING", label: "Pickup Pending" },
+    { value: "PICKUP_SCHEDULED", label: "Pickup Scheduled" },
+    { value: "PICKED_UP", label: "Picked Up" },
     { value: "IN_TRANSIT", label: "In Transit" },
     { value: "OUT_FOR_DELIVERY", label: "Out for Delivery" },
     { value: "DELIVERED", label: "Delivered" },
@@ -193,7 +191,7 @@ const Shipments = () => {
         {/* Stats Cards */}
         <div style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
           gap: "16px",
           padding: "20px 24px",
         }}>
@@ -214,30 +212,8 @@ const Shipments = () => {
                 <FaTruck size={20} />
               </div>
               <div>
-                <p style={{ margin: 0, fontSize: "13px", color: "#64748b" }}>Total Shipments</p>
-                <h3 style={{ margin: "4px 0 0", fontSize: "24px", fontWeight: "700", color: "#0f172a" }}>{shipments.length}</h3>
-              </div>
-            </div>
-          </div>
-          <div style={{
-            background: "#fff",
-            padding: "20px",
-            borderRadius: "12px",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-            border: "1px solid #e2e8f0",
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-              <div style={{ 
-                background: "#ecfdf5", 
-                padding: "10px", 
-                borderRadius: "10px",
-                color: "#10b981",
-              }}>
-                <FaCheckCircle size={20} />
-              </div>
-              <div>
-                <p style={{ margin: 0, fontSize: "13px", color: "#64748b" }}>Delivered</p>
-                <h3 style={{ margin: "4px 0 0", fontSize: "24px", fontWeight: "700", color: "#0f172a" }}>{deliveredCount}</h3>
+                <p style={{ margin: 0, fontSize: "12px", color: "#64748b" }}>Total Shipments</p>
+                <h3 style={{ margin: "4px 0 0", fontSize: "22px", fontWeight: "700", color: "#0f172a" }}>{totalCount}</h3>
               </div>
             </div>
           </div>
@@ -258,8 +234,74 @@ const Shipments = () => {
                 <FaClock size={20} />
               </div>
               <div>
-                <p style={{ margin: 0, fontSize: "13px", color: "#64748b" }}>In Transit</p>
-                <h3 style={{ margin: "4px 0 0", fontSize: "24px", fontWeight: "700", color: "#0f172a" }}>{transitCount}</h3>
+                <p style={{ margin: 0, fontSize: "12px", color: "#64748b" }}>Pickup Pending</p>
+                <h3 style={{ margin: "4px 0 0", fontSize: "22px", fontWeight: "700", color: "#0f172a" }}>{pickupPendingCount}</h3>
+              </div>
+            </div>
+          </div>
+          <div style={{
+            background: "#fff",
+            padding: "20px",
+            borderRadius: "12px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+            border: "1px solid #e2e8f0",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <div style={{ 
+                background: "#dbeafe", 
+                padding: "10px", 
+                borderRadius: "10px",
+                color: "#2563eb",
+              }}>
+                <FaTruck size={20} />
+              </div>
+              <div>
+                <p style={{ margin: 0, fontSize: "12px", color: "#64748b" }}>In Transit</p>
+                <h3 style={{ margin: "4px 0 0", fontSize: "22px", fontWeight: "700", color: "#0f172a" }}>{inTransitCount}</h3>
+              </div>
+            </div>
+          </div>
+          <div style={{
+            background: "#fff",
+            padding: "20px",
+            borderRadius: "12px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+            border: "1px solid #e2e8f0",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <div style={{ 
+                background: "#ecfdf5", 
+                padding: "10px", 
+                borderRadius: "10px",
+                color: "#10b981",
+              }}>
+                <FaCheckCircle size={20} />
+              </div>
+              <div>
+                <p style={{ margin: 0, fontSize: "12px", color: "#64748b" }}>Delivered</p>
+                <h3 style={{ margin: "4px 0 0", fontSize: "22px", fontWeight: "700", color: "#0f172a" }}>{deliveredCount}</h3>
+              </div>
+            </div>
+          </div>
+          <div style={{
+            background: "#fff",
+            padding: "20px",
+            borderRadius: "12px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+            border: "1px solid #e2e8f0",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <div style={{ 
+                background: "#fef3c7", 
+                padding: "10px", 
+                borderRadius: "10px",
+                color: "#f97316",
+              }}>
+                <FaClockIcon size={20} />
+              </div>
+              <div>
+                <p style={{ margin: 0, fontSize: "12px", color: "#64748b" }}>NDR</p>
+                <h3 style={{ margin: "4px 0 0", fontSize: "22px", fontWeight: "700", color: "#0f172a" }}>{ndrCount}</h3>
               </div>
             </div>
           </div>
@@ -280,8 +322,8 @@ const Shipments = () => {
                 <FaTimesCircle size={20} />
               </div>
               <div>
-                <p style={{ margin: 0, fontSize: "13px", color: "#64748b" }}>Failed/RTO</p>
-                <h3 style={{ margin: "4px 0 0", fontSize: "24px", fontWeight: "700", color: "#0f172a" }}>{failedCount}</h3>
+                <p style={{ margin: 0, fontSize: "12px", color: "#64748b" }}>RTO</p>
+                <h3 style={{ margin: "4px 0 0", fontSize: "22px", fontWeight: "700", color: "#0f172a" }}>{rtoCount}</h3>
               </div>
             </div>
           </div>
@@ -308,7 +350,7 @@ const Shipments = () => {
             }} />
             <input
               type="text"
-              placeholder="Search by AWB, Order, Customer, or Phone..."
+              placeholder="Search by AWB, Order, Merchant, Customer, Phone, or Courier..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               style={{ 
@@ -475,29 +517,32 @@ const Shipments = () => {
                   tableLayout: "fixed",
                 }}>
                   <colgroup>
-                    <col style={{ width: "15%" }} />
                     <col style={{ width: "12%" }} />
-                    <col style={{ width: "15%" }} />
-                    <col style={{ width: "10%" }} />
                     <col style={{ width: "10%" }} />
                     <col style={{ width: "12%" }} />
-                    <col style={{ width: "26%" }} />
+                    <col style={{ width: "12%" }} />
+                    <col style={{ width: "10%" }} />
+                    <col style={{ width: "13%" }} />
+                    <col style={{ width: "13%" }} />
+                    <col style={{ width: "18%" }} />
                   </colgroup>
                   <thead>
                     <tr style={{ background: "#f8fafc", borderBottom: "2px solid #e2e8f0" }}>
                       <th style={{ padding: "14px 12px", textAlign: "left", fontSize: "12px", fontWeight: "600", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px" }}>AWB</th>
-                      <th style={{ padding: "14px 12px", textAlign: "left", fontSize: "12px", fontWeight: "600", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px" }}>Order No</th>
+                      <th style={{ padding: "14px 12px", textAlign: "left", fontSize: "12px", fontWeight: "600", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px" }}>Order</th>
+                      <th style={{ padding: "14px 12px", textAlign: "left", fontSize: "12px", fontWeight: "600", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px" }}>Merchant</th>
                       <th style={{ padding: "14px 12px", textAlign: "left", fontSize: "12px", fontWeight: "600", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px" }}>Customer</th>
                       <th style={{ padding: "14px 12px", textAlign: "left", fontSize: "12px", fontWeight: "600", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px" }}>Courier</th>
                       <th style={{ padding: "14px 12px", textAlign: "left", fontSize: "12px", fontWeight: "600", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px" }}>Status</th>
-                      <th style={{ padding: "14px 12px", textAlign: "left", fontSize: "12px", fontWeight: "600", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px" }}>Last Updated</th>
+                      <th style={{ padding: "14px 12px", textAlign: "left", fontSize: "12px", fontWeight: "600", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px" }}>Last Scan</th>
                       <th style={{ padding: "14px 12px", textAlign: "center", fontSize: "12px", fontWeight: "600", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px" }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredShipments.length > 0 ? (
                       filteredShipments.map((shipment, index) => {
-                        const isDelivered = shipment.status === "DELIVERED";
+                        const merchantName = shipment.merchantId?.companyName || shipment.merchantId?.name || "N/A";
+                        const lastTrackingUpdate = shipment.lastTrackingUpdate || shipment.tracking?.updatedAt || shipment.updatedAt;
                         
                         return (
                           <tr key={shipment._id} style={{ 
@@ -512,6 +557,12 @@ const Shipments = () => {
                             </td>
                             <td style={{ padding: "12px 12px", fontSize: "12px", color: "#0f172a", wordBreak: "break-all" }}>
                               {shipment.orderId?.orderNumber || "N/A"}
+                            </td>
+                            <td style={{ padding: "12px 12px", fontSize: "12px" }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                                <FaBuilding size={11} style={{ color: "#94a3b8" }} />
+                                <span style={{ color: "#0f172a" }}>{merchantName}</span>
+                              </div>
                             </td>
                             <td style={{ padding: "12px 12px", fontSize: "12px" }}>
                               <div style={{ display: "flex", flexDirection: "column" }}>
@@ -529,180 +580,80 @@ const Shipments = () => {
                               {shipment.courier}
                             </td>
                             <td style={{ padding: "12px 12px" }}>
-                              <span style={{
-                                display: "inline-block",
-                                padding: "3px 10px",
-                                borderRadius: "20px",
-                                background: getStatusColor(shipment.status),
-                                color: "#fff",
-                                fontSize: "10px",
-                                fontWeight: "600",
-                                letterSpacing: "0.3px",
-                              }}>
-                                {shipment.status?.replace(/_/g, " ")}
-                              </span>
+                              <div>
+                                <span style={{
+                                  display: "inline-block",
+                                  padding: "3px 10px",
+                                  borderRadius: "20px",
+                                  background: getStatusColor(shipment.status),
+                                  color: "#fff",
+                                  fontSize: "10px",
+                                  fontWeight: "600",
+                                  letterSpacing: "0.3px",
+                                }}>
+                                  {shipment.status?.replace(/_/g, " ")}
+                                </span>
+                                <div style={{ fontSize: "9px", color: "#94a3b8", marginTop: "3px" }}>
+                                  {lastTrackingUpdate ? 
+                                    new Date(lastTrackingUpdate).toLocaleString('en-IN', { 
+                                      day: '2-digit', 
+                                      month: '2-digit', 
+                                      year: 'numeric',
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    }) : 
+                                    "No scan"
+                                  }
+                                </div>
+                              </div>
                             </td>
                             <td style={{ padding: "12px 12px" }}>
                               <div style={{ display: "flex", flexDirection: "column" }}>
                                 <span style={{ fontSize: "12px", fontWeight: "500", color: "#0f172a" }}>
-                                  {shipment.updatedAt ? new Date(shipment.updatedAt).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' }) : "---"}
+                                  {lastTrackingUpdate ? 
+                                    new Date(lastTrackingUpdate).toLocaleDateString('en-IN', { 
+                                      day: '2-digit', 
+                                      month: '2-digit', 
+                                      year: 'numeric' 
+                                    }) : 
+                                    "---"
+                                  }
                                 </span>
                                 <span style={{ fontSize: "10px", color: "#94a3b8", display: "flex", alignItems: "center", gap: "4px" }}>
                                   <FaClockIcon size={9} />
-                                  {shipment.updatedAt ? formatLastUpdated(shipment.updatedAt) : "---"}
+                                  {lastTrackingUpdate ? formatLastUpdated(lastTrackingUpdate) : "---"}
                                 </span>
                               </div>
                             </td>
-                            <td style={{ padding: "8px 12px" }}>
-                              <div style={{ 
-                                display: "flex", 
-                                gap: "3px", 
-                                flexWrap: "nowrap",
-                                justifyContent: "center",
-                                alignItems: "center",
-                              }}>
-                                <button
-                                  onClick={() => navigate(`/admin/shipments/${shipment._id}`)}
-                                  style={{
-                                    padding: "4px 8px",
-                                    background: "#3b82f6",
-                                    color: "#fff",
-                                    border: "none",
-                                    borderRadius: "4px",
-                                    cursor: "pointer",
-                                    fontSize: "10px",
-                                    display: "inline-flex",
-                                    alignItems: "center",
-                                    gap: "2px",
-                                    transition: "all 0.15s",
-                                    whiteSpace: "nowrap",
-                                    fontWeight: "500",
-                                    letterSpacing: "0.2px",
-                                    flex: "0 0 auto",
-                                  }}
-                                  onMouseEnter={(e) => e.currentTarget.style.background = "#2563eb"}
-                                  onMouseLeave={(e) => e.currentTarget.style.background = "#3b82f6"}
-                                >
-                                  <FaEye size={9} /> View
-                                </button>
-                                
-                                <button
-                                  onClick={() => updateShipmentStatus(shipment._id, "IN_TRANSIT")}
-                                  disabled={isDelivered || updatingId === shipment._id}
-                                  style={{
-                                    padding: "4px 8px",
-                                    background: isDelivered ? "#94a3b8" : "#3b82f6",
-                                    color: "#fff",
-                                    border: "none",
-                                    borderRadius: "4px",
-                                    cursor: (isDelivered || updatingId === shipment._id) ? "not-allowed" : "pointer",
-                                    opacity: (isDelivered || updatingId === shipment._id) ? 0.5 : 1,
-                                    fontSize: "10px",
-                                    whiteSpace: "nowrap",
-                                    fontWeight: "500",
-                                    letterSpacing: "0.2px",
-                                    transition: "all 0.15s",
-                                    flex: "0 0 auto",
-                                  }}
-                                >
-                                  {updatingId === shipment._id ? "..." : "Transit"}
-                                </button>
-                                
-                                <button
-                                  onClick={() => updateShipmentStatus(shipment._id, "OUT_FOR_DELIVERY")}
-                                  disabled={isDelivered || updatingId === shipment._id}
-                                  style={{
-                                    padding: "4px 8px",
-                                    background: isDelivered ? "#94a3b8" : "#8b5cf6",
-                                    color: "#fff",
-                                    border: "none",
-                                    borderRadius: "4px",
-                                    cursor: (isDelivered || updatingId === shipment._id) ? "not-allowed" : "pointer",
-                                    opacity: (isDelivered || updatingId === shipment._id) ? 0.5 : 1,
-                                    fontSize: "10px",
-                                    whiteSpace: "nowrap",
-                                    fontWeight: "500",
-                                    letterSpacing: "0.2px",
-                                    transition: "all 0.15s",
-                                    flex: "0 0 auto",
-                                  }}
-                                >
-                                  {updatingId === shipment._id ? "..." : "OFD"}
-                                </button>
-                                
-                                <button
-                                  onClick={() => updateShipmentStatus(shipment._id, "DELIVERED")}
-                                  disabled={isDelivered || updatingId === shipment._id}
-                                  style={{
-                                    padding: "4px 8px",
-                                    background: isDelivered ? "#94a3b8" : "#22c55e",
-                                    color: "#fff",
-                                    border: "none",
-                                    borderRadius: "4px",
-                                    cursor: (isDelivered || updatingId === shipment._id) ? "not-allowed" : "pointer",
-                                    opacity: (isDelivered || updatingId === shipment._id) ? 0.5 : 1,
-                                    fontSize: "10px",
-                                    whiteSpace: "nowrap",
-                                    fontWeight: "500",
-                                    letterSpacing: "0.2px",
-                                    transition: "all 0.15s",
-                                    flex: "0 0 auto",
-                                  }}
-                                >
-                                  {updatingId === shipment._id ? "..." : "Delivered"}
-                                </button>
-                                
-                                <button
-                                  onClick={() => updateShipmentStatus(shipment._id, "NDR")}
-                                  disabled={isDelivered || updatingId === shipment._id}
-                                  style={{
-                                    padding: "4px 8px",
-                                    background: isDelivered ? "#94a3b8" : "#f97316",
-                                    color: "#fff",
-                                    border: "none",
-                                    borderRadius: "4px",
-                                    cursor: (isDelivered || updatingId === shipment._id) ? "not-allowed" : "pointer",
-                                    opacity: (isDelivered || updatingId === shipment._id) ? 0.5 : 1,
-                                    fontSize: "10px",
-                                    whiteSpace: "nowrap",
-                                    fontWeight: "500",
-                                    letterSpacing: "0.2px",
-                                    transition: "all 0.15s",
-                                    flex: "0 0 auto",
-                                  }}
-                                >
-                                  {updatingId === shipment._id ? "..." : "NDR"}
-                                </button>
-                                
-                                <button
-                                  onClick={() => updateShipmentStatus(shipment._id, "RTO")}
-                                  disabled={isDelivered || updatingId === shipment._id}
-                                  style={{
-                                    padding: "4px 8px",
-                                    background: isDelivered ? "#94a3b8" : "#ef4444",
-                                    color: "#fff",
-                                    border: "none",
-                                    borderRadius: "4px",
-                                    cursor: (isDelivered || updatingId === shipment._id) ? "not-allowed" : "pointer",
-                                    opacity: (isDelivered || updatingId === shipment._id) ? 0.5 : 1,
-                                    fontSize: "10px",
-                                    whiteSpace: "nowrap",
-                                    fontWeight: "500",
-                                    letterSpacing: "0.2px",
-                                    transition: "all 0.15s",
-                                    flex: "0 0 auto",
-                                  }}
-                                >
-                                  {updatingId === shipment._id ? "..." : "RTO"}
-                                </button>
-                              </div>
+                            <td style={{ padding: "8px 12px", textAlign: "center" }}>
+                              <button
+                                onClick={() => navigate(`/admin/shipments/${shipment._id}`)}
+                                style={{
+                                  padding: "6px 16px",
+                                  background: "#3b82f6",
+                                  color: "#fff",
+                                  border: "none",
+                                  borderRadius: "6px",
+                                  cursor: "pointer",
+                                  fontSize: "12px",
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: "6px",
+                                  transition: "all 0.15s",
+                                  fontWeight: "500",
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.background = "#2563eb"}
+                                onMouseLeave={(e) => e.currentTarget.style.background = "#3b82f6"}
+                              >
+                                <FaEye size={12} /> View
+                              </button>
                             </td>
                           </tr>
                         );
                       })
                     ) : (
                       <tr>
-                        <td colSpan="7" style={{ textAlign: "center", padding: "60px 20px", color: "#94a3b8" }}>
+                        <td colSpan="8" style={{ textAlign: "center", padding: "60px 20px", color: "#94a3b8" }}>
                           {searchTerm || statusFilter !== "ALL" 
                             ? "No shipments match your filters" 
                             : "No shipments found"}
@@ -721,8 +672,9 @@ const Shipments = () => {
               }}>
                 {filteredShipments.length > 0 ? (
                   filteredShipments.map((shipment) => {
-                    const isDelivered = shipment.status === "DELIVERED";
                     const isExpanded = expandedRows[shipment._id] || false;
+                    const merchantName = shipment.merchantId?.companyName || shipment.merchantId?.name || "N/A";
+                    const lastTrackingUpdate = shipment.lastTrackingUpdate || shipment.tracking?.updatedAt || shipment.updatedAt;
                     
                     return (
                       <div key={shipment._id} style={{
@@ -736,20 +688,38 @@ const Shipments = () => {
                           <div style={{ flex: 1 }}>
                             <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
                               <strong style={{ fontSize: "15px", color: "#0f172a" }}>{shipment.awb}</strong>
-                              <span style={{
-                                display: "inline-block",
-                                padding: "2px 10px",
-                                borderRadius: "20px",
-                                background: getStatusColor(shipment.status),
-                                color: "#fff",
-                                fontSize: "10px",
-                                fontWeight: "600",
-                              }}>
-                                {shipment.status?.replace(/_/g, " ")}
-                              </span>
+                              <div>
+                                <span style={{
+                                  display: "inline-block",
+                                  padding: "2px 10px",
+                                  borderRadius: "20px",
+                                  background: getStatusColor(shipment.status),
+                                  color: "#fff",
+                                  fontSize: "10px",
+                                  fontWeight: "600",
+                                }}>
+                                  {shipment.status?.replace(/_/g, " ")}
+                                </span>
+                                <div style={{ fontSize: "9px", color: "#94a3b8", marginTop: "2px" }}>
+                                  {lastTrackingUpdate ? 
+                                    new Date(lastTrackingUpdate).toLocaleString('en-IN', { 
+                                      day: '2-digit', 
+                                      month: '2-digit', 
+                                      year: 'numeric',
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    }) : 
+                                    "No scan"
+                                  }
+                                </div>
+                              </div>
                             </div>
                             <div style={{ fontSize: "13px", color: "#64748b", marginTop: "4px" }}>
                               Order: {shipment.orderId?.orderNumber || "N/A"}
+                            </div>
+                            <div style={{ fontSize: "13px", marginTop: "4px", display: "flex", alignItems: "center", gap: "6px", color: "#0f172a" }}>
+                              <FaBuilding size={12} style={{ color: "#94a3b8" }} />
+                              <span>{merchantName}</span>
                             </div>
                             <div style={{ fontSize: "13px", marginTop: "4px", display: "flex", alignItems: "center", gap: "6px", color: "#0f172a" }}>
                               <FaUser size={12} style={{ color: "#94a3b8" }} />
@@ -761,7 +731,7 @@ const Shipments = () => {
                             </div>
                             <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "4px", display: "flex", alignItems: "center", gap: "6px" }}>
                               <FaClockIcon size={10} />
-                              <span>{shipment.updatedAt ? formatLastUpdated(shipment.updatedAt) : "---"}</span>
+                              <span>{lastTrackingUpdate ? formatLastUpdated(lastTrackingUpdate) : "---"}</span>
                             </div>
                             <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "2px" }}>
                               Courier: {shipment.courier}
@@ -789,129 +759,28 @@ const Shipments = () => {
                         
                         {isExpanded && (
                           <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid #e2e8f0" }}>
-                            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                                <button
-                                  onClick={() => navigate(`/admin/shipments/${shipment._id}`)}
-                                  style={{
-                                    padding: "8px 12px",
-                                    background: "#3b82f6",
-                                    color: "#fff",
-                                    border: "none",
-                                    borderRadius: "8px",
-                                    cursor: "pointer",
-                                    fontSize: "13px",
-                                    flex: "1",
-                                    minWidth: "70px",
-                                    fontWeight: "500",
-                                  }}
-                                >
-                                  <FaEye /> View
-                                </button>
-                                
-                                <button
-                                  onClick={() => updateShipmentStatus(shipment._id, "IN_TRANSIT")}
-                                  disabled={isDelivered || updatingId === shipment._id}
-                                  style={{
-                                    padding: "8px 12px",
-                                    background: isDelivered ? "#94a3b8" : "#3b82f6",
-                                    color: "#fff",
-                                    border: "none",
-                                    borderRadius: "8px",
-                                    cursor: (isDelivered || updatingId === shipment._id) ? "not-allowed" : "pointer",
-                                    opacity: (isDelivered || updatingId === shipment._id) ? 0.5 : 1,
-                                    fontSize: "13px",
-                                    flex: "1",
-                                    minWidth: "70px",
-                                    fontWeight: "500",
-                                  }}
-                                >
-                                  {updatingId === shipment._id ? "..." : "Transit"}
-                                </button>
-                              </div>
-                              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                                <button
-                                  onClick={() => updateShipmentStatus(shipment._id, "OUT_FOR_DELIVERY")}
-                                  disabled={isDelivered || updatingId === shipment._id}
-                                  style={{
-                                    padding: "8px 12px",
-                                    background: isDelivered ? "#94a3b8" : "#8b5cf6",
-                                    color: "#fff",
-                                    border: "none",
-                                    borderRadius: "8px",
-                                    cursor: (isDelivered || updatingId === shipment._id) ? "not-allowed" : "pointer",
-                                    opacity: (isDelivered || updatingId === shipment._id) ? 0.5 : 1,
-                                    fontSize: "13px",
-                                    flex: "1",
-                                    minWidth: "70px",
-                                    fontWeight: "500",
-                                  }}
-                                >
-                                  {updatingId === shipment._id ? "..." : "OFD"}
-                                </button>
-                                
-                                <button
-                                  onClick={() => updateShipmentStatus(shipment._id, "DELIVERED")}
-                                  disabled={isDelivered || updatingId === shipment._id}
-                                  style={{
-                                    padding: "8px 12px",
-                                    background: isDelivered ? "#94a3b8" : "#22c55e",
-                                    color: "#fff",
-                                    border: "none",
-                                    borderRadius: "8px",
-                                    cursor: (isDelivered || updatingId === shipment._id) ? "not-allowed" : "pointer",
-                                    opacity: (isDelivered || updatingId === shipment._id) ? 0.5 : 1,
-                                    fontSize: "13px",
-                                    flex: "1",
-                                    minWidth: "70px",
-                                    fontWeight: "500",
-                                  }}
-                                >
-                                  {updatingId === shipment._id ? "..." : "Delivered"}
-                                </button>
-                              </div>
-                              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                                <button
-                                  onClick={() => updateShipmentStatus(shipment._id, "NDR")}
-                                  disabled={isDelivered || updatingId === shipment._id}
-                                  style={{
-                                    padding: "8px 12px",
-                                    background: isDelivered ? "#94a3b8" : "#f97316",
-                                    color: "#fff",
-                                    border: "none",
-                                    borderRadius: "8px",
-                                    cursor: (isDelivered || updatingId === shipment._id) ? "not-allowed" : "pointer",
-                                    opacity: (isDelivered || updatingId === shipment._id) ? 0.5 : 1,
-                                    fontSize: "13px",
-                                    flex: "1",
-                                    minWidth: "70px",
-                                    fontWeight: "500",
-                                  }}
-                                >
-                                  {updatingId === shipment._id ? "..." : "NDR"}
-                                </button>
-                                
-                                <button
-                                  onClick={() => updateShipmentStatus(shipment._id, "RTO")}
-                                  disabled={isDelivered || updatingId === shipment._id}
-                                  style={{
-                                    padding: "8px 12px",
-                                    background: isDelivered ? "#94a3b8" : "#ef4444",
-                                    color: "#fff",
-                                    border: "none",
-                                    borderRadius: "8px",
-                                    cursor: (isDelivered || updatingId === shipment._id) ? "not-allowed" : "pointer",
-                                    opacity: (isDelivered || updatingId === shipment._id) ? 0.5 : 1,
-                                    fontSize: "13px",
-                                    flex: "1",
-                                    minWidth: "70px",
-                                    fontWeight: "500",
-                                  }}
-                                >
-                                  {updatingId === shipment._id ? "..." : "RTO"}
-                                </button>
-                              </div>
-                            </div>
+                            <button
+                              onClick={() => navigate(`/admin/shipments/${shipment._id}`)}
+                              style={{
+                                width: "100%",
+                                padding: "10px",
+                                background: "#3b82f6",
+                                color: "#fff",
+                                border: "none",
+                                borderRadius: "8px",
+                                cursor: "pointer",
+                                fontSize: "14px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                gap: "8px",
+                                fontWeight: "500",
+                              }}
+                              onMouseEnter={(e) => e.currentTarget.style.background = "#2563eb"}
+                              onMouseLeave={(e) => e.currentTarget.style.background = "#3b82f6"}
+                            >
+                              <FaEye /> View Details
+                            </button>
                           </div>
                         )}
                       </div>
@@ -970,7 +839,7 @@ const Shipments = () => {
             padding: 16px !important;
           }
           .admin-content > div:nth-child(2) > div h3 {
-            font-size: 20px !important;
+            font-size: 18px !important;
           }
           .admin-content > div:nth-child(3) {
             padding: 0 16px !important;

@@ -12,31 +12,465 @@ const RTO = require("../models/RTO");
 const AdmZip = require("adm-zip");
 const fs = require("fs");
 const path = require("path");
+const mongoose = require("mongoose");
 
 // ===============================
-// GENERATE UNIQUE AWB
+// LOGGER (Simple Structured Logger)
 // ===============================
-const generateAWB = async () => {
-  let awb;
-  let exists = true;
-  let attempts = 0;
-  const maxAttempts = 10;
-
-  while (exists && attempts < maxAttempts) {
-    attempts++;
-    awb = "AWB" + Date.now() + Math.floor(1000 + Math.random() * 9000);
-    
-    const found = await Shipment.findOne({ awb });
-    if (!found) {
-      exists = false;
+const logger = {
+  info: (message, meta = {}) => {
+    console.log(JSON.stringify({
+      level: 'info',
+      timestamp: new Date().toISOString(),
+      message,
+      ...meta
+    }));
+  },
+  error: (message, meta = {}) => {
+    console.error(JSON.stringify({
+      level: 'error',
+      timestamp: new Date().toISOString(),
+      message,
+      ...meta
+    }));
+  },
+  warn: (message, meta = {}) => {
+    console.warn(JSON.stringify({
+      level: 'warn',
+      timestamp: new Date().toISOString(),
+      message,
+      ...meta
+    }));
+  },
+  debug: (message, meta = {}) => {
+    if (process.env.NODE_ENV === 'development') {
+      console.debug(JSON.stringify({
+        level: 'debug',
+        timestamp: new Date().toISOString(),
+        message,
+        ...meta
+      }));
     }
   }
+};
 
-  if (exists) {
-    throw new Error("Failed to generate unique AWB after multiple attempts");
+// ===============================
+// HELPER: Build Shipment Payload (DRY)
+// ===============================
+function buildShipmentPayload(order) {
+  return {
+    order_id: order._id.toString(),
+    order_number: order.orderNumber || `ORD${Date.now()}`,
+    customer_name: order.customerName,
+    customer_phone: order.customerPhone,
+    customer_address: order.customerAddress,
+    customer_city: order.customerCity,
+    customer_state: order.customerState,
+    customer_pincode: order.customerPincode,
+    weight: order.weight || 0.5,
+    length: order.dimensions?.length || 0,
+    breadth: order.dimensions?.breadth || 0,
+    height: order.dimensions?.height || 0,
+    amount: order.amount || 0,
+    payment_mode: order.paymentMode || "PREPAID",
+    cod_amount: order.paymentMode === "COD" ? order.amount : 0,
+    items: order.items || [],
+    created_at: new Date().toISOString()
+  };
+}
+
+// ===============================
+// GENERIC FAKE PROVIDER FACTORY (DRY)
+// ===============================
+function createFakeProvider(providerName, prefix, deliveryDays) {
+  return async function(order) {
+    const payload = buildShipmentPayload(order);
+    
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    const timestamp = Date.now();
+    const random = Math.floor(Math.random() * 1000);
+
+    return {
+      success: true,
+      statusCode: 200,
+      provider: providerName.toUpperCase(),
+      request: payload,
+      response: {
+        shipment_id: `${prefix}${timestamp}${random}`,
+        awb: `AWB${timestamp}${random}`,
+        pickup_request_id: `PICK${timestamp}${random}`,
+        tracking_id: `TRK${timestamp}${random}`,
+        label_url: "",
+        manifest_url: "",
+        tracking_url: "",
+        status: "PICKUP_PENDING",
+        estimated_delivery: new Date(Date.now() + deliveryDays * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+      }
+    };
+  };
+}
+
+// ===============================
+// FAKE PROVIDER IMPLEMENTATIONS (Using Factory)
+// ===============================
+const FakeDelhivery = createFakeProvider("Delhivery", "DLV", 5);
+const FakeBlueDart = createFakeProvider("BlueDart", "BD", 3);
+const FakeDTDC = createFakeProvider("DTDC", "DT", 4);
+const FakeXpressbees = createFakeProvider("Xpressbees", "XB", 4);
+const FakeShadowfax = createFakeProvider("Shadowfax", "SF", 2);
+const FakeEcomExpress = createFakeProvider("EcomExpress", "EC", 4);
+
+// ===============================
+// PROVIDER REGISTRY (Production Ready - FIX for XPB)
+// ===============================
+const PROVIDER_REGISTRY = {
+  // Standard codes (as per Courier model)
+  DELHIVERY: FakeDelhivery,
+  BLUEDART: FakeBlueDart,
+  DTDC: FakeDTDC,
+  XPRESSBEES: FakeXpressbees,
+  SHADOWFAX: FakeShadowfax,
+  ECOMEXPRESS: FakeEcomExpress,
+  
+  // Aliases (for backward compatibility / different codes)
+  XPB: FakeXpressbees,      // ✅ Your Xpressbees code
+  XB: FakeXpressbees,       // ✅ Alternative Xpressbees code
+  ECOM: FakeEcomExpress,    // ✅ Short form
+  DLV: FakeDelhivery,       // ✅ Short form
+  BD: FakeBlueDart,         // ✅ Short form
+  DT: FakeDTDC,             // ✅ Short form
+  SF: FakeShadowfax,        // ✅ Short form
+};
+
+// ===============================
+// GENERIC TRACKING RESPONSE FACTORY
+// ===============================
+function createTrackingResponse(providerName, awb, deliveryDays) {
+  const timeline = [
+    {
+      status: "PICKUP_PENDING",
+      location: "Origin",
+      remarks: "Shipment created",
+      timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      status: "PICKUP_SCHEDULED",
+      location: "Origin",
+      remarks: "Pickup scheduled",
+      timestamp: new Date(Date.now() - 1.5 * 24 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      status: "PICKED_UP",
+      location: "Origin Hub",
+      remarks: "Shipment picked up",
+      timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      status: "IN_TRANSIT",
+      location: "Sorting Hub",
+      remarks: "Shipment in transit",
+      timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString()
+    }
+  ];
+
+  return {
+    success: true,
+    statusCode: 200,
+    provider: providerName.toUpperCase(),
+    response: {
+      awb: awb,
+      status: "IN_TRANSIT",
+      timeline: timeline,
+      estimated_delivery: new Date(Date.now() + deliveryDays * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      last_updated: new Date().toISOString()
+    }
+  };
+}
+
+// ===============================
+// GENERIC SERVICEABILITY RESPONSE FACTORY
+// ===============================
+function createServiceabilityResponse(providerName, pincode, isServiceable = true) {
+  const daysMap = {
+    "DELHIVERY": 4,
+    "BLUEDART": 2,
+    "DTDC": 4,
+    "XPRESSBEES": 4,
+    "SHADOWFAX": 1,
+    "ECOMEXPRESS": 4
+  };
+
+  return {
+    success: isServiceable,
+    statusCode: isServiceable ? 200 : 404,
+    provider: providerName.toUpperCase(),
+    response: {
+      serviceable: isServiceable,
+      pickupAvailable: isServiceable,
+      codAvailable: isServiceable,
+      prepaidAvailable: isServiceable,
+      estimatedDays: daysMap[providerName.toUpperCase()] || 4,
+      pincode: pincode || "110001",
+      message: isServiceable ? "Service available for this pincode" : "Service not available for this pincode"
+    }
+  };
+}
+
+// ===============================
+// GENERIC RATES RESPONSE FACTORY
+// ===============================
+function createRatesResponse(providerName, order) {
+  const rateMap = {
+    "DELHIVERY": { forward: 68, cod: 40, fuel: 12, insurance: 10 },
+    "BLUEDART": { forward: 85, cod: 50, fuel: 15, insurance: 12 },
+    "DTDC": { forward: 72, cod: 42, fuel: 13, insurance: 10 },
+    "XPRESSBEES": { forward: 65, cod: 38, fuel: 11, insurance: 9 },
+    "SHADOWFAX": { forward: 55, cod: 35, fuel: 10, insurance: 8 },
+    "ECOMEXPRESS": { forward: 70, cod: 40, fuel: 12, insurance: 10 }
+  };
+
+  const rates = rateMap[providerName.toUpperCase()] || rateMap["DELHIVERY"];
+  const weight = order.weight || 0.5;
+  let weightCharge = rates.forward;
+  
+  if (weight > 0.5) {
+    weightCharge = rates.forward + Math.ceil((weight - 0.5) * 0.5) * 15;
   }
 
-  return awb;
+  const isCOD = order.paymentMode === "COD";
+  const total = weightCharge + (isCOD ? rates.cod : 0) + rates.fuel + (order.insuranceEnabled ? rates.insurance : 0);
+
+  return {
+    success: true,
+    statusCode: 200,
+    provider: providerName.toUpperCase(),
+    response: {
+      rates: {
+        forward: Math.round(weightCharge),
+        cod: isCOD ? rates.cod : 0,
+        fuel: rates.fuel,
+        insurance: order.insuranceEnabled ? rates.insurance : 0,
+        total: Math.round(total)
+      },
+      weight: weight,
+      payment_mode: order.paymentMode || "PREPAID",
+      currency: "INR",
+      message: "Rates calculated successfully"
+    }
+  };
+}
+
+// ===============================
+// GENERIC PICKUP RESPONSE FACTORY
+// ===============================
+function createPickupResponse(providerName, shipmentId) {
+  return {
+    success: true,
+    statusCode: 200,
+    provider: providerName.toUpperCase(),
+    response: {
+      pickup_request_id: `PICK${Date.now()}`,
+      shipment_id: shipmentId,
+      status: "SCHEDULED",
+      scheduled_date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      message: "Pickup scheduled successfully"
+    }
+  };
+}
+
+// ===============================
+// GENERIC CANCEL RESPONSE FACTORY
+// ===============================
+function createCancelResponse(providerName, shipmentId) {
+  return {
+    success: true,
+    statusCode: 200,
+    provider: providerName.toUpperCase(),
+    response: {
+      shipment_id: shipmentId,
+      status: "CANCELLED",
+      message: `${providerName} shipment cancelled successfully`,
+      cancelled_at: new Date().toISOString()
+    }
+  };
+}
+
+// ===============================
+// COURIER SERVICE (PROVIDER SWITCH - FIXED)
+// ===============================
+const CourierService = {
+  async createShipment(courier, order) {
+    logger.info(`Creating shipment for courier: ${courier.code}`, { 
+      orderId: order._id,
+      courierCode: courier.code 
+    });
+
+    // ✅ Get provider from registry
+    const provider = PROVIDER_REGISTRY[courier.code?.toUpperCase()];
+    
+    if (!provider) {
+      logger.error(`Unsupported courier: ${courier.code}`, { 
+        courierCode: courier.code,
+        availableCodes: Object.keys(PROVIDER_REGISTRY) 
+      });
+      throw new Error(`Courier ${courier.code} is not supported`);
+    }
+
+    const result = await provider(order);
+
+    logger.info(`Shipment created successfully`, { 
+      awb: result.response.awb,
+      provider: result.provider 
+    });
+
+    // Transform to controller expected format
+    return {
+      success: result.success,
+      provider: result.provider,
+      providerShipmentId: result.response.shipment_id,
+      providerTrackingId: result.response.tracking_id,
+      awb: result.response.awb,
+      labelUrl: result.response.label_url,
+      manifestUrl: result.response.manifest_url,
+      trackingUrl: result.response.tracking_url,
+      status: result.response.status,
+      estimatedDeliveryDate: new Date(result.response.estimated_delivery),
+      rawResponse: result
+    };
+  },
+
+  async cancelShipment(courier, shipmentId) {
+    logger.info(`Cancelling shipment for courier: ${courier.code}`, { shipmentId });
+
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // ✅ Get provider name from registry key
+    const providerKey = courier.code?.toUpperCase();
+    const providerName = Object.keys(PROVIDER_REGISTRY).find(key => key === providerKey) || courier.code;
+    
+    // ✅ Check if provider exists
+    if (!PROVIDER_REGISTRY[providerKey]) {
+      logger.error(`Unsupported courier for cancellation: ${courier.code}`);
+      throw new Error(`Courier ${courier.code} is not supported`);
+    }
+
+    const result = createCancelResponse(providerName, shipmentId);
+
+    logger.info(`Shipment cancelled successfully`, { shipmentId });
+    return result;
+  },
+
+  async trackShipment(courier, awb) {
+    logger.info(`Tracking shipment for courier: ${courier.code}`, { awb });
+
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // ✅ Get provider key
+    const providerKey = courier.code?.toUpperCase();
+    
+    // ✅ Check if provider exists
+    if (!PROVIDER_REGISTRY[providerKey]) {
+      logger.error(`Unsupported courier for tracking: ${courier.code}`);
+      throw new Error(`Courier ${courier.code} is not supported`);
+    }
+
+    // Determine delivery days based on provider
+    const deliveryDaysMap = {
+      "DELHIVERY": 3,
+      "BLUEDART": 2,
+      "DTDC": 3,
+      "XPRESSBEES": 3,
+      "XPB": 3,
+      "SHADOWFAX": 1,
+      "ECOMEXPRESS": 3
+    };
+
+    const deliveryDays = deliveryDaysMap[providerKey] || 3;
+    const providerName = Object.keys(PROVIDER_REGISTRY).find(key => key === providerKey) || courier.code;
+    
+    const result = createTrackingResponse(providerName, awb, deliveryDays);
+
+    logger.info(`Tracking retrieved successfully`, { awb, status: result.response.status });
+    return result;
+  },
+
+  async serviceability(courier, pincode) {
+    logger.info(`Checking serviceability for courier: ${courier.code}`, { pincode });
+
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // ✅ Get provider key
+    const providerKey = courier.code?.toUpperCase();
+    
+    // ✅ Check if provider exists in registry
+    const isSupported = !!PROVIDER_REGISTRY[providerKey];
+    
+    const result = createServiceabilityResponse(
+      isSupported ? providerKey : courier.code, 
+      pincode, 
+      isSupported
+    );
+
+    logger.info(`Serviceability check completed`, { 
+      courier: courier.code, 
+      serviceable: result.response.serviceable 
+    });
+    return result;
+  },
+
+  async getRates(courier, order) {
+    logger.info(`Getting rates for courier: ${courier.code}`, { 
+      orderId: order._id,
+      weight: order.weight 
+    });
+
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // ✅ Get provider key
+    const providerKey = courier.code?.toUpperCase();
+    
+    // ✅ Check if provider exists
+    if (!PROVIDER_REGISTRY[providerKey]) {
+      logger.error(`Unsupported courier for rates: ${courier.code}`);
+      throw new Error(`Courier ${courier.code} is not supported`);
+    }
+
+    const result = createRatesResponse(providerKey, order);
+    
+    logger.info(`Rates calculated successfully`, { 
+      courier: courier.code,
+      total: result.response.rates.total 
+    });
+    return result;
+  },
+
+  async schedulePickup(courier, shipmentId) {
+    logger.info(`Scheduling pickup for courier: ${courier.code}`, { shipmentId });
+
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // ✅ Get provider key
+    const providerKey = courier.code?.toUpperCase();
+    
+    // ✅ Check if provider exists
+    if (!PROVIDER_REGISTRY[providerKey]) {
+      logger.error(`Unsupported courier for pickup: ${courier.code}`);
+      throw new Error(`Courier ${courier.code} is not supported`);
+    }
+
+    const providerName = Object.keys(PROVIDER_REGISTRY).find(key => key === providerKey) || courier.code;
+    const result = createPickupResponse(providerName, shipmentId);
+
+    logger.info(`Pickup scheduled successfully`, { shipmentId });
+    return result;
+  }
 };
 
 // ===============================
@@ -68,7 +502,7 @@ const getLogoBuffer = (logoPath) => {
     
     return null;
   } catch (error) {
-    console.error("Logo loading error:", error);
+    logger.error("Logo loading error", { error: error.message, logoPath });
     return null;
   }
 };
@@ -87,14 +521,12 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
     qrCode = true,
   } = settings;
 
-  // Save current position if we're drawing in a specific area
   const hasPosition = x !== 0 || y !== 0;
   if (hasPosition) {
     doc.save();
     doc.translate(x, y);
   }
 
-  // Determine available width for content
   const maxWidth = labelWidth || doc.page.width - (doc.page.margins?.left || 40) * 2;
   const contentX = hasPosition ? 0 : (doc.page.margins?.left || 40);
   const contentY = hasPosition ? 0 : (doc.page.margins?.top || 40);
@@ -106,22 +538,17 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
   const boldFont = 'Helvetica-Bold';
   const regularFont = 'Helvetica';
   
-  // Total label height
   const totalHeight = labelHeight || 420;
   
-  // ============================================
   // SECTION 1: SHIP TO + LOGO (18%)
-  // ============================================
   const section1Height = totalHeight * 0.18;
   const section1Y = currentY;
   
-  // Outer border only
   doc.strokeColor('#000000')
      .lineWidth(0.3)
      .rect(contentX, section1Y, maxWidth, totalHeight)
      .stroke();
   
-  // Left: SHIP TO (adjust based on logo width)
   const rightWidth = 85;
   const rightX = contentX + maxWidth - rightWidth - 10;
   const leftWidth = maxWidth - rightWidth - padding - 15;
@@ -135,7 +562,6 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
        align: 'left',
      });
   
-  // Customer Name - More prominent (fontSize 9)
   const nameY = section1Y + padding + 16;
   doc.font(boldFont)
      .fontSize(9)
@@ -145,7 +571,6 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
        align: 'left',
      });
   
-  // Phone
   const phoneY = nameY + 15;
   if (customerPhone && shipment.orderId?.customerPhone) {
     doc.font(regularFont)
@@ -157,11 +582,10 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
        });
   }
   
-  // Address - Smaller font (size 7)
   const addressY = phoneY + 13;
   let addressText = shipment.orderId?.customerAddress || 'N/A';
   if (shipment.orderId?.customerCity && shipment.orderId?.customerState) {
-    addressText = `${shipment.orderId.customerAddress || ''}, ${shipment.orderId.customerCity || ''}, ${shipment.orderId.customerState || ''}`;
+    addressText = `${shipment.orderId?.customerAddress || ''}, ${shipment.orderId?.customerCity || ''}, ${shipment.orderId?.customerState || ''}`;
   }
   
   doc.font(regularFont)
@@ -188,7 +612,6 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
        });
   }
   
-  // Right: LOGO
   if (logo) {
     let logoImage = null;
     if (useMerchantLogo && shipment.merchantId?.logo) {
@@ -207,35 +630,21 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
           valign: 'center',
         });
       } catch (err) {
-        console.error("Logo loading error:", err);
-        // FIX 4: Only grey border, no text
+        logger.error("Logo rendering error", { error: err.message });
         doc.strokeColor('#E0E0E0')
            .lineWidth(0.5)
            .rect(rightX + 10, section1Y + section1Height/2 - 15, rightWidth - 20, 30)
            .stroke();
       }
-    } else {
-      // FIX 4: No logo = nothing, or just a very subtle border
-      // Professional labels don't show placeholder text
-      // Only draw a very subtle border if you want
-      // Commented out for clean look
-      // doc.strokeColor('#F0F0F0')
-      //    .lineWidth(0.3)
-      //    .rect(rightX + 10, section1Y + section1Height/2 - 15, rightWidth - 20, 30)
-      //    .stroke();
     }
   }
   
   currentY = section1Y + section1Height;
-  
-  // Divider line between section 1 and 2
   doc.moveTo(contentX, currentY)
      .lineTo(contentX + maxWidth, currentY)
      .stroke();
   
-  // ============================================
   // SECTION 2: BARCODE (52%) + SHIPMENT INFO (48%)
-  // ============================================
   const section2Height = totalHeight * 0.25;
   const section2Y = currentY;
   
@@ -244,7 +653,6 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
      .lineTo(dividerX, section2Y + section2Height)
      .stroke();
   
-  // LEFT: BIG BARCODE (52%)
   const leftBarcodeWidth = maxWidth * 0.52 - padding * 2;
   const barcodeCenterX = contentX + (maxWidth * 0.52) / 2;
   const barcodeWidth = Math.min(leftBarcodeWidth - 20, 210);
@@ -269,13 +677,10 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
       height: barcodeHeight - 15,
     });
     
-    // FIX: AWB Number below barcode - smaller font (size 8)
     const awbTextY = section2Y + section2Height - 16;
     const awbTextWidth = maxWidth * 0.52 - padding * 2;
-    
-    // Check if label is thermal (small width)
     const isThermal = maxWidth < 300;
-    const awbFontSize = isThermal ? 6.5 : 8; // Smaller font for AWB text
+    const awbFontSize = isThermal ? 6.5 : 8;
     
     doc.font(boldFont)
        .fontSize(awbFontSize)
@@ -286,7 +691,7 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
          lineBreak: false,
        });
   } catch (err) {
-    console.error("Barcode generation error:", err);
+    logger.error("Barcode generation error", { error: err.message });
     doc.font(boldFont)
        .fontSize(10)
        .fillColor('#000000')
@@ -296,7 +701,6 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
        });
   }
   
-  // RIGHT: Shipment Info (48%)
   const infoX = dividerX + padding;
   const infoWidth = maxWidth * 0.48 - padding * 2;
   const infoStartY = section2Y + padding + 5;
@@ -304,7 +708,6 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
   const labelWidth_ = 50;
   const valueWidth = infoWidth - labelWidth_ - 5;
   
-  // Courier
   doc.font(regularFont)
      .fontSize(6.5)
      .fillColor('#666666')
@@ -344,14 +747,12 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
        ellipsis: true 
      });
   
-  // FIX 1: AWB in right panel - show shortened version in one line
   const awbY = infoStartY + infoLineHeight;
   doc.font(regularFont)
      .fontSize(6.5)
      .fillColor('#666666')
      .text('AWB', infoX, awbY, { width: labelWidth_, align: 'left' });
   
-  // Shorten AWB for right panel display
   let shortAwb = barcodeValue;
   if (shortAwb.length > 14) {
     shortAwb = '...' + shortAwb.slice(-10);
@@ -363,10 +764,9 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
      .text(shortAwb, infoX + labelWidth_, awbY, { 
        width: valueWidth, 
        align: 'left',
-       lineBreak: false, // FIX 1: One line only
+       lineBreak: false,
      });
   
-  // Weight
   if (weight) {
     const weightY = awbY + infoLineHeight;
     doc.font(regularFont)
@@ -382,7 +782,6 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
        });
   }
   
-  // Payment - Always black
   const paymentY = awbY + infoLineHeight * 2;
   const paymentMode = shipment.orderId?.paymentMode || 'N/A';
   const isCOD = paymentMode.toUpperCase() === 'COD';
@@ -402,15 +801,11 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
      });
   
   currentY = section2Y + section2Height;
-  
-  // Divider line between section 2 and 3
   doc.moveTo(contentX, currentY)
      .lineTo(contentX + maxWidth, currentY)
      .stroke();
   
-  // ============================================
   // SECTION 3: SHIP FROM + ORDER DETAILS (20%)
-  // ============================================
   const section3Height = totalHeight * 0.20;
   const section3Y = currentY;
   
@@ -419,7 +814,6 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
      .lineTo(dividerX3, section3Y + section3Height)
      .stroke();
   
-  // LEFT: SHIP FROM
   const leftFromX = contentX + padding;
   const leftFromWidth = maxWidth / 2 - padding * 2;
   const fromStartY = section3Y + padding + 5;
@@ -463,7 +857,6 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
        });
   }
   
-  // RIGHT: ORDER DETAILS
   const rightOrderX = dividerX3 + padding;
   const rightOrderWidth = maxWidth / 2 - padding * 2;
   const orderStartY = section3Y + padding + 5;
@@ -479,7 +872,6 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
   const orderNumY = orderStartY + 16;
   let orderNumber = shipment.orderId?.orderNumber || shipment.orderId?._id?.toString()?.slice(-6) || 'N/A';
   
-  // If order number is too long, show only last 12-14 characters
   if (orderNumber.length > 14) {
     orderNumber = '...' + orderNumber.slice(-12);
   }
@@ -501,7 +893,6 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
        lineBreak: false
      });
   
-  // Order Barcode
   const barcodeOrderY = orderNumY + 18;
   if (orderNumber) {
     try {
@@ -520,11 +911,10 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
         height: 22,
       });
     } catch (err) {
-      console.error("Order barcode error:", err);
+      logger.error("Order barcode error", { error: err.message });
     }
   }
   
-  // COD / PREPAID - Black
   const paymentStatusY = barcodeOrderY + 26;
   doc.font(boldFont)
      .fontSize(9)
@@ -535,15 +925,11 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
      });
   
   currentY = section3Y + section3Height;
-  
-  // Divider line between section 3 and 4
   doc.moveTo(contentX, currentY)
      .lineTo(contentX + maxWidth, currentY)
      .stroke();
   
-  // ============================================
   // SECTION 4: ITEM DETAILS (Minimal - 12%)
-  // ============================================
   const section4Height = totalHeight * 0.12;
   const section4Y = currentY;
   
@@ -555,7 +941,6 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
        align: 'left',
      });
   
-  // Responsive table columns
   const tableY = section4Y + padding + 16;
   const descCol = maxWidth * 0.60;
   const qtyCol = maxWidth * 0.15;
@@ -569,18 +954,14 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
      .text('Qty', startX + descCol, tableY, { width: qtyCol, align: 'center' })
      .text('Amount', startX + descCol + qtyCol, tableY, { width: amountCol - 5, align: 'right' });
   
-  // Divider line
   doc.strokeColor('#CCCCCC')
      .lineWidth(0.3)
      .moveTo(startX, tableY + 12)
      .lineTo(startX + descCol + qtyCol + amountCol, tableY + 12)
      .stroke();
   
-  // Item Data - Only 1 row
   const items = shipment.orderId?.items || [];
   const itemY = tableY + 16;
-  
-  // FIX 2: Amount padding from right border
   const amountPadding = 8;
   
   if (items.length > 0) {
@@ -593,7 +974,6 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
        .fillColor('#000000')
        .text(descDisplay, startX + 4, itemY, { width: descCol - 8, align: 'left' })
        .text(item.quantity || 1, startX + descCol, itemY, { width: qtyCol, align: 'center' })
-       // FIX 2: Add padding from right edge
        .text(`₹${(item.price || item.amount || 0) * (item.quantity || 1)}`, 
          startX + descCol + qtyCol + amountPadding, itemY, { 
          width: amountCol - amountPadding - 4, 
@@ -622,15 +1002,11 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
   }
   
   currentY = section4Y + section4Height;
-  
-  // Divider line between section 4 and 5
   doc.moveTo(contentX, currentY)
      .lineTo(contentX + maxWidth, currentY)
      .stroke();
   
-  // ============================================
   // SECTION 5: QR CODE + TERMS (10%)
-  // ============================================
   const section5Height = totalHeight * 0.10;
   const section5Y = currentY;
   
@@ -639,7 +1015,6 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
      .lineTo(dividerX5, section5Y + section5Height)
      .stroke();
   
-  // LEFT: QR CODE (25%)
   const qrLeftX = contentX + padding;
   const qrWidth = maxWidth * 0.25 - padding * 2;
   
@@ -660,13 +1035,11 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
         height: qrSize,
       });
     } catch (err) {
-      console.error("QR generation error:", err);
+      logger.error("QR generation error", { error: err.message });
     }
   }
   
-  // RIGHT: Terms & Conditions (75%)
-  // FIX 3: More gap between QR and text
-  const termsX = dividerX5 + 18; // Increased from padding to 18
+  const termsX = dividerX5 + 18;
   const termsWidth = maxWidth * 0.75 - padding * 2 - 8;
   
   doc.font(regularFont)
@@ -688,25 +1061,30 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
     });
   });
 
-  // Restore position if we translated
   if (hasPosition) {
     doc.restore();
   }
 }
 
 // ===============================
-// HELPER: Render Complete Label (Keep for backward compatibility)
+// HELPER: Render Complete Label
 // ===============================
 async function renderLabel(doc, shipment, settings = {}, labelWidth = null, labelHeight = null, x = 0, y = 0) {
   return renderLabelV2(doc, shipment, settings, labelWidth, labelHeight, x, y);
 }
 
 // ===============================
-// CREATE SHIPMENT
+// CREATE SHIPMENT WITH TRANSACTION
 // ===============================
 const createShipment = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
-    console.log("REQ USER =>", req.user);
+    logger.info("Create shipment request received", { 
+      userId: req.user?.id,
+      body: req.body 
+    });
 
     const {
       orderId,
@@ -715,6 +1093,8 @@ const createShipment = async (req, res) => {
     } = req.body;
 
     if (!orderId || !courierId) {
+      await session.abortTransaction();
+      logger.warn("Missing required fields", { orderId, courierId });
       return res.status(400).json({
         success: false,
         message: "OrderId and CourierId are required",
@@ -724,9 +1104,11 @@ const createShipment = async (req, res) => {
     const order = await Order.findOne({
       _id: orderId,
       merchantId: req.user.id,
-    });
+    }).session(session);
 
     if (!order) {
+      await session.abortTransaction();
+      logger.warn("Order not found", { orderId, userId: req.user.id });
       return res.status(404).json({
         success: false,
         message: "Order not found",
@@ -736,18 +1118,22 @@ const createShipment = async (req, res) => {
     const existingShipment = await Shipment.findOne({
       orderId,
       merchantId: req.user.id,
-    });
+    }).session(session);
 
     if (existingShipment) {
+      await session.abortTransaction();
+      logger.warn("Shipment already exists", { orderId });
       return res.status(400).json({
         success: false,
         message: "Shipment already exists for this order",
       });
     }
 
-    const courier = await Courier.findById(courierId);
+    const courier = await Courier.findById(courierId).session(session);
 
     if (!courier) {
+      await session.abortTransaction();
+      logger.warn("Courier not found", { courierId });
       return res.status(404).json({
         success: false,
         message: "Courier not found",
@@ -758,17 +1144,19 @@ const createShipment = async (req, res) => {
       merchantId: req.user.id,
       courierId,
       isActive: true,
-    });
+    }).session(session);
 
     if (!rateCard) {
       rateCard = await RateCard.findOne({
         merchantId: null,
         courierId,
         isActive: true,
-      });
+      }).session(session);
     }
 
     if (!rateCard) {
+      await session.abortTransaction();
+      logger.warn("No rate card found", { merchantId: req.user.id, courierId });
       return res.status(404).json({
         success: false,
         message: "No pricing available for this courier. Please contact administrator.",
@@ -787,179 +1175,158 @@ const createShipment = async (req, res) => {
       SHIPPING_CHARGE = rateCard.forwardRates?.rate2kg || 0;
     } else if (weight <= 5) {
       SHIPPING_CHARGE = rateCard.forwardRates?.rate5kg || 0;
+    } else if (weight <= 10) {
+      SHIPPING_CHARGE = rateCard.forwardRates?.rate10kg || 0;
     } else {
       SHIPPING_CHARGE = 
-        (rateCard.forwardRates?.rate5kg || 0) +
-        (Math.ceil(weight - 5) * (rateCard.forwardRates?.additionalKg || 0));
+        (rateCard.forwardRates?.rate10kg || 0) +
+        (Math.ceil(weight - 10) * (rateCard.forwardRates?.additionalKg || 0));
     }
 
     if (order.paymentMode === "COD") {
       SHIPPING_CHARGE += rateCard.codCharge || 0;
     }
 
+    // ✅ Convert env values to numbers
+    const insurancePercentage = Number(process.env.INSURANCE_PERCENTAGE || 2);
     let insurancePremium = 0;
 
     if (insuranceEnabled) {
       insurancePremium = Math.ceil(
-        (order.amount || 0) * 0.02
+        (order.amount || 0) * (insurancePercentage / 100)
       );
-
       SHIPPING_CHARGE += insurancePremium;
     }
 
     order.shippingCharge = SHIPPING_CHARGE;
-    await order.save();
+    await order.save({ session });
 
     let wallet = await Wallet.findOne({
       merchantId: req.user.id,
-    });
+    }).session(session);
 
     if (!wallet) {
-      wallet = await Wallet.create({
-        merchantId: req.user.id,
-      });
+      const [newWallet] = await Wallet.create(
+        [{
+          merchantId: req.user.id,
+          balance: 0,
+        }],
+        { session }
+      );
+      wallet = newWallet;
     }
 
     if (wallet.balance < SHIPPING_CHARGE) {
+      await session.abortTransaction();
+      logger.warn("Insufficient wallet balance", { 
+        balance: wallet.balance, 
+        required: SHIPPING_CHARGE 
+      });
       return res.status(400).json({
         success: false,
         message: "Insufficient Wallet Balance",
+        balance: wallet.balance,
+        required: SHIPPING_CHARGE,
       });
     }
 
-    const awb = await generateAWB();
+    // ===============================
+    // COURIER API INTEGRATION (FIXED)
+    // ===============================
+    const courierResponse = await CourierService.createShipment(
+      courier,
+      order
+    );
 
-    console.log("===== BEFORE SHIPMENT CREATE =====");
-    console.log({
+    const awb = courierResponse.awb;
+    const labelUrl = courierResponse.labelUrl;
+
+    const shipment = await Shipment.create([{
       orderId,
       merchantId: req.user.id,
       courier: courier.name,
       courierId: courier._id,
       awb,
+      labelUrl,
+      status: "PICKUP_PENDING",
       insuranceEnabled,
       insuranceAmount: order.amount || 0,
       insurancePremium,
-    });
-
-    const shipment = await Shipment.create({
-      orderId,
-      merchantId: req.user.id,
-      courier: courier.name,
-      courierPartner: courier.code,
-      courierId: courier._id,
-      awb,
-      status: "PENDING",
-      insuranceEnabled,
-      insuranceAmount: order.amount || 0,
-      insurancePremium,
-      trackingEvents: [
+      provider: courierResponse.provider,
+      providerShipmentId: courierResponse.providerShipmentId,
+      providerTrackingId: courierResponse.providerTrackingId,
+      providerStatus: courierResponse.status,
+      trackingUrl: courierResponse.trackingUrl,
+      manifestUrl: courierResponse.manifestUrl,
+      apiResponse: courierResponse.rawResponse,
+      expectedDeliveryDate: courierResponse.estimatedDeliveryDate,
+      tracking: [
         {
-          status: "PENDING",
-          location: "Warehouse",
-          remark: "Shipment Created",
-          timestamp: new Date(),
+          status: "PICKUP_PENDING",
+          location: courier.name,
+          remarks: "Shipment Created",
+          eventTime: new Date(),
         },
       ],
-    });
+    }], { session });
 
-    console.log("===== SHIPMENT CREATED =====");
-    console.log(shipment);
-
-    console.log("===== BEFORE WALLET SAVE =====");
-    console.log({
-      currentBalance: wallet.balance,
-      deductionAmount: SHIPPING_CHARGE,
-      newBalance: wallet.balance - SHIPPING_CHARGE,
-    });
+    const createdShipment = shipment[0];
 
     wallet.balance -= SHIPPING_CHARGE;
     wallet.transactions.push({
       amount: SHIPPING_CHARGE,
       type: "DEBIT",
-      description: `Shipment Charge - ${awb}`,
+      description: `Shipment Charge - Order #${order.orderNumber || order._id.toString().slice(-6)}`,
       createdAt: new Date(),
     });
-    await wallet.save();
+    await wallet.save({ session });
 
-    console.log("===== WALLET SAVED =====");
-    console.log({
-      newBalance: wallet.balance,
-      transactionCount: wallet.transactions.length,
-    });
+    // ✅ Convert env values to numbers
+    const taxPercentage = Number(process.env.GST_PERCENTAGE || 18);
+    const taxAmount = Math.ceil((order.amount || 0) * (taxPercentage / 100));
 
-    console.log("===== BEFORE INVOICE CREATE =====");
-    console.log({
+    const invoice = await Invoice.create([{
       invoiceNumber: generateInvoiceNumber(),
       merchantId: req.user.id,
       orderId: order._id,
-      shipmentId: shipment._id,
+      shipmentId: createdShipment._id,
       amount: order.amount || 0,
-      taxAmount: 18,
+      taxAmount: taxAmount,
       shippingCharge: SHIPPING_CHARGE,
       insuranceCharge: insurancePremium,
       paymentMethod: order.paymentMode || "COD",
       status: "PAID",
-    });
+    }], { session });
 
-    const invoice = await Invoice.create({
-      invoiceNumber: generateInvoiceNumber(),
-      merchantId: req.user.id,
-      orderId: order._id,
-      shipmentId: shipment._id,
-      amount: order.amount || 0,
-      taxAmount: 18,
-      shippingCharge: SHIPPING_CHARGE,
-      insuranceCharge: insurancePremium,
-      paymentMethod: order.paymentMode || "COD",
-      status: "PAID",
-    });
+    const createdInvoice = invoice[0];
 
-    console.log("INVOICE CREATED =>", invoice);
+    createdShipment.invoiceId = createdInvoice._id;
+    await createdShipment.save({ session });
 
-    const updatedShipment = await Shipment.findByIdAndUpdate(
-      shipment._id,
-      {
-        invoiceId: invoice._id,
-      },
-      {
-        new: true,
-      }
-    );
+    order.shipmentId = createdShipment._id;
+    order.invoiceId = createdInvoice._id;
+    order.awb = createdShipment.awb;
     
-    const checkShipment = await Shipment.findById(shipment._id);
-    console.log("UPDATED SHIPMENT INVOICE =>", checkShipment.invoiceId);
+    // ✅ Keep if Order model has courierPartner field, else remove
+    if (order.schema.paths && order.schema.paths.courierPartner) {
+      order.courierPartner = createdShipment.courier;
+    }
     
-    console.log("===== SHIPMENT UPDATED WITH INVOICE ID =====");
-    console.log("UPDATED SHIPMENT =>", updatedShipment);
-    console.log("UPDATED INVOICE ID =>", updatedShipment.invoiceId);
+    order.status = "READY_FOR_PICKUP";
+    await order.save({ session });
 
-    console.log("===== BEFORE ORDER SAVE =====");
-    console.log({
-      orderId: order._id,
-      shipmentId: shipment._id,
-      invoiceId: invoice._id,
-      awb: shipment.awb,
-      courierPartner: shipment.courier,
-      status: "SHIPPED",
+    await session.commitTransaction();
+
+    logger.info("Shipment created successfully", { 
+      shipmentId: createdShipment._id,
+      awb: createdShipment.awb,
+      orderId: order._id 
     });
 
-    order.shipmentId = shipment._id;
-    order.invoiceId = invoice._id;
-    order.awb = shipment.awb;
-    order.courierPartner = shipment.courier;
-    order.status = "SHIPPED";
-    await order.save();
-
-    console.log("===== ORDER SAVED =====");
-    console.log("ORDER UPDATED WITH SHIPMENT & INVOICE =>", order);
-
-    const finalShipment = await Shipment.findById(shipment._id)
+    const finalShipment = await Shipment.findById(createdShipment._id)
       .populate("orderId")
-      .populate("invoiceId");
-
-    console.log("===== FINAL UPDATED SHIPMENT =====");
-    console.log("FINAL INVOICE ID =>", finalShipment.invoiceId);
-    console.log("Full final shipment:", finalShipment);
+      .populate("invoiceId")
+      .populate("merchantId", "companyName phone logo gst");
 
     return res.status(201).json({
       success: true,
@@ -973,24 +1340,40 @@ const createShipment = async (req, res) => {
       paymentMode: order.paymentMode,
     });
   } catch (error) {
-    console.log("SHIPMENT ERROR =>", error);
+    await session.abortTransaction();
+    logger.error("Shipment creation failed", { 
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+      userId: req.user?.id 
+    });
 
     return res.status(500).json({
       success: false,
       message: error.message,
-      stack: error.stack,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
     });
+  } finally {
+    await session.endSession(); // ✅ Always cleanup
   }
 };
 
 // ===============================
-// BULK CREATE SHIPMENTS
+// BULK CREATE SHIPMENTS WITH TRANSACTION
 // ===============================
 const createBulkShipments = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
+    logger.info("Bulk shipment request received", { 
+      userId: req.user?.id,
+      body: req.body 
+    });
+
     const { orderIds, courierId } = req.body;
 
     if (!orderIds || orderIds.length === 0) {
+      await session.abortTransaction();
       return res.status(400).json({
         success: false,
         message: "No orders selected",
@@ -998,31 +1381,73 @@ const createBulkShipments = async (req, res) => {
     }
 
     if (!courierId) {
+      await session.abortTransaction();
       return res.status(400).json({
         success: false,
         message: "CourierId is required",
       });
     }
 
-    const courier = await Courier.findById(courierId);
+    const courier = await Courier.findById(courierId).session(session);
 
     if (!courier) {
+      await session.abortTransaction();
+      logger.warn("Courier not found", { courierId });
       return res.status(404).json({
         success: false,
         message: "Courier not found",
       });
     }
 
+    let rateCard = await RateCard.findOne({
+      merchantId: req.user.id,
+      courierId,
+      isActive: true,
+    }).session(session);
+
+    if (!rateCard) {
+      rateCard = await RateCard.findOne({
+        merchantId: null,
+        courierId,
+        isActive: true,
+      }).session(session);
+    }
+
+    if (!rateCard) {
+      await session.abortTransaction();
+      return res.status(404).json({
+        success: false,
+        message: "No pricing available for this courier. Please contact administrator.",
+      });
+    }
+
+    let wallet = await Wallet.findOne({
+      merchantId: req.user.id,
+    }).session(session);
+
+    if (!wallet) {
+      const [newWallet] = await Wallet.create(
+        [{
+          merchantId: req.user.id,
+          balance: 0,
+        }],
+        { session }
+      );
+      wallet = newWallet;
+    }
+
     const shipments = [];
     const failedOrders = [];
     const skippedOrders = [];
+    let totalCharges = 0;
+    const createdShipmentIds = [];
 
     for (const orderId of orderIds) {
       try {
         const order = await Order.findOne({
           _id: orderId,
           merchantId: req.user.id,
-        });
+        }).session(session);
 
         if (!order) {
           failedOrders.push({ orderId, reason: "Order not found" });
@@ -1032,65 +1457,184 @@ const createBulkShipments = async (req, res) => {
         const existingShipment = await Shipment.findOne({
           orderId,
           merchantId: req.user.id,
-        });
+        }).session(session);
 
         if (existingShipment) {
           skippedOrders.push({ orderId, reason: "Shipment already exists" });
           continue;
         }
 
-        const awb = "AWB" + Date.now() + Math.floor(Math.random() * 10000);
+        const weight = Number(order.weight || 0);
+        let shippingCharge = 0;
 
-        const shipment = await Shipment.create({
+        if (weight <= 0.5) {
+          shippingCharge = rateCard.forwardRates?.rate500gm || 0;
+        } else if (weight <= 1) {
+          shippingCharge = rateCard.forwardRates?.rate1kg || 0;
+        } else if (weight <= 2) {
+          shippingCharge = rateCard.forwardRates?.rate2kg || 0;
+        } else if (weight <= 5) {
+          shippingCharge = rateCard.forwardRates?.rate5kg || 0;
+        } else if (weight <= 10) {
+          shippingCharge = rateCard.forwardRates?.rate10kg || 0;
+        } else {
+          shippingCharge = 
+            (rateCard.forwardRates?.rate10kg || 0) +
+            (Math.ceil(weight - 10) * (rateCard.forwardRates?.additionalKg || 0));
+        }
+
+        if (order.paymentMode === "COD") {
+          shippingCharge += rateCard.codCharge || 0;
+        }
+
+        totalCharges += shippingCharge;
+
+        if (wallet.balance < totalCharges) {
+          failedOrders.push({ 
+            orderId, 
+            reason: `Insufficient wallet balance. Required: ${totalCharges}, Available: ${wallet.balance}` 
+          });
+          continue;
+        }
+
+        // ===============================
+        // COURIER API INTEGRATION (Bulk - FIXED)
+        // ===============================
+        const courierResponse = await CourierService.createShipment(
+          courier,
+          order
+        );
+
+        const awb = courierResponse.awb;
+        const labelUrl = courierResponse.labelUrl;
+
+        const shipment = await Shipment.create([{
           orderId,
           merchantId: req.user.id,
           courier: courier.name,
-          courierPartner: courier.code,
           courierId: courier._id,
           awb,
-          status: "PENDING",
-          trackingEvents: [
+          labelUrl,
+          status: "PICKUP_PENDING",
+          insuranceEnabled: false,
+          insuranceAmount: 0,
+          insurancePremium: 0,
+          provider: courierResponse.provider,
+          providerShipmentId: courierResponse.providerShipmentId,
+          providerTrackingId: courierResponse.providerTrackingId,
+          providerStatus: courierResponse.status,
+          trackingUrl: courierResponse.trackingUrl,
+          manifestUrl: courierResponse.manifestUrl,
+          apiResponse: courierResponse.rawResponse,
+          expectedDeliveryDate: courierResponse.estimatedDeliveryDate,
+          tracking: [
             {
-              status: "PENDING",
-              location: "Warehouse",
-              remark: "Bulk Shipment Created",
-              timestamp: new Date(),
+              status: "PICKUP_PENDING",
+              location: courier.name,
+              remarks: "Bulk Shipment Created",
+              eventTime: new Date(),
             },
           ],
+        }], { session });
+
+        const createdShipment = shipment[0];
+        createdShipmentIds.push(createdShipment._id);
+
+        const taxPercentage = Number(process.env.GST_PERCENTAGE || 18);
+        const taxAmount = Math.ceil((order.amount || 0) * (taxPercentage / 100));
+
+        const invoice = await Invoice.create([{
+          invoiceNumber: generateInvoiceNumber(),
+          merchantId: req.user.id,
+          orderId: order._id,
+          shipmentId: createdShipment._id,
+          amount: order.amount || 0,
+          taxAmount: taxAmount,
+          shippingCharge: shippingCharge,
+          insuranceCharge: 0,
+          paymentMethod: order.paymentMode || "COD",
+          status: "PAID",
+        }], { session });
+
+        const createdInvoice = invoice[0];
+
+        createdShipment.invoiceId = createdInvoice._id;
+        await createdShipment.save({ session });
+
+        order.shipmentId = createdShipment._id;
+        order.invoiceId = createdInvoice._id;
+        order.awb = createdShipment.awb;
+        
+        // ✅ Keep if Order model has courierPartner field, else remove
+        if (order.schema.paths && order.schema.paths.courierPartner) {
+          order.courierPartner = createdShipment.courier;
+        }
+        
+        order.status = "READY_FOR_PICKUP";
+        order.shippingCharge = shippingCharge;
+        await order.save({ session });
+
+        shipments.push(createdShipment);
+
+        wallet.balance -= shippingCharge;
+        wallet.transactions.push({
+          amount: shippingCharge,
+          type: "DEBIT",
+          description: `Bulk Shipment Charge - Order #${order.orderNumber || order._id.toString().slice(-6)}`,
+          createdAt: new Date(),
         });
 
-        shipments.push(shipment);
-
-        order.shipmentId = shipment._id;
-        order.awb = shipment.awb;
-        order.courierPartner = shipment.courier;
-        order.status = "SHIPPED";
-        await order.save();
-
       } catch (error) {
-        console.error(`Error creating shipment for order ${orderId}:`, error);
+        logger.error("Bulk shipment error for order", { 
+          orderId, 
+          error: error.message 
+        });
         failedOrders.push({ orderId, reason: error.message });
       }
     }
 
+    await wallet.save({ session });
+
+    await session.commitTransaction();
+
+    logger.info("Bulk shipments created", { 
+      total: shipments.length,
+      skipped: skippedOrders.length,
+      failed: failedOrders.length 
+    });
+
+    const populatedShipments = await Shipment.find({
+      _id: { $in: shipments.map(s => s._id) }
+    })
+      .populate("orderId")
+      .populate("invoiceId")
+      .populate("merchantId", "companyName phone logo gst");
+
     return res.status(201).json({
       success: true,
       message: `${shipments.length} shipments created successfully`,
-      shipments,
+      shipments: populatedShipments,
       summary: {
         created: shipments.length,
         skipped: skippedOrders.length,
         failed: failedOrders.length,
+        totalCharges,
         skippedOrders,
         failedOrders,
       },
     });
   } catch (error) {
-    console.error("Bulk shipment error:", error);
+    await session.abortTransaction();
+    logger.error("Bulk shipment creation failed", { 
+      error: error.message,
+      userId: req.user?.id 
+    });
     return res.status(500).json({
       success: false,
       message: error.message,
     });
+  } finally {
+    await session.endSession(); // ✅ Always cleanup
   }
 };
 
@@ -1109,7 +1653,7 @@ const getShipments = async (req, res) => {
         },
       })
       .populate("invoiceId")
-      .populate("courierId")
+      .populate("courierId", "name code")
       .sort({ createdAt: -1 });
 
     return res.status(200).json({
@@ -1118,6 +1662,7 @@ const getShipments = async (req, res) => {
       shipments,
     });
   } catch (error) {
+    logger.error("Get shipments failed", { error: error.message });
     return res.status(500).json({
       success: false,
       message: error.message,
@@ -1138,7 +1683,7 @@ const getShipmentById = async (req, res) => {
         },
       })
       .populate("invoiceId")
-      .populate("courierId");
+      .populate("courierId", "name code");
 
     if (!shipment) {
       return res.status(404).json({
@@ -1152,6 +1697,10 @@ const getShipmentById = async (req, res) => {
       shipment,
     });
   } catch (error) {
+    logger.error("Get shipment by ID failed", { 
+      error: error.message,
+      shipmentId: req.params.id 
+    });
     return res.status(500).json({
       success: false,
       message: error.message,
@@ -1177,20 +1726,39 @@ const trackShipment = async (req, res) => {
         },
       })
       .populate("invoiceId")
-      .populate("courierId");
+      .populate("courierId", "name code");
 
     if (!shipment) {
+      logger.warn("Shipment not found for tracking", { awb: id });
       return res.status(404).json({
         success: false,
         message: "Shipment not found",
       });
     }
 
+    // ===============================
+    // TRACK WITH COURIER SERVICE (Provider Switch - FIXED)
+    // ===============================
+    const courier = await Courier.findById(shipment.courierId);
+    const tracking = await CourierService.trackShipment(courier, shipment.awb);
+
+    logger.info("Shipment tracked successfully", { 
+      awb: shipment.awb,
+      status: tracking.response.status 
+    });
+
     return res.status(200).json({
       success: true,
       shipment,
+      tracking: tracking.response.timeline || [],
+      courierStatus: tracking.response.status,
+      estimatedDelivery: tracking.response.estimated_delivery,
     });
   } catch (error) {
+    logger.error("Track shipment failed", { 
+      error: error.message,
+      awb: req.params.id 
+    });
     return res.status(500).json({
       success: false,
       message: error.message,
@@ -1199,7 +1767,7 @@ const trackShipment = async (req, res) => {
 };
 
 // ===============================
-// UPDATE SHIPMENT STATUS - PRODUCTION READY
+// UPDATE SHIPMENT STATUS
 // ===============================
 const updateShipmentStatus = async (req, res) => {
   try {
@@ -1207,12 +1775,15 @@ const updateShipmentStatus = async (req, res) => {
     const { status } = req.body;
 
     const allowedStatuses = [
-      "READY_FOR_PICKUP",
+      "PICKUP_PENDING",
+      "PICKUP_SCHEDULED",
+      "PICKED_UP",
       "IN_TRANSIT",
       "OUT_FOR_DELIVERY",
       "DELIVERED",
       "NDR",
       "RTO",
+      "CANCELLED",
     ];
 
     if (!allowedStatuses.includes(status)) {
@@ -1231,42 +1802,45 @@ const updateShipmentStatus = async (req, res) => {
       });
     }
 
-    if (shipment.status === "DELIVERED") {
+    if (shipment.status === "DELIVERED" || shipment.status === "CANCELLED") {
       return res.status(400).json({
         success: false,
-        message: "Delivered shipment cannot be modified",
+        message: `${shipment.status} shipment cannot be modified`,
       });
     }
 
-    shipment.status = status;
+    await shipment.addTrackingEvent(
+      status,
+      "Admin Panel",
+      `Shipment status changed to ${status}`
+    );
 
     const order = await Order.findById(shipment.orderId);
 
     if (order) {
       const orderStatusMap = {
-        READY_FOR_PICKUP: "READY_FOR_PICKUP",
+        PICKUP_PENDING: "READY_FOR_PICKUP",
+        PICKUP_SCHEDULED: "READY_FOR_PICKUP",
+        PICKED_UP: "SHIPPED",
         IN_TRANSIT: "SHIPPED",
-        OUT_FOR_DELIVERY: "SHIPPED",
+        OUT_FOR_DELIVERY: "OUT_FOR_DELIVERY",
         DELIVERED: "DELIVERED",
-        NDR: "SHIPPED",
-        RTO: "RETURNED",
+        NDR: "NDR",
+        RTO: "RTO",
+        CANCELLED: "CANCELLED",
       };
 
       order.status = orderStatusMap[status] || order.status;
       await order.save();
     }
 
-    // ===============================
-    // NDR LOGIC - Existing
-    // ===============================
+    // NDR LOGIC
     if (status === "NDR") {
-      console.log("========== NDR HIT ==========");
+      logger.info("NDR hit for shipment", { shipmentId: shipment._id });
 
       const existingNDR = await NDR.findOne({
         shipmentId: shipment._id,
       });
-
-      console.log("EXISTING =", existingNDR);
 
       if (!existingNDR) {
         try {
@@ -1277,30 +1851,24 @@ const updateShipmentStatus = async (req, res) => {
             awb: shipment.awb,
             reason: "Delivery Failed",
           });
-
-          console.log("NDR CREATED =", ndr);
+          logger.info("NDR created", { ndrId: ndr._id });
         } catch (err) {
-          console.log("NDR ERROR =", err);
+          logger.error("NDR creation error", { error: err.message });
         }
       }
     }
 
-    // ===============================
-    // RTO LOGIC - PRODUCTION LEVEL
-    // ===============================
+    // RTO LOGIC
     if (status === "RTO") {
-      console.log("========== RTO HIT ==========");
+      logger.info("RTO hit for shipment", { shipmentId: shipment._id });
 
       const existingRTO = await RTO.findOne({
         shipmentId: shipment._id,
       });
 
-      console.log("EXISTING RTO =", existingRTO);
-
       if (!existingRTO) {
         try {
-          // Fetch order to get customer details
-          const order = await Order.findById(shipment.orderId);
+          const orderData = await Order.findById(shipment.orderId);
 
           const rto = await RTO.create({
             shipmentId: shipment._id,
@@ -1308,29 +1876,19 @@ const updateShipmentStatus = async (req, res) => {
             orderId: shipment.orderId,
             awb: shipment.awb,
             courier: shipment.courier,
-            
-            // Required Field
             reason: "Returned To Origin",
             rtoReason: "Shipment marked as RTO by Admin",
-            
-            // Customer Details
-            customerName: order?.customerName || "",
-            customerPhone: order?.customerPhone || "",
-            address: order?.customerAddress || "",
-            pincode: order?.customerPincode || "",
-            city: order?.customerCity || "",
-            state: order?.customerState || "",
-            
-            // Status
+            customerName: orderData?.customerName || "",
+            customerPhone: orderData?.customerPhone || "",
+            address: orderData?.customerAddress || "",
+            pincode: orderData?.customerPincode || "",
+            city: orderData?.customerCity || "",
+            state: orderData?.customerState || "",
             status: "INITIATED",
             rtoRequestedAt: new Date(),
-            
-            // Audit Fields
             createdBy: "admin",
             source: "manual",
-            lastUpdatedBy: req.user.id, // IMPROVEMENT 2: Track who updated
-            
-            // IMPROVEMENT 3: Initialize attempt history
+            lastUpdatedBy: req.user.id,
             attemptHistory: [
               {
                 date: new Date(),
@@ -1341,11 +1899,9 @@ const updateShipmentStatus = async (req, res) => {
             ],
           });
 
-          console.log("RTO CREATED =", rto);
+          logger.info("RTO created", { rtoId: rto._id });
         } catch (err) {
-          // IMPROVEMENT 1: Throw error instead of just console.log
-          console.error("RTO ERROR =", err);
-          
+          logger.error("RTO creation error", { error: err.message });
           return res.status(500).json({
             success: false,
             message: "Failed to create RTO record",
@@ -1355,25 +1911,16 @@ const updateShipmentStatus = async (req, res) => {
       }
     }
 
-    shipment.trackingEvents.push({
-      status,
-      location: "Admin Panel",
-      remark: `Shipment status changed to ${status}`,
-      timestamp: new Date(),
-    });
-
-    if (status === "DELIVERED") {
-      shipment.deliveryDate = new Date();
-    }
-
-    await shipment.save();
-
     return res.status(200).json({
       success: true,
       message: "Status Updated Successfully",
       shipment,
     });
   } catch (error) {
+    logger.error("Update shipment status failed", { 
+      error: error.message,
+      shipmentId: req.params.id 
+    });
     return res.status(500).json({
       success: false,
       message: error.message,
@@ -1395,23 +1942,27 @@ const schedulePickup = async (req, res) => {
       });
     }
 
+    // ===============================
+    // SCHEDULE PICKUP WITH COURIER SERVICE (Provider Switch - FIXED)
+    // ===============================
+    const courier = await Courier.findById(shipment.courierId);
+    await CourierService.schedulePickup(courier, shipment._id);
+
+    await shipment.addTrackingEvent(
+      "PICKUP_SCHEDULED",
+      "Admin Panel",
+      "Pickup Scheduled"
+    );
+
+    shipment.pickupDate = new Date();
+
     const order = await Order.findById(shipment.orderId);
     if (order) {
       order.status = "READY_FOR_PICKUP";
       await order.save();
     }
 
-    shipment.pickupDate = new Date();
-    shipment.status = "READY_FOR_PICKUP";
-
-    shipment.trackingEvents.push({
-      status: "READY_FOR_PICKUP",
-      location: "Admin Panel",
-      remark: "Pickup Scheduled",
-      timestamp: new Date(),
-    });
-
-    await shipment.save();
+    logger.info("Pickup scheduled successfully", { shipmentId: shipment._id });
 
     res.status(200).json({
       success: true,
@@ -1419,6 +1970,10 @@ const schedulePickup = async (req, res) => {
       shipment,
     });
   } catch (error) {
+    logger.error("Schedule pickup failed", { 
+      error: error.message,
+      shipmentId: req.params.id 
+    });
     res.status(500).json({
       success: false,
       message: error.message,
@@ -1447,11 +2002,17 @@ const generateShipmentQR = async (req, res) => {
     shipment.qrCode = qrCode;
     await shipment.save();
 
+    logger.info("QR code generated", { shipmentId: shipment._id });
+
     res.status(200).json({
       success: true,
       qrCode,
     });
   } catch (error) {
+    logger.error("QR generation failed", { 
+      error: error.message,
+      shipmentId: req.params.id 
+    });
     res.status(500).json({
       success: false,
       message: error.message,
@@ -1468,7 +2029,7 @@ const generateLabel = async (req, res) => {
       _id: req.params.id,
       merchantId: req.user.id,
     })
-      .populate("merchantId")
+      .populate("merchantId", "companyName phone logo gst")
       .populate("orderId")
       .populate("invoiceId");
 
@@ -1568,8 +2129,16 @@ const generateLabel = async (req, res) => {
 
     doc.end();
 
+    logger.info("Label generated", { 
+      shipmentId: shipment._id,
+      format: format 
+    });
+
   } catch (error) {
-    console.error("Generate label error:", error);
+    logger.error("Label generation failed", { 
+      error: error.message,
+      shipmentId: req.params.id 
+    });
     res.status(500).json({
       success: false,
       message: error.message,
@@ -1611,7 +2180,7 @@ const bulkLabels = async (req, res) => {
       _id: { $in: shipmentIds },
       merchantId: req.user.id,
     })
-      .populate("merchantId")
+      .populate("merchantId", "companyName phone logo gst")
       .populate("orderId")
       .populate("invoiceId");
 
@@ -1706,8 +2275,66 @@ const bulkLabels = async (req, res) => {
 
     doc.end();
 
+    logger.info("Bulk labels generated", { 
+      count: shipments.length,
+      format: format 
+    });
+
   } catch (error) {
-    console.error("Bulk labels error:", error);
+    logger.error("Bulk labels generation failed", { 
+      error: error.message 
+    });
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ===============================
+// CANCEL SHIPMENT
+// ===============================
+const cancelShipment = async (req, res) => {
+  try {
+    const shipment = await Shipment.findById(req.params.id);
+
+    if (!shipment) {
+      return res.status(404).json({
+        success: false,
+        message: "Shipment not found",
+      });
+    }
+
+    // ===============================
+    // CANCEL WITH COURIER SERVICE (Provider Switch - FIXED)
+    // ===============================
+    const courier = await Courier.findById(shipment.courierId);
+    await CourierService.cancelShipment(courier, shipment._id);
+
+    shipment.status = "CANCELLED";
+    await shipment.save();
+
+    const order = await Order.findById(shipment.orderId);
+    if (order) {
+      order.status = "CANCELLED";
+      await order.save();
+    }
+
+    logger.info("Shipment cancelled", { 
+      shipmentId: shipment._id,
+      awb: shipment.awb 
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Shipment cancelled successfully",
+      shipment,
+    });
+  } catch (error) {
+    logger.error("Cancel shipment failed", { 
+      error: error.message,
+      shipmentId: req.params.id 
+    });
     res.status(500).json({
       success: false,
       message: error.message,
@@ -1731,9 +2358,13 @@ const getTrackingTimeline = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      timeline: shipment.trackingEvents || [],
+      tracking: shipment.tracking || [],
     });
   } catch (error) {
+    logger.error("Get tracking timeline failed", { 
+      error: error.message,
+      shipmentId: req.params.id 
+    });
     res.status(500).json({
       success: false,
       message: error.message,
@@ -1755,5 +2386,6 @@ module.exports = {
   generateShipmentQR,
   getTrackingTimeline,
   generateLabel,
-  bulkLabels, 
+  bulkLabels,
+  cancelShipment,
 };
