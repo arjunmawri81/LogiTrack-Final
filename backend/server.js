@@ -23,7 +23,28 @@ const rateCardRoutes = require("./routes/rateCardRoutes");
 const ticketRoutes = require("./routes/ticketRoutes"); 
 
 dotenv.config();
-connectDB();
+connectDB().then(() => {
+  // Run startup database status migration
+  const runMigrations = async () => {
+    try {
+      const Order = require("./models/Order");
+      const Shipment = require("./models/Shipment");
+      
+      const orderRes = await Order.updateMany({ status: "PENDING" }, { status: "NEW" });
+      if (orderRes.modifiedCount > 0) {
+        console.log(`[Migration] Migrated ${orderRes.modifiedCount} orders from PENDING to NEW`);
+      }
+
+      const shipmentRes = await Shipment.updateMany({ status: "PENDING" }, { status: "PICKUP_PENDING" });
+      if (shipmentRes.modifiedCount > 0) {
+        console.log(`[Migration] Migrated ${shipmentRes.modifiedCount} shipments from PENDING to PICKUP_PENDING`);
+      }
+    } catch (error) {
+      console.error("[Migration] Error running startup status migrations:", error);
+    }
+  };
+  runMigrations();
+});
 
 const app = express();
 

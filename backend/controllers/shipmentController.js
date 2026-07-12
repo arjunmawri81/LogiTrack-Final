@@ -3,6 +3,7 @@ const Order = require("../models/Order");
 const Invoice = require("../models/Invoice");
 const Wallet = require("../models/Wallet");
 const RateCard = require("../models/RateCard");
+const { ORDER_STATUS_MAP, SHIPMENT_STATUSES } = require("../constants/statusConstants");
 const Courier = require("../models/Courier");
 const QRCode = require("qrcode");
 const PDFDocument = require("pdfkit");
@@ -1312,7 +1313,7 @@ const createShipment = async (req, res) => {
       order.courierPartner = createdShipment.courier;
     }
     
-    order.status = "READY_FOR_PICKUP";
+    order.status = ORDER_STATUS_MAP[createdShipment.status] || "READY_FOR_PICKUP";
     await order.save({ session });
 
     await session.commitTransaction();
@@ -1570,7 +1571,7 @@ const createBulkShipments = async (req, res) => {
           order.courierPartner = createdShipment.courier;
         }
         
-        order.status = "READY_FOR_PICKUP";
+        order.status = ORDER_STATUS_MAP[createdShipment.status] || "READY_FOR_PICKUP";
         order.shippingCharge = shippingCharge;
         await order.save({ session });
 
@@ -1774,19 +1775,7 @@ const updateShipmentStatus = async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    const allowedStatuses = [
-      "PICKUP_PENDING",
-      "PICKUP_SCHEDULED",
-      "PICKED_UP",
-      "IN_TRANSIT",
-      "OUT_FOR_DELIVERY",
-      "DELIVERED",
-      "NDR",
-      "RTO",
-      "CANCELLED",
-    ];
-
-    if (!allowedStatuses.includes(status)) {
+    if (!SHIPMENT_STATUSES.includes(status)) {
       return res.status(400).json({
         success: false,
         message: "Invalid shipment status",
@@ -1818,19 +1807,7 @@ const updateShipmentStatus = async (req, res) => {
     const order = await Order.findById(shipment.orderId);
 
     if (order) {
-      const orderStatusMap = {
-        PICKUP_PENDING: "READY_FOR_PICKUP",
-        PICKUP_SCHEDULED: "READY_FOR_PICKUP",
-        PICKED_UP: "SHIPPED",
-        IN_TRANSIT: "SHIPPED",
-        OUT_FOR_DELIVERY: "OUT_FOR_DELIVERY",
-        DELIVERED: "DELIVERED",
-        NDR: "NDR",
-        RTO: "RTO",
-        CANCELLED: "CANCELLED",
-      };
-
-      order.status = orderStatusMap[status] || order.status;
+      order.status = ORDER_STATUS_MAP[status] || order.status;
       await order.save();
     }
 
@@ -1958,7 +1935,7 @@ const schedulePickup = async (req, res) => {
 
     const order = await Order.findById(shipment.orderId);
     if (order) {
-      order.status = "READY_FOR_PICKUP";
+      order.status = ORDER_STATUS_MAP["PICKUP_SCHEDULED"] || "READY_FOR_PICKUP";
       await order.save();
     }
 
@@ -2316,7 +2293,7 @@ const cancelShipment = async (req, res) => {
 
     const order = await Order.findById(shipment.orderId);
     if (order) {
-      order.status = "CANCELLED";
+      order.status = ORDER_STATUS_MAP["CANCELLED"] || "CANCELLED";
       await order.save();
     }
 

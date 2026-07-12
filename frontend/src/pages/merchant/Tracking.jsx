@@ -14,9 +14,16 @@ const Tracking = () => {
         return { background: "#dcfce7", color: "#166534", icon: <FaCheckCircle /> };
       case "IN_TRANSIT":
         return { background: "#dbeafe", color: "#1d4ed8", icon: <FaTruck /> };
-      case "READY_FOR_PICKUP":
+      case "OUT_FOR_DELIVERY":
+        return { background: "#dbeafe", color: "#1d4ed8", icon: <FaTruck /> };
+      case "PICKED_UP":
+        return { background: "#e0e7ff", color: "#3730a3", icon: <FaBox /> };
+      case "PICKUP_SCHEDULED":
+      case "PICKUP_PENDING":
         return { background: "#fef3c7", color: "#92400e", icon: <FaBox /> };
       case "RTO":
+        return { background: "#fee2e2", color: "#991b1b", icon: <FaClock /> };
+      case "CANCELLED":
         return { background: "#fee2e2", color: "#991b1b", icon: <FaClock /> };
       default:
         return { background: "#f1f5f9", color: "#64748b", icon: <FaClock /> };
@@ -38,18 +45,24 @@ const Tracking = () => {
   const getProgressWidth = (status) => {
     switch (status) {
       case "DELIVERED": return "100%";
+      case "OUT_FOR_DELIVERY": return "85%";
       case "IN_TRANSIT": return "70%";
-      case "READY_FOR_PICKUP": return "40%";
-      default: return "10%";
+      case "PICKED_UP": return "50%";
+      case "PICKUP_SCHEDULED": return "30%";
+      case "PICKUP_PENDING": return "15%";
+      default: return "5%";
     }
   };
 
   const getProgressPercent = (status) => {
     switch (status) {
       case "DELIVERED": return "100%";
+      case "OUT_FOR_DELIVERY": return "85%";
       case "IN_TRANSIT": return "70%";
-      case "READY_FOR_PICKUP": return "40%";
-      default: return "10%";
+      case "PICKED_UP": return "50%";
+      case "PICKUP_SCHEDULED": return "30%";
+      case "PICKUP_PENDING": return "15%";
+      default: return "5%";
     }
   };
 
@@ -441,7 +454,7 @@ const Tracking = () => {
                   </div>
                   <div style={{...styles.statusBadgeLarge, ...getStatusStyle(shipment.status)}}>
                     {getStatusStyle(shipment.status).icon}
-                    {shipment.status || "PENDING"}
+                    {shipment.status || "PICKUP_PENDING"}
                   </div>
                 </div>
 

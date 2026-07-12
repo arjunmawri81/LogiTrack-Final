@@ -35,7 +35,7 @@ const EditOrder = () => {
     courierPartner: "",
     notes: "",
 
-    status: "PENDING",
+    status: "NEW",
   });
 
   useEffect(() => {
@@ -71,7 +71,7 @@ const EditOrder = () => {
         courierPartner: res.data.order.courierPartner || "",
         notes: res.data.order.notes || "",
 
-        status: res.data.order.status || "PENDING",
+        status: res.data.order.status || "NEW",
       });
     } catch (error) {
       console.log(error);
@@ -105,13 +105,13 @@ const EditOrder = () => {
 
   const getStatusColor = (status) => {
     const colors = {
-      PENDING: "#fef3c7",
-      PROCESSING: "#dbeafe",
-      PACKED: "#ede9fe",
+      NEW: "#fef3c7",
       READY_FOR_PICKUP: "#d1fae5",
       SHIPPED: "#e0e7ff",
+      OUT_FOR_DELIVERY: "#dbeafe",
       DELIVERED: "#dcfce7",
-      RETURNED: "#fee2e2",
+      NDR: "#fee2e2",
+      RTO: "#fee2e2",
       CANCELLED: "#f1f5f9",
     };
     return colors[status] || "#ffffff";
@@ -119,13 +119,13 @@ const EditOrder = () => {
 
   const getStatusTextColor = (status) => {
     const colors = {
-      PENDING: "#92400e",
-      PROCESSING: "#1e40af",
-      PACKED: "#5b21b6",
+      NEW: "#92400e",
       READY_FOR_PICKUP: "#065f46",
       SHIPPED: "#1e3a8a",
+      OUT_FOR_DELIVERY: "#1e40af",
       DELIVERED: "#065f46",
-      RETURNED: "#991b1b",
+      NDR: "#991b1b",
+      RTO: "#991b1b",
       CANCELLED: "#475569",
     };
     return colors[status] || "#475569";
@@ -931,13 +931,13 @@ const EditOrder = () => {
                 e.currentTarget.style.boxShadow = "none";
               }}
             >
-              <option value="PENDING">PENDING</option>
-              <option value="PROCESSING">PROCESSING</option>
-              <option value="PACKED">PACKED</option>
+              <option value="NEW">NEW</option>
               <option value="READY_FOR_PICKUP">READY FOR PICKUP</option>
               <option value="SHIPPED">SHIPPED</option>
+              <option value="OUT_FOR_DELIVERY">OUT FOR DELIVERY</option>
               <option value="DELIVERED">DELIVERED</option>
-              <option value="RETURNED">RETURNED</option>
+              <option value="NDR">NDR</option>
+              <option value="RTO">RTO</option>
               <option value="CANCELLED">CANCELLED</option>
             </select>
 

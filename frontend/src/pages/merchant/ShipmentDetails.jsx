@@ -37,7 +37,8 @@ const ShipmentDetails = () => {
         return "#dc2626";
       case "NDR":
         return "#f59e0b";
-      case "PENDING":
+      case "PICKUP_PENDING":
+      case "PICKUP_SCHEDULED":
         return "#f97316";
       case "IN_TRANSIT":
         return "#2563eb";
@@ -54,7 +55,8 @@ const ShipmentDetails = () => {
         return "#fee2e2";
       case "NDR":
         return "#fef3c7";
-      case "PENDING":
+      case "PICKUP_PENDING":
+      case "PICKUP_SCHEDULED":
         return "#ffedd5";
       case "IN_TRANSIT":
         return "#dbeafe";

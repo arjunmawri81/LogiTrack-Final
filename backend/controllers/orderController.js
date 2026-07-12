@@ -20,10 +20,30 @@ const createOrder = async (req, res) => {
     console.log("USER =>", req.user);
 
     // ✅ Auto-generate order number if not provided
+    // ✅ Map frontend field names to model field names
+    const customerCity = req.body.customerCity || req.body.city;
+    const customerState = req.body.customerState || req.body.state;
+    const customerPincode = req.body.customerPincode || req.body.pincode;
+
+    // ✅ Validate required address fields
+    if (!customerCity || !customerState || !customerPincode) {
+      const missing = [];
+      if (!customerCity) missing.push("City");
+      if (!customerState) missing.push("State");
+      if (!customerPincode) missing.push("Pincode");
+      return res.status(400).json({
+        success: false,
+        message: `Missing required fields: ${missing.join(", ")}`,
+      });
+    }
+
     const orderData = {
       merchantId: req.user.id,
       orderNumber: req.body.orderNumber || generateOrderNumber(),
       ...req.body,
+      customerCity,
+      customerState,
+      customerPincode,
     };
 
     const order = await Order.create(orderData);

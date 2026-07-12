@@ -55,10 +55,10 @@ const Shipments = () => {
       case "IN_TRANSIT": return { background: "#dbeafe", color: "#1d4ed8" };
       case "OUT_FOR_DELIVERY": return { background: "#dbeafe", color: "#1d4ed8" };
       case "PICKED_UP": return { background: "#e0e7ff", color: "#4338ca" };
-      case "READY_FOR_PICKUP": return { background: "#fef3c7", color: "#92400e" };
-      case "PROCESSING": return { background: "#fce7f3", color: "#9d174d" };
-      case "PACKED": return { background: "#ede9fe", color: "#6d28d9" };
-      default: return { background: "#dbeafe", color: "#1d4ed8" };
+      case "PICKUP_PENDING": return { background: "#fef3c7", color: "#92400e" };
+      case "PICKUP_SCHEDULED": return { background: "#fef3c7", color: "#92400e" };
+      case "CANCELLED": return { background: "#fee2e2", color: "#991b1b" };
+      default: return { background: "#f1f5f9", color: "#475569" };
     }
   };
 
@@ -136,10 +136,8 @@ const Shipments = () => {
     s.status === "OUT_FOR_DELIVERY"
   ).length;
   const pending = shipments.filter(s => 
-    s.status === "PENDING" || 
-    s.status === "PROCESSING" || 
-    s.status === "PACKED" || 
-    s.status === "READY_FOR_PICKUP"
+    s.status === "PICKUP_PENDING" || 
+    s.status === "PICKUP_SCHEDULED"
   ).length;
   const ndr = shipments.filter(s => s.status === "NDR").length;
   const rto = shipments.filter(s => s.status === "RTO").length;
@@ -497,16 +495,15 @@ const Shipments = () => {
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
                 <option value="ALL">All Status</option>
-                <option value="PENDING">Pending</option>
-                <option value="PROCESSING">Processing</option>
-                <option value="PACKED">Packed</option>
-                <option value="READY_FOR_PICKUP">Ready For Pickup</option>
+                <option value="PICKUP_PENDING">Pickup Pending</option>
+                <option value="PICKUP_SCHEDULED">Pickup Scheduled</option>
                 <option value="PICKED_UP">Picked Up</option>
                 <option value="IN_TRANSIT">In Transit</option>
                 <option value="OUT_FOR_DELIVERY">Out For Delivery</option>
                 <option value="DELIVERED">Delivered</option>
                 <option value="NDR">NDR</option>
                 <option value="RTO">RTO</option>
+                <option value="CANCELLED">Cancelled</option>
               </select>
             </div>
           </div>

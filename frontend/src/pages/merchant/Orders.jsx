@@ -153,8 +153,7 @@ const Orders = () => {
     const styles = {
       DELIVERED: { bg: "#dcfce7", color: "#166534" },
       CANCELLED: { bg: "#fee2e2", color: "#991b1b" },
-      PENDING: { bg: "#fef3c7", color: "#92400e" },
-      PROCESSING: { bg: "#dbeafe", color: "#1e40af" },
+      NEW: { bg: "#fef3c7", color: "#92400e" },
       SHIPPED: { bg: "#e0e7ff", color: "#3730a3" },
       READY_FOR_PICKUP: { bg: "#fef3c7", color: "#92400e" },
       OUT_FOR_DELIVERY: { bg: "#dbeafe", color: "#1e40af" },
@@ -171,13 +170,14 @@ const Orders = () => {
 
   const tabs = [
     { id: 'ALL', label: 'All Orders' },
-    { id: 'PENDING', label: 'Pending' },
+    { id: 'NEW', label: 'New' },
     { id: 'READY_FOR_PICKUP', label: 'Ready for Pickup' },
     { id: 'SHIPPED', label: 'Shipped' },
     { id: 'OUT_FOR_DELIVERY', label: 'Out for Delivery' },
     { id: 'DELIVERED', label: 'Delivered' },
     { id: 'NDR', label: 'NDR' },
-    { id: 'RTO', label: 'RTO' }
+    { id: 'RTO', label: 'RTO' },
+    { id: 'CANCELLED', label: 'Cancelled' }
   ];
 
   const dateOptions = [
@@ -209,7 +209,7 @@ const Orders = () => {
         'Customer Phone': order.customerPhone || 'N/A',
         'Courier': order.shipmentId?.courier || 'N/A',
         'Amount': order.amount || 0,
-        'Status': order.status || 'PENDING',
+        'Status': order.status || 'NEW',
         'Created Date': order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-IN') : 'N/A',
         'Shipment ID': order.shipmentId || 'N/A'
       }));
@@ -1134,7 +1134,7 @@ const Orders = () => {
                             fontWeight: "600",
                             display: "inline-block",
                           }}>
-                            {order.status || "PENDING"}
+                            {order.status || "NEW"}
                           </span>
                         </td>
                         <td style={{

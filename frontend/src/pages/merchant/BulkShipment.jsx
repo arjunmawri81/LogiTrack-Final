@@ -116,8 +116,8 @@ const BulkShipment = () => {
 
   const getStatusColor = (status) => {
     const colors = {
-      PENDING: "#fef3c7",
-      PROCESSING: "#dbeafe",
+      NEW: "#fef3c7",
+      READY_FOR_PICKUP: "#fef3c7",
       SHIPPED: "#e0e7ff",
       DELIVERED: "#dcfce7",
       CANCELLED: "#fee2e2",
@@ -127,8 +127,8 @@ const BulkShipment = () => {
 
   const getStatusTextColor = (status) => {
     const colors = {
-      PENDING: "#92400e",
-      PROCESSING: "#1e40af",
+      NEW: "#92400e",
+      READY_FOR_PICKUP: "#92400e",
       SHIPPED: "#3730a3",
       DELIVERED: "#166534",
       CANCELLED: "#991b1b",
@@ -485,7 +485,7 @@ const BulkShipment = () => {
                           fontWeight: "600",
                           display: "inline-block"
                         }}>
-                          {order.status || "PENDING"}
+                          {order.status || "NEW"}
                         </span>
                       </td>
                     </tr>

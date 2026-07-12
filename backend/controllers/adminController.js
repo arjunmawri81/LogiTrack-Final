@@ -44,7 +44,7 @@ const getDashboardStats = async (req, res) => {
       isApproved: false,
     });
     const totalOrders = await Order.countDocuments();
-    const pendingOrders = await Order.countDocuments({ status: "PENDING" });
+    const pendingOrders = await Order.countDocuments({ status: "NEW" });
     const totalShipments = await Shipment.countDocuments();
     const deliveredShipments = await Shipment.countDocuments({ status: "DELIVERED" });
     const invoices = await Invoice.find();

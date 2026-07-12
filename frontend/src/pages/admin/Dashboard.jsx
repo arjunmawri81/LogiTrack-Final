@@ -305,7 +305,7 @@ const Dashboard = () => {
             <div style={{ ...styles.statCard, borderLeftColor: "#f59e0b" }}>
               <div style={styles.statLabel}>
                 <FaClock size={12} />
-                Pending Orders
+                New Orders
               </div>
               <h2 style={styles.statValue}>{formatNumber(stats.pendingOrders)}</h2>
             </div>

@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { SHIPMENT_STATUSES } = require("../constants/statusConstants");
 
 const shipmentSchema = new mongoose.Schema(
   {
@@ -39,17 +40,7 @@ const shipmentSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: [
-        "PICKUP_PENDING",
-        "PICKUP_SCHEDULED",
-        "PICKED_UP",
-        "IN_TRANSIT",
-        "OUT_FOR_DELIVERY",
-        "DELIVERED",
-        "NDR",
-        "RTO",
-        "CANCELLED",
-      ],
+      enum: SHIPMENT_STATUSES,
       default: "PICKUP_PENDING",
       index: true,
     },
@@ -347,7 +338,7 @@ shipmentSchema.methods.addTrackingEvent = function(status, location, remarks) {
 };
 
 shipmentSchema.methods.getLastTrackingEvent = function() {
-  if (!this.tracking.length) return null;
+  if (!this.tracking || !this.tracking.length) return null;
   return this.tracking[this.tracking.length - 1];
 };
 

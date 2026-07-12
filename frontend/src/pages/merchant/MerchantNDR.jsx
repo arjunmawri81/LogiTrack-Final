@@ -36,6 +36,9 @@ const MerchantNDR = () => {
   const [actionModal, setActionModal] = useState(false);
   const [actionType, setActionType] = useState('');
   const [actionNote, setActionNote] = useState('');
+  const [newAddress, setNewAddress] = useState('');
+  const [newPhone, setNewPhone] = useState('');
+  const [newPincode, setNewPincode] = useState('');
   const [couriers, setCouriers] = useState([]);
   const [stats, setStats] = useState({
     total: 0,
@@ -227,6 +230,11 @@ const MerchantNDR = () => {
   const handleAction = (record, type) => {
     setSelectedRecord(record);
     setActionType(type);
+    if (type === 'reattempt') {
+      setNewAddress(record.address || record.orderId?.customerAddress || '');
+      setNewPhone(record.customerPhone || record.orderId?.customerPhone || '');
+      setNewPincode(record.pincode || record.orderId?.customerPincode || '');
+    }
     setActionModal(true);
   };
 
@@ -242,7 +250,10 @@ const MerchantNDR = () => {
       
       if (actionType === 'reattempt') {
         await api.patch(`/ndr/${recordId}/reattempt`, {
-          note: actionNote.trim()
+          note: actionNote.trim(),
+          address: newAddress.trim() || undefined,
+          customerPhone: newPhone.trim() || undefined,
+          pincode: newPincode.trim() || undefined,
         });
         showToast('Reattempt request submitted successfully', 'success');
       } else if (actionType === 'rto') {
@@ -255,6 +266,9 @@ const MerchantNDR = () => {
       await fetchNDRData();
       setActionModal(false);
       setActionNote('');
+      setNewAddress('');
+      setNewPhone('');
+      setNewPincode('');
       setSelectedRecord(null);
     } catch (error) {
       console.error('Error performing action:', error);
@@ -1280,6 +1294,9 @@ const MerchantNDR = () => {
         <div style={s.modalOverlay} onClick={() => {
           setActionModal(false);
           setActionNote('');
+          setNewAddress('');
+          setNewPhone('');
+          setNewPincode('');
           setSelectedRecord(null);
         }}>
           <div style={s.modalContent} onClick={(e) => e.stopPropagation()}>
@@ -1290,6 +1307,9 @@ const MerchantNDR = () => {
               <button onClick={() => {
                 setActionModal(false);
                 setActionNote('');
+                setNewAddress('');
+                setNewPhone('');
+                setNewPincode('');
                 setSelectedRecord(null);
               }} style={s.modalCloseBtn}>
                 <FaTimes />
@@ -1337,6 +1357,48 @@ const MerchantNDR = () => {
                 </span>
               </div>
               
+              {actionType === 'reattempt' && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "16px" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                    <div>
+                      <label style={{ fontWeight: "500", color: "#0f172a", display: "block", marginBottom: "4px", fontSize: "13px" }}>
+                        New Contact Phone
+                      </label>
+                      <input
+                        type="text"
+                        style={{ ...s.filterSelect, width: "100%", padding: "8px 12px" }}
+                        placeholder="Enter phone number..."
+                        value={newPhone}
+                        onChange={(e) => setNewPhone(e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontWeight: "500", color: "#0f172a", display: "block", marginBottom: "4px", fontSize: "13px" }}>
+                        New Pincode
+                      </label>
+                      <input
+                        type="text"
+                        style={{ ...s.filterSelect, width: "100%", padding: "8px 12px" }}
+                        placeholder="Enter pincode..."
+                        value={newPincode}
+                        onChange={(e) => setNewPincode(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ fontWeight: "500", color: "#0f172a", display: "block", marginBottom: "4px", fontSize: "13px" }}>
+                      New Delivery Address
+                    </label>
+                    <textarea
+                      style={{ ...s.textarea, minHeight: "60px", marginTop: 0 }}
+                      placeholder="Enter new delivery address..."
+                      value={newAddress}
+                      onChange={(e) => setNewAddress(e.target.value)}
+                    />
+                  </div>
+                </div>
+              )}
+
               <div style={{ marginTop: "16px" }}>
                 <label style={{ fontWeight: "500", color: "#0f172a", display: "block", marginBottom: "4px" }}>
                   Action Note <span style={{ color: "#ef4444" }}>*</span>
@@ -1356,6 +1418,9 @@ const MerchantNDR = () => {
                   onClick={() => {
                     setActionModal(false);
                     setActionNote('');
+                    setNewAddress('');
+                    setNewPhone('');
+                    setNewPincode('');
                     setSelectedRecord(null);
                   }}
                   style={{

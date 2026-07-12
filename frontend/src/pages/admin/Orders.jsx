@@ -80,46 +80,42 @@ const Orders = () => {
         ?.toString()
         .includes(searchTerm);
 
-    // Status mapping for Shipmojo
-    const getOrderStatus = (order) => {
-      if (order.status === "CANCELLED") return "CANCELLED";
-      if (hasShipment(order)) return "SHIPMENT_CREATED";
-      return "NEW";
-    };
-
-    const orderStatus = getOrderStatus(order);
+    const orderStatus = order.status || "NEW";
     const matchesStatus =
       activeTab === "ALL" ? true : orderStatus === activeTab;
 
     return matchesSearch && matchesStatus;
   });
 
-  // Stats for Shipmojo
+  // Stats
   const totalOrders = orders.length;
-  const newOrders = orders.filter(o => !hasShipment(o) && o.status !== "CANCELLED").length;
-  const shipmentCreated = orders.filter(o => hasShipment(o) && o.status !== "CANCELLED").length;
+  const newOrders = orders.filter(o => o.status === "NEW").length;
+  const readyForPickup = orders.filter(o => o.status === "READY_FOR_PICKUP").length;
+  const shipped = orders.filter(o => o.status === "SHIPPED").length;
   const cancelledOrders = orders.filter(o => o.status === "CANCELLED").length;
 
   const getStatusBadge = (order) => {
-    if (order.status === "CANCELLED") {
-      return {
-        label: "CANCELLED",
-        color: "#f1f5f9",
-        textColor: "#64748b"
-      };
+    const status = order.status || "NEW";
+    switch (status) {
+      case "DELIVERED":
+        return { label: "DELIVERED", color: "#dcfce7", textColor: "#166534" };
+      case "CANCELLED":
+        return { label: "CANCELLED", color: "#fee2e2", textColor: "#991b1b" };
+      case "NEW":
+        return { label: "NEW", color: "#fef3c7", textColor: "#d97706" };
+      case "READY_FOR_PICKUP":
+        return { label: "READY FOR PICKUP", color: "#fef3c7", textColor: "#92400e" };
+      case "SHIPPED":
+        return { label: "SHIPPED", color: "#e0e7ff", textColor: "#3730a3" };
+      case "OUT_FOR_DELIVERY":
+        return { label: "OUT FOR DELIVERY", color: "#dbeafe", textColor: "#1e40af" };
+      case "NDR":
+        return { label: "NDR", color: "#fce4ec", textColor: "#c62828" };
+      case "RTO":
+        return { label: "RTO", color: "#ffebee", textColor: "#b71c1c" };
+      default:
+        return { label: status, color: "#f1f5f9", textColor: "#475569" };
     }
-    if (hasShipment(order)) {
-      return {
-        label: "SHIPMENT CREATED",
-        color: "#dbeafe",
-        textColor: "#2563eb"
-      };
-    }
-    return {
-      label: "NEW",
-      color: "#fef3c7",
-      textColor: "#d97706"
-    };
   };
 
   return (
@@ -202,8 +198,8 @@ const Orders = () => {
               boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
             }}
           >
-            <h4 style={{ margin: "0 0 8px 0", color: "#64748b", fontSize: "14px" }}>Shipment Created</h4>
-            <h2 style={{ margin: 0, fontSize: "32px", color: "#2563eb" }}>{shipmentCreated}</h2>
+            <h4 style={{ margin: "0 0 8px 0", color: "#64748b", fontSize: "14px" }}>Shipped</h4>
+            <h2 style={{ margin: 0, fontSize: "32px", color: "#2563eb" }}>{shipped}</h2>
           </div>
 
           <div
@@ -273,7 +269,12 @@ const Orders = () => {
           {[
             "ALL",
             "NEW",
-            "SHIPMENT_CREATED",
+            "READY_FOR_PICKUP",
+            "SHIPPED",
+            "OUT_FOR_DELIVERY",
+            "DELIVERED",
+            "NDR",
+            "RTO",
             "CANCELLED",
           ].map((status) => (
             <button

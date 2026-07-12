@@ -16,7 +16,7 @@ const getDashboardStats = async (req, res) => {
 
     const pendingOrders = await Order.countDocuments({
       merchantId,
-      status: "PENDING",
+      status: "NEW",
     });
 
     const deliveredOrders = await Order.countDocuments({

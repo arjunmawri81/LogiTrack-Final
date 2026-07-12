@@ -57,13 +57,13 @@ const OrderDetails = () => {
 
   const getStatusColor = (status) => {
     const colors = {
-      PENDING: "#fef3c7",
-      PROCESSING: "#dbeafe",
-      PACKED: "#ede9fe",
+      NEW: "#fef3c7",
       READY_FOR_PICKUP: "#d1fae5",
       SHIPPED: "#e0e7ff",
+      OUT_FOR_DELIVERY: "#dbeafe",
       DELIVERED: "#dcfce7",
-      RETURNED: "#fee2e2",
+      NDR: "#fee2e2",
+      RTO: "#fee2e2",
       CANCELLED: "#f1f5f9",
     };
     return colors[status] || "#ffffff";
@@ -71,13 +71,13 @@ const OrderDetails = () => {
 
   const getStatusTextColor = (status) => {
     const colors = {
-      PENDING: "#92400e",
-      PROCESSING: "#1e40af",
-      PACKED: "#5b21b6",
+      NEW: "#92400e",
       READY_FOR_PICKUP: "#065f46",
       SHIPPED: "#1e3a8a",
+      OUT_FOR_DELIVERY: "#1e40af",
       DELIVERED: "#065f46",
-      RETURNED: "#991b1b",
+      NDR: "#991b1b",
+      RTO: "#991b1b",
       CANCELLED: "#475569",
     };
     return colors[status] || "#475569";
@@ -85,13 +85,13 @@ const OrderDetails = () => {
 
   const getStatusIcon = (status) => {
     const icons = {
-      PENDING: <FaClock size={14} />,
-      PROCESSING: <FaSpinner size={14} />,
-      PACKED: <FaBox size={14} />,
+      NEW: <FaClock size={14} />,
       READY_FOR_PICKUP: <FaTruck size={14} />,
       SHIPPED: <FaTruck size={14} />,
+      OUT_FOR_DELIVERY: <FaTruck size={14} />,
       DELIVERED: <FaCheckCircle size={14} />,
-      RETURNED: <FaTruck size={14} />,
+      NDR: <FaTimesCircle size={14} />,
+      RTO: <FaTimesCircle size={14} />,
       CANCELLED: <FaTimesCircle size={14} />,
     };
     return icons[status] || <FaClock size={14} />;

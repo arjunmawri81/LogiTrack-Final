@@ -30,7 +30,7 @@ const EditOrder = () => {
     customerAddress: "",
     productName: "",
     amount: "",
-    status: "PENDING",
+    status: "NEW",
   });
 
   // Fetch order details
@@ -52,7 +52,7 @@ const EditOrder = () => {
         customerAddress: orderData.customerAddress || "",
         productName: orderData.productName || "",
         amount: orderData.amount || "",
-        status: orderData.status || "PENDING",
+        status: orderData.status || "NEW",
       });
     } catch (error) {
       console.error("Error fetching order:", error);
@@ -129,10 +129,13 @@ const EditOrder = () => {
 
   // Get status options
   const statusOptions = [
-    { value: "PENDING", label: "Pending" },
-    { value: "PROCESSING", label: "Processing" },
+    { value: "NEW", label: "New" },
+    { value: "READY_FOR_PICKUP", label: "Ready For Pickup" },
     { value: "SHIPPED", label: "Shipped" },
+    { value: "OUT_FOR_DELIVERY", label: "Out For Delivery" },
     { value: "DELIVERED", label: "Delivered" },
+    { value: "NDR", label: "NDR" },
+    { value: "RTO", label: "RTO" },
     { value: "CANCELLED", label: "Cancelled" },
   ];
 

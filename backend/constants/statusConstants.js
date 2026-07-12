@@ -1,0 +1,43 @@
+// ORDER_STATUSES — used only on Order model
+const ORDER_STATUSES = [
+  "NEW",
+  "READY_FOR_PICKUP",
+  "SHIPPED",
+  "OUT_FOR_DELIVERY",
+  "DELIVERED",
+  "NDR",
+  "RTO",
+  "CANCELLED"
+];
+
+// SHIPMENT_STATUSES — used only on Shipment model
+const SHIPMENT_STATUSES = [
+  "PICKUP_PENDING",
+  "PICKUP_SCHEDULED",
+  "PICKED_UP",
+  "IN_TRANSIT",
+  "OUT_FOR_DELIVERY",
+  "DELIVERED",
+  "NDR",
+  "RTO",
+  "CANCELLED"
+];
+
+// Maps shipment status → order status
+const ORDER_STATUS_MAP = {
+  PICKUP_PENDING: "READY_FOR_PICKUP",
+  PICKUP_SCHEDULED: "READY_FOR_PICKUP",
+  PICKED_UP: "SHIPPED",
+  IN_TRANSIT: "SHIPPED",
+  OUT_FOR_DELIVERY: "OUT_FOR_DELIVERY",
+  DELIVERED: "DELIVERED",
+  NDR: "NDR",
+  RTO: "RTO",
+  CANCELLED: "CANCELLED"
+};
+
+module.exports = {
+  ORDER_STATUSES,
+  SHIPMENT_STATUSES,
+  ORDER_STATUS_MAP
+};
