@@ -136,13 +136,13 @@ const PROVIDER_REGISTRY = {
   ECOMEXPRESS: FakeEcomExpress,
   
   // Aliases (for backward compatibility / different codes)
-  XPB: FakeXpressbees,      // ✅ Your Xpressbees code
-  XB: FakeXpressbees,       // ✅ Alternative Xpressbees code
-  ECOM: FakeEcomExpress,    // ✅ Short form
-  DLV: FakeDelhivery,       // ✅ Short form
-  BD: FakeBlueDart,         // ✅ Short form
-  DT: FakeDTDC,             // ✅ Short form
-  SF: FakeShadowfax,        // ✅ Short form
+  XPB: FakeXpressbees,
+  XB: FakeXpressbees,
+  ECOM: FakeEcomExpress,
+  DLV: FakeDelhivery,
+  BD: FakeBlueDart,
+  DT: FakeDTDC,
+  SF: FakeShadowfax,
 };
 
 // ===============================
@@ -308,7 +308,6 @@ const CourierService = {
       courierCode: courier.code 
     });
 
-    // ✅ Get provider from registry
     const provider = PROVIDER_REGISTRY[courier.code?.toUpperCase()];
     
     if (!provider) {
@@ -326,7 +325,6 @@ const CourierService = {
       provider: result.provider 
     });
 
-    // Transform to controller expected format
     return {
       success: result.success,
       provider: result.provider,
@@ -345,14 +343,11 @@ const CourierService = {
   async cancelShipment(courier, shipmentId) {
     logger.info(`Cancelling shipment for courier: ${courier.code}`, { shipmentId });
 
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 100));
 
-    // ✅ Get provider name from registry key
     const providerKey = courier.code?.toUpperCase();
     const providerName = Object.keys(PROVIDER_REGISTRY).find(key => key === providerKey) || courier.code;
     
-    // ✅ Check if provider exists
     if (!PROVIDER_REGISTRY[providerKey]) {
       logger.error(`Unsupported courier for cancellation: ${courier.code}`);
       throw new Error(`Courier ${courier.code} is not supported`);
@@ -367,19 +362,15 @@ const CourierService = {
   async trackShipment(courier, awb) {
     logger.info(`Tracking shipment for courier: ${courier.code}`, { awb });
 
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 100));
 
-    // ✅ Get provider key
     const providerKey = courier.code?.toUpperCase();
     
-    // ✅ Check if provider exists
     if (!PROVIDER_REGISTRY[providerKey]) {
       logger.error(`Unsupported courier for tracking: ${courier.code}`);
       throw new Error(`Courier ${courier.code} is not supported`);
     }
 
-    // Determine delivery days based on provider
     const deliveryDaysMap = {
       "DELHIVERY": 3,
       "BLUEDART": 2,
@@ -402,13 +393,9 @@ const CourierService = {
   async serviceability(courier, pincode) {
     logger.info(`Checking serviceability for courier: ${courier.code}`, { pincode });
 
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 100));
 
-    // ✅ Get provider key
     const providerKey = courier.code?.toUpperCase();
-    
-    // ✅ Check if provider exists in registry
     const isSupported = !!PROVIDER_REGISTRY[providerKey];
     
     const result = createServiceabilityResponse(
@@ -430,13 +417,10 @@ const CourierService = {
       weight: order.weight 
     });
 
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 100));
 
-    // ✅ Get provider key
     const providerKey = courier.code?.toUpperCase();
     
-    // ✅ Check if provider exists
     if (!PROVIDER_REGISTRY[providerKey]) {
       logger.error(`Unsupported courier for rates: ${courier.code}`);
       throw new Error(`Courier ${courier.code} is not supported`);
@@ -454,13 +438,10 @@ const CourierService = {
   async schedulePickup(courier, shipmentId) {
     logger.info(`Scheduling pickup for courier: ${courier.code}`, { shipmentId });
 
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 100));
 
-    // ✅ Get provider key
     const providerKey = courier.code?.toUpperCase();
     
-    // ✅ Check if provider exists
     if (!PROVIDER_REGISTRY[providerKey]) {
       logger.error(`Unsupported courier for pickup: ${courier.code}`);
       throw new Error(`Courier ${courier.code} is not supported`);
@@ -645,7 +626,7 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
      .lineTo(contentX + maxWidth, currentY)
      .stroke();
   
-  // SECTION 2: BARCODE (52%) + SHIPMENT INFO (48%)
+  // SECTION 2: SHIPMENT INFO (LEFT) + BARCODE (RIGHT) - SWAPPED LAYOUT
   const section2Height = totalHeight * 0.25;
   const section2Y = currentY;
   
@@ -654,56 +635,9 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
      .lineTo(dividerX, section2Y + section2Height)
      .stroke();
   
-  const leftBarcodeWidth = maxWidth * 0.52 - padding * 2;
-  const barcodeCenterX = contentX + (maxWidth * 0.52) / 2;
-  const barcodeWidth = Math.min(leftBarcodeWidth - 20, 210);
-  const barcodeHeight = section2Height - 35;
-  
-  let barcodeValue = shipment.awb;
-  
-  try {
-    const barcodeBuffer = await bwipjs.toBuffer({
-      bcid: "code128",
-      text: barcodeValue,
-      scale: 3,
-      height: 10,
-      includetext: false,
-    });
-
-    const barcodeX = barcodeCenterX - barcodeWidth / 2;
-    const barcodeY = section2Y + 8;
-    
-    doc.image(barcodeBuffer, barcodeX, barcodeY, {
-      width: barcodeWidth,
-      height: barcodeHeight - 15,
-    });
-    
-    const awbTextY = section2Y + section2Height - 16;
-    const awbTextWidth = maxWidth * 0.52 - padding * 2;
-    const isThermal = maxWidth < 300;
-    const awbFontSize = isThermal ? 6.5 : 8;
-    
-    doc.font(boldFont)
-       .fontSize(awbFontSize)
-       .fillColor('#000000')
-       .text(barcodeValue, contentX + padding, awbTextY, {
-         width: awbTextWidth,
-         align: 'center',
-         lineBreak: false,
-       });
-  } catch (err) {
-    logger.error("Barcode generation error", { error: err.message });
-    doc.font(boldFont)
-       .fontSize(10)
-       .fillColor('#000000')
-       .text(barcodeValue, contentX + padding, section2Y + section2Height/2 - 6, {
-         width: maxWidth * 0.52 - padding * 2,
-         align: 'center',
-       });
-  }
-  
-  const infoX = dividerX + padding;
-  const infoWidth = maxWidth * 0.48 - padding * 2;
+  // SHIPMENT INFO LEFT
+  const infoX = contentX + padding;
+  const infoWidth = maxWidth * 0.52 - padding * 2;
   const infoStartY = section2Y + padding + 5;
   const infoLineHeight = 16;
   const labelWidth_ = 50;
@@ -754,7 +688,7 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
      .fillColor('#666666')
      .text('AWB', infoX, awbY, { width: labelWidth_, align: 'left' });
   
-  let shortAwb = barcodeValue;
+  let shortAwb = shipment.awb || 'N/A';
   if (shortAwb.length > 14) {
     shortAwb = '...' + shortAwb.slice(-10);
   }
@@ -800,6 +734,55 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
        width: valueWidth, 
        align: 'left' 
      });
+  
+  // BARCODE RIGHT
+  const rightBarcodeWidth = maxWidth * 0.48 - padding * 2;
+  const barcodeCenterX = dividerX + (maxWidth * 0.48) / 2;
+  const barcodeWidth = Math.min(rightBarcodeWidth - 20, 170);
+  const barcodeHeight = section2Height - 35;
+  
+  let barcodeValue = shipment.awb || 'N/A';
+  
+  try {
+    const barcodeBuffer = await bwipjs.toBuffer({
+      bcid: "code128",
+      text: barcodeValue,
+      scale: 3,
+      height: 10,
+      includetext: false,
+    });
+
+    const barcodeX = barcodeCenterX - barcodeWidth / 2;
+    const barcodeY = section2Y + 8;
+    
+    doc.image(barcodeBuffer, barcodeX, barcodeY, {
+      width: barcodeWidth,
+      height: barcodeHeight - 15,
+    });
+    
+    const awbTextY = section2Y + section2Height - 16;
+    const awbTextWidth = maxWidth * 0.48 - padding * 2;
+    const isThermal = maxWidth < 300;
+    const awbFontSize = isThermal ? 6.5 : 8;
+    
+    doc.font(boldFont)
+       .fontSize(awbFontSize)
+       .fillColor('#000000')
+       .text(barcodeValue, dividerX + padding, awbTextY, {
+         width: awbTextWidth,
+         align: 'center',
+         lineBreak: false,
+       });
+  } catch (err) {
+    logger.error("Barcode generation error", { error: err.message });
+    doc.font(boldFont)
+       .fontSize(10)
+       .fillColor('#000000')
+       .text(barcodeValue, dividerX + padding, section2Y + section2Height/2 - 6, {
+         width: maxWidth * 0.48 - padding * 2,
+         align: 'center',
+       });
+  }
   
   currentY = section2Y + section2Height;
   doc.moveTo(contentX, currentY)
@@ -930,7 +913,7 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
      .lineTo(contentX + maxWidth, currentY)
      .stroke();
   
-  // SECTION 4: ITEM DETAILS (Minimal - 12%)
+  // SECTION 4: ITEM DETAILS - FIXED AMOUNT OVERFLOW
   const section4Height = totalHeight * 0.12;
   const section4Y = currentY;
   
@@ -943,10 +926,13 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
      });
   
   const tableY = section4Y + padding + 16;
-  const descCol = maxWidth * 0.60;
-  const qtyCol = maxWidth * 0.15;
-  const amountCol = maxWidth * 0.25;
+  
+  // Fixed column widths to prevent amount overflow
   const startX = contentX + padding;
+  const totalWidth = maxWidth - padding * 2;
+  const descCol = totalWidth * 0.58;
+  const qtyCol = totalWidth * 0.12;
+  const amountCol = totalWidth * 0.30;
   
   doc.font(boldFont)
      .fontSize(7)
@@ -963,21 +949,26 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
   
   const items = shipment.orderId?.items || [];
   const itemY = tableY + 16;
-  const amountPadding = 8;
   
   if (items.length > 0) {
     const item = items[0];
     const desc = item.name || item.productName || item.sku || 'Product';
-    const descDisplay = desc.length > 30 ? desc.substring(0, 30) + '...' : desc;
+    const descDisplay = desc.length > 28 ? desc.substring(0, 28) + '...' : desc;
+    const totalAmount = (item.price || item.amount || 0) * (item.quantity || 1);
     
     doc.font(regularFont)
        .fontSize(7.5)
        .fillColor('#000000')
-       .text(descDisplay, startX + 4, itemY, { width: descCol - 8, align: 'left' })
-       .text(item.quantity || 1, startX + descCol, itemY, { width: qtyCol, align: 'center' })
-       .text(`₹${(item.price || item.amount || 0) * (item.quantity || 1)}`, 
-         startX + descCol + qtyCol + amountPadding, itemY, { 
-         width: amountCol - amountPadding - 4, 
+       .text(descDisplay, startX + 4, itemY, { 
+         width: descCol - 10, 
+         align: 'left' 
+       })
+       .text((item.quantity || 1).toString(), startX + descCol, itemY, { 
+         width: qtyCol, 
+         align: 'center' 
+       })
+       .text(`₹${totalAmount}`, startX + descCol + qtyCol, itemY, { 
+         width: amountCol - 6, 
          align: 'right' 
        });
     
@@ -991,13 +982,20 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
          });
     }
   } else {
+    const totalAmount = shipment.orderId?.amount || 0;
     doc.font(regularFont)
        .fontSize(7.5)
        .fillColor('#000000')
-       .text('Product', startX + 4, itemY, { width: descCol - 8, align: 'left' })
-       .text('1', startX + descCol, itemY, { width: qtyCol, align: 'center' })
-       .text(`₹${shipment.orderId?.amount || 0}`, startX + descCol + qtyCol + amountPadding, itemY, { 
-         width: amountCol - amountPadding - 4, 
+       .text('Product', startX + 4, itemY, { 
+         width: descCol - 10, 
+         align: 'left' 
+       })
+       .text('1', startX + descCol, itemY, { 
+         width: qtyCol, 
+         align: 'center' 
+       })
+       .text(`₹${totalAmount}`, startX + descCol + qtyCol, itemY, { 
+         width: amountCol - 6, 
          align: 'right' 
        });
   }
@@ -1188,7 +1186,6 @@ const createShipment = async (req, res) => {
       SHIPPING_CHARGE += rateCard.codCharge || 0;
     }
 
-    // ✅ Convert env values to numbers
     const insurancePercentage = Number(process.env.INSURANCE_PERCENTAGE || 2);
     let insurancePremium = 0;
 
@@ -1231,9 +1228,6 @@ const createShipment = async (req, res) => {
       });
     }
 
-    // ===============================
-    // COURIER API INTEGRATION (FIXED)
-    // ===============================
     const courierResponse = await CourierService.createShipment(
       courier,
       order
@@ -1282,7 +1276,6 @@ const createShipment = async (req, res) => {
     });
     await wallet.save({ session });
 
-    // ✅ Convert env values to numbers
     const taxPercentage = Number(process.env.GST_PERCENTAGE || 18);
     const taxAmount = Math.ceil((order.amount || 0) * (taxPercentage / 100));
 
@@ -1308,7 +1301,6 @@ const createShipment = async (req, res) => {
     order.invoiceId = createdInvoice._id;
     order.awb = createdShipment.awb;
     
-    // ✅ Keep if Order model has courierPartner field, else remove
     if (order.schema.paths && order.schema.paths.courierPartner) {
       order.courierPartner = createdShipment.courier;
     }
@@ -1354,7 +1346,7 @@ const createShipment = async (req, res) => {
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
     });
   } finally {
-    await session.endSession(); // ✅ Always cleanup
+    await session.endSession();
   }
 };
 
@@ -1498,9 +1490,6 @@ const createBulkShipments = async (req, res) => {
           continue;
         }
 
-        // ===============================
-        // COURIER API INTEGRATION (Bulk - FIXED)
-        // ===============================
         const courierResponse = await CourierService.createShipment(
           courier,
           order
@@ -1566,7 +1555,6 @@ const createBulkShipments = async (req, res) => {
         order.invoiceId = createdInvoice._id;
         order.awb = createdShipment.awb;
         
-        // ✅ Keep if Order model has courierPartner field, else remove
         if (order.schema.paths && order.schema.paths.courierPartner) {
           order.courierPartner = createdShipment.courier;
         }
@@ -1635,7 +1623,7 @@ const createBulkShipments = async (req, res) => {
       message: error.message,
     });
   } finally {
-    await session.endSession(); // ✅ Always cleanup
+    await session.endSession();
   }
 };
 
@@ -1737,9 +1725,6 @@ const trackShipment = async (req, res) => {
       });
     }
 
-    // ===============================
-    // TRACK WITH COURIER SERVICE (Provider Switch - FIXED)
-    // ===============================
     const courier = await Courier.findById(shipment.courierId);
     const tracking = await CourierService.trackShipment(courier, shipment.awb);
 
@@ -1811,7 +1796,6 @@ const updateShipmentStatus = async (req, res) => {
       await order.save();
     }
 
-    // NDR LOGIC
     if (status === "NDR") {
       logger.info("NDR hit for shipment", { shipmentId: shipment._id });
 
@@ -1835,7 +1819,6 @@ const updateShipmentStatus = async (req, res) => {
       }
     }
 
-    // RTO LOGIC
     if (status === "RTO") {
       logger.info("RTO hit for shipment", { shipmentId: shipment._id });
 
@@ -1919,9 +1902,6 @@ const schedulePickup = async (req, res) => {
       });
     }
 
-    // ===============================
-    // SCHEDULE PICKUP WITH COURIER SERVICE (Provider Switch - FIXED)
-    // ===============================
     const courier = await Courier.findById(shipment.courierId);
     await CourierService.schedulePickup(courier, shipment._id);
 
@@ -2282,9 +2262,6 @@ const cancelShipment = async (req, res) => {
       });
     }
 
-    // ===============================
-    // CANCEL WITH COURIER SERVICE (Provider Switch - FIXED)
-    // ===============================
     const courier = await Courier.findById(shipment.courierId);
     await CourierService.cancelShipment(courier, shipment._id);
 
