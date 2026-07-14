@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   FaHome,
   FaBox,
@@ -22,6 +22,7 @@ import "./Sidebar.css";
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const role = localStorage.getItem("role");
 
   // Close sidebar on route change (mobile)
@@ -37,6 +38,14 @@ const Sidebar = () => {
     setIsOpen(false);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    navigate("/login");
+    closeSidebar();
+  };
+
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const userName = user?.name || "Arjun Singh";
   const userInitial = userName.charAt(0).toUpperCase();
@@ -44,7 +53,7 @@ const Sidebar = () => {
   return (
     <>
       {/* ===== HAMBURGER BUTTON ===== */}
-      <button className="hamburger-btn" onClick={toggleSidebar}>
+      <button className="hamburger-btn" onClick={toggleSidebar} aria-label="Toggle Menu">
         {isOpen ? <FaTimes /> : <FaBars />}
       </button>
 
@@ -73,57 +82,57 @@ const Sidebar = () => {
             // ===== ADMIN MENU =====
             <>
               <li>
-                <NavLink to="/admin/dashboard" onClick={closeSidebar}>
+                <NavLink to="/admin/dashboard" className={({ isActive }) => isActive ? "active" : ""} onClick={closeSidebar}>
                   <FaHome /> <span>Dashboard</span>
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/admin/users" onClick={closeSidebar}>
+                <NavLink to="/admin/users" className={({ isActive }) => isActive ? "active" : ""} onClick={closeSidebar}>
                   <FaUser /> <span>Users</span>
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/admin/merchants" onClick={closeSidebar}>
+                <NavLink to="/admin/merchants" className={({ isActive }) => isActive ? "active" : ""} onClick={closeSidebar}>
                   <FaBox /> <span>Merchants</span>
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/admin/orders" onClick={closeSidebar}>
+                <NavLink to="/admin/orders" className={({ isActive }) => isActive ? "active" : ""} onClick={closeSidebar}>
                   <FaClipboardList /> <span>Orders</span>
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/admin/shipments" onClick={closeSidebar}>
+                <NavLink to="/admin/shipments" className={({ isActive }) => isActive ? "active" : ""} onClick={closeSidebar}>
                   <FaTruck /> <span>Shipments</span>
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/admin/couriers" onClick={closeSidebar}>
+                <NavLink to="/admin/couriers" className={({ isActive }) => isActive ? "active" : ""} onClick={closeSidebar}>
                   <FaTruck /> <span>Couriers</span>
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/admin/pricing" onClick={closeSidebar}>
+                <NavLink to="/admin/pricing" className={({ isActive }) => isActive ? "active" : ""} onClick={closeSidebar}>
                   <FaWallet /> <span>Pricing</span>
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/admin/revenue" onClick={closeSidebar}>
+                <NavLink to="/admin/revenue" className={({ isActive }) => isActive ? "active" : ""} onClick={closeSidebar}>
                   <FaChartBar /> <span>Revenue</span>
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/admin/reports" onClick={closeSidebar}>
+                <NavLink to="/admin/reports" className={({ isActive }) => isActive ? "active" : ""} onClick={closeSidebar}>
                   <FaFileInvoice /> <span>Reports</span>
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/admin/tickets" onClick={closeSidebar}>
+                <NavLink to="/admin/tickets" className={({ isActive }) => isActive ? "active" : ""} onClick={closeSidebar}>
                   <FaTicketAlt /> <span>Support Tickets</span>
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/admin/settings" onClick={closeSidebar}>
+                <NavLink to="/admin/settings" className={({ isActive }) => isActive ? "active" : ""} onClick={closeSidebar}>
                   <FaCog /> <span>Settings</span>
                 </NavLink>
               </li>
@@ -132,82 +141,82 @@ const Sidebar = () => {
             // ===== MERCHANT MENU =====
             <>
               <li>
-                <NavLink to="/merchant/dashboard" onClick={closeSidebar}>
+                <NavLink to="/merchant/dashboard" className={({ isActive }) => isActive ? "active" : ""} onClick={closeSidebar}>
                   <FaHome /> <span>Dashboard</span>
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/merchant/orders" onClick={closeSidebar}>
+                <NavLink to="/merchant/orders" className={({ isActive }) => isActive ? "active" : ""} onClick={closeSidebar}>
                   <FaClipboardList /> <span>Orders</span>
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/merchant/create-shipment" onClick={closeSidebar}>
+                <NavLink to="/merchant/create-shipment" className={({ isActive }) => isActive ? "active" : ""} onClick={closeSidebar}>
                   <FaBox /> <span>Create Shipment</span>
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/merchant/shipments" onClick={closeSidebar}>
+                <NavLink to="/merchant/shipments" className={({ isActive }) => isActive ? "active" : ""} onClick={closeSidebar}>
                   <FaTruck /> <span>Shipments</span>
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/merchant/tracking" onClick={closeSidebar}>
+                <NavLink to="/merchant/tracking" className={({ isActive }) => isActive ? "active" : ""} onClick={closeSidebar}>
                   <FaTruck /> <span>Tracking</span>
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/merchant/ndr" onClick={closeSidebar}>
+                <NavLink to="/merchant/ndr" className={({ isActive }) => isActive ? "active" : ""} onClick={closeSidebar}>
                   <FaExclamationTriangle /> <span>NDR</span>
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/merchant/rto" onClick={closeSidebar}>
+                <NavLink to="/merchant/rto" className={({ isActive }) => isActive ? "active" : ""} onClick={closeSidebar}>
                   <FaUndoAlt /> <span>RTO</span>
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/merchant/wallet" onClick={closeSidebar}>
+                <NavLink to="/merchant/wallet" className={({ isActive }) => isActive ? "active" : ""} onClick={closeSidebar}>
                   <FaWallet /> <span>Wallet</span>
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/merchant/invoices" onClick={closeSidebar}>
+                <NavLink to="/merchant/invoices" className={({ isActive }) => isActive ? "active" : ""} onClick={closeSidebar}>
                   <FaFileInvoice /> <span>Invoices</span>
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/merchant/billing" onClick={closeSidebar}>
+                <NavLink to="/merchant/billing" className={({ isActive }) => isActive ? "active" : ""} onClick={closeSidebar}>
                   <FaFileInvoice /> <span>Billing</span>
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/merchant/serviceability" onClick={closeSidebar}>
+                <NavLink to="/merchant/serviceability" className={({ isActive }) => isActive ? "active" : ""} onClick={closeSidebar}>
                   <FaTruck /> <span>Serviceability</span>
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/merchant/rate-calculator" onClick={closeSidebar}>
+                <NavLink to="/merchant/rate-calculator" className={({ isActive }) => isActive ? "active" : ""} onClick={closeSidebar}>
                   <FaWallet /> <span>Rate Calculator</span>
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/merchant/reports" onClick={closeSidebar}>
+                <NavLink to="/merchant/reports" className={({ isActive }) => isActive ? "active" : ""} onClick={closeSidebar}>
                   <FaChartBar /> <span>Reports</span>
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/merchant/tickets" onClick={closeSidebar}>
+                <NavLink to="/merchant/tickets" className={({ isActive }) => isActive ? "active" : ""} onClick={closeSidebar}>
                   <FaTicketAlt /> <span>Support Tickets</span>
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/merchant/profile" onClick={closeSidebar}>
+                <NavLink to="/merchant/profile" className={({ isActive }) => isActive ? "active" : ""} onClick={closeSidebar}>
                   <FaUser /> <span>Profile</span>
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/merchant/settings" onClick={closeSidebar}>
+                <NavLink to="/merchant/settings" className={({ isActive }) => isActive ? "active" : ""} onClick={closeSidebar}>
                   <FaCog /> <span>Settings</span>
                 </NavLink>
               </li>
@@ -215,11 +224,11 @@ const Sidebar = () => {
           )}
         </ul>
 
-        <div className="logout-section">
-          <Link to="/login" onClick={closeSidebar}>
+        <div className="logout-section" onClick={handleLogout}>
+          <a href="#">
             <FaSignOutAlt />
             <span>Logout</span>
-          </Link>
+          </a>
         </div>
       </div>
     </>
