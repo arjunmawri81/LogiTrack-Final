@@ -13,7 +13,7 @@ const {
   getCourierRateCard,
   deleteRateCard,
   getRecommendedCouriers,
-  calculatePricing, // ✅ ADDED
+  calculatePricing,
 } = require("../controllers/rateCardController");
 
 // ====================================
@@ -22,7 +22,7 @@ const {
 router.post(
   "/save",
   authMiddleware,
-  authorizeRoles("SUPER_ADMIN"),
+  authorizeRoles("SUPER_ADMIN"), // ✅ ONLY SUPER_ADMIN
   saveRateCard
 );
 
@@ -32,7 +32,7 @@ router.post(
 router.get(
   "/merchant/:merchantId",
   authMiddleware,
-  authorizeRoles("SUPER_ADMIN"),
+  authorizeRoles("ADMIN", "SUPER_ADMIN"), // ✅ CHANGED: Added ADMIN
   getMerchantRateCards
 );
 
@@ -40,9 +40,9 @@ router.get(
 // GET SINGLE COURIER RATE CARD
 // ====================================
 router.get(
-  "/merchant/:merchantId/:courierId",  // ✅ CHANGED: :courier → :courierId
+  "/merchant/:merchantId/:courierId",
   authMiddleware,
-  authorizeRoles("SUPER_ADMIN"),
+  authorizeRoles("ADMIN", "SUPER_ADMIN"), // ✅ CHANGED: Added ADMIN
   getCourierRateCard
 );
 
@@ -61,7 +61,7 @@ router.get(
 router.post(
   "/calculate",
   authMiddleware,
-  calculatePricing //
+  calculatePricing
 );
 
 // ====================================
@@ -70,7 +70,7 @@ router.post(
 router.delete(
   "/delete/:id",
   authMiddleware,
-  authorizeRoles("SUPER_ADMIN"),
+  authorizeRoles("SUPER_ADMIN"), // ✅ ONLY SUPER_ADMIN
   deleteRateCard
 );
 

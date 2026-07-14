@@ -1,5 +1,6 @@
 // src/pages/admin/Merchants.jsx
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 import api from "../../services/api";
@@ -9,11 +10,22 @@ import {
   FaBan,
   FaSearch,
   FaClock,
+  FaEye,
+  FaTimes,
+  FaMoneyBillWave,
+  FaBox,
+  FaShoppingCart,
 } from "react-icons/fa";
 
 const Merchants = () => {
+  // States
   const [merchants, setMerchants] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedMerchant, setSelectedMerchant] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchMerchants();
@@ -25,6 +37,25 @@ const Merchants = () => {
       setMerchants(response.data.merchants || []);
     } catch (error) {
       console.log("Merchants Fetch Error Log:", error);
+    }
+  };
+
+  // View Merchant function
+  const viewMerchant = async (id) => {
+    setLoading(true);
+
+    try {
+      const response = await api.get(`/admin/merchant/${id}`);
+      console.log("Full Response:", response.data);
+      
+      // Store the entire response data
+      setSelectedMerchant(response.data);
+      setShowModal(true);
+    } catch (error) {
+      console.error("Error fetching merchant details:", error);
+      alert("Failed to fetch merchant details");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -159,12 +190,12 @@ const Merchants = () => {
       boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05)",
       overflow: "hidden",
       border: "1px solid #eef2f6",
-      color: "#0f172a" // ✅ Added
+      color: "#0f172a"
     },
     tableHeader: {
       padding: "20px 24px",
       borderBottom: "1px solid #eef2f6",
-      background: "white" // ✅ Added
+      background: "white"
     },
     tableTitle: {
       fontSize: "18px",
@@ -175,7 +206,7 @@ const Merchants = () => {
     table: {
       width: "100%",
       borderCollapse: "collapse",
-      background: "white" // ✅ Added
+      background: "white"
     },
     th: {
       textAlign: "left",
@@ -191,7 +222,7 @@ const Merchants = () => {
       padding: "18px 20px",
       borderBottom: "1px solid #f1f5f9",
       color: "#1e293b",
-      background: "#ffffff", // ✅ Added - Force white
+      background: "#ffffff",
       fontSize: "14px"
     },
     userInfo: {
@@ -223,7 +254,8 @@ const Merchants = () => {
     },
     actionGroup: {
       display: "flex",
-      gap: "8px"
+      gap: "8px",
+      flexWrap: "wrap"
     },
     actionBtn: {
       background: "white",
@@ -235,14 +267,137 @@ const Merchants = () => {
       fontSize: "12px",
       display: "inline-flex",
       alignItems: "center",
-      gap: "6px"
+      gap: "6px",
+      transition: "all 0.2s",
+      whiteSpace: "nowrap"
     },
     noData: {
       textAlign: "center",
       padding: "50px",
       color: "#94a3b8",
-      background: "white" // ✅ Added
+      background: "white"
+    },
+    // Modal styles
+    modalOverlay: {
+      position: "fixed",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 1000,
+      backdropFilter: "blur(4px)"
+    },
+    modalContent: {
+      background: "white",
+      borderRadius: "24px",
+      padding: "40px",
+      maxWidth: "700px",
+      width: "90%",
+      maxHeight: "80vh",
+      overflowY: "auto",
+      position: "relative",
+      boxShadow: "0 20px 60px rgba(0,0,0,0.3)"
+    },
+    modalClose: {
+      position: "absolute",
+      top: "16px",
+      right: "16px",
+      background: "none",
+      border: "none",
+      fontSize: "24px",
+      cursor: "pointer",
+      color: "#94a3b8",
+      padding: "8px",
+      borderRadius: "8px",
+      transition: "all 0.2s"
+    },
+    modalTitle: {
+      fontSize: "24px",
+      fontWeight: "700",
+      color: "#0f172a",
+      marginBottom: "24px",
+      borderBottom: "2px solid #f1f5f9",
+      paddingBottom: "16px"
+    },
+    modalField: {
+      display: "flex",
+      justifyContent: "space-between",
+      padding: "12px 0",
+      borderBottom: "1px solid #f1f5f9"
+    },
+    modalLabel: {
+      fontWeight: "600",
+      color: "#64748b",
+      fontSize: "14px"
+    },
+    modalValue: {
+      color: "#0f172a",
+      fontSize: "14px",
+      fontWeight: "500"
+    },
+    modalStatusBadge: {
+      display: "inline-block",
+      padding: "4px 12px",
+      borderRadius: "20px",
+      fontSize: "12px",
+      fontWeight: "600"
+    },
+    loadingSpinner: {
+      textAlign: "center",
+      padding: "40px",
+      color: "#64748b"
+    },
+    statsRow: {
+      display: "grid",
+      gridTemplateColumns: "repeat(3, 1fr)",
+      gap: "12px",
+      marginTop: "16px",
+      paddingTop: "16px",
+      borderTop: "2px solid #f1f5f9"
+    },
+    statItem: {
+      textAlign: "center",
+      padding: "12px",
+      background: "#f8fafc",
+      borderRadius: "12px"
+    },
+    statNumber: {
+      fontSize: "24px",
+      fontWeight: "700",
+      color: "#0f172a"
+    },
+    statLabel: {
+      fontSize: "12px",
+      color: "#64748b",
+      marginTop: "4px"
+    },
+    viewRateCardsBtn: {
+      width: "100%",
+      marginTop: "20px",
+      padding: "12px",
+      background: "#3b82f6",
+      color: "white",
+      border: "none",
+      borderRadius: "12px",
+      fontSize: "14px",
+      fontWeight: "600",
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: "8px",
+      transition: "all 0.2s"
     }
+  };
+
+  // ✅ Function to close modal and reset selected merchant
+  const closeModal = () => {
+    setShowModal(false);
+    setSelectedMerchant(null);
   };
 
   return (
@@ -368,9 +523,27 @@ const Merchants = () => {
                     </td>
                     <td style={styles.td}>
                       <div style={styles.actionGroup}>
+                        <button
+                          onClick={() => viewMerchant(merchant._id)}
+                          style={{
+                            ...styles.actionBtn,
+                            background: "#eff6ff",
+                            color: "#3b82f6",
+                            border: "1px solid #bfdbfe",
+                          }}
+                        >
+                          <FaEye />
+                          View
+                        </button>
+
                         {!merchant.isApproved && (
                           <button
-                            style={styles.actionBtn}
+                            style={{
+                              ...styles.actionBtn,
+                              background: "#dcfce7",
+                              color: "#166534",
+                              border: "1px solid #bbf7d0",
+                            }}
                             onClick={() => approveMerchant(merchant._id)}
                           >
                             Approve
@@ -433,6 +606,185 @@ const Merchants = () => {
           </table>
         </div>
       </div>
+
+      {/* Merchant Details Modal */}
+      {showModal && selectedMerchant && (
+        <div style={styles.modalOverlay} onClick={closeModal}>
+          <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <button
+              style={styles.modalClose}
+              onClick={closeModal}
+            >
+              <FaTimes />
+            </button>
+
+            {loading ? (
+              <div style={styles.loadingSpinner}>
+                <p>Loading merchant details...</p>
+              </div>
+            ) : (
+              <>
+                <h2 style={styles.modalTitle}>
+                  {selectedMerchant.merchant?.companyName || 
+                   selectedMerchant.merchant?.name || 
+                   "Merchant Details"}
+                </h2>
+
+                {/* Company Name */}
+                <div style={styles.modalField}>
+                  <span style={styles.modalLabel}>Company Name</span>
+                  <span style={styles.modalValue}>
+                    {selectedMerchant.merchant?.companyName || 
+                     selectedMerchant.merchant?.name || 
+                     "N/A"}
+                  </span>
+                </div>
+
+                {/* Contact Person */}
+                <div style={styles.modalField}>
+                  <span style={styles.modalLabel}>Contact Person</span>
+                  <span style={styles.modalValue}>
+                    {selectedMerchant.merchant?.contactPerson || 
+                     selectedMerchant.merchant?.name || 
+                     "N/A"}
+                  </span>
+                </div>
+
+                {/* Email */}
+                <div style={styles.modalField}>
+                  <span style={styles.modalLabel}>Email</span>
+                  <span style={styles.modalValue}>
+                    {selectedMerchant.merchant?.email || "N/A"}
+                  </span>
+                </div>
+
+                {/* Phone */}
+                <div style={styles.modalField}>
+                  <span style={styles.modalLabel}>Phone</span>
+                  <span style={styles.modalValue}>
+                    {selectedMerchant.merchant?.phone || "N/A"}
+                  </span>
+                </div>
+
+                {/* Address */}
+                <div style={styles.modalField}>
+                  <span style={styles.modalLabel}>Address</span>
+                  <span style={styles.modalValue}>
+                    {selectedMerchant.merchant?.address || 
+                     selectedMerchant.merchant?.businessAddress || 
+                     "N/A"}
+                  </span>
+                </div>
+
+                {/* GST Number */}
+                <div style={styles.modalField}>
+                  <span style={styles.modalLabel}>GST Number</span>
+                  <span style={styles.modalValue}>
+                    {selectedMerchant.merchant?.gstNumber || 
+                     selectedMerchant.merchant?.gst || 
+                     "N/A"}
+                  </span>
+                </div>
+
+                {/* Business Type */}
+                <div style={styles.modalField}>
+                  <span style={styles.modalLabel}>Business Type</span>
+                  <span style={styles.modalValue}>
+                    {selectedMerchant.merchant?.businessType || 
+                     selectedMerchant.merchant?.business || 
+                     "N/A"}
+                  </span>
+                </div>
+
+                {/* Status */}
+                <div style={styles.modalField}>
+                  <span style={styles.modalLabel}>Status</span>
+                  <span>
+                    <span style={{
+                      ...styles.modalStatusBadge,
+                      background: selectedMerchant.merchant?.isBlocked
+                        ? "#fee2e2"
+                        : selectedMerchant.merchant?.isApproved
+                        ? "#dcfce7"
+                        : "#fef3c7",
+                      color: selectedMerchant.merchant?.isBlocked
+                        ? "#dc2626"
+                        : selectedMerchant.merchant?.isApproved
+                        ? "#166534"
+                        : "#d97706",
+                    }}>
+                      {selectedMerchant.merchant?.isBlocked
+                        ? "Blocked"
+                        : selectedMerchant.merchant?.isApproved
+                        ? "Approved"
+                        : "Pending"}
+                    </span>
+                  </span>
+                </div>
+
+                {/* Joined Date */}
+                <div style={styles.modalField}>
+                  <span style={styles.modalLabel}>Joined Date</span>
+                  <span style={styles.modalValue}>
+                    {selectedMerchant.merchant?.createdAt
+                      ? new Date(selectedMerchant.merchant.createdAt).toLocaleDateString()
+                      : "N/A"}
+                  </span>
+                </div>
+
+                {/* Stats Row: Wallet Balance, Total Orders, Total Shipments */}
+                <div style={styles.statsRow}>
+                  <div style={styles.statItem}>
+                    <div style={styles.statNumber}>
+                      ₹{selectedMerchant.walletBalance || 0}
+                    </div>
+                    <div style={styles.statLabel}>
+                      <FaMoneyBillWave style={{ marginRight: "4px" }} />
+                      Wallet Balance
+                    </div>
+                  </div>
+                  <div style={styles.statItem}>
+                    <div style={styles.statNumber}>
+                      {selectedMerchant.totalOrders || 0}
+                    </div>
+                    <div style={styles.statLabel}>
+                      <FaShoppingCart style={{ marginRight: "4px" }} />
+                      Total Orders
+                    </div>
+                  </div>
+                  <div style={styles.statItem}>
+                    <div style={styles.statNumber}>
+                      {selectedMerchant.totalShipments || 0}
+                    </div>
+                    <div style={styles.statLabel}>
+                      <FaBox style={{ marginRight: "4px" }} />
+                      Total Shipments
+                    </div>
+                  </div>
+                </div>
+
+                {/* View Rate Cards Button with modal close */}
+                <button
+                  style={styles.viewRateCardsBtn}
+                  onClick={() => {
+                    closeModal(); // ✅ Close modal first
+                    navigate(`/admin/ratecard/${selectedMerchant.merchant._id}`);
+                  }}
+                  onMouseOver={(e) => {
+                    e.target.style.background = "#2563eb";
+                  }}
+                  onMouseOut={(e) => {
+                    e.target.style.background = "#3b82f6";
+                  }}
+                >
+                  <FaEye size={16} />
+                  View Rate Cards
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

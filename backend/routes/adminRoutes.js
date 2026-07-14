@@ -103,7 +103,7 @@ router.get(
 router.get(
   "/merchant/:id",
   authMiddleware,
-  authorizeRoles("SUPER_ADMIN"),
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),  // ✅ UPDATED: Now accessible to ADMIN as well
   getMerchantDetails
 );
 

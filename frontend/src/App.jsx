@@ -61,6 +61,8 @@ import AdminNDR from "./pages/admin/NDR";
 import AdminRTO from "./pages/admin/RTO";
 import COD from "./pages/admin/COD";
 import AdminTickets from "./pages/admin/AdminTickets";
+// ✅ NEW IMPORT: Admin RateCardManagement (Read-Only)
+import AdminRateCardManagement from "./pages/admin/RateCardManagement";
 
 // ======================
 // SUPER ADMIN PAGES
@@ -75,23 +77,10 @@ import ApiMonitoring from "./pages/superadmin/ApiMonitoring";
 import Revenue from "./pages/superadmin/Revenue";
 import AuditLogs from "./pages/superadmin/AuditLogs";
 import SuperAdminSettings from "./pages/superadmin/Settings";
-import RateCardManagement from "./pages/superadmin/RateCardManagement";
+// ✅ NEW IMPORT: Super Admin RateCardManagement (Full Access)
+import SuperAdminRateCardManagement from "./pages/superadmin/RateCardManagement";
 // ✅ NEW IMPORT: Couriers from superadmin
 import Couriers from "./pages/superadmin/Couriers";
-
-// ======================
-// STAFF & WAREHOUSE PAGES
-// ======================
-import StaffDashboard from "./pages/staff/Dashboard";
-import StaffOrders from "./pages/staff/Orders";
-import StaffShipments from "./pages/staff/Shipments";
-import StaffTracking from "./pages/staff/Tracking";
-
-import WarehouseDashboard from "./pages/warehouse/Dashboard";
-import WarehouseOrders from "./pages/warehouse/Orders";
-import Manifest from "./pages/warehouse/Manifest";
-import PickupSheet from "./pages/warehouse/PickupSheet";
-import DispatchCenter from "./pages/warehouse/DispatchCenter";
 
 // ======================
 // ROUTE PROTECTION
@@ -99,8 +88,6 @@ import DispatchCenter from "./pages/warehouse/DispatchCenter";
 import MerchantRoute from "./routes/MerchantRoute";
 import AdminRoute from "./routes/AdminRoute";
 import SuperAdminRoute from "./routes/SuperAdminRoute";
-import StaffRoute from "./routes/StaffRoute";
-import WarehouseRoute from "./routes/WarehouseRoute";
 
 function App() {
   return (
@@ -165,6 +152,15 @@ function App() {
         <Route path="/admin/rto" element={<AdminRoute><AdminRTO /></AdminRoute>} />
         <Route path="/admin/cod" element={<AdminRoute><COD /></AdminRoute>} />
         <Route path="/admin/tickets" element={<AdminRoute><AdminTickets /></AdminRoute>} />
+        {/* ✅ UPDATED: Admin RateCardManagement Route - Read-Only */}
+        <Route
+          path="/admin/ratecard/:merchantId"
+          element={
+            <AdminRoute>
+              <AdminRateCardManagement />
+            </AdminRoute>
+          }
+        />
 
         {/* ================= SUPER ADMIN ================= */}
         <Route path="/superadmin/dashboard" element={<SuperAdminRoute><SuperAdminDashboard /></SuperAdminRoute>} />
@@ -174,25 +170,13 @@ function App() {
         <Route path="/superadmin/merchants" element={<SuperAdminRoute><MerchantManagement /></SuperAdminRoute>} />
         {/* ✅ NEW: Super Admin Couriers Route */}
         <Route path="/superadmin/couriers" element={<SuperAdminRoute><Couriers /></SuperAdminRoute>} />
-        <Route path="/superadmin/ratecard/:merchantId" element={<SuperAdminRoute><RateCardManagement /></SuperAdminRoute>} />
+        {/* ✅ UPDATED: Super Admin RateCardManagement Route - Full Access */}
+        <Route path="/superadmin/ratecard/:merchantId" element={<SuperAdminRoute><SuperAdminRateCardManagement /></SuperAdminRoute>} />
         <Route path="/superadmin/commission" element={<SuperAdminRoute><Commission /></SuperAdminRoute>} />
         <Route path="/superadmin/revenue" element={<SuperAdminRoute><Revenue /></SuperAdminRoute>} />
         <Route path="/superadmin/api-monitoring" element={<SuperAdminRoute><ApiMonitoring /></SuperAdminRoute>} />
         <Route path="/superadmin/audit-logs" element={<SuperAdminRoute><AuditLogs /></SuperAdminRoute>} />
         <Route path="/superadmin/settings" element={<SuperAdminRoute><SuperAdminSettings /></SuperAdminRoute>} />
-
-        {/* ================= STAFF ================= */}
-        <Route path="/staff/dashboard" element={<StaffRoute><StaffDashboard /></StaffRoute>} />
-        <Route path="/staff/orders" element={<StaffRoute><StaffOrders /></StaffRoute>} />
-        <Route path="/staff/shipments" element={<StaffRoute><StaffShipments /></StaffRoute>} />
-        <Route path="/staff/tracking" element={<StaffRoute><StaffTracking /></StaffRoute>} />
-
-        {/* ================= WAREHOUSE ================= */}
-        <Route path="/warehouse/dashboard" element={<WarehouseRoute><WarehouseDashboard /></WarehouseRoute>} />
-        <Route path="/warehouse/orders" element={<WarehouseRoute><WarehouseOrders /></WarehouseRoute>} />
-        <Route path="/warehouse/manifest" element={<WarehouseRoute><Manifest /></WarehouseRoute>} />
-        <Route path="/warehouse/pickup-sheet" element={<WarehouseRoute><PickupSheet /></WarehouseRoute>} />
-        <Route path="/warehouse/dispatch" element={<WarehouseRoute><DispatchCenter /></WarehouseRoute>} />
 
         {/* ================= 404 ================= */}
         <Route path="*" element={<NotFound />} />
