@@ -1,0 +1,809 @@
+/* RateCalculator.css - Complete */
+
+/* ============================================ */
+/* CONTAINER */
+/* ============================================ */
+
+.rate-container {
+  display: flex;
+  min-height: 100vh;
+  background: #f0f2f5;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  overflow-x: hidden;
+}
+
+.rate-sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  overflow-y: auto;
+  background: #fff;
+  border-right: 1px solid #e2e8f0;
+  z-index: 50;
+}
+
+.rate-content {
+  flex: 1;
+  padding: 32px 40px;
+  overflow-x: hidden;
+  min-width: 0;
+  width: 100%;
+}
+
+/* ============================================ */
+/* HEADER */
+/* ============================================ */
+
+.rate-header {
+  margin-bottom: 28px;
+}
+
+.rate-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rate-title-icon {
+  color: #f97316;
+  font-size: 28px;
+}
+
+.rate-subtitle {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+}
+
+/* ============================================ */
+/* MAIN CARD */
+/* ============================================ */
+
+.rate-main-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e8ecf1;
+  margin-bottom: 28px;
+}
+
+/* ============================================ */
+/* FORM GRID */
+/* ============================================ */
+
+.rate-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.rate-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rate-button-group {
+  display: flex;
+  align-items: flex-end;
+}
+
+/* ============================================ */
+/* LABEL */
+/* ============================================ */
+
+.rate-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rate-required {
+  color: #ef4444;
+  font-size: 14px;
+}
+
+/* ============================================ */
+/* INPUT & SELECT */
+/* ============================================ */
+
+.rate-input {
+  padding: 12px 14px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s ease;
+  background: #fafbfc;
+  color: #0f172a;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.rate-input:focus {
+  border-color: #f97316;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.08);
+}
+
+.rate-input::placeholder {
+  color: #94a3b8;
+}
+
+.rate-select {
+  padding: 12px 14px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s ease;
+  background: #fafbfc;
+  color: #0f172a;
+  width: 100%;
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.rate-select:focus {
+  border-color: #f97316;
+  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.08);
+}
+
+/* ============================================ */
+/* BUTTON */
+/* ============================================ */
+
+.rate-btn {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  color: #fff;
+  border: none;
+  padding: 12px 32px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.25);
+  height: 48px;
+  font-family: inherit;
+}
+
+.rate-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(249, 115, 22, 0.35);
+}
+
+.rate-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.rate-btn-disabled {
+  background: #94a3b8;
+  color: #fff;
+  border: none;
+  padding: 12px 32px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: not-allowed;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  box-shadow: none;
+}
+
+/* ============================================ */
+/* RESULTS */
+/* ============================================ */
+
+.rate-results {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+/* ============================================ */
+/* RESULT CARD */
+/* ============================================ */
+
+.rate-result-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 24px 28px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e8ecf1;
+}
+
+.rate-section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ============================================ */
+/* TABLE */
+/* ============================================ */
+
+.rate-table-wrapper {
+  overflow-x: auto;
+  margin-top: 4px;
+}
+
+.rate-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 550px;
+}
+
+.rate-th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: #f8fafc;
+  border-bottom: 2px solid #e8ecf1;
+}
+
+.rate-row {
+  transition: background 0.2s ease;
+}
+
+.rate-row:hover {
+  background: #fafbfc;
+}
+
+.rate-td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 14px;
+  color: #334155;
+}
+
+/* ============================================ */
+/* TABLE CONTENT */
+/* ============================================ */
+
+.rate-courier-name {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.rate-badge {
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 600;
+  display: inline-block;
+  margin-left: 8px;
+}
+
+.rate-badge-cheapest {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.rate-badge-fastest {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.rate-price {
+  font-weight: 700;
+  color: #f97316;
+}
+
+.rate-clock-icon {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-right: 4px;
+}
+
+.rate-cod-badge {
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.rate-cod-yes {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.rate-cod-no {
+  background: #f1f5f9;
+  color: #94a3b8;
+}
+
+/* ============================================ */
+/* CHARGES */
+/* ============================================ */
+
+.rate-charges-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.rate-charge-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.rate-charge-label {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.rate-charge-value {
+  font-weight: 600;
+  color: #0f172a;
+  font-size: 14px;
+}
+
+.rate-charge-total {
+  border-bottom: none;
+  padding-top: 8px;
+}
+
+.rate-charge-total-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.rate-total-amount {
+  font-size: 28px;
+  font-weight: 700;
+  color: #f97316;
+}
+
+.rate-payment-note {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.rate-cod-note {
+  margin-left: 12px;
+  color: #d97706;
+}
+
+/* ============================================ */
+/* WEIGHT */
+/* ============================================ */
+
+.rate-weight-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.rate-weight-label {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.rate-weight-value {
+  font-weight: 600;
+  color: #0f172a;
+  font-size: 14px;
+}
+
+.rate-weight-total {
+  border-bottom: none;
+  padding-top: 8px;
+}
+
+.rate-weight-total-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.rate-chargeable-weight {
+  font-size: 20px;
+  font-weight: 700;
+  color: #f97316;
+}
+
+/* ============================================ */
+/* DIVIDER */
+/* ============================================ */
+
+.rate-divider {
+  border: none;
+  border-top: 2px solid #e8ecf1;
+  margin: 16px 0;
+}
+
+/* ============================================ */
+/* NOTE BOX */
+/* ============================================ */
+
+.rate-note-box {
+  background: #f8fafc;
+  padding: 14px 18px;
+  border-radius: 12px;
+  border-left: 4px solid #f97316;
+  margin-top: 12px;
+}
+
+.rate-note-text {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* ============================================ */
+/* STATUS BADGE */
+/* ============================================ */
+
+.rate-status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-block;
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+/* ============================================ */
+/* EMPTY STATE */
+/* ============================================ */
+
+.rate-empty-state {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 60px 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e8ecf1;
+  text-align: center;
+  color: #94a3b8;
+}
+
+.rate-empty-icon {
+  font-size: 48px;
+  color: #e2e8f0;
+  margin-bottom: 16px;
+}
+
+.rate-empty-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
+.rate-empty-text {
+  font-size: 14px;
+  color: #94a3b8;
+}
+
+/* ============================================ */
+/* ✅ RESPONSIVE - LAPTOP (1025px+) */
+/* ============================================ */
+
+@media (min-width: 1025px) {
+  .rate-container {
+    flex-direction: row;
+  }
+
+  .rate-sidebar {
+    width: 280px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    flex-shrink: 0;
+  }
+
+  .rate-content {
+    flex: 1;
+    padding: 32px 40px;
+    width: calc(100% - 280px);
+    max-width: calc(100% - 280px);
+  }
+}
+
+/* ============================================ */
+/* ✅ RESPONSIVE - TABLET (769px - 1024px) */
+/* ============================================ */
+
+@media (max-width: 1024px) and (min-width: 769px) {
+  .rate-container {
+    flex-direction: row;
+  }
+
+  .rate-sidebar {
+    width: 72px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  .rate-content {
+    flex: 1;
+    padding: 24px 24px;
+    width: calc(100% - 72px);
+    max-width: calc(100% - 72px);
+  }
+
+  .rate-title {
+    font-size: 24px;
+  }
+
+  .rate-form-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .rate-charges-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================ */
+/* ✅ RESPONSIVE - MOBILE (768px and below) */
+/* ============================================ */
+
+@media (max-width: 768px) {
+  .rate-container {
+    flex-direction: column;
+  }
+
+  .rate-sidebar {
+    width: 100% !important;
+    height: auto !important;
+    position: relative !important;
+    top: 0 !important;
+    border-right: none !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    overflow-y: visible !important;
+    flex-shrink: 0 !important;
+    z-index: 50 !important;
+  }
+
+  .rate-content {
+    padding: 70px 14px 20px 14px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 1 !important;
+  }
+
+  .rate-title {
+    font-size: 22px;
+  }
+
+  .rate-subtitle {
+    font-size: 13px;
+  }
+
+  .rate-main-card {
+    padding: 20px;
+    border-radius: 16px;
+  }
+
+  .rate-form-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .rate-input,
+  .rate-select {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+
+  .rate-btn {
+    height: 44px;
+    font-size: 13px;
+    padding: 10px 20px;
+  }
+
+  .rate-result-card {
+    padding: 18px 20px;
+    border-radius: 16px;
+  }
+
+  .rate-charges-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .rate-section-title {
+    font-size: 14px;
+  }
+
+  .rate-table {
+    min-width: 480px;
+  }
+
+  .rate-th {
+    padding: 10px 12px;
+    font-size: 10px;
+  }
+
+  .rate-td {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+
+  .rate-total-amount {
+    font-size: 22px;
+  }
+
+  .rate-chargeable-weight {
+    font-size: 18px;
+  }
+
+  .rate-empty-state {
+    padding: 40px 16px;
+  }
+}
+
+/* ============================================ */
+/* ✅ RESPONSIVE - SMALL MOBILE (480px and below) */
+/* ============================================ */
+
+@media (max-width: 480px) {
+  .rate-content {
+    padding: 60px 10px 16px 10px !important;
+  }
+
+  .rate-title {
+    font-size: 18px;
+  }
+
+  .rate-main-card {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .rate-input,
+  .rate-select {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .rate-btn {
+    height: 40px;
+    font-size: 12px;
+    padding: 8px 16px;
+  }
+
+  .rate-result-card {
+    padding: 14px 16px;
+    border-radius: 14px;
+  }
+
+  .rate-section-title {
+    font-size: 13px;
+  }
+
+  .rate-table {
+    min-width: 400px;
+  }
+
+  .rate-th {
+    padding: 8px 10px;
+    font-size: 9px;
+  }
+
+  .rate-td {
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+
+  .rate-total-amount {
+    font-size: 20px;
+  }
+
+  .rate-chargeable-weight {
+    font-size: 16px;
+  }
+
+  .rate-badge {
+    font-size: 8px;
+    padding: 2px 6px;
+  }
+
+  .rate-cod-badge {
+    font-size: 9px;
+    padding: 2px 8px;
+  }
+
+  .rate-empty-icon {
+    font-size: 36px;
+  }
+
+  .rate-empty-title {
+    font-size: 15px;
+  }
+
+  .rate-empty-text {
+    font-size: 12px;
+  }
+
+  .rate-note-text {
+    font-size: 12px;
+  }
+}
+
+/* ============================================ */
+/* ✅ RESPONSIVE - VERY SMALL (360px and below) */
+/* ============================================ */
+
+@media (max-width: 360px) {
+  .rate-content {
+    padding: 56px 8px 14px 8px !important;
+  }
+
+  .rate-title {
+    font-size: 16px;
+  }
+
+  .rate-main-card {
+    padding: 12px;
+  }
+
+  .rate-table {
+    min-width: 350px;
+  }
+
+  .rate-th {
+    padding: 6px 8px;
+    font-size: 8px;
+  }
+
+  .rate-td {
+    padding: 6px 8px;
+    font-size: 10px;
+  }
+
+  .rate-total-amount {
+    font-size: 18px;
+  }
+
+  .rate-chargeable-weight {
+    font-size: 14px;
+  }
+
+  .rate-btn {
+    font-size: 11px;
+    height: 36px;
+  }
+}

@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import api from "../../services/api";
 import { FaBox, FaTruck, FaArrowLeft, FaCheckCircle, FaShippingFast, FaWallet, FaRupeeSign, FaStar, FaSortAmountUp, FaShieldAlt } from "react-icons/fa";
+import "./CreateShipment.css"; // ✅ CSS imported
 
 const CreateShipment = () => {
   const navigate = useNavigate();
@@ -116,7 +117,7 @@ const CreateShipment = () => {
     try {
       const res = await api.post("/ratecards/calculate", {
         orderId: formData.orderId,
-        courierId: formData.courier, // ✅ Changed from courier to courierId
+        courierId: formData.courier,
       });
       
       if (res.data.success) {
@@ -229,7 +230,7 @@ const CreateShipment = () => {
       if (isBulk && bulkOrderIds.length > 0) {
         const payload = {
           orderIds: bulkOrderIds,
-          courierId: formData.courier, // ✅ Changed from courier to courierId
+          courierId: formData.courier,
           insuranceEnabled: insuranceEnabled,
           insuranceAmount: insuranceEnabled ? insuranceAmount : 0
         };
@@ -241,7 +242,7 @@ const CreateShipment = () => {
         // Single shipment
         const payload = {
           ...formData,
-          courierId: formData.courier, // ✅ Changed from courier to courierId
+          courierId: formData.courier,
           insuranceEnabled: insuranceEnabled,
           insuranceAmount: insuranceEnabled ? insuranceAmount : 0
         };
@@ -257,520 +258,24 @@ const CreateShipment = () => {
     }
   };
 
-  const styles = {
-    container: {
-      display: "flex",
-      flexDirection: "column",
-      background: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)",
-      minHeight: "100vh",
-      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-    },
-    sidebarWrapper: {
-      width: "100%",
-      flexShrink: 0
-    },
-    main: {
-      flex: 1,
-      padding: "24px 20px",
-      width: "100%",
-      maxWidth: "100%",
-      margin: "0 auto",
-      boxSizing: "border-box",
-      display: "flex",
-      alignItems: "flex-start",
-      justifyContent: "center"
-    },
-    formContainer: {
-      background: "#ffffff",
-      borderRadius: "24px",
-      border: "1px solid rgba(226, 232, 240, 0.8)",
-      boxShadow: "0 20px 25px -5px rgba(0,0,0,0.05), 0 10px 10px -5px rgba(0,0,0,0.01)",
-      width: "100%",
-      maxWidth: "1200px",
-      overflow: "hidden"
-    },
-    formHeader: {
-      background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
-      padding: "28px 32px",
-      textAlign: "center"
-    },
-    headerIcon: {
-      width: "56px",
-      height: "56px",
-      background: "rgba(255,255,255,0.2)",
-      borderRadius: "50%",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      margin: "0 auto 16px auto",
-      color: "#fff",
-      fontSize: "28px"
-    },
-    headerTitle: {
-      fontSize: "24px",
-      fontWeight: "700",
-      color: "#fff",
-      margin: "0 0 4px 0",
-      letterSpacing: "-0.5px"
-    },
-    headerSubtitle: {
-      fontSize: "13px",
-      color: "rgba(255,255,255,0.85)",
-      margin: 0
-    },
-    formBody: {
-      padding: "32px"
-    },
-    selectedOrderCard: {
-      background: "linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%)",
-      padding: "16px",
-      borderRadius: "14px",
-      marginBottom: "24px",
-      border: "1px solid #fed7aa"
-    },
-    selectedOrderHeader: {
-      display: "flex",
-      alignItems: "center",
-      gap: "12px"
-    },
-    selectedOrderIcon: {
-      width: "40px",
-      height: "40px",
-      background: "#f97316",
-      borderRadius: "10px",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      color: "#fff",
-      fontSize: "18px"
-    },
-    selectedOrderContent: {
-      flex: 1
-    },
-    selectedOrderLabel: {
-      fontSize: "11px",
-      fontWeight: "600",
-      color: "#9a3412",
-      textTransform: "uppercase",
-      letterSpacing: "0.5px",
-      marginBottom: "4px"
-    },
-    selectedOrderValue: {
-      fontSize: "14px",
-      fontWeight: "600",
-      color: "#431407",
-      margin: 0
-    },
-    selectedOrderCheck: {
-      color: "#16a34a",
-      fontSize: "20px"
-    },
-    orderDetailsCard: {
-      marginTop: "12px",
-      padding: "12px 16px",
-      background: "#ffffff",
-      borderRadius: "10px",
-      border: "1px solid #f1f5f9"
-    },
-    orderDetailRow: {
-      display: "flex",
-      justifyContent: "space-between",
-      padding: "4px 0",
-      fontSize: "13px",
-      color: "#334155"
-    },
-    orderDetailLabel: {
-      color: "#64748b"
-    },
-    orderDetailValue: {
-      fontWeight: "500",
-      color: "#0f172a"
-    },
-    formGroup: {
-      marginBottom: "24px"
-    },
-    label: {
-      display: "flex",
-      alignItems: "center",
-      gap: "8px",
-      fontSize: "13px",
-      fontWeight: "600",
-      color: "#334155",
-      marginBottom: "8px"
-    },
-    labelIcon: {
-      color: "#f97316",
-      fontSize: "14px"
-    },
-    requiredStar: {
-      color: "#ef4444",
-      marginLeft: "2px"
-    },
-    select: {
-      width: "100%",
-      padding: "12px 16px",
-      fontSize: "14px",
-      borderRadius: "12px",
-      border: "1.5px solid #e2e8f0",
-      outline: "none",
-      fontFamily: "inherit",
-      background: "#fff",
-      cursor: "pointer",
-      transition: "all 0.2s ease",
-      color: "#1e293b"
-    },
-    recommendedCard: {
-      background: "linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)",
-      border: "2px solid #86efac",
-      padding: "16px",
-      borderRadius: "12px",
-      marginBottom: "20px",
-      position: "relative"
-    },
-    recommendedBadge: {
-      position: "absolute",
-      top: "-10px",
-      right: "16px",
-      background: "#f97316",
-      color: "#fff",
-      padding: "2px 14px",
-      borderRadius: "20px",
-      fontSize: "11px",
-      fontWeight: "600",
-      boxShadow: "0 2px 8px rgba(249,115,22,0.3)"
-    },
-    recommendedTitle: {
-      margin: "0 0 4px 0",
-      fontSize: "13px",
-      fontWeight: "600",
-      color: "#15803d",
-      display: "flex",
-      alignItems: "center",
-      gap: "8px"
-    },
-    recommendedCourier: {
-      margin: "8px 0 0 0",
-      fontSize: "20px",
-      fontWeight: "700",
-      color: "#065f46",
-      letterSpacing: "-0.5px"
-    },
-    recommendedRate: {
-      margin: "0",
-      fontSize: "14px",
-      color: "#15803d",
-      fontWeight: "500"
-    },
-    comparisonCard: {
-      background: "#f8fafc",
-      border: "1px solid #e2e8f0",
-      borderRadius: "12px",
-      padding: "16px",
-      marginBottom: "20px"
-    },
-    comparisonTitle: {
-      fontSize: "13px",
-      fontWeight: "600",
-      color: "#0f172a",
-      margin: "0 0 12px 0",
-      display: "flex",
-      alignItems: "center",
-      gap: "8px"
-    },
-    costPreviewCard: {
-      background: "#f8fafc",
-      border: "1px solid #e2e8f0",
-      borderRadius: "14px",
-      padding: "16px",
-      marginBottom: "20px"
-    },
-    costPreviewTitle: {
-      fontSize: "14px",
-      fontWeight: "600",
-      color: "#0f172a",
-      margin: "0 0 12px 0"
-    },
-    costRow: {
-      display: "flex",
-      justifyContent: "space-between",
-      padding: "4px 0",
-      fontSize: "13px",
-      color: "#475569"
-    },
-    costDivider: {
-      border: "none",
-      borderTop: "1px solid #e2e8f0",
-      margin: "8px 0"
-    },
-    costTotal: {
-      display: "flex",
-      justifyContent: "space-between",
-      padding: "4px 0",
-      fontSize: "15px",
-      fontWeight: "700",
-      color: "#0f172a"
-    },
-    walletCard: {
-      background: "#ecfdf5",
-      border: "1px solid #bbf7d0",
-      borderRadius: "14px",
-      padding: "16px",
-      marginBottom: "20px"
-    },
-    walletRow: {
-      display: "flex",
-      justifyContent: "space-between",
-      padding: "4px 0",
-      fontSize: "13px",
-      color: "#065f46"
-    },
-    walletBalance: {
-      fontWeight: "600",
-      color: "#065f46"
-    },
-    walletAfter: {
-      fontWeight: "600",
-      color: isInsufficientBalance ? "#dc2626" : "#065f46"
-    },
-    walletRequired: {
-      fontWeight: "600",
-      color: "#0f172a"
-    },
-    shortfallText: {
-      fontWeight: "600",
-      color: "#dc2626"
-    },
-    insufficientText: {
-      color: "#dc2626",
-      fontSize: "12px",
-      fontWeight: "500",
-      marginTop: "8px",
-      textAlign: "center"
-    },
-    submitButton: {
-      width: "100%",
-      background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
-      color: "#fff",
-      padding: "14px 24px",
-      borderRadius: "12px",
-      border: "none",
-      fontWeight: "600",
-      fontSize: "15px",
-      cursor: "pointer",
-      transition: "all 0.2s ease",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: "10px",
-      marginTop: "8px"
-    },
-    submitButtonDisabled: {
-      width: "100%",
-      background: "#94a3b8",
-      color: "#fff",
-      padding: "14px 24px",
-      borderRadius: "12px",
-      border: "none",
-      fontWeight: "600",
-      fontSize: "15px",
-      cursor: "not-allowed",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: "10px",
-      marginTop: "8px",
-      opacity: 0.7
-    },
-    backButton: {
-      background: "transparent",
-      border: "1.5px solid #e2e8f0",
-      color: "#64748b",
-      padding: "10px 20px",
-      borderRadius: "10px",
-      fontWeight: "500",
-      fontSize: "13px",
-      cursor: "pointer",
-      transition: "all 0.2s ease",
-      display: "inline-flex",
-      alignItems: "center",
-      gap: "8px",
-      marginBottom: "20px"
-    },
-    buttonWrapper: {
-      display: "flex",
-      flexDirection: "column",
-      gap: "12px"
-    },
-    loadingText: {
-      textAlign: "center",
-      color: "#94a3b8",
-      fontSize: "13px",
-      padding: "8px 0"
-    },
-    noRatesText: {
-      textAlign: "center",
-      color: "#94a3b8",
-      fontSize: "13px",
-      padding: "12px 0"
-    },
-    insuranceToggle: {
-      background: "#f8fafc",
-      border: "1px solid #e2e8f0",
-      borderRadius: "12px",
-      padding: "14px 16px",
-      marginBottom: "16px",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      cursor: "pointer",
-      transition: "all 0.2s ease"
-    },
-    insuranceToggleActive: {
-      background: "#f0fdf4",
-      border: "1px solid #86efac",
-    },
-    insuranceLeft: {
-      display: "flex",
-      alignItems: "center",
-      gap: "10px"
-    },
-    insuranceIcon: {
-      color: "#f97316",
-      fontSize: "16px"
-    },
-    insuranceLabel: {
-      fontSize: "13px",
-      fontWeight: "500",
-      color: "#0f172a"
-    },
-    insuranceSubtext: {
-      fontSize: "11px",
-      color: "#64748b",
-      marginTop: "2px"
-    },
-    insuranceSwitch: {
-      width: "44px",
-      height: "24px",
-      background: "#cbd5e1",
-      borderRadius: "12px",
-      position: "relative",
-      transition: "all 0.3s ease",
-      flexShrink: 0
-    },
-    insuranceSwitchActive: {
-      background: "#f97316",
-    },
-    insuranceSwitchKnob: {
-      width: "20px",
-      height: "20px",
-      background: "#fff",
-      borderRadius: "50%",
-      position: "absolute",
-      top: "2px",
-      left: "2px",
-      transition: "all 0.3s ease",
-      boxShadow: "0 1px 3px rgba(0,0,0,0.2)"
-    },
-    insuranceSwitchKnobActive: {
-      left: "22px",
-    },
-    insuranceCostRow: {
-      display: "flex",
-      justifyContent: "space-between",
-      padding: "4px 0",
-      fontSize: "13px",
-      color: "#475569",
-      marginTop: "4px"
-    }
-  };
-
-  const desktopStyles = `
-    @media (min-width: 768px) {
-      .create-shipment-container {
-        flex-direction: row !important;
-      }
-      .sidebar-wrapper {
-        width: 280px !important;
-      }
-      .create-shipment-main {
-        padding: 32px 40px !important;
-      }
-    }
-
-    @media (max-width: 767px) {
-      .create-shipment-main {
-        padding: 16px !important;
-      }
-      .create-shipment-main > div {
-        max-width: 100% !important;
-        border-radius: 16px !important;
-      }
-      .create-shipment-main > div > div:first-child {
-        padding: 20px 16px !important;
-      }
-      .create-shipment-main > div > div:last-child {
-        padding: 20px 16px !important;
-      }
-    }
-
-    select:focus {
-      border-color: #f97316 !important;
-      box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1) !important;
-    }
-
-    select:hover {
-      border-color: #f97316 !important;
-    }
-
-    button:hover {
-      transform: translateY(-1px);
-    }
-
-    button:active {
-      transform: translateY(0);
-    }
-
-    .back-button:hover {
-      border-color: #f97316 !important;
-      color: #f97316 !important;
-    }
-
-    .comparison-table th {
-      border-bottom: 2px solid #e2e8f0 !important;
-    }
-
-    .comparison-table td {
-      border-bottom: 1px solid #f1f5f9 !important;
-    }
-
-    .comparison-table tr:last-child td {
-      border-bottom: none !important;
-    }
-
-    .insurance-toggle:hover {
-      border-color: #f97316 !important;
-    }
-  `;
-
   return (
     <>
-      <style>{desktopStyles}</style>
-      <div className="create-shipment-container" style={styles.container}>
-        <div className="sidebar-wrapper" style={styles.sidebarWrapper}>
+      <div className="create-shipment-container">
+        <div className="sidebar-wrapper">
           <Sidebar />
         </div>
 
-        <main className="create-shipment-main" style={styles.main}>
-          <div style={styles.formContainer}>
+        <main className="create-shipment-main">
+          <div className="shipment-form-container">
             {/* Header with Gradient */}
-            <div style={styles.formHeader}>
-              <div style={styles.headerIcon}>
+            <div className="shipment-form-header">
+              <div className="header-icon">
                 <FaShippingFast />
               </div>
-              <h2 style={styles.headerTitle}>
+              <h2 className="header-title">
                 {isBulk ? `Bulk Shipment (${bulkOrderIds.length} Orders)` : "Create Shipment"}
               </h2>
-              <p style={styles.headerSubtitle}>
+              <p className="header-subtitle">
                 {isBulk 
                   ? `Creating shipments for ${bulkOrderIds.length} selected orders` 
                   : "Generate new shipment for order"}
@@ -778,11 +283,10 @@ const CreateShipment = () => {
             </div>
 
             {/* Form Body */}
-            <div style={styles.formBody}>
+            <div className="shipment-form-body">
               <button 
                 onClick={() => navigate(-1)} 
                 className="back-button"
-                style={styles.backButton}
               >
                 <FaArrowLeft size={12} /> Back
               </button>
@@ -790,73 +294,57 @@ const CreateShipment = () => {
               <form onSubmit={handleSubmit}>
                 {/* Bulk Order Count Display */}
                 {isBulk && bulkOrderIds.length > 0 && (
-                  <div style={{
-                    ...styles.selectedOrderCard,
-                    background: "linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)",
-                    border: "1px solid #86efac"
-                  }}>
-                    <div style={styles.selectedOrderHeader}>
-                      <div style={{
-                        ...styles.selectedOrderIcon,
-                        background: "#16a34a"
-                      }}>
+                  <div className="selected-order-card bulk-card">
+                    <div className="selected-order-header">
+                      <div className="selected-order-icon bulk-icon">
                         <FaBox />
                       </div>
-                      <div style={styles.selectedOrderContent}>
-                        <div style={{
-                          ...styles.selectedOrderLabel,
-                          color: "#166534"
-                        }}>
+                      <div className="selected-order-content">
+                        <div className="selected-order-label bulk-label">
                           Bulk Shipment
                         </div>
-                        <div style={{
-                          ...styles.selectedOrderValue,
-                          color: "#14532d"
-                        }}>
+                        <div className="selected-order-value bulk-value">
                           {bulkOrderIds.length} orders selected for bulk shipment
                         </div>
                       </div>
-                      <FaCheckCircle style={{
-                        color: "#16a34a",
-                        fontSize: "20px"
-                      }} />
+                      <FaCheckCircle className="check-icon" />
                     </div>
                   </div>
                 )}
 
                 {/* Selected Order Display for Single */}
                 {!isBulk && currentOrder && (
-                  <div style={styles.selectedOrderCard}>
-                    <div style={styles.selectedOrderHeader}>
-                      <div style={styles.selectedOrderIcon}>
+                  <div className="selected-order-card">
+                    <div className="selected-order-header">
+                      <div className="selected-order-icon">
                         <FaBox />
                       </div>
-                      <div style={styles.selectedOrderContent}>
-                        <div style={styles.selectedOrderLabel}>Selected Order</div>
-                        <div style={styles.selectedOrderValue}>
+                      <div className="selected-order-content">
+                        <div className="selected-order-label">Selected Order</div>
+                        <div className="selected-order-value">
                           {currentOrder.orderNumber || currentOrder._id?.slice(-6) || "N/A"} - {currentOrder.customerName || "N/A"}
                         </div>
                       </div>
-                      <FaCheckCircle style={styles.selectedOrderCheck} />
+                      <FaCheckCircle className="check-icon" />
                     </div>
 
                     {/* Order Details Card */}
-                    <div style={styles.orderDetailsCard}>
-                      <div style={styles.orderDetailRow}>
-                        <span style={styles.orderDetailLabel}>Product</span>
-                        <span style={styles.orderDetailValue}>{currentOrder?.productName || "N/A"}</span>
+                    <div className="order-details-card">
+                      <div className="order-detail-row">
+                        <span className="order-detail-label">Product</span>
+                        <span className="order-detail-value">{currentOrder?.productName || "N/A"}</span>
                       </div>
-                      <div style={styles.orderDetailRow}>
-                        <span style={styles.orderDetailLabel}>Weight</span>
-                        <span style={styles.orderDetailValue}>{currentOrder?.weight || 0} KG</span>
+                      <div className="order-detail-row">
+                        <span className="order-detail-label">Weight</span>
+                        <span className="order-detail-value">{currentOrder?.weight || 0} KG</span>
                       </div>
-                      <div style={styles.orderDetailRow}>
-                        <span style={styles.orderDetailLabel}>Payment</span>
-                        <span style={styles.orderDetailValue}>{currentOrder?.paymentMode || "N/A"}</span>
+                      <div className="order-detail-row">
+                        <span className="order-detail-label">Payment</span>
+                        <span className="order-detail-value">{currentOrder?.paymentMode || "N/A"}</span>
                       </div>
-                      <div style={styles.orderDetailRow}>
-                        <span style={styles.orderDetailLabel}>Amount</span>
-                        <span style={styles.orderDetailValue}>₹{currentOrder?.amount || 0}</span>
+                      <div className="order-detail-row">
+                        <span className="order-detail-label">Amount</span>
+                        <span className="order-detail-value">₹{currentOrder?.amount || 0}</span>
                       </div>
                     </div>
                   </div>
@@ -864,16 +352,16 @@ const CreateShipment = () => {
 
                 {/* Order Selection - Hide in bulk mode */}
                 {!isBulk && (
-                  <div style={styles.formGroup}>
-                    <div style={styles.label}>
-                      <FaBox style={styles.labelIcon} />
-                      <span>Select Order <span style={styles.requiredStar}>*</span></span>
+                  <div className="form-group">
+                    <div className="form-label">
+                      <FaBox className="label-icon" />
+                      <span>Select Order <span className="required-star">*</span></span>
                     </div>
                     <select
                       name="orderId"
                       value={formData.orderId}
                       onChange={(e) => setFormData({ ...formData, orderId: e.target.value })}
-                      style={styles.select}
+                      className="form-select"
                       required
                     >
                       <option value="">Choose an order</option>
@@ -888,26 +376,14 @@ const CreateShipment = () => {
 
                 {/* For bulk: Show selected orders count and first order for recommendations */}
                 {isBulk && (
-                  <div style={styles.formGroup}>
-                    <div style={styles.label}>
-                      <FaBox style={styles.labelIcon} />
-                      <span>Bulk Orders <span style={styles.requiredStar}>*</span></span>
+                  <div className="form-group">
+                    <div className="form-label">
+                      <FaBox className="label-icon" />
+                      <span>Bulk Orders <span className="required-star">*</span></span>
                     </div>
-                    <div style={{
-                      padding: "12px 16px",
-                      background: "#f8fafc",
-                      borderRadius: "12px",
-                      border: "1px solid #e2e8f0",
-                      fontSize: "14px",
-                      color: "#0f172a"
-                    }}>
+                    <div className="bulk-orders-display">
                       {bulkOrderIds.length} orders selected
-                      <span style={{
-                        display: "block",
-                        fontSize: "12px",
-                        color: "#64748b",
-                        marginTop: "4px"
-                      }}>
+                      <span className="bulk-subtext">
                         Using first order for rate calculation
                       </span>
                     </div>
@@ -916,13 +392,13 @@ const CreateShipment = () => {
 
                 {/* Top 3 Recommended Couriers Card */}
                 {recommendationLoading ? (
-                  <div style={styles.loadingText}>⏳ Finding best couriers...</div>
+                  <div className="loading-text">⏳ Finding best couriers...</div>
                 ) : courierRates.length > 0 ? (
                   <>
-                    <div style={styles.recommendedCard}>
-                      <div style={styles.recommendedBadge}>🏆 Top 3</div>
-                      <div style={styles.recommendedTitle}>
-                        <FaStar style={{ color: "#f97316" }} />
+                    <div className="recommended-card">
+                      <div className="recommended-badge">🏆 Top 3</div>
+                      <div className="recommended-title">
+                        <FaStar className="star-icon" />
                         Recommended Couriers (Cheapest)
                       </div>
                       
@@ -932,48 +408,19 @@ const CreateShipment = () => {
                         
                         return (
                           <div
-                            key={c.courierId} // ✅ Changed from courier to courierId
-                            style={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              alignItems: "center",
-                              padding: "8px 0",
-                              borderBottom: index < 2 ? "1px solid #e2e8f0" : "none",
-                              marginTop: index === 0 ? "8px" : "0",
-                              background: isCheapest ? "rgba(22, 163, 74, 0.08)" : "transparent",
-                              borderRadius: isCheapest ? "6px" : "0",
-                              paddingLeft: isCheapest ? "8px" : "0",
-                              paddingRight: isCheapest ? "8px" : "0"
-                            }}
+                            key={c.courierId}
+                            className={`recommended-item ${isCheapest ? 'cheapest' : ''}`}
                           >
-                            <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                              <span style={{ 
-                                fontWeight: "600", 
-                                color: isCheapest ? "#16a34a" : "#334155",
-                                fontSize: isCheapest ? "14px" : "13px"
-                              }}>
+                            <span className="recommended-left">
+                              <span className={`rank-number ${isCheapest ? 'rank-cheapest' : ''}`}>
                                 #{index + 1}
                               </span>
-                              <span style={{ fontWeight: "500", color: "#0f172a" }}>
-                                {c.courierName} {/* ✅ Changed from courierMap to courierName */}
-                              </span>
+                              <span className="courier-name">{c.courierName}</span>
                               {isCheapest && (
-                                <span style={{ 
-                                  background: "#16a34a", 
-                                  color: "#fff", 
-                                  fontSize: "10px",
-                                  padding: "2px 8px",
-                                  borderRadius: "12px",
-                                  fontWeight: "600"
-                                }}>
-                                  Cheapest
-                                </span>
+                                <span className="cheapest-badge">Cheapest</span>
                               )}
                             </span>
-                            <span style={{ 
-                              fontWeight: isCheapest ? "700" : "500",
-                              color: isCheapest ? "#16a34a" : "#0f172a"
-                            }}>
+                            <span className={`rate-amount ${isCheapest ? 'rate-cheapest' : ''}`}>
                               ₹{total}
                             </span>
                           </div>
@@ -981,12 +428,7 @@ const CreateShipment = () => {
                       })}
                       
                       {courierRates.length > 3 && (
-                        <div style={{
-                          textAlign: "center",
-                          marginTop: "10px",
-                          fontSize: "12px",
-                          color: "#94a3b8"
-                        }}>
+                        <div className="more-couriers-text">
                           +{courierRates.length - 3} more couriers available
                         </div>
                       )}
@@ -994,37 +436,20 @@ const CreateShipment = () => {
 
                     {/* Courier Comparison Table */}
                     {courierRates.length > 0 && (
-                      <div style={styles.comparisonCard}>
-                        <div style={styles.comparisonTitle}>
-                          <FaSortAmountUp style={{ color: "#64748b" }} />
+                      <div className="comparison-card">
+                        <div className="comparison-title">
+                          <FaSortAmountUp className="comparison-icon" />
                           All Courier Comparison
                         </div>
 
-                        <table
-                          className="comparison-table"
-                          style={{
-                            width: "100%",
-                            borderCollapse: "collapse",
-                            fontSize: "13px",
-                          }}
-                        >
+                        <table className="comparison-table">
                           <thead>
                             <tr>
-                              <th style={{ textAlign: "left", padding: "8px" }}>
-                                Courier
-                              </th>
-                              <th style={{ textAlign: "center", padding: "8px" }}>
-                                Forward
-                              </th>
-                              <th style={{ textAlign: "center", padding: "8px" }}>
-                                COD
-                              </th>
-                              <th style={{ textAlign: "center", padding: "8px" }}>
-                                ETA
-                              </th>
-                              <th style={{ textAlign: "right", padding: "8px" }}>
-                                Total
-                              </th>
+                              <th className="comparison-th">Courier</th>
+                              <th className="comparison-th-center">Forward</th>
+                              <th className="comparison-th-center">COD</th>
+                              <th className="comparison-th-center">ETA</th>
+                              <th className="comparison-th-right">Total</th>
                             </tr>
                           </thead>
 
@@ -1032,72 +457,33 @@ const CreateShipment = () => {
                             {courierRates.slice(0, 5).map((c, index) => {
                               const total = Number(c.total || 0);
                               const isCheapest = index === 0;
-                              const eta = c.estimatedDays ? `${c.estimatedDays} Days` : "N/A"; // ✅ Changed from etaMap to estimatedDays
+                              const eta = c.estimatedDays ? `${c.estimatedDays} Days` : "N/A";
 
                               return (
                                 <tr
-                                  key={c.courierId} // ✅ Changed from courier to courierId
-                                  style={{
-                                    borderTop: "1px solid #e2e8f0",
-                                    background: isCheapest ? "#f0fdf4" : "transparent"
-                                  }}
+                                  key={c.courierId}
+                                  className={`comparison-row ${isCheapest ? 'cheapest-row' : ''}`}
                                 >
-                                  <td
-                                    style={{
-                                      padding: "10px 8px",
-                                    }}
-                                  >
-                                    {c.courierName} {/* ✅ Changed from courierMap to courierName */}
+                                  <td className="comparison-td">
+                                    {c.courierName}
                                     {isCheapest && (
-                                      <span
-                                        style={{
-                                          marginLeft: 4,
-                                          color: "#16a34a",
-                                          fontWeight: 600,
-                                          fontSize: "11px"
-                                        }}
-                                      >
-                                        ⭐ Cheapest
-                                      </span>
+                                      <span className="cheapest-tag">⭐ Cheapest</span>
                                     )}
                                   </td>
 
-                                  <td
-                                    style={{
-                                      textAlign: "center",
-                                      padding: "10px 8px",
-                                    }}
-                                  >
+                                  <td className="comparison-td-center">
                                     ₹{c.forwardRate || 0}
                                   </td>
 
-                                  <td
-                                    style={{
-                                      textAlign: "center",
-                                      padding: "10px 8px",
-                                    }}
-                                  >
+                                  <td className="comparison-td-center">
                                     ₹{c.codCharge || 0}
                                   </td>
 
-                                  <td
-                                    style={{
-                                      textAlign: "center",
-                                      padding: "10px 8px",
-                                      color: "#475569"
-                                    }}
-                                  >
+                                  <td className="comparison-td-center eta-text">
                                     {eta}
                                   </td>
 
-                                  <td
-                                    style={{
-                                      textAlign: "right",
-                                      fontWeight: isCheapest ? "700" : "600",
-                                      padding: "10px 8px",
-                                      color: isCheapest ? "#15803d" : "#0f172a"
-                                    }}
-                                  >
+                                  <td className={`comparison-td-right ${isCheapest ? 'total-cheapest' : 'total-normal'}`}>
                                     ₹{total}
                                   </td>
                                 </tr>
@@ -1106,12 +492,7 @@ const CreateShipment = () => {
                             
                             {courierRates.length > 5 && (
                               <tr>
-                                <td colSpan="5" style={{
-                                  textAlign: "center",
-                                  padding: "10px",
-                                  color: "#94a3b8",
-                                  fontSize: "12px"
-                                }}>
+                                <td colSpan="5" className="more-couriers-row">
                                   +{courierRates.length - 5} more couriers
                                 </td>
                               </tr>
@@ -1122,23 +503,18 @@ const CreateShipment = () => {
                     )}
                   </>
                 ) : formData.orderId || isBulk ? (
-                  <div style={styles.noRatesText}>
+                  <div className="no-rates-text">
                     No rate cards found. Please contact admin.
                   </div>
                 ) : null}
 
                 {/* Dynamic Courier Dropdown */}
-                <div style={styles.formGroup}>
-                  <div style={styles.label}>
-                    <FaTruck style={styles.labelIcon} />
-                    <span>Select Courier <span style={styles.requiredStar}>*</span></span>
+                <div className="form-group">
+                  <div className="form-label">
+                    <FaTruck className="label-icon" />
+                    <span>Select Courier <span className="required-star">*</span></span>
                     {recommended && (
-                      <span style={{ 
-                        marginLeft: "auto", 
-                        fontSize: "11px", 
-                        color: "#15803d",
-                        fontWeight: "500"
-                      }}>
+                      <span className="recommended-tag">
                         ⭐ Best: {recommended.courierName || recommended.courierId}
                       </span>
                     )}
@@ -1147,20 +523,16 @@ const CreateShipment = () => {
                     name="courier"
                     value={formData.courier}
                     onChange={(e) => setFormData({ ...formData, courier: e.target.value })}
-                    style={{
-                      ...styles.select,
-                      borderColor: recommended && formData.courier === recommended.courierId ? "#86efac" : "#e2e8f0",
-                      background: recommended && formData.courier === recommended.courierId ? "#f0fdf4" : "#fff"
-                    }}
+                    className={`form-select courier-select ${recommended && formData.courier === recommended.courierId ? 'recommended-select' : ''}`}
                     required
                   >
                     <option value="">Choose a courier partner</option>
                     {courierRates.map((c) => (
                       <option
-                        key={c.courierId} // ✅ Changed from courier to courierId
-                        value={c.courierId} // ✅ Changed from courierMap to courierId
+                        key={c.courierId}
+                        value={c.courierId}
                       >
-                        {c.courierName} {/* ✅ Changed from courierMap to courierName */}
+                        {c.courierName}
                       </option>
                     ))}
                   </select>
@@ -1169,32 +541,22 @@ const CreateShipment = () => {
                 {/* Insurance Toggle */}
                 {currentOrder && !isBulk && (
                   <div 
-                    className="insurance-toggle"
-                    style={{
-                      ...styles.insuranceToggle,
-                      ...(insuranceEnabled ? styles.insuranceToggleActive : {})
-                    }}
+                    className={`insurance-toggle ${insuranceEnabled ? 'insurance-active' : ''}`}
                     onClick={() => setInsuranceEnabled(!insuranceEnabled)}
                   >
-                    <div style={styles.insuranceLeft}>
-                      <FaShieldAlt style={styles.insuranceIcon} />
+                    <div className="insurance-left">
+                      <FaShieldAlt className="insurance-icon" />
                       <div>
-                        <div style={styles.insuranceLabel}>
+                        <div className="insurance-label">
                           ☑ Add Insurance
                         </div>
-                        <div style={styles.insuranceSubtext}>
+                        <div className="insurance-subtext">
                           Protect your shipment (₹{INSURANCE_CHARGE})
                         </div>
                       </div>
                     </div>
-                    <div style={{
-                      ...styles.insuranceSwitch,
-                      ...(insuranceEnabled ? styles.insuranceSwitchActive : {})
-                    }}>
-                      <div style={{
-                        ...styles.insuranceSwitchKnob,
-                        ...(insuranceEnabled ? styles.insuranceSwitchKnobActive : {})
-                      }} />
+                    <div className={`insurance-switch ${insuranceEnabled ? 'switch-active' : ''}`}>
+                      <div className={`insurance-knob ${insuranceEnabled ? 'knob-active' : ''}`} />
                     </div>
                   </div>
                 )}
@@ -1202,76 +564,61 @@ const CreateShipment = () => {
                 {/* Bulk Insurance Toggle */}
                 {isBulk && (
                   <div 
-                    className="insurance-toggle"
-                    style={{
-                      ...styles.insuranceToggle,
-                      ...(insuranceEnabled ? styles.insuranceToggleActive : {})
-                    }}
+                    className={`insurance-toggle ${insuranceEnabled ? 'insurance-active' : ''}`}
                     onClick={() => setInsuranceEnabled(!insuranceEnabled)}
                   >
-                    <div style={styles.insuranceLeft}>
-                      <FaShieldAlt style={styles.insuranceIcon} />
+                    <div className="insurance-left">
+                      <FaShieldAlt className="insurance-icon" />
                       <div>
-                        <div style={styles.insuranceLabel}>
+                        <div className="insurance-label">
                           ☑ Add Insurance to All
                         </div>
-                        <div style={styles.insuranceSubtext}>
+                        <div className="insurance-subtext">
                           Protect all shipments (₹{INSURANCE_CHARGE} each)
                         </div>
                       </div>
                     </div>
-                    <div style={{
-                      ...styles.insuranceSwitch,
-                      ...(insuranceEnabled ? styles.insuranceSwitchActive : {})
-                    }}>
-                      <div style={{
-                        ...styles.insuranceSwitchKnob,
-                        ...(insuranceEnabled ? styles.insuranceSwitchKnobActive : {})
-                      }} />
+                    <div className={`insurance-switch ${insuranceEnabled ? 'switch-active' : ''}`}>
+                      <div className={`insurance-knob ${insuranceEnabled ? 'knob-active' : ''}`} />
                     </div>
                   </div>
                 )}
 
                 {/* Cost Preview */}
-                <div style={styles.costPreviewCard}>
-                  <h4 style={styles.costPreviewTitle}>
+                <div className="cost-preview-card">
+                  <h4 className="cost-preview-title">
                     {isBulk ? `💰 Bulk Cost Preview (per order)` : `💰 Shipment Cost Preview`}
                   </h4>
-                  <div style={styles.costRow}>
+                  <div className="cost-row">
                     <span>Shipping Charge</span>
                     <span>₹{pricing.shippingCharge}</span>
                   </div>
-                  <div style={styles.costRow}>
+                  <div className="cost-row">
                     <span>COD Charge</span>
                     <span>₹{pricing.codCharge}</span>
                   </div>
-                  <div style={styles.costRow}>
+                  <div className="cost-row">
                     <span>Fuel Charge</span>
                     <span>₹{pricing.fuelCharge}</span>
                   </div>
                   
                   {insuranceEnabled && (
-                    <div style={styles.costRow}>
+                    <div className="cost-row">
                       <span>🛡️ Insurance Charge</span>
                       <span>₹{INSURANCE_CHARGE}</span>
                     </div>
                   )}
                   
-                  <hr style={styles.costDivider} />
-                  <div style={styles.costTotal}>
+                  <hr className="cost-divider" />
+                  <div className="cost-total">
                     <span>Total per Order</span>
-                    <span style={{ color: "#ea580c" }}>₹{totalCharge}</span>
+                    <span className="total-amount">₹{totalCharge}</span>
                   </div>
                   
                   {isBulk && bulkOrderIds.length > 0 && (
-                    <div style={{
-                      ...styles.costTotal,
-                      marginTop: "8px",
-                      paddingTop: "8px",
-                      borderTop: "2px solid #e2e8f0"
-                    }}>
+                    <div className="cost-grand-total">
                       <span>Total for {bulkOrderIds.length} Orders</span>
-                      <span style={{ color: "#ea580c", fontSize: "18px" }}>
+                      <span className="grand-total-amount">
                         ₹{totalCharge * bulkOrderIds.length}
                       </span>
                     </div>
@@ -1279,34 +626,34 @@ const CreateShipment = () => {
                 </div>
 
                 {/* Wallet Preview */}
-                <div style={styles.walletCard}>
-                  <div style={styles.walletRow}>
+                <div className="wallet-card">
+                  <div className="wallet-row">
                     <span>💰 Wallet Balance</span>
-                    <span style={styles.walletBalance}>₹{walletBalance}</span>
+                    <span className="wallet-balance">₹{walletBalance}</span>
                   </div>
-                  <div style={styles.walletRow}>
+                  <div className="wallet-row">
                     <span>Required Amount</span>
-                    <span style={styles.walletRequired}>
+                    <span className="wallet-required">
                       {isBulk ? `₹${totalCharge * bulkOrderIds.length}` : `₹${totalCharge}`}
                     </span>
                   </div>
                   
                   {isInsufficientBalance ? (
                     <>
-                      <div style={styles.walletRow}>
+                      <div className="wallet-row">
                         <span>Shortfall</span>
-                        <span style={styles.shortfallText}>
+                        <span className="shortfall-text">
                           ₹{isBulk ? shortfall * bulkOrderIds.length : shortfall}
                         </span>
                       </div>
-                      <div style={styles.insufficientText}>
+                      <div className="insufficient-text">
                         ⚠️ Please recharge ₹{isBulk ? shortfall * bulkOrderIds.length : shortfall} to proceed
                       </div>
                     </>
                   ) : (
-                    <div style={styles.walletRow}>
+                    <div className="wallet-row">
                       <span>Balance After Shipment</span>
-                      <span style={styles.walletAfter}>
+                      <span className={`wallet-after ${isInsufficientBalance ? 'wallet-insufficient' : 'wallet-sufficient'}`}>
                         ₹{isBulk ? Math.max(0, walletBalance - (totalCharge * bulkOrderIds.length)) : balanceAfterShipment}
                       </span>
                     </div>
@@ -1314,11 +661,11 @@ const CreateShipment = () => {
                 </div>
 
                 {/* Submit Button */}
-                <div style={styles.buttonWrapper}>
+                <div className="button-wrapper">
                   <button
                     type="submit"
                     disabled={!isFormValid}
-                    style={!isFormValid ? styles.submitButtonDisabled : styles.submitButton}
+                    className={`submit-btn ${!isFormValid ? 'submit-disabled' : ''}`}
                   >
                     {loading ? (
                       <>⏳ Creating Shipment{isBulk ? 's' : ''}...</>

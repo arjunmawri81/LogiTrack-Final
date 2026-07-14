@@ -25,6 +25,7 @@ import {
   FaBan,
 } from "react-icons/fa";
 import { format, subDays, isToday, isYesterday } from 'date-fns';
+import "./Orders.css";
 
 const Orders = () => {
   const navigate = useNavigate();
@@ -297,7 +298,6 @@ const Orders = () => {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      // ✅ FIXED: Bulk labels download as PDF
       link.setAttribute(
         "download",
         `labels_${settings.format}_${Date.now()}.pdf`
@@ -511,11 +511,11 @@ const Orders = () => {
 
   if (loading) {
     return (
-      <div style={{ display: "flex", minHeight: "100vh", background: "#f1f5f9" }}>
-        <div style={{ width: "280px", flexShrink: 0 }}>
+      <div className="orders-loading-container">
+        <div className="orders-sidebar">
           <Sidebar />
         </div>
-        <div style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>
+        <div className="orders-loading-spinner">
           <FaSpinner className="animate-spin" size={40} color="#f97316" />
         </div>
       </div>
@@ -523,53 +523,20 @@ const Orders = () => {
   }
 
   return (
-    <div style={{ 
-      display: "flex", 
-      background: "#f1f5f9", 
-      minHeight: "100vh", 
-      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" 
-    }}>
-      <div style={{ width: "280px", flexShrink: 0 }}>
+    <div className="orders-container">
+      <div className="orders-sidebar">
         <Sidebar />
       </div>
 
-      <div style={{ flex: 1, padding: "24px 32px", overflowX: "hidden" }}>
-        <div style={{ marginBottom: "25px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "12px" }}>
+      <div className="orders-main">
+        <div className="orders-header-section">
+          <div className="orders-header-top">
             <div>
-              <h1 style={{
-                fontSize: "28px",
-                fontWeight: "700",
-                color: "#0f172a",
-                marginBottom: "6px",
-              }}>
-                Orders Management
-              </h1>
-              <p style={{
-                color: "#64748b",
-                margin: 0,
-                fontSize: "14px"
-              }}>
-                Manage and track all customer orders
-              </p>
+              <h1 className="orders-title">Orders Management</h1>
+              <p className="orders-subtitle">Manage and track all customer orders</p>
             </div>
-            <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-              <label
-                style={{
-                  background: uploading ? "#7c3aed" : "#8b5cf6",
-                  color: "#fff",
-                  padding: "10px 16px",
-                  borderRadius: "8px",
-                  cursor: uploading ? "not-allowed" : "pointer",
-                  fontWeight: "600",
-                  fontSize: "13px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  opacity: uploading ? 0.6 : 1,
-                  transition: "all 0.2s",
-                }}
-              >
+            <div className="orders-header-actions">
+              <label className="orders-upload-btn orders-upload-csv">
                 <FaUpload /> {uploading ? 'Uploading...' : 'Upload CSV'}
                 <input
                   type="file"
@@ -580,22 +547,7 @@ const Orders = () => {
                 />
               </label>
 
-              <label
-                style={{
-                  background: uploading ? "#0891b2" : "#06b6d4",
-                  color: "#fff",
-                  padding: "10px 16px",
-                  borderRadius: "8px",
-                  cursor: uploading ? "not-allowed" : "pointer",
-                  fontWeight: "600",
-                  fontSize: "13px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  opacity: uploading ? 0.6 : 1,
-                  transition: "all 0.2s",
-                }}
-              >
+              <label className="orders-upload-btn orders-upload-excel">
                 <FaUpload /> {uploading ? 'Uploading...' : 'Upload Excel'}
                 <input
                   type="file"
@@ -609,62 +561,23 @@ const Orders = () => {
               <button
                 onClick={exportToExcel}
                 disabled={exporting || filteredOrders.length === 0}
-                style={{
-                  background: "#22c55e",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "8px",
-                  padding: "10px 16px",
-                  fontWeight: "600",
-                  fontSize: "13px",
-                  cursor: exporting || filteredOrders.length === 0 ? "not-allowed" : "pointer",
-                  opacity: exporting || filteredOrders.length === 0 ? 0.6 : 1,
-                  transition: "all 0.2s",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px"
-                }}
+                className="orders-export-btn"
               >
                 <FaFileExcel /> {exporting ? 'Exporting...' : 'Export Excel'}
               </button>
 
               {selectedOrders.length > 0 && (
-                <div className="bulk-actions-wrapper" style={{ position: 'relative', display: 'inline-block' }}>
+                <div className="bulk-actions-wrapper">
                   <button
-                    style={{
-                      background: "#2563eb",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: "8px",
-                      padding: "10px 16px",
-                      fontWeight: "600",
-                      fontSize: "13px",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "6px"
-                    }}
+                    className="orders-bulk-btn"
                     onClick={() => setShowBulkDropdown(!showBulkDropdown)}
                   >
                     <FaTruck /> Bulk Actions ({selectedOrders.length})
                   </button>
                   
                   {showBulkDropdown && (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        right: 0,
-                        top: '100%',
-                        marginTop: '4px',
-                        background: '#fff',
-                        borderRadius: '8px',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                        minWidth: '200px',
-                        zIndex: 10,
-                        padding: '4px 0'
-                      }}
-                    >
-                      <button onClick={handleBulkShipment} style={dropdownItemStyle}>
+                    <div className="orders-bulk-dropdown">
+                      <button onClick={handleBulkShipment} className="orders-dropdown-item">
                         <FaTruck /> Bulk Ship
                       </button>
                       <button
@@ -673,12 +586,12 @@ const Orders = () => {
                           setLabelModalMode('bulk');
                           setShowLabelModal(true);
                         }}
-                        style={dropdownItemStyle}
+                        className="orders-dropdown-item"
                       >
                         <FaDownload /> Download Labels
                       </button>
-                      <hr style={{ margin: '4px 0', border: 'none', borderTop: '1px solid #e2e8f0' }} />
-                      <button onClick={handleBulkCancel} style={{...dropdownItemStyle, color: '#dc2626' }}>
+                      <hr className="orders-dropdown-divider" />
+                      <button onClick={handleBulkCancel} className="orders-dropdown-item orders-dropdown-danger">
                         <FaTimes /> Cancel Orders
                       </button>
                     </div>
@@ -687,19 +600,7 @@ const Orders = () => {
               )}
 
               <button
-                style={{
-                  background: "#f97316",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "8px",
-                  padding: "10px 16px",
-                  fontWeight: "600",
-                  fontSize: "13px",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px"
-                }}
+                className="orders-create-btn"
                 onClick={() => navigate("/merchant/create-order")}
               >
                 + Create Order
@@ -709,163 +610,60 @@ const Orders = () => {
         </div>
 
         {error && (
-          <div style={{
-            background: "#fee2e2",
-            border: "1px solid #fecaca",
-            borderRadius: "12px",
-            padding: "12px 16px",
-            marginBottom: "20px",
-            color: "#991b1b",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center"
-          }}>
+          <div className="orders-error-banner">
             <span>{error}</span>
-            <button
-              onClick={fetchOrders}
-              style={{
-                background: "transparent",
-                border: "1px solid #991b1b",
-                padding: "4px 16px",
-                borderRadius: "6px",
-                cursor: "pointer",
-                color: "#991b1b",
-                fontWeight: "500"
-              }}
-            >
+            <button onClick={fetchOrders} className="orders-retry-btn">
               Retry
             </button>
           </div>
         )}
 
-        <div style={{
-          display: 'flex',
-          gap: '4px',
-          marginBottom: '20px',
-          overflowX: 'auto',
-          padding: '4px 0',
-          flexWrap: 'wrap'
-        }}>
+        <div className="orders-tabs">
           {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              style={{
-                padding: '8px 16px',
-                borderRadius: '20px',
-                border: activeTab === tab.id ? '2px solid #f97316' : '1px solid #e2e8f0',
-                background: activeTab === tab.id ? '#fff7ed' : '#fff',
-                color: activeTab === tab.id ? '#f97316' : '#64748b',
-                cursor: 'pointer',
-                fontSize: '13px',
-                fontWeight: activeTab === tab.id ? '600' : '500',
-                transition: 'all 0.2s',
-                whiteSpace: 'nowrap',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}
+              className={`orders-tab ${activeTab === tab.id ? 'orders-tab-active' : ''}`}
             >
               {tab.label}
-              <span style={{
-                background: activeTab === tab.id ? '#f97316' : '#e2e8f0',
-                color: activeTab === tab.id ? '#fff' : '#64748b',
-                borderRadius: '50%',
-                padding: '2px 8px',
-                fontSize: '11px',
-                fontWeight: '600'
-              }}>
+              <span className={`orders-tab-count ${activeTab === tab.id ? 'orders-tab-count-active' : ''}`}>
                 {getStatusCount(tab.id)}
               </span>
             </button>
           ))}
         </div>
 
-        <div style={{
-          display: 'flex',
-          gap: '12px',
-          marginBottom: '20px',
-          flexWrap: 'wrap',
-          alignItems: 'center'
-        }}>
-          <div style={{
-            background: "#fff",
-            borderRadius: "12px",
-            padding: "12px 16px",
-            border: "1px solid #e2e8f0",
-            flex: '1',
-            minWidth: '250px',
-            display: "flex",
-            alignItems: "center",
-          }}>
+        <div className="orders-filters">
+          <div className="orders-search">
             <FaSearch color="#94a3b8" size={16} />
             <input
               type="text"
               placeholder="Search by Order ID, Customer, Phone, or AWB..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              style={{
-                border: "none",
-                outline: "none",
-                marginLeft: "12px",
-                width: "100%",
-                fontSize: "14px",
-                color: "#0f172a",
-                background: "transparent"
-              }}
+              className="orders-search-input"
             />
             {search && (
-              <button
-                onClick={() => setSearch('')}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#94a3b8',
-                  cursor: 'pointer',
-                  padding: '4px'
-                }}
-              >
+              <button onClick={() => setSearch('')} className="orders-clear-search">
                 <FaTimes size={14} />
               </button>
             )}
           </div>
 
-          <div style={{ position: 'relative' }}>
+          <div className="orders-filter-wrapper">
             <button
               onClick={() => setShowCourierDropdown(!showCourierDropdown)}
-              style={{
-                background: "#fff",
-                borderRadius: "12px",
-                padding: "12px 16px",
-                border: "1px solid #e2e8f0",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                cursor: "pointer",
-                fontSize: "14px",
-                color: "#0f172a"
-              }}
+              className="orders-filter-btn"
             >
               <FaFilter size={14} />
               Courier: {courierFilter === 'ALL' ? 'All' : courierFilter}
               <FaChevronDown size={12} />
             </button>
             {showCourierDropdown && (
-              <div style={{
-                position: 'absolute',
-                top: '100%',
-                left: 0,
-                marginTop: '4px',
-                background: '#fff',
-                borderRadius: '8px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                padding: '4px 0',
-                minWidth: '150px',
-                zIndex: 10
-              }}>
+              <div className="orders-filter-dropdown">
                 <button
                   onClick={() => { setCourierFilter('ALL'); setShowCourierDropdown(false); }}
-                  style={dropdownItemStyle}
+                  className="orders-dropdown-item"
                 >
                   All
                 </button>
@@ -873,7 +671,7 @@ const Orders = () => {
                   <button
                     key={c}
                     onClick={() => { setCourierFilter(c); setShowCourierDropdown(false); }}
-                    style={dropdownItemStyle}
+                    className="orders-dropdown-item"
                   >
                     {c}
                   </button>
@@ -882,39 +680,17 @@ const Orders = () => {
             )}
           </div>
 
-          <div style={{ position: 'relative' }}>
+          <div className="orders-filter-wrapper">
             <button
               onClick={() => setShowDateDropdown(!showDateDropdown)}
-              style={{
-                background: "#fff",
-                borderRadius: "12px",
-                padding: "12px 16px",
-                border: "1px solid #e2e8f0",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                cursor: "pointer",
-                fontSize: "14px",
-                color: "#0f172a"
-              }}
+              className="orders-filter-btn"
             >
               <FaCalendarAlt size={14} />
               {dateFilter === 'ALL' ? 'Date' : dateOptions.find(d => d.id === dateFilter)?.label || 'Custom'}
               <FaChevronDown size={12} />
             </button>
             {showDateDropdown && (
-              <div style={{
-                position: 'absolute',
-                top: '100%',
-                left: 0,
-                marginTop: '4px',
-                background: '#fff',
-                borderRadius: '8px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                padding: '8px',
-                minWidth: '200px',
-                zIndex: 10
-              }}>
+              <div className="orders-filter-dropdown orders-date-dropdown">
                 {dateOptions.map(d => (
                   <button
                     key={d.id}
@@ -924,38 +700,29 @@ const Orders = () => {
                         setShowDateDropdown(false);
                       }
                     }}
-                    style={dropdownItemStyle}
+                    className="orders-dropdown-item"
                   >
                     {d.label}
                   </button>
                 ))}
                 {dateFilter === 'CUSTOM' && (
-                  <div style={{ padding: '8px' }}>
+                  <div className="orders-custom-date">
                     <input
                       type="date"
                       value={customStartDate}
                       onChange={(e) => setCustomStartDate(e.target.value)}
-                      style={dateInputStyle}
+                      className="orders-date-input"
                     />
-                    <span style={{ margin: '0 4px', color: '#64748b' }}>to</span>
+                    <span className="orders-date-separator">to</span>
                     <input
                       type="date"
                       value={customEndDate}
                       onChange={(e) => setCustomEndDate(e.target.value)}
-                      style={dateInputStyle}
+                      className="orders-date-input"
                     />
                     <button
                       onClick={() => setShowDateDropdown(false)}
-                      style={{
-                        marginTop: '8px',
-                        background: '#f97316',
-                        color: '#fff',
-                        border: 'none',
-                        padding: '6px 12px',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        width: '100%'
-                      }}
+                      className="orders-apply-date"
                     >
                       Apply
                     </button>
@@ -966,51 +733,18 @@ const Orders = () => {
           </div>
 
           {(search || activeTab !== 'ALL' || courierFilter !== 'ALL' || dateFilter !== 'ALL') && (
-            <button
-              onClick={clearFilters}
-              style={{
-                background: "#fee2e2",
-                color: "#991b1b",
-                border: "none",
-                borderRadius: "12px",
-                padding: "12px 16px",
-                cursor: "pointer",
-                fontSize: "13px",
-                fontWeight: "500",
-                display: "flex",
-                alignItems: "center",
-                gap: "6px"
-              }}
-            >
+            <button onClick={clearFilters} className="orders-clear-filters">
               <FaTimes size={14} /> Clear Filters
             </button>
           )}
         </div>
 
-        <div style={{
-          background: "#fff",
-          borderRadius: "16px",
-          overflow: "hidden",
-          border: "1px solid #e2e8f0",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-        }}>
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "1000px" }}>
+        <div className="orders-table-wrapper">
+          <div className="orders-table-container">
+            <table className="orders-table">
               <thead>
-                <tr style={{
-                  background: "#f8fafc",
-                  borderBottom: "1px solid #e2e8f0",
-                }}>
-                  <th style={{
-                    textAlign: "left",
-                    padding: "12px 16px",
-                    color: "#475569",
-                    fontSize: "12px",
-                    fontWeight: "600",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.5px",
-                    width: "40px"
-                  }}>
+                <tr className="orders-table-header">
+                  <th className="orders-table-th orders-table-checkbox">
                     <input
                       type="checkbox"
                       checked={filteredOrders.length > 0 && selectedOrders.length === filteredOrders.length}
@@ -1018,15 +752,7 @@ const Orders = () => {
                     />
                   </th>
                   {["ORDER ID", "AWB", "CUSTOMER", "PHONE", "COURIER", "AMOUNT", "STATUS", "DATE", "ACTIONS"].map((h) => (
-                    <th key={h} style={{
-                      textAlign: "left",
-                      padding: "12px 16px",
-                      color: "#475569",
-                      fontSize: "12px",
-                      fontWeight: "600",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.5px",
-                    }}>
+                    <th key={h} className="orders-table-th">
                       {h}
                     </th>
                   ))}
@@ -1042,21 +768,8 @@ const Orders = () => {
                     const canCancel = !isDelivered && !isCancelled && !hasShipment;
                     
                     return (
-                      <tr
-                        key={order._id}
-                        style={{
-                          borderBottom: "1px solid #f1f5f9",
-                          transition: "background 0.2s",
-                          background: "#ffffff"
-                        }}
-                        onMouseEnter={(e) =>
-                          (e.currentTarget.style.background = "#f8fafc")
-                        }
-                        onMouseLeave={(e) =>
-                          (e.currentTarget.style.background = "#ffffff")
-                        }
-                      >
-                        <td style={{ padding: "12px 16px" }}>
+                      <tr key={order._id} className="orders-table-row">
+                        <td className="orders-table-td orders-table-checkbox">
                           <input
                             type="checkbox"
                             checked={selectedOrders.includes(order._id)}
@@ -1069,107 +782,48 @@ const Orders = () => {
                             }}
                           />
                         </td>
-                        <td style={{
-                          padding: "12px 16px",
-                          fontSize: "13px",
-                          color: "#0f172a",
-                          fontWeight: "500"
-                        }}>
+                        <td className="orders-table-td orders-order-id">
                           {order.orderNumber || order._id.slice(-6)}
                         </td>
-                        <td style={{
-                          padding: "12px 16px",
-                          fontSize: "13px",
-                          color: "#0f172a",
-                          fontWeight: "500"
-                        }}>
+                        <td className="orders-table-td orders-awb">
                           {order.awb || '-'}
                         </td>
-                        <td style={{
-                          padding: "12px 16px",
-                          fontSize: "13px",
-                          color: "#0f172a",
-                        }}>
+                        <td className="orders-table-td orders-customer">
                           {order.customerName || "N/A"}
                         </td>
-                        <td style={{
-                          padding: "12px 16px",
-                          fontSize: "13px",
-                          color: "#0f172a",
-                        }}>
+                        <td className="orders-table-td orders-phone">
                           {order.customerPhone || "N/A"}
                         </td>
-                        <td style={{
-                          padding: "12px 16px",
-                          fontSize: "13px",
-                          color: "#0f172a",
-                        }}>
-                          <span style={{
-                            background: '#f1f5f9',
-                            padding: '4px 8px',
-                            borderRadius: '4px',
-                            fontSize: '12px'
-                          }}>
+                        <td className="orders-table-td orders-courier">
+                          <span className="orders-courier-badge">
                             {order.shipmentId?.courier
                               ? order.shipmentId.courier.charAt(0).toUpperCase() +
                                 order.shipmentId.courier.slice(1)
                               : "-"}
                           </span>
                         </td>
-                        <td style={{
-                          padding: "12px 16px",
-                          fontSize: "13px",
-                          color: "#0f172a",
-                          fontWeight: "600"
-                        }}>
+                        <td className="orders-table-td orders-amount">
                           ₹{order.amount?.toFixed(2) || "0.00"}
                         </td>
-                        <td style={{ padding: "12px 16px" }}>
-                          <span style={{
+                        <td className="orders-table-td">
+                          <span className="orders-status-badge" style={{
                             background: statusStyle.bg,
                             color: statusStyle.color,
-                            padding: "4px 12px",
-                            borderRadius: "999px",
-                            fontSize: "12px",
-                            fontWeight: "600",
-                            display: "inline-block",
                           }}>
                             {order.status || "NEW"}
                           </span>
                         </td>
-                        <td style={{
-                          padding: "12px 16px",
-                          fontSize: "13px",
-                          color: "#64748b",
-                        }}>
+                        <td className="orders-table-td orders-date">
                           {order.createdAt ? format(new Date(order.createdAt), 'dd MMM yyyy') : "N/A"}
                         </td>
-                        <td style={{ padding: "12px 16px" }}>
-                          <div className="action-menu-container" style={{ position: 'relative', display: 'inline-block' }}>
+                        <td className="orders-table-td">
+                          <div className="action-menu-container">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setOpenMenuId(openMenuId === order._id ? null : order._id);
                               }}
-                              style={{
-                                background: '#f1f5f9',
-                                border: 'none',
-                                padding: '8px 12px',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                                transition: 'all 0.2s',
-                                fontSize: '13px',
-                                color: '#475569'
-                              }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.background = '#e2e8f0';
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.background = '#f1f5f9';
-                              }}
+                              className="orders-action-btn"
                             >
                               <FaEllipsisV size={14} />
                               <span>Actions</span>
@@ -1177,25 +831,13 @@ const Orders = () => {
                             </button>
 
                             {openMenuId === order._id && (
-                              <div style={{
-                                position: 'absolute',
-                                right: 0,
-                                top: '100%',
-                                marginTop: '4px',
-                                background: '#fff',
-                                borderRadius: '12px',
-                                boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-                                minWidth: '220px',
-                                zIndex: 100,
-                                padding: '6px 0',
-                                border: '1px solid #e2e8f0'
-                              }}>
+                              <div className="orders-action-menu">
                                 <button
                                   onClick={() => {
                                     navigate(`/merchant/orders/${order._id}`);
                                     setOpenMenuId(null);
                                   }}
-                                  style={{...menuItemStyle, color: '#2563eb'}}
+                                  className="orders-menu-item orders-menu-view"
                                 >
                                   <FaEye size={14} /> View Order
                                 </button>
@@ -1206,7 +848,7 @@ const Orders = () => {
                                       navigate(`/merchant/orders/edit/${order._id}`);
                                       setOpenMenuId(null);
                                     }}
-                                    style={{...menuItemStyle, color: '#16a34a'}}
+                                    className="orders-menu-item orders-menu-edit"
                                   >
                                     <FaEdit size={14} /> Edit Order
                                   </button>
@@ -1220,7 +862,7 @@ const Orders = () => {
                                       });
                                       setOpenMenuId(null);
                                     }}
-                                    style={{...menuItemStyle, color: '#f97316'}}
+                                    className="orders-menu-item orders-menu-ship"
                                   >
                                     <FaTruck size={14} /> Create Shipment
                                   </button>
@@ -1232,7 +874,7 @@ const Orders = () => {
                                       navigate(`/merchant/shipment/track/${order.shipmentId?._id}`);
                                       setOpenMenuId(null);
                                     }}
-                                    style={{...menuItemStyle, color: '#8b5cf6'}}
+                                    className="orders-menu-item orders-menu-track"
                                   >
                                     <FaBox size={14} /> Track Shipment
                                   </button>
@@ -1241,7 +883,7 @@ const Orders = () => {
                                 {order.shipmentId && (
                                   <button
                                     onClick={() => handleSingleLabelClick(order.shipmentId._id)}
-                                    style={{...menuItemStyle, color: '#dc2626'}}
+                                    className="orders-menu-item orders-menu-label"
                                   >
                                     <FaTag size={14} /> Download Label
                                   </button>
@@ -1255,17 +897,17 @@ const Orders = () => {
                                     }
                                     handleDownloadInvoice(order.invoiceId._id);
                                   }}
-                                  style={{...menuItemStyle, color: '#059669'}}
+                                  className="orders-menu-item orders-menu-invoice"
                                 >
                                   <FaFileInvoice size={14} /> Download Invoice
                                 </button>
 
                                 {canCancel && (
                                   <>
-                                    <hr style={{ margin: '4px 8px', border: 'none', borderTop: '1px solid #e2e8f0' }} />
+                                    <hr className="orders-menu-divider" />
                                     <button
                                       onClick={() => handleCancelOrder(order._id)}
-                                      style={{...menuItemStyle, color: '#dc2626', fontWeight: '600'}}
+                                      className="orders-menu-item orders-menu-cancel"
                                     >
                                       <FaBan size={14} /> Cancel Order
                                     </button>
@@ -1273,13 +915,7 @@ const Orders = () => {
                                 )}
 
                                 {hasShipment && (
-                                  <div style={{
-                                    padding: '8px 16px',
-                                    fontSize: '11px',
-                                    color: '#94a3b8',
-                                    borderTop: '1px solid #f1f5f9',
-                                    marginTop: '4px'
-                                  }}>
+                                  <div className="orders-menu-disabled">
                                     <span>⚠️ Edit disabled - Shipment exists</span>
                                   </div>
                                 )}
@@ -1292,12 +928,7 @@ const Orders = () => {
                   })
                 ) : (
                   <tr>
-                    <td colSpan="10" style={{
-                      padding: "40px 20px",
-                      textAlign: "center",
-                      color: "#94a3b8",
-                      fontSize: "14px"
-                    }}>
+                    <td colSpan="10" className="orders-empty">
                       {search || activeTab !== 'ALL' || courierFilter !== 'ALL' || dateFilter !== 'ALL'
                         ? "No orders found matching your filters"
                         : "No orders found"}
@@ -1310,32 +941,14 @@ const Orders = () => {
         </div>
 
         {filteredOrders.length > 0 && (
-          <div style={{
-            marginTop: "16px",
-            color: "#64748b",
-            fontSize: "14px",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: "8px"
-          }}>
+          <div className="orders-footer">
             <span>
               {selectedOrders.length > 0 && (
-                <span style={{ fontWeight: "500", color: "#0f172a" }}>
+                <span className="orders-selected-info">
                   {selectedOrders.length} order{selectedOrders.length !== 1 ? "s" : ""} selected
                   <button
                     onClick={() => setSelectedOrders([])}
-                    style={{
-                      marginLeft: "12px",
-                      background: "transparent",
-                      border: "1px solid #e2e8f0",
-                      padding: "4px 12px",
-                      borderRadius: "6px",
-                      cursor: "pointer",
-                      color: "#64748b",
-                      fontSize: "12px"
-                    }}
+                    className="orders-clear-selection"
                   >
                     Clear Selection
                   </button>
@@ -1366,47 +979,6 @@ const Orders = () => {
       />
     </div>
   );
-};
-
-const dropdownItemStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
-  padding: '8px 16px',
-  background: 'none',
-  border: 'none',
-  width: '100%',
-  textAlign: 'left',
-  cursor: 'pointer',
-  fontSize: '13px',
-  color: '#0f172a',
-  transition: 'background 0.2s',
-  borderRadius: '4px'
-};
-
-const menuItemStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '10px',
-  padding: '10px 16px',
-  background: 'none',
-  border: 'none',
-  width: '100%',
-  textAlign: 'left',
-  cursor: 'pointer',
-  fontSize: '13px',
-  color: '#0f172a',
-  transition: 'all 0.2s',
-  borderRadius: '4px'
-};
-
-const dateInputStyle = {
-  padding: '4px 8px',
-  border: '1px solid #e2e8f0',
-  borderRadius: '4px',
-  fontSize: '12px',
-  width: '100%',
-  marginBottom: '4px'
 };
 
 export default Orders;

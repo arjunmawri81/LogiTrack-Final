@@ -25,6 +25,7 @@ import {
   FaInfoCircle,
   FaLocationArrow
 } from 'react-icons/fa';
+import "./MerchantRTO.css"; // ✅ CSS imported
 
 const MerchantRTO = () => {
   const navigate = useNavigate();
@@ -214,7 +215,7 @@ const MerchantRTO = () => {
     navigate(`/merchant/tracking/${awb}`);
   };
 
-  // ✅ Status Badge matching NDR/Shipments style
+  // Status Badge matching NDR/Shipments style
   const getStatusStyle = (status) => {
     const normalizedStatus = (status || '').toUpperCase();
     const styles = {
@@ -280,321 +281,6 @@ const MerchantRTO = () => {
     ];
   };
 
-  // ✅ Updated Styles matching NDR/Shipments page
-  const s = {
-    container: { 
-      display: "flex", 
-      flexDirection: "column",
-      background: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)", 
-      minHeight: "100vh", 
-      fontFamily: "'Inter', sans-serif" 
-    },
-    sidebarWrapper: { width: "100%", flexShrink: 0 },
-    main: { flex: 1, padding: "20px", overflowX: "hidden" },
-    card: { 
-      background: "#ffffff", 
-      padding: "24px", 
-      borderRadius: "16px", 
-      border: "1px solid #e2e8f0", 
-      marginBottom: "24px",
-      boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-      transition: "box-shadow 0.3s ease"
-    },
-    statsGrid: {
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-      gap: "12px",
-      marginBottom: "24px"
-    },
-    statCard: (color) => ({
-      background: "#ffffff",
-      padding: "16px 20px",
-      borderRadius: "14px",
-      border: "1px solid #e2e8f0",
-      textAlign: "center",
-      boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-      transition: "all 0.2s ease"
-    }),
-    statIcon: (color) => ({
-      fontSize: "20px",
-      color: color,
-      marginBottom: "6px"
-    }),
-    statValue: {
-      fontSize: "24px",
-      fontWeight: "700",
-      color: "#0f172a"
-    },
-    statLabel: {
-      fontSize: "11px",
-      color: "#64748b",
-      fontWeight: "500",
-      textTransform: "uppercase",
-      letterSpacing: "0.3px"
-    },
-    tableHead: { 
-      background: "#f8fafc",
-      borderBottom: "1px solid #e2e8f0"
-    },
-    td: { 
-      padding: "18px 16px",
-      borderBottom: "1px solid #f1f5f9",
-      fontSize: "14px",
-      color: "#334155",
-      background: "#ffffff"
-    },
-    btn: (bg) => ({ 
-      background: bg, 
-      color: "#fff", 
-      border: "none", 
-      padding: "8px 14px", 
-      borderRadius: "10px", 
-      cursor: "pointer", 
-      marginRight: "5px", 
-      fontSize: "12px", 
-      fontWeight: "600",
-      transition: "all 0.2s ease",
-      display: "inline-flex",
-      alignItems: "center",
-      gap: "4px"
-    }),
-    pageTitle: {
-      fontSize: "28px",
-      fontWeight: "700",
-      color: "#0f172a",
-      marginBottom: "8px",
-      letterSpacing: "-0.5px"
-    },
-    pageSubtitle: {
-      fontSize: "14px",
-      color: "#64748b",
-      marginBottom: "24px"
-    },
-    searchWrapper: {
-      background: "#ffffff",
-      padding: "8px 20px",
-      borderRadius: "14px",
-      border: "1px solid #e2e8f0",
-      marginBottom: "24px",
-      display: "flex",
-      alignItems: "center",
-      gap: "12px",
-      transition: "all 0.2s ease",
-      flexWrap: "wrap"
-    },
-    searchInput: {
-      border: "none",
-      outline: "none",
-      flex: 1,
-      fontSize: "14px",
-      padding: "12px 0",
-      background: "transparent",
-      minWidth: "200px"
-    },
-    filterSelect: {
-      padding: "10px 16px",
-      borderRadius: "10px",
-      border: "1px solid #e2e8f0",
-      fontSize: "13px",
-      fontWeight: "500",
-      color: "#334155",
-      background: "#ffffff",
-      cursor: "pointer",
-      outline: "none",
-      transition: "all 0.2s ease"
-    },
-    tableWrapper: {
-      overflowX: "auto",
-      borderRadius: "16px"
-    },
-    table: {
-      width: "100%",
-      borderCollapse: "collapse",
-      minWidth: "1100px"
-    },
-    th: {
-      padding: "16px",
-      textAlign: "left",
-      fontSize: "12px",
-      fontWeight: "600",
-      color: "#475569",
-      textTransform: "uppercase",
-      letterSpacing: "0.5px"
-    },
-    statusBadge: (status) => ({
-      ...getStatusStyle(status),
-      padding: "5px 14px",
-      borderRadius: "100px",
-      fontSize: "12px",
-      fontWeight: "600",
-      display: "inline-block",
-      minWidth: "80px",
-      textAlign: "center",
-      letterSpacing: "0.3px"
-    }),
-    awbText: {
-      fontWeight: "700",
-      color: "#2563eb",
-      fontFamily: "monospace",
-      fontSize: "13px"
-    },
-    modalOverlay: {
-      position: "fixed",
-      top: 0,
-      left: 0,
-      width: "100%",
-      height: "100%",
-      background: "rgba(0,0,0,0.6)",
-      backdropFilter: "blur(4px)",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      zIndex: 9999
-    },
-    modalContent: {
-      background: "#fff",
-      width: "650px",
-      maxWidth: "90vw",
-      maxHeight: "80vh",
-      borderRadius: "20px",
-      boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)"
-    },
-    modalHeader: {
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      padding: "20px 24px",
-      borderBottom: "1px solid #f1f5f9"
-    },
-    modalTitle: {
-      margin: 0,
-      fontSize: "18px",
-      fontWeight: "600",
-      color: "#0f172a"
-    },
-    modalCloseBtn: {
-      border: "none",
-      background: "none",
-      cursor: "pointer",
-      color: "#94a3b8",
-      fontSize: "16px"
-    },
-    modalBody: {
-      padding: "20px 24px",
-      maxHeight: "55vh",
-      overflowY: "auto"
-    },
-    detailRow: {
-      display: "flex",
-      padding: "12px 0",
-      borderBottom: "1px solid #f1f5f9",
-      alignItems: "flex-start"
-    },
-    detailLabel: {
-      width: "140px",
-      fontWeight: "500",
-      color: "#64748b",
-      flexShrink: 0,
-      fontSize: "13px"
-    },
-    detailValue: {
-      flex: 1,
-      color: "#0f172a",
-      fontSize: "14px"
-    },
-    sectionTitle: {
-      fontSize: "14px",
-      fontWeight: "600",
-      color: "#0f172a",
-      margin: "16px 0 8px 0",
-      paddingBottom: "8px",
-      borderBottom: "2px solid #f1f5f9"
-    },
-    timelineItem: {
-      display: "flex",
-      alignItems: "center",
-      gap: "12px",
-      padding: "8px 12px",
-      marginBottom: "4px",
-      borderRadius: "8px",
-      fontSize: "13px",
-      fontWeight: "500"
-    },
-    timelineActive: {
-      background: "#f0fdf4",
-      color: "#16a34a"
-    },
-    timelineInactive: {
-      background: "#f8fafc",
-      color: "#94a3b8"
-    }
-  };
-
-  const desktopStyles = `
-    @media (min-width: 768px) {
-      .rto-container {
-        flex-direction: row !important;
-      }
-      .sidebar-wrapper {
-        width: 280px !important;
-      }
-      .rto-main {
-        padding: 30px !important;
-      }
-    }
-
-    button:hover {
-      transform: translateY(-1px);
-      filter: brightness(1.05);
-    }
-
-    button:active {
-      transform: translateY(0);
-    }
-
-    .search-wrapper:focus-within {
-      border-color: #f97316;
-      box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
-    }
-
-    tr:hover td {
-      background: #f8fafc;
-    }
-
-    .stat-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }
-
-    select:focus {
-      border-color: #f97316;
-      box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
-    }
-
-    .copy-btn:hover {
-      background: #f1f5f9 !important;
-    }
-
-    .toast {
-      animation: slideIn 0.3s ease;
-    }
-
-    @keyframes slideIn {
-      from {
-        transform: translateX(100%);
-        opacity: 0;
-      }
-      to {
-        transform: translateX(0);
-        opacity: 1;
-      }
-    }
-
-    .status-badge {
-      white-space: nowrap;
-    }
-  `;
-
   // Sort records by creation date (newest first)
   const sortedRecords = [...filteredRecords].sort((a, b) => {
     return new Date(b.createdAt) - new Date(a.createdAt);
@@ -602,33 +288,28 @@ const MerchantRTO = () => {
 
   return (
     <>
-      <style>{desktopStyles}</style>
-      <div className="rto-container" style={s.container}>
-        <div className="sidebar-wrapper" style={s.sidebarWrapper}>
+      <div className="rto-container">
+        <div className="sidebar-wrapper">
           <Sidebar />
         </div>
 
-        <main className="rto-main" style={s.main}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <main className="rto-main">
+          <div className="rto-header">
             <div>
-              <h1 style={s.pageTitle}>RTO Management</h1>
-              <p style={s.pageSubtitle}>Return to Origin tracking and monitoring</p>
+              <h1 className="rto-title">RTO Management</h1>
+              <p className="rto-subtitle">Return to Origin tracking and monitoring</p>
             </div>
-            <div style={{ display: "flex", gap: "10px" }}>
+            <div className="rto-header-actions">
               <button
                 onClick={handleRefresh}
                 disabled={refreshing}
-                style={{
-                  ...s.btn("#1e293b"),
-                  opacity: refreshing ? 0.6 : 1,
-                  cursor: refreshing ? 'not-allowed' : 'pointer'
-                }}
+                className={`rto-btn rto-btn-refresh ${refreshing ? 'rto-btn-disabled' : ''}`}
               >
                 <FaSync size={11} /> {refreshing ? 'Refreshing...' : 'Refresh'}
               </button>
               <button
                 onClick={handleExportCSV}
-                style={s.btn("#059669")}
+                className="rto-btn rto-btn-export"
               >
                 <FaDownload size={11} /> Export CSV
               </button>
@@ -636,48 +317,48 @@ const MerchantRTO = () => {
           </div>
 
           {/* Statistics Cards */}
-          <div style={s.statsGrid}>
-            <div className="stat-card" style={s.statCard("#f97316")}>
-              <FaBox style={s.statIcon("#f97316")} />
-              <div style={s.statValue}>{stats.total}</div>
-              <div style={s.statLabel}>Total RTO</div>
+          <div className="rto-stats-grid">
+            <div className="rto-stat-card rto-stat-total">
+              <FaBox className="rto-stat-icon rto-stat-icon-total" />
+              <div className="rto-stat-value">{stats.total}</div>
+              <div className="rto-stat-label">Total RTO</div>
             </div>
-            <div className="stat-card" style={s.statCard("#d97706")}>
-              <FaClock style={s.statIcon("#d97706")} />
-              <div style={s.statValue}>{stats.initiated}</div>
-              <div style={s.statLabel}>Initiated</div>
+            <div className="rto-stat-card rto-stat-initiated">
+              <FaClock className="rto-stat-icon rto-stat-icon-initiated" />
+              <div className="rto-stat-value">{stats.initiated}</div>
+              <div className="rto-stat-label">Initiated</div>
             </div>
-            <div className="stat-card" style={s.statCard("#2563eb")}>
-              <FaTruck style={s.statIcon("#2563eb")} />
-              <div style={s.statValue}>{stats.transit}</div>
-              <div style={s.statLabel}>In Transit</div>
+            <div className="rto-stat-card rto-stat-transit">
+              <FaTruck className="rto-stat-icon rto-stat-icon-transit" />
+              <div className="rto-stat-value">{stats.transit}</div>
+              <div className="rto-stat-label">In Transit</div>
             </div>
-            <div className="stat-card" style={s.statCard("#8b5cf6")}>
-              <FaUndo style={s.statIcon("#8b5cf6")} />
-              <div style={s.statValue}>{stats.returned}</div>
-              <div style={s.statLabel}>Returned</div>
+            <div className="rto-stat-card rto-stat-returned">
+              <FaUndo className="rto-stat-icon rto-stat-icon-returned" />
+              <div className="rto-stat-value">{stats.returned}</div>
+              <div className="rto-stat-label">Returned</div>
             </div>
-            <div className="stat-card" style={s.statCard("#16a34a")}>
-              <FaCheckCircle style={s.statIcon("#16a34a")} />
-              <div style={s.statValue}>{stats.completed}</div>
-              <div style={s.statLabel}>Completed</div>
+            <div className="rto-stat-card rto-stat-completed">
+              <FaCheckCircle className="rto-stat-icon rto-stat-icon-completed" />
+              <div className="rto-stat-value">{stats.completed}</div>
+              <div className="rto-stat-label">Completed</div>
             </div>
           </div>
 
           {/* Search + Status Filter */}
-          <div className="search-wrapper" style={s.searchWrapper}>
-            <FaSearch style={{ color: "#94a3b8" }} />
+          <div className="rto-search-wrapper">
+            <FaSearch className="rto-search-icon" />
             <input 
               type="text" 
               placeholder="Search by AWB, Order ID or Customer Name..." 
-              style={s.searchInput} 
+              className="rto-search-input"
               onChange={(e) => setSearch(e.target.value)} 
             />
             
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-              <FaFilter style={{ color: "#94a3b8", fontSize: "14px" }} />
+            <div className="rto-filter-wrapper">
+              <FaFilter className="rto-filter-icon" />
               <select
-                style={s.filterSelect}
+                className="rto-filter-select"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
@@ -691,7 +372,7 @@ const MerchantRTO = () => {
               </select>
               
               <select
-                style={s.filterSelect}
+                className="rto-filter-select"
                 value={courierFilter}
                 onChange={(e) => setCourierFilter(e.target.value)}
               >
@@ -705,52 +386,32 @@ const MerchantRTO = () => {
             </div>
           </div>
 
-          <div style={{ ...s.card, padding: 0, overflow: "hidden" }}>
-            <div
-              style={{
-                padding: "20px 24px",
-                borderBottom: "1px solid #e2e8f0",
-                background: "#fff"
-              }}
-            >
-              <h3
-                style={{
-                  margin: 0,
-                  color: "#0f172a",
-                  fontSize: "18px",
-                  fontWeight: "700"
-                }}
-              >
+          <div className="rto-table-card">
+            <div className="rto-table-header">
+              <h3 className="rto-table-title">
                 RTO Records
-                <span style={{ 
-                  fontSize: "13px", 
-                  fontWeight: "400", 
-                  color: "#64748b",
-                  marginLeft: "10px"
-                }}>
+                <span className="rto-table-count">
                   ({sortedRecords.length} cases)
                 </span>
               </h3>
             </div>
             
-            <div style={s.tableWrapper}>
+            <div className="rto-table-wrapper">
               {loading ? (
-                <div style={{ padding: "60px", textAlign: "center", color: "#64748b" }}>
-                  <FaSync style={{ fontSize: "24px", marginBottom: "12px", animation: "spin 1s linear infinite" }} />
+                <div className="rto-loading">
+                  <FaSync className="rto-loading-spinner" />
                   <div>Loading RTO records...</div>
                 </div>
               ) : sortedRecords.length === 0 ? (
-                <div style={{ padding: "60px", textAlign: "center", color: "#94a3b8" }}>
-                  <div style={{ fontSize: "48px", marginBottom: "12px" }}>🔄</div>
-                  <div style={{ fontSize: "18px", fontWeight: "600", color: "#0f172a", marginBottom: "8px" }}>
-                    No RTO cases found
-                  </div>
-                  <div style={{ fontSize: "14px" }}>All returns are completed! Try adjusting your filters.</div>
+                <div className="rto-empty">
+                  <div className="rto-empty-icon">🔄</div>
+                  <div className="rto-empty-title">No RTO cases found</div>
+                  <div className="rto-empty-text">All returns are completed! Try adjusting your filters.</div>
                 </div>
               ) : (
-                <table style={s.table}>
+                <table className="rto-table">
                   <thead>
-                    <tr style={s.tableHead}>
+                    <tr className="rto-table-head">
                       {[
                         "AWB",
                         "CUSTOMER",
@@ -760,7 +421,7 @@ const MerchantRTO = () => {
                         "CREATED",
                         "ACTIONS"
                       ].map((h) => (
-                        <th key={h} style={s.th}>{h}</th>
+                        <th key={h} className="rto-th">{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -772,96 +433,76 @@ const MerchantRTO = () => {
                       const courierIcon = getCourierIcon(record.courier);
                       
                       return (
-                        <tr key={record._id || record.id}>
-                          <td style={s.td}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                              <span style={s.awbText}>{record.awb || 'N/A'}</span>
+                        <tr key={record._id || record.id} className="rto-row">
+                          <td className="rto-td">
+                            <div className="rto-awb-wrapper">
+                              <span className="rto-awb">{record.awb || 'N/A'}</span>
                               <button
                                 onClick={() => handleCopyAWB(record.awb)}
-                                style={{
-                                  background: "none",
-                                  border: "none",
-                                  cursor: "pointer",
-                                  padding: "4px",
-                                  borderRadius: "6px",
-                                  color: "#94a3b8",
-                                  transition: "all 0.2s ease"
-                                }}
-                                className="copy-btn"
+                                className="rto-copy-btn"
                                 title="Copy AWB"
                               >
                                 <FaCopy size={12} />
                               </button>
                             </div>
-                            <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "2px" }}>
+                            <div className="rto-order-id">
                               {record.orderId?.orderNumber || '-'}
                             </div>
                           </td>
                           
-                          <td style={s.td}>
-                            <div style={{ fontWeight: "600", color: "#0f172a", fontSize: "14px" }}>
+                          <td className="rto-td">
+                            <div className="rto-customer-name">
                               {record.orderId?.customerName || 'N/A'}
                             </div>
-                            <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "2px" }}>
-                              <FaPhone size={10} style={{ marginRight: "4px" }} />
-                              {record.orderId?.customerPhone || 'N/A'}
+                            <div className="rto-customer-phone">
+                              <FaPhone size={10} /> {record.orderId?.customerPhone || 'N/A'}
                             </div>
                           </td>
                           
-                          <td style={s.td}>
-                            <span
-                              style={{
-                                background: "#f1f5f9",
-                                padding: "6px 10px",
-                                borderRadius: "999px",
-                                fontSize: "12px",
-                                color: "#475569",
-                                fontWeight: "500",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: "4px"
-                              }}
-                            >
+                          <td className="rto-td">
+                            <span className="rto-courier-badge">
                               <span>{courierIcon}</span>
                               <span>{record.courier || 'N/A'}</span>
                             </span>
                           </td>
                           
-                          <td style={s.td}>
-                            <span
+                          <td className="rto-td">
+                            <span 
+                              className="rto-reason-badge"
                               style={{
-                                display: "inline-block",
-                                padding: "3px 10px",
-                                borderRadius: "12px",
-                                fontSize: "11px",
-                                fontWeight: "500",
                                 background: reasonBadge.background,
-                                color: reasonBadge.color
+                                color: reasonBadge.color,
                               }}
                             >
                               {record.rtoReason || 'N/A'}
                             </span>
                             {record.rtoSubReason && (
-                              <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "2px" }}>
+                              <div className="rto-sub-reason">
                                 {record.rtoSubReason}
                               </div>
                             )}
                           </td>
                           
-                          <td style={s.td}>
-                            <span className="status-badge" style={s.statusBadge(record.status)}>
+                          <td className="rto-td">
+                            <span 
+                              className="rto-status-badge"
+                              style={{
+                                background: statusStyle.background,
+                                color: statusStyle.color,
+                              }}
+                            >
                               {statusLabel}
                             </span>
                           </td>
                           
-                          <td style={s.td}>
-                            <div style={{ fontSize: "13px", fontWeight: "500", color: "#0f172a" }}>
+                          <td className="rto-td">
+                            <div className="rto-created-date">
                               {record.createdAt ? 
                                 new Date(record.createdAt).toLocaleDateString('en-GB') : 
                                 'N/A'
                               }
                             </div>
-                            <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "2px" }}>
+                            <div className="rto-created-time">
                               {record.createdAt ? 
                                 new Date(record.createdAt).toLocaleTimeString('en-GB', {
                                   hour: '2-digit',
@@ -872,17 +513,17 @@ const MerchantRTO = () => {
                             </div>
                           </td>
                           
-                          <td style={s.td}>
-                            <div style={{ display: "flex", gap: "5px", flexWrap: "nowrap" }}>
+                          <td className="rto-td">
+                            <div className="rto-actions">
                               <button
                                 onClick={() => handleView(record)}
-                                style={s.btn("#1e293b")}
+                                className="rto-btn rto-btn-view"
                               >
                                 <FaEye size={11} /> View
                               </button>
                               <button
                                 onClick={() => handleTrack(record.awb)}
-                                style={s.btn("#2563eb")}
+                                className="rto-btn rto-btn-track"
                               >
                                 <FaLocationArrow size={11} /> Track
                               </button>
@@ -901,134 +542,119 @@ const MerchantRTO = () => {
 
       {/* View Modal */}
       {viewModal && selectedRecord && (
-        <div style={s.modalOverlay} onClick={() => {
+        <div className="rto-modal-overlay" onClick={() => {
           setViewModal(false);
           setSelectedRecord(null);
         }}>
-          <div style={s.modalContent} onClick={(e) => e.stopPropagation()}>
-            <div style={s.modalHeader}>
-              <h2 style={s.modalTitle}>
-                <FaInfoCircle style={{ color: "#f97316", marginRight: "8px" }} />
+          <div className="rto-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="rto-modal-header">
+              <h2 className="rto-modal-title">
+                <FaInfoCircle className="rto-modal-title-icon" />
                 RTO Details
-                <span style={{
-                  display: "inline-block",
-                  padding: "4px 14px",
-                  borderRadius: "999px",
-                  fontSize: "12px",
-                  fontWeight: "600",
-                  background: getStatusStyle(selectedRecord.status).background,
-                  color: getStatusStyle(selectedRecord.status).color,
-                  marginLeft: "auto"
-                }}>
+                <span 
+                  className="rto-modal-status"
+                  style={{
+                    background: getStatusStyle(selectedRecord.status).background,
+                    color: getStatusStyle(selectedRecord.status).color,
+                  }}
+                >
                   {getStatusLabel(selectedRecord.status)}
                 </span>
               </h2>
               <button onClick={() => {
                 setViewModal(false);
                 setSelectedRecord(null);
-              }} style={s.modalCloseBtn}>
+              }} className="rto-modal-close">
                 <FaTimes />
               </button>
             </div>
-            <div style={s.modalBody}>
+            <div className="rto-modal-body">
               {/* Order & Customer Information */}
-              <div style={s.sectionTitle}>
-                <FaUser style={{ marginRight: "8px", color: "#f97316" }} />
+              <div className="rto-section-title">
+                <FaUser className="rto-section-icon" />
                 Order & Customer Information
               </div>
               
-              <div style={s.detailRow}>
-                <span style={s.detailLabel}>AWB Number</span>
-                <span style={s.detailValue}>
-                  <span style={{ fontFamily: "monospace", fontWeight: "600", color: "#2563eb" }}>
-                    {selectedRecord.awb || 'N/A'}
-                  </span>
+              <div className="rto-detail-row">
+                <span className="rto-detail-label">AWB Number</span>
+                <span className="rto-detail-value">
+                  <span className="rto-detail-awb">{selectedRecord.awb || 'N/A'}</span>
                   <button
                     onClick={() => handleCopyAWB(selectedRecord.awb)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      padding: "4px 8px",
-                      borderRadius: "6px",
-                      color: "#94a3b8",
-                      marginLeft: "8px"
-                    }}
+                    className="rto-copy-btn-modal"
                   >
                     <FaCopy size={12} /> Copy
                   </button>
                 </span>
               </div>
               
-              <div style={s.detailRow}>
-                <span style={s.detailLabel}>Order ID</span>
-                <span style={s.detailValue}>
+              <div className="rto-detail-row">
+                <span className="rto-detail-label">Order ID</span>
+                <span className="rto-detail-value">
                   <strong>{selectedRecord.orderId?.orderNumber || '-'}</strong>
                 </span>
               </div>
               
-              <div style={s.detailRow}>
-                <span style={s.detailLabel}>Customer Name</span>
-                <span style={s.detailValue}>
+              <div className="rto-detail-row">
+                <span className="rto-detail-label">Customer Name</span>
+                <span className="rto-detail-value">
                   <strong>{selectedRecord.orderId?.customerName || 'N/A'}</strong>
                 </span>
               </div>
               
-              <div style={s.detailRow}>
-                <span style={s.detailLabel}>Phone Number</span>
-                <span style={s.detailValue}>
-                  <FaPhone style={{ marginRight: "6px", color: "#94a3b8" }} />
+              <div className="rto-detail-row">
+                <span className="rto-detail-label">Phone Number</span>
+                <span className="rto-detail-value">
+                  <FaPhone className="rto-detail-phone-icon" />
                   {selectedRecord.orderId?.customerPhone || 'N/A'}
                 </span>
               </div>
               
-              <div style={s.detailRow}>
-                <span style={s.detailLabel}>Email</span>
-                <span style={s.detailValue}>
+              <div className="rto-detail-row">
+                <span className="rto-detail-label">Email</span>
+                <span className="rto-detail-value">
                   {selectedRecord.orderId?.customerEmail || 'N/A'}
                 </span>
               </div>
               
-              <div style={s.detailRow}>
-                <span style={s.detailLabel}>Delivery Address</span>
-                <span style={s.detailValue}>
-                  <FaMapMarkerAlt style={{ marginRight: "6px", color: "#94a3b8" }} />
+              <div className="rto-detail-row">
+                <span className="rto-detail-label">Delivery Address</span>
+                <span className="rto-detail-value">
+                  <FaMapMarkerAlt className="rto-detail-map-icon" />
                   {selectedRecord.orderId?.address || 'N/A'}
-                  <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "4px" }}>
+                  <div className="rto-detail-pincode">
                     Pincode: {selectedRecord.orderId?.pincode || 'N/A'}
                   </div>
                 </span>
               </div>
 
               {/* RTO Information */}
-              <div style={s.sectionTitle}>
-                <FaTruck style={{ marginRight: "8px", color: "#f97316" }} />
+              <div className="rto-section-title">
+                <FaTruck className="rto-section-icon" />
                 RTO Information
               </div>
               
-              <div style={s.detailRow}>
-                <span style={s.detailLabel}>Courier</span>
-                <span style={s.detailValue}>
+              <div className="rto-detail-row">
+                <span className="rto-detail-label">Courier</span>
+                <span className="rto-detail-value">
                   {getCourierIcon(selectedRecord.courier)} {selectedRecord.courier || 'N/A'}
                 </span>
               </div>
               
-              <div style={s.detailRow}>
-                <span style={s.detailLabel}>RTO Reason</span>
-                <span style={s.detailValue}>
-                  <span style={{
-                    display: "inline-block",
-                    padding: "4px 14px",
-                    borderRadius: "12px",
-                    fontSize: "12px",
-                    fontWeight: "500",
-                    background: getReasonBadge(selectedRecord.rtoReason).background,
-                    color: getReasonBadge(selectedRecord.rtoReason).color
-                  }}>
+              <div className="rto-detail-row">
+                <span className="rto-detail-label">RTO Reason</span>
+                <span className="rto-detail-value">
+                  <span 
+                    className="rto-reason-badge-modal"
+                    style={{
+                      background: getReasonBadge(selectedRecord.rtoReason).background,
+                      color: getReasonBadge(selectedRecord.rtoReason).color,
+                    }}
+                  >
                     {selectedRecord.rtoReason || 'N/A'}
                   </span>
                   {selectedRecord.rtoSubReason && (
-                    <div style={{ fontSize: "13px", color: "#64748b", marginTop: "4px" }}>
+                    <div className="rto-sub-reason-modal">
                       Sub Reason: {selectedRecord.rtoSubReason}
                     </div>
                   )}
@@ -1036,24 +662,30 @@ const MerchantRTO = () => {
               </div>
 
               {/* Status Information */}
-              <div style={s.sectionTitle}>
-                <FaClock style={{ marginRight: "8px", color: "#f97316" }} />
+              <div className="rto-section-title">
+                <FaClock className="rto-section-icon" />
                 Status Information
               </div>
               
-              <div style={s.detailRow}>
-                <span style={s.detailLabel}>Current Status</span>
-                <span style={s.detailValue}>
-                  <span style={s.statusBadge(selectedRecord.status)}>
+              <div className="rto-detail-row">
+                <span className="rto-detail-label">Current Status</span>
+                <span className="rto-detail-value">
+                  <span 
+                    className="rto-status-badge rto-status-badge-large"
+                    style={{
+                      background: getStatusStyle(selectedRecord.status).background,
+                      color: getStatusStyle(selectedRecord.status).color,
+                    }}
+                  >
                     {getStatusLabel(selectedRecord.status)}
                   </span>
                 </span>
               </div>
               
-              <div style={s.detailRow}>
-                <span style={s.detailLabel}>Created At</span>
-                <span style={s.detailValue}>
-                  <FaCalendarAlt style={{ marginRight: "6px", color: "#94a3b8" }} />
+              <div className="rto-detail-row">
+                <span className="rto-detail-label">Created At</span>
+                <span className="rto-detail-value">
+                  <FaCalendarAlt className="rto-detail-calendar-icon" />
                   {selectedRecord.createdAt ? 
                     new Date(selectedRecord.createdAt).toLocaleString('en-GB') : 
                     'N/A'
@@ -1061,9 +693,9 @@ const MerchantRTO = () => {
                 </span>
               </div>
               
-              <div style={s.detailRow}>
-                <span style={s.detailLabel}>Updated At</span>
-                <span style={s.detailValue}>
+              <div className="rto-detail-row">
+                <span className="rto-detail-label">Updated At</span>
+                <span className="rto-detail-value">
                   {selectedRecord.updatedAt ? 
                     new Date(selectedRecord.updatedAt).toLocaleString('en-GB') : 
                     'N/A'
@@ -1072,8 +704,8 @@ const MerchantRTO = () => {
               </div>
 
               {/* Timeline */}
-              <div style={s.sectionTitle}>
-                <FaClock style={{ marginRight: "8px", color: "#f97316" }} />
+              <div className="rto-section-title">
+                <FaClock className="rto-section-icon" />
                 Timeline
               </div>
               
@@ -1093,34 +725,31 @@ const MerchantRTO = () => {
                 return (
                   <div
                     key={item}
-                    style={{
-                      ...s.timelineItem,
-                      ...(isActive || (isPast && !isCompleted) ? s.timelineActive : s.timelineInactive)
-                    }}
+                    className={`rto-timeline-item ${isActive || (isPast && !isCompleted) ? 'rto-timeline-active' : 'rto-timeline-inactive'}`}
                   >
                     <span>{statusIcon}</span>
                     <span>{item.replace(/_/g, ' ')}</span>
-                    {isActive && <span style={{ marginLeft: "auto", fontSize: "11px", color: "#16a34a" }}>● Current</span>}
+                    {isActive && <span className="rto-timeline-current">● Current</span>}
                   </div>
                 );
               })}
 
               {/* Remarks */}
-              <div style={s.sectionTitle}>
-                <FaFileAlt style={{ marginRight: "8px", color: "#f97316" }} />
+              <div className="rto-section-title">
+                <FaFileAlt className="rto-section-icon" />
                 Remarks & Notes
               </div>
               
-              <div style={s.detailRow}>
-                <span style={s.detailLabel}>Remarks</span>
-                <span style={s.detailValue}>
+              <div className="rto-detail-row">
+                <span className="rto-detail-label">Remarks</span>
+                <span className="rto-detail-value">
                   {selectedRecord.remarks || 'No remarks added'}
                 </span>
               </div>
               
-              <div style={s.detailRow}>
-                <span style={s.detailLabel}>Courier Remarks</span>
-                <span style={s.detailValue}>
+              <div className="rto-detail-row">
+                <span className="rto-detail-label">Courier Remarks</span>
+                <span className="rto-detail-value">
                   {selectedRecord.courierRemarks || 'No remarks from courier'}
                 </span>
               </div>
@@ -1131,30 +760,10 @@ const MerchantRTO = () => {
 
       {/* Toast Notification */}
       {toast.visible && (
-        <div style={{
-          position: "fixed",
-          top: "20px",
-          right: "20px",
-          padding: "16px 24px",
-          borderRadius: "12px",
-          color: "#fff",
-          zIndex: 9999,
-          boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
-          maxWidth: "400px",
-          fontWeight: "500",
-          background: toast.type === 'success' ? "linear-gradient(135deg, #22c55e, #16a34a)" : "linear-gradient(135deg, #ef4444, #dc2626)",
-          animation: "slideIn 0.3s ease"
-        }}>
+        <div className={`rto-toast rto-toast-${toast.type}`}>
           {toast.type === 'success' ? '✅' : '❌'} {toast.message}
         </div>
       )}
-
-      <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
     </>
   );
 };

@@ -23,6 +23,7 @@ import {
   FaFileAlt,
   FaInfoCircle
 } from 'react-icons/fa';
+import "./MerchantNDR.css"; // ✅ CSS imported
 
 const MerchantNDR = () => {
   const [ndrRecords, setNdrRecords] = useState([]);
@@ -278,7 +279,6 @@ const MerchantNDR = () => {
     }
   };
 
-  // ✅ Updated Status Badge with consistent sizing
   const getStatusStyle = (status) => {
     const normalizedStatus = (status || 'pending').toLowerCase();
     const styles = {
@@ -340,324 +340,6 @@ const MerchantNDR = () => {
     return icons[courier] || '📧';
   };
 
-  // ✅ Updated Styles matching Shipments page exactly
-  const s = {
-    container: { 
-      display: "flex", 
-      flexDirection: "column",
-      background: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)", 
-      minHeight: "100vh", 
-      fontFamily: "'Inter', sans-serif" 
-    },
-    sidebarWrapper: { width: "100%", flexShrink: 0 },
-    main: { flex: 1, padding: "20px", overflowX: "hidden" },
-    card: { 
-      background: "#ffffff", 
-      padding: "24px", 
-      borderRadius: "16px", 
-      border: "1px solid #e2e8f0", 
-      marginBottom: "24px",
-      boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-      transition: "box-shadow 0.3s ease"
-    },
-    statsGrid: {
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-      gap: "12px",
-      marginBottom: "24px"
-    },
-    statCard: (color) => ({
-      background: "#ffffff",
-      padding: "16px 20px",
-      borderRadius: "14px",
-      border: "1px solid #e2e8f0",
-      textAlign: "center",
-      boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-      transition: "all 0.2s ease"
-    }),
-    statIcon: (color) => ({
-      fontSize: "20px",
-      color: color,
-      marginBottom: "6px"
-    }),
-    statValue: {
-      fontSize: "24px",
-      fontWeight: "700",
-      color: "#0f172a"
-    },
-    statLabel: {
-      fontSize: "11px",
-      color: "#64748b",
-      fontWeight: "500",
-      textTransform: "uppercase",
-      letterSpacing: "0.3px"
-    },
-    tableHead: { 
-      background: "#f8fafc",
-      borderBottom: "1px solid #e2e8f0"
-    },
-    td: { 
-      padding: "18px 16px",
-      borderBottom: "1px solid #f1f5f9",
-      fontSize: "14px",
-      color: "#334155",
-      background: "#ffffff"
-    },
-    btn: (bg) => ({ 
-      background: bg, 
-      color: "#fff", 
-      border: "none", 
-      padding: "8px 14px", 
-      borderRadius: "10px", 
-      cursor: "pointer", 
-      marginRight: "5px", 
-      fontSize: "12px", 
-      fontWeight: "600",
-      transition: "all 0.2s ease",
-      display: "inline-flex",
-      alignItems: "center",
-      gap: "4px"
-    }),
-    pageTitle: {
-      fontSize: "28px",
-      fontWeight: "700",
-      color: "#0f172a",
-      marginBottom: "8px",
-      letterSpacing: "-0.5px"
-    },
-    pageSubtitle: {
-      fontSize: "14px",
-      color: "#64748b",
-      marginBottom: "24px"
-    },
-    searchWrapper: {
-      background: "#ffffff",
-      padding: "8px 20px",
-      borderRadius: "14px",
-      border: "1px solid #e2e8f0",
-      marginBottom: "24px",
-      display: "flex",
-      alignItems: "center",
-      gap: "12px",
-      transition: "all 0.2s ease",
-      flexWrap: "wrap"
-    },
-    searchInput: {
-      border: "none",
-      outline: "none",
-      flex: 1,
-      fontSize: "14px",
-      padding: "12px 0",
-      background: "transparent",
-      minWidth: "200px"
-    },
-    filterSelect: {
-      padding: "10px 16px",
-      borderRadius: "10px",
-      border: "1px solid #e2e8f0",
-      fontSize: "13px",
-      fontWeight: "500",
-      color: "#334155",
-      background: "#ffffff",
-      cursor: "pointer",
-      outline: "none",
-      transition: "all 0.2s ease"
-    },
-    tableWrapper: {
-      overflowX: "auto",
-      borderRadius: "16px"
-    },
-    table: {
-      width: "100%",
-      borderCollapse: "collapse",
-      minWidth: "1100px"
-    },
-    th: {
-      padding: "16px",
-      textAlign: "left",
-      fontSize: "12px",
-      fontWeight: "600",
-      color: "#475569",
-      textTransform: "uppercase",
-      letterSpacing: "0.5px"
-    },
-    statusBadge: (status) => ({
-      ...getStatusStyle(status),
-      padding: "5px 14px",
-      borderRadius: "100px",
-      fontSize: "12px",
-      fontWeight: "600",
-      display: "inline-block",
-      minWidth: "80px",
-      textAlign: "center",
-      letterSpacing: "0.3px"
-    }),
-    awbText: {
-      fontWeight: "700",
-      color: "#2563eb",
-      fontFamily: "monospace",
-      fontSize: "13px"
-    },
-    modalOverlay: {
-      position: "fixed",
-      top: 0,
-      left: 0,
-      width: "100%",
-      height: "100%",
-      background: "rgba(0,0,0,0.6)",
-      backdropFilter: "blur(4px)",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      zIndex: 9999
-    },
-    modalContent: {
-      background: "#fff",
-      width: "650px",
-      maxWidth: "90vw",
-      maxHeight: "80vh",
-      borderRadius: "20px",
-      boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)"
-    },
-    modalHeader: {
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      padding: "20px 24px",
-      borderBottom: "1px solid #f1f5f9"
-    },
-    modalTitle: {
-      margin: 0,
-      fontSize: "18px",
-      fontWeight: "600",
-      color: "#0f172a"
-    },
-    modalCloseBtn: {
-      border: "none",
-      background: "none",
-      cursor: "pointer",
-      color: "#94a3b8",
-      fontSize: "16px"
-    },
-    modalBody: {
-      padding: "20px 24px",
-      maxHeight: "55vh",
-      overflowY: "auto"
-    },
-    detailRow: {
-      display: "flex",
-      padding: "12px 0",
-      borderBottom: "1px solid #f1f5f9",
-      alignItems: "flex-start"
-    },
-    detailLabel: {
-      width: "140px",
-      fontWeight: "500",
-      color: "#64748b",
-      flexShrink: 0,
-      fontSize: "13px"
-    },
-    detailValue: {
-      flex: 1,
-      color: "#0f172a",
-      fontSize: "14px"
-    },
-    textarea: {
-      width: "100%",
-      padding: "12px",
-      border: "1.5px solid #e2e8f0",
-      borderRadius: "10px",
-      marginTop: "8px",
-      fontSize: "14px",
-      fontFamily: "inherit",
-      minHeight: "80px",
-      resize: "vertical",
-      outline: "none",
-      transition: "all 0.2s ease"
-    },
-    sectionTitle: {
-      fontSize: "14px",
-      fontWeight: "600",
-      color: "#0f172a",
-      margin: "16px 0 8px 0",
-      paddingBottom: "8px",
-      borderBottom: "2px solid #f1f5f9"
-    }
-  };
-
-  const desktopStyles = `
-    @media (min-width: 768px) {
-      .ndr-container {
-        flex-direction: row !important;
-      }
-      .sidebar-wrapper {
-        width: 280px !important;
-      }
-      .ndr-main {
-        padding: 30px !important;
-      }
-    }
-
-    button:hover {
-      transform: translateY(-1px);
-      filter: brightness(1.05);
-    }
-
-    button:active {
-      transform: translateY(0);
-    }
-
-    .search-wrapper:focus-within {
-      border-color: #f97316;
-      box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
-    }
-
-    tr:hover td {
-      background: #f8fafc;
-    }
-
-    .stat-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }
-
-    select:focus {
-      border-color: #f97316;
-      box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
-    }
-
-    .action-btn {
-      transition: all 0.2s ease;
-    }
-
-    .action-btn:hover {
-      transform: translateY(-2px);
-    }
-
-    .copy-btn:hover {
-      background: #f1f5f9 !important;
-    }
-
-    .toast {
-      animation: slideIn 0.3s ease;
-    }
-
-    @keyframes slideIn {
-      from {
-        transform: translateX(100%);
-        opacity: 0;
-      }
-      to {
-        transform: translateX(0);
-        opacity: 1;
-      }
-    }
-
-    .status-badge {
-      white-space: nowrap;
-    }
-  `;
-
   // Sort records by creation date (newest first)
   const sortedRecords = [...filteredRecords].sort((a, b) => {
     return new Date(b.createdAt) - new Date(a.createdAt);
@@ -665,33 +347,28 @@ const MerchantNDR = () => {
 
   return (
     <>
-      <style>{desktopStyles}</style>
-      <div className="ndr-container" style={s.container}>
-        <div className="sidebar-wrapper" style={s.sidebarWrapper}>
+      <div className="ndr-container">
+        <div className="sidebar-wrapper">
           <Sidebar />
         </div>
 
-        <main className="ndr-main" style={s.main}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <main className="ndr-main">
+          <div className="ndr-header">
             <div>
-              <h1 style={s.pageTitle}>NDR Management</h1>
-              <p style={s.pageSubtitle}>Non-Delivery Report tracking and resolution</p>
+              <h1 className="ndr-title">NDR Management</h1>
+              <p className="ndr-subtitle">Non-Delivery Report tracking and resolution</p>
             </div>
-            <div style={{ display: "flex", gap: "10px" }}>
+            <div className="ndr-header-actions">
               <button
                 onClick={handleRefresh}
                 disabled={refreshing}
-                style={{
-                  ...s.btn("#1e293b"),
-                  opacity: refreshing ? 0.6 : 1,
-                  cursor: refreshing ? 'not-allowed' : 'pointer'
-                }}
+                className={`ndr-btn ndr-btn-refresh ${refreshing ? 'ndr-btn-disabled' : ''}`}
               >
                 <FaSync size={11} /> {refreshing ? 'Refreshing...' : 'Refresh'}
               </button>
               <button
                 onClick={handleExportCSV}
-                style={s.btn("#059669")}
+                className="ndr-btn ndr-btn-export"
               >
                 <FaDownload size={11} /> Export CSV
               </button>
@@ -699,48 +376,48 @@ const MerchantNDR = () => {
           </div>
 
           {/* Statistics Cards */}
-          <div style={s.statsGrid}>
-            <div className="stat-card" style={s.statCard("#f97316")}>
-              <FaBox style={s.statIcon("#f97316")} />
-              <div style={s.statValue}>{stats.total}</div>
-              <div style={s.statLabel}>Total NDR</div>
+          <div className="ndr-stats-grid">
+            <div className="ndr-stat-card ndr-stat-total">
+              <FaBox className="ndr-stat-icon ndr-stat-icon-total" />
+              <div className="ndr-stat-value">{stats.total}</div>
+              <div className="ndr-stat-label">Total NDR</div>
             </div>
-            <div className="stat-card" style={s.statCard("#d97706")}>
-              <FaClock style={s.statIcon("#d97706")} />
-              <div style={s.statValue}>{stats.pending}</div>
-              <div style={s.statLabel}>Pending</div>
+            <div className="ndr-stat-card ndr-stat-pending">
+              <FaClock className="ndr-stat-icon ndr-stat-icon-pending" />
+              <div className="ndr-stat-value">{stats.pending}</div>
+              <div className="ndr-stat-label">Pending</div>
             </div>
-            <div className="stat-card" style={s.statCard("#8b5cf6")}>
-              <FaUndo style={s.statIcon("#8b5cf6")} />
-              <div style={s.statValue}>{stats.reattemptRequested}</div>
-              <div style={s.statLabel}>Reattempt Requested</div>
+            <div className="ndr-stat-card ndr-stat-reattempt">
+              <FaUndo className="ndr-stat-icon ndr-stat-icon-reattempt" />
+              <div className="ndr-stat-value">{stats.reattemptRequested}</div>
+              <div className="ndr-stat-label">Reattempt Requested</div>
             </div>
-            <div className="stat-card" style={s.statCard("#16a34a")}>
-              <FaCheckCircle style={s.statIcon("#16a34a")} />
-              <div style={s.statValue}>{stats.resolved}</div>
-              <div style={s.statLabel}>Resolved</div>
+            <div className="ndr-stat-card ndr-stat-resolved">
+              <FaCheckCircle className="ndr-stat-icon ndr-stat-icon-resolved" />
+              <div className="ndr-stat-value">{stats.resolved}</div>
+              <div className="ndr-stat-label">Resolved</div>
             </div>
-            <div className="stat-card" style={s.statCard("#dc2626")}>
-              <FaExclamationTriangle style={s.statIcon("#dc2626")} />
-              <div style={s.statValue}>{stats.rto}</div>
-              <div style={s.statLabel}>Marked RTO</div>
+            <div className="ndr-stat-card ndr-stat-rto">
+              <FaExclamationTriangle className="ndr-stat-icon ndr-stat-icon-rto" />
+              <div className="ndr-stat-value">{stats.rto}</div>
+              <div className="ndr-stat-label">Marked RTO</div>
             </div>
           </div>
 
           {/* Search + Status Filter */}
-          <div className="search-wrapper" style={s.searchWrapper}>
-            <FaSearch style={{ color: "#94a3b8" }} />
+          <div className="ndr-search-wrapper">
+            <FaSearch className="ndr-search-icon" />
             <input 
               type="text" 
               placeholder="Search by AWB, Order ID or Customer Name..." 
-              style={s.searchInput} 
+              className="ndr-search-input"
               onChange={(e) => setSearch(e.target.value)} 
             />
             
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-              <FaFilter style={{ color: "#94a3b8", fontSize: "14px" }} />
+            <div className="ndr-filter-wrapper">
+              <FaFilter className="ndr-filter-icon" />
               <select
-                style={s.filterSelect}
+                className="ndr-filter-select"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
@@ -752,7 +429,7 @@ const MerchantNDR = () => {
               </select>
               
               <select
-                style={s.filterSelect}
+                className="ndr-filter-select"
                 value={courierFilter}
                 onChange={(e) => setCourierFilter(e.target.value)}
               >
@@ -766,52 +443,32 @@ const MerchantNDR = () => {
             </div>
           </div>
 
-          <div style={{ ...s.card, padding: 0, overflow: "hidden" }}>
-            <div
-              style={{
-                padding: "20px 24px",
-                borderBottom: "1px solid #e2e8f0",
-                background: "#fff"
-              }}
-            >
-              <h3
-                style={{
-                  margin: 0,
-                  color: "#0f172a",
-                  fontSize: "18px",
-                  fontWeight: "700"
-                }}
-              >
+          <div className="ndr-table-card">
+            <div className="ndr-table-header">
+              <h3 className="ndr-table-title">
                 NDR Records
-                <span style={{ 
-                  fontSize: "13px", 
-                  fontWeight: "400", 
-                  color: "#64748b",
-                  marginLeft: "10px"
-                }}>
+                <span className="ndr-table-count">
                   ({sortedRecords.length} cases)
                 </span>
               </h3>
             </div>
             
-            <div style={s.tableWrapper}>
+            <div className="ndr-table-wrapper">
               {loading ? (
-                <div style={{ padding: "60px", textAlign: "center", color: "#64748b" }}>
-                  <FaSync style={{ fontSize: "24px", marginBottom: "12px", animation: "spin 1s linear infinite" }} />
+                <div className="ndr-loading">
+                  <FaSync className="ndr-loading-spinner" />
                   <div>Loading NDR records...</div>
                 </div>
               ) : sortedRecords.length === 0 ? (
-                <div style={{ padding: "60px", textAlign: "center", color: "#94a3b8" }}>
-                  <div style={{ fontSize: "48px", marginBottom: "12px" }}>🎉</div>
-                  <div style={{ fontSize: "18px", fontWeight: "600", color: "#0f172a", marginBottom: "8px" }}>
-                    No NDR cases found
-                  </div>
-                  <div style={{ fontSize: "14px" }}>All deliveries are going smoothly! Try adjusting your filters.</div>
+                <div className="ndr-empty">
+                  <div className="ndr-empty-icon">🎉</div>
+                  <div className="ndr-empty-title">No NDR cases found</div>
+                  <div className="ndr-empty-text">All deliveries are going smoothly! Try adjusting your filters.</div>
                 </div>
               ) : (
-                <table style={s.table}>
+                <table className="ndr-table">
                   <thead>
-                    <tr style={s.tableHead}>
+                    <tr className="ndr-table-head">
                       {[
                         "AWB",
                         "CUSTOMER",
@@ -821,7 +478,7 @@ const MerchantNDR = () => {
                         "STATUS",
                         "ACTIONS"
                       ].map((h) => (
-                        <th key={h} style={s.th}>{h}</th>
+                        <th key={h} className="ndr-th">{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -841,80 +498,58 @@ const MerchantNDR = () => {
                       const customerPhone = record.customerPhone || record.orderId?.customerPhone || 'N/A';
                       
                       return (
-                        <tr key={record._id || record.id}>
-                          <td style={s.td}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                              <span style={s.awbText}>{record.awb || 'N/A'}</span>
+                        <tr key={record._id || record.id} className="ndr-row">
+                          <td className="ndr-td">
+                            <div className="ndr-awb-wrapper">
+                              <span className="ndr-awb">{record.awb || 'N/A'}</span>
                               <button
                                 onClick={() => handleCopyAWB(record.awb)}
-                                style={{
-                                  background: "none",
-                                  border: "none",
-                                  cursor: "pointer",
-                                  padding: "4px",
-                                  borderRadius: "6px",
-                                  color: "#94a3b8",
-                                  transition: "all 0.2s ease"
-                                }}
-                                className="copy-btn"
+                                className="ndr-copy-btn"
                                 title="Copy AWB"
                               >
                                 <FaCopy size={12} />
                               </button>
                             </div>
-                            <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "2px" }}>
+                            <div className="ndr-order-id">
                               {record.orderId?.orderNumber || '-'}
                             </div>
                           </td>
                           
-                          <td style={s.td}>
-                            <div style={{ fontWeight: "600", color: "#0f172a", fontSize: "14px" }}>
+                          <td className="ndr-td">
+                            <div className="ndr-customer-name">
                               {customerName}
                             </div>
-                            <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "2px" }}>
-                              <FaPhone size={10} style={{ marginRight: "4px" }} />
-                              {customerPhone}
+                            <div className="ndr-customer-phone">
+                              <FaPhone size={10} /> {customerPhone}
                             </div>
                           </td>
                           
-                          <td style={s.td}>
-                            <span
-                              style={{
-                                background: "#f1f5f9",
-                                padding: "6px 10px",
-                                borderRadius: "999px",
-                                fontSize: "12px",
-                                color: "#475569",
-                                fontWeight: "500",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: "4px"
-                              }}
-                            >
+                          <td className="ndr-td">
+                            <span className="ndr-courier-badge">
                               <span>{courierIcon}</span>
                               <span>{record.courier || 'N/A'}</span>
                             </span>
                           </td>
                           
-                          <td style={s.td}>
-                            <div style={{ fontWeight: "500", fontSize: "13px", color: "#0f172a" }}>
+                          <td className="ndr-td">
+                            <div className="ndr-attempts">
                               {record.deliveryAttempts || 0} / {record.maxAttempts || 3}
                             </div>
                             {record.nextAttemptDate && (
-                              <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "2px" }}>
+                              <div className="ndr-next-attempt">
                                 📅 {new Date(record.nextAttemptDate).toLocaleDateString('en-GB')}
                               </div>
                             )}
                           </td>
                           
-                          <td style={s.td}>
-                            <div style={{ fontSize: "13px", fontWeight: "500", color: "#0f172a" }}>
+                          <td className="ndr-td">
+                            <div className="ndr-created-date">
                               {record.createdAt ? 
                                 new Date(record.createdAt).toLocaleDateString('en-GB') : 
                                 'N/A'
                               }
                             </div>
-                            <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "2px" }}>
+                            <div className="ndr-created-time">
                               {record.createdAt ? 
                                 new Date(record.createdAt).toLocaleTimeString('en-GB', {
                                   hour: '2-digit',
@@ -925,20 +560,24 @@ const MerchantNDR = () => {
                             </div>
                           </td>
                           
-                          <td style={s.td}>
-                            <span className="status-badge" style={s.statusBadge(record.status)}>
+                          <td className="ndr-td">
+                            <span 
+                              className="ndr-status-badge"
+                              style={{
+                                background: statusStyle.background,
+                                color: statusStyle.color,
+                              }}
+                            >
                               {record.status || 'PENDING'}
                             </span>
-                            <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "2px", textAlign: "center" }}>
-                              {subStatus}
-                            </div>
+                            <div className="ndr-sub-status">{subStatus}</div>
                           </td>
                           
-                          <td style={s.td}>
-                            <div style={{ display: "flex", gap: "5px", flexWrap: "nowrap" }}>
+                          <td className="ndr-td">
+                            <div className="ndr-actions">
                               <button
                                 onClick={() => handleView(record)}
-                                style={s.btn("#1e293b")}
+                                className="ndr-btn ndr-btn-view"
                               >
                                 <FaEye size={11} /> View
                               </button>
@@ -947,15 +586,13 @@ const MerchantNDR = () => {
                                 <>
                                   <button
                                     onClick={() => handleAction(record, 'reattempt')}
-                                    style={s.btn("#f97316")}
-                                    className="action-btn"
+                                    className="ndr-btn ndr-btn-reattempt"
                                   >
                                     <FaUndo size={11} /> Reattempt
                                   </button>
                                   <button
                                     onClick={() => handleAction(record, 'rto')}
-                                    style={s.btn("#dc2626")}
-                                    className="action-btn"
+                                    className="ndr-btn ndr-btn-rto"
                                   >
                                     <FaTimes size={11} /> RTO
                                   </button>
@@ -963,57 +600,25 @@ const MerchantNDR = () => {
                               )}
                               
                               {(isReattemptRequested || isRTORequested) && (
-                                <span style={{ 
-                                  fontSize: "11px", 
-                                  fontWeight: "500", 
-                                  color: "#8b5cf6",
-                                  padding: "8px 12px",
-                                  background: "#f3e8ff",
-                                  borderRadius: "8px",
-                                  whiteSpace: "nowrap"
-                                }}>
+                                <span className="ndr-status-tag ndr-tag-waiting">
                                   Awaiting Admin
                                 </span>
                               )}
                               
                               {isReattempt && (
-                                <span style={{ 
-                                  fontSize: "11px", 
-                                  fontWeight: "500", 
-                                  color: "#3b82f6",
-                                  padding: "8px 12px",
-                                  background: "#dbeafe",
-                                  borderRadius: "8px",
-                                  whiteSpace: "nowrap"
-                                }}>
+                                <span className="ndr-status-tag ndr-tag-reattempting">
                                   Reattempting
                                 </span>
                               )}
                               
                               {isResolved && (
-                                <span style={{ 
-                                  fontSize: "11px", 
-                                  fontWeight: "600", 
-                                  color: "#16a34a",
-                                  padding: "8px 12px",
-                                  background: "#dcfce7",
-                                  borderRadius: "8px",
-                                  whiteSpace: "nowrap"
-                                }}>
+                                <span className="ndr-status-tag ndr-tag-delivered">
                                   ✓ Delivered
                                 </span>
                               )}
                               
                               {isRTO && (
-                                <span style={{ 
-                                  fontSize: "11px", 
-                                  fontWeight: "600", 
-                                  color: "#dc2626",
-                                  padding: "8px 12px",
-                                  background: "#fee2e2",
-                                  borderRadius: "8px",
-                                  whiteSpace: "nowrap"
-                                }}>
+                                <span className="ndr-status-tag ndr-tag-rto">
                                   ✗ RTO
                                 </span>
                               )}
@@ -1030,164 +635,149 @@ const MerchantNDR = () => {
         </main>
       </div>
 
-      {/* ✅ Updated View Modal with Complete Details */}
+      {/* View Modal */}
       {viewModal && selectedRecord && (
-        <div style={s.modalOverlay} onClick={() => {
+        <div className="ndr-modal-overlay" onClick={() => {
           setViewModal(false);
           setSelectedRecord(null);
         }}>
-          <div style={s.modalContent} onClick={(e) => e.stopPropagation()}>
-            <div style={s.modalHeader}>
-              <h2 style={s.modalTitle}>
-                <FaInfoCircle style={{ color: "#f97316", marginRight: "8px" }} />
+          <div className="ndr-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="ndr-modal-header">
+              <h2 className="ndr-modal-title">
+                <FaInfoCircle className="ndr-modal-title-icon" />
                 NDR Details
-                <span style={{
-                  display: "inline-block",
-                  padding: "4px 14px",
-                  borderRadius: "999px",
-                  fontSize: "12px",
-                  fontWeight: "600",
-                  background: getStatusStyle(selectedRecord.status).background,
-                  color: getStatusStyle(selectedRecord.status).color,
-                  marginLeft: "auto"
-                }}>
+                <span 
+                  className="ndr-modal-status"
+                  style={{
+                    background: getStatusStyle(selectedRecord.status).background,
+                    color: getStatusStyle(selectedRecord.status).color,
+                  }}
+                >
                   {selectedRecord.status || 'PENDING'}
                 </span>
               </h2>
               <button onClick={() => {
                 setViewModal(false);
                 setSelectedRecord(null);
-              }} style={s.modalCloseBtn}>
+              }} className="ndr-modal-close">
                 <FaTimes />
               </button>
             </div>
-            <div style={s.modalBody}>
+            <div className="ndr-modal-body">
               {/* Order & Customer Information */}
-              <div style={s.sectionTitle}>
-                <FaUser style={{ marginRight: "8px", color: "#f97316" }} />
+              <div className="ndr-section-title">
+                <FaUser className="ndr-section-icon" />
                 Order & Customer Information
               </div>
               
-              <div style={s.detailRow}>
-                <span style={s.detailLabel}>AWB Number</span>
-                <span style={s.detailValue}>
-                  <span style={{ fontFamily: "monospace", fontWeight: "600", color: "#2563eb" }}>
-                    {selectedRecord.awb || 'N/A'}
-                  </span>
+              <div className="ndr-detail-row">
+                <span className="ndr-detail-label">AWB Number</span>
+                <span className="ndr-detail-value">
+                  <span className="ndr-detail-awb">{selectedRecord.awb || 'N/A'}</span>
                   <button
                     onClick={() => handleCopyAWB(selectedRecord.awb)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      padding: "4px 8px",
-                      borderRadius: "6px",
-                      color: "#94a3b8",
-                      marginLeft: "8px"
-                    }}
+                    className="ndr-copy-btn ndr-copy-btn-modal"
                   >
                     <FaCopy size={12} /> Copy
                   </button>
                 </span>
               </div>
               
-              <div style={s.detailRow}>
-                <span style={s.detailLabel}>Order ID</span>
-                <span style={s.detailValue}>
+              <div className="ndr-detail-row">
+                <span className="ndr-detail-label">Order ID</span>
+                <span className="ndr-detail-value">
                   <strong>{selectedRecord.orderId?.orderNumber || '-'}</strong>
                 </span>
               </div>
               
-              <div style={s.detailRow}>
-                <span style={s.detailLabel}>Customer Name</span>
-                <span style={s.detailValue}>
+              <div className="ndr-detail-row">
+                <span className="ndr-detail-label">Customer Name</span>
+                <span className="ndr-detail-value">
                   <strong>{selectedRecord.customerName || selectedRecord.orderId?.customerName || 'N/A'}</strong>
                 </span>
               </div>
               
-              <div style={s.detailRow}>
-                <span style={s.detailLabel}>Phone Number</span>
-                <span style={s.detailValue}>
-                  <FaPhone style={{ marginRight: "6px", color: "#94a3b8" }} />
+              <div className="ndr-detail-row">
+                <span className="ndr-detail-label">Phone Number</span>
+                <span className="ndr-detail-value">
+                  <FaPhone className="ndr-detail-phone-icon" />
                   {selectedRecord.customerPhone || selectedRecord.orderId?.customerPhone || 'N/A'}
                 </span>
               </div>
               
-              <div style={s.detailRow}>
-                <span style={s.detailLabel}>Email</span>
-                <span style={s.detailValue}>
+              <div className="ndr-detail-row">
+                <span className="ndr-detail-label">Email</span>
+                <span className="ndr-detail-value">
                   {selectedRecord.orderId?.customerEmail || 'N/A'}
                 </span>
               </div>
               
-              <div style={s.detailRow}>
-                <span style={s.detailLabel}>Address</span>
-                <span style={s.detailValue}>
-                  <FaMapMarkerAlt style={{ marginRight: "6px", color: "#94a3b8" }} />
+              <div className="ndr-detail-row">
+                <span className="ndr-detail-label">Address</span>
+                <span className="ndr-detail-value">
+                  <FaMapMarkerAlt className="ndr-detail-map-icon" />
                   {selectedRecord.address || 'N/A'}
-                  <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "4px" }}>
+                  <div className="ndr-detail-pincode">
                     Pincode: {selectedRecord.pincode || 'N/A'}
                   </div>
                 </span>
               </div>
 
               {/* Delivery Information */}
-              <div style={s.sectionTitle}>
-                <FaTruck style={{ marginRight: "8px", color: "#f97316" }} />
+              <div className="ndr-section-title">
+                <FaTruck className="ndr-section-icon" />
                 Delivery Information
               </div>
               
-              <div style={s.detailRow}>
-                <span style={s.detailLabel}>Courier</span>
-                <span style={s.detailValue}>
+              <div className="ndr-detail-row">
+                <span className="ndr-detail-label">Courier</span>
+                <span className="ndr-detail-value">
                   {getCourierIcon(selectedRecord.courier)} {selectedRecord.courier || 'N/A'}
                 </span>
               </div>
               
-              <div style={s.detailRow}>
-                <span style={s.detailLabel}>NDR Reason</span>
-                <span style={s.detailValue}>
-                  <span style={{
-                    display: "inline-block",
-                    padding: "4px 14px",
-                    borderRadius: "12px",
-                    fontSize: "12px",
-                    fontWeight: "500",
-                    background: getReasonBadge(selectedRecord.ndrReason).background,
-                    color: getReasonBadge(selectedRecord.ndrReason).color
-                  }}>
+              <div className="ndr-detail-row">
+                <span className="ndr-detail-label">NDR Reason</span>
+                <span className="ndr-detail-value">
+                  <span 
+                    className="ndr-reason-badge"
+                    style={{
+                      background: getReasonBadge(selectedRecord.ndrReason).background,
+                      color: getReasonBadge(selectedRecord.ndrReason).color,
+                    }}
+                  >
                     {selectedRecord.ndrReason || 'N/A'}
                   </span>
                   {selectedRecord.ndrSubReason && (
-                    <div style={{ fontSize: "13px", color: "#64748b", marginTop: "4px" }}>
+                    <div className="ndr-sub-reason">
                       Sub Reason: {selectedRecord.ndrSubReason}
                     </div>
                   )}
                 </span>
               </div>
               
-              <div style={s.detailRow}>
-                <span style={s.detailLabel}>Delivery Attempts</span>
-                <span style={s.detailValue}>
-                  <div style={{ fontWeight: "500" }}>
+              <div className="ndr-detail-row">
+                <span className="ndr-detail-label">Delivery Attempts</span>
+                <span className="ndr-detail-value">
+                  <div className="ndr-attempts-detail">
                     {selectedRecord.deliveryAttempts || 0} of {selectedRecord.maxAttempts || 3}
                   </div>
                   {selectedRecord.lastAttemptDate && (
-                    <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "2px" }}>
+                    <div className="ndr-last-attempt">
                       Last Attempt: {new Date(selectedRecord.lastAttemptDate).toLocaleString('en-GB')}
                     </div>
                   )}
                   {selectedRecord.nextAttemptDate && (
-                    <div style={{ fontSize: "12px", color: "#f97316", marginTop: "2px" }}>
+                    <div className="ndr-next-attempt-detail">
                       📅 Next Attempt: {new Date(selectedRecord.nextAttemptDate).toLocaleString('en-GB')}
                     </div>
                   )}
                 </span>
               </div>
               
-              <div style={s.detailRow}>
-                <span style={s.detailLabel}>Expected Delivery</span>
-                <span style={s.detailValue}>
+              <div className="ndr-detail-row">
+                <span className="ndr-detail-label">Expected Delivery</span>
+                <span className="ndr-detail-value">
                   {selectedRecord.expectedDeliveryDate ? 
                     new Date(selectedRecord.expectedDeliveryDate).toLocaleString('en-GB') : 
                     'Pending Courier Update'
@@ -1196,27 +786,33 @@ const MerchantNDR = () => {
               </div>
 
               {/* Status Information */}
-              <div style={s.sectionTitle}>
-                <FaClock style={{ marginRight: "8px", color: "#f97316" }} />
+              <div className="ndr-section-title">
+                <FaClock className="ndr-section-icon" />
                 Status Information
               </div>
               
-              <div style={s.detailRow}>
-                <span style={s.detailLabel}>Current Status</span>
-                <span style={s.detailValue}>
-                  <span style={s.statusBadge(selectedRecord.status)}>
+              <div className="ndr-detail-row">
+                <span className="ndr-detail-label">Current Status</span>
+                <span className="ndr-detail-value">
+                  <span 
+                    className="ndr-status-badge ndr-status-badge-large"
+                    style={{
+                      background: getStatusStyle(selectedRecord.status).background,
+                      color: getStatusStyle(selectedRecord.status).color,
+                    }}
+                  >
                     {selectedRecord.status || 'PENDING'}
                   </span>
-                  <div style={{ fontSize: "13px", color: "#64748b", marginTop: "4px" }}>
+                  <div className="ndr-sub-status-detail">
                     {getSubStatus(selectedRecord.status)}
                   </div>
                 </span>
               </div>
               
-              <div style={s.detailRow}>
-                <span style={s.detailLabel}>Created At</span>
-                <span style={s.detailValue}>
-                  <FaCalendarAlt style={{ marginRight: "6px", color: "#94a3b8" }} />
+              <div className="ndr-detail-row">
+                <span className="ndr-detail-label">Created At</span>
+                <span className="ndr-detail-value">
+                  <FaCalendarAlt className="ndr-detail-calendar-icon" />
                   {selectedRecord.createdAt ? 
                     new Date(selectedRecord.createdAt).toLocaleString('en-GB') : 
                     'N/A'
@@ -1224,9 +820,9 @@ const MerchantNDR = () => {
                 </span>
               </div>
               
-              <div style={s.detailRow}>
-                <span style={s.detailLabel}>Updated At</span>
-                <span style={s.detailValue}>
+              <div className="ndr-detail-row">
+                <span className="ndr-detail-label">Updated At</span>
+                <span className="ndr-detail-value">
                   {selectedRecord.updatedAt ? 
                     new Date(selectedRecord.updatedAt).toLocaleString('en-GB') : 
                     'N/A'
@@ -1235,21 +831,21 @@ const MerchantNDR = () => {
               </div>
 
               {/* Remarks */}
-              <div style={s.sectionTitle}>
-                <FaFileAlt style={{ marginRight: "8px", color: "#f97316" }} />
+              <div className="ndr-section-title">
+                <FaFileAlt className="ndr-section-icon" />
                 Remarks & Notes
               </div>
               
-              <div style={s.detailRow}>
-                <span style={s.detailLabel}>Remarks</span>
-                <span style={s.detailValue}>
+              <div className="ndr-detail-row">
+                <span className="ndr-detail-label">Remarks</span>
+                <span className="ndr-detail-value">
                   {selectedRecord.remarks || 'No remarks added'}
                 </span>
               </div>
               
-              <div style={s.detailRow}>
-                <span style={s.detailLabel}>Courier Remarks</span>
-                <span style={s.detailValue}>
+              <div className="ndr-detail-row">
+                <span className="ndr-detail-label">Courier Remarks</span>
+                <span className="ndr-detail-value">
                   {selectedRecord.courierRemarks || 'No remarks from courier'}
                 </span>
               </div>
@@ -1257,26 +853,18 @@ const MerchantNDR = () => {
               {/* Attempt History */}
               {selectedRecord.attemptHistory && selectedRecord.attemptHistory.length > 0 && (
                 <>
-                  <div style={s.sectionTitle}>
-                    <FaClock style={{ marginRight: "8px", color: "#f97316" }} />
+                  <div className="ndr-section-title">
+                    <FaClock className="ndr-section-icon" />
                     Attempt History
                   </div>
                   {selectedRecord.attemptHistory.map((attempt, index) => (
-                    <div key={index} style={{
-                      padding: "8px 12px",
-                      marginBottom: "6px",
-                      backgroundColor: "#f8fafc",
-                      borderRadius: "8px",
-                      fontSize: "13px",
-                      color: "#1e293b",
-                      border: "1px solid #e2e8f0"
-                    }}>
-                      <span style={{ color: "#64748b", fontSize: "12px", marginRight: "12px" }}>
+                    <div key={index} className="ndr-attempt-history-item">
+                      <span className="ndr-attempt-date">
                         {attempt.date || 'N/A'}
                       </span>
                       {attempt.status || 'Attempt'}
                       {attempt.remark && (
-                        <span style={{ color: "#94a3b8", fontSize: "12px", marginLeft: "8px" }}>
+                        <span className="ndr-attempt-remark">
                           - {attempt.remark}
                         </span>
                       )}
@@ -1291,7 +879,7 @@ const MerchantNDR = () => {
 
       {/* Action Modal */}
       {actionModal && selectedRecord && (
-        <div style={s.modalOverlay} onClick={() => {
+        <div className="ndr-modal-overlay" onClick={() => {
           setActionModal(false);
           setActionNote('');
           setNewAddress('');
@@ -1299,9 +887,9 @@ const MerchantNDR = () => {
           setNewPincode('');
           setSelectedRecord(null);
         }}>
-          <div style={s.modalContent} onClick={(e) => e.stopPropagation()}>
-            <div style={s.modalHeader}>
-              <h2 style={s.modalTitle}>
+          <div className="ndr-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="ndr-modal-header">
+              <h2 className="ndr-modal-title">
                 {actionType === 'reattempt' ? '🔄 Request Reattempt' : '📦 Mark as RTO'}
               </h2>
               <button onClick={() => {
@@ -1311,74 +899,72 @@ const MerchantNDR = () => {
                 setNewPhone('');
                 setNewPincode('');
                 setSelectedRecord(null);
-              }} style={s.modalCloseBtn}>
+              }} className="ndr-modal-close">
                 <FaTimes />
               </button>
             </div>
-            <div style={s.modalBody}>
-              <div style={s.detailRow}>
-                <span style={s.detailLabel}>AWB</span>
-                <span style={s.detailValue}>
-                  <span style={{ fontFamily: "monospace", fontWeight: "600", color: "#2563eb" }}>
-                    {selectedRecord.awb || ''}
-                  </span>
+            <div className="ndr-modal-body">
+              <div className="ndr-detail-row">
+                <span className="ndr-detail-label">AWB</span>
+                <span className="ndr-detail-value">
+                  <span className="ndr-detail-awb">{selectedRecord.awb || ''}</span>
                 </span>
               </div>
-              <div style={s.detailRow}>
-                <span style={s.detailLabel}>Order ID</span>
-                <span style={s.detailValue}>{selectedRecord.orderId?.orderNumber || '-'}</span>
+              <div className="ndr-detail-row">
+                <span className="ndr-detail-label">Order ID</span>
+                <span className="ndr-detail-value">{selectedRecord.orderId?.orderNumber || '-'}</span>
               </div>
-              <div style={s.detailRow}>
-                <span style={s.detailLabel}>Customer</span>
-                <span style={s.detailValue}>{selectedRecord.customerName || selectedRecord.orderId?.customerName || ''}</span>
+              <div className="ndr-detail-row">
+                <span className="ndr-detail-label">Customer</span>
+                <span className="ndr-detail-value">{selectedRecord.customerName || selectedRecord.orderId?.customerName || ''}</span>
               </div>
-              <div style={s.detailRow}>
-                <span style={s.detailLabel}>Current Status</span>
-                <span style={s.detailValue}>
-                  <span style={s.statusBadge(selectedRecord.status)}>
+              <div className="ndr-detail-row">
+                <span className="ndr-detail-label">Current Status</span>
+                <span className="ndr-detail-value">
+                  <span 
+                    className="ndr-status-badge"
+                    style={{
+                      background: getStatusStyle(selectedRecord.status).background,
+                      color: getStatusStyle(selectedRecord.status).color,
+                    }}
+                  >
                     {selectedRecord.status || 'PENDING'}
                   </span>
                 </span>
               </div>
-              <div style={s.detailRow}>
-                <span style={s.detailLabel}>NDR Reason</span>
-                <span style={s.detailValue}>
-                  <span style={{
-                    display: "inline-block",
-                    padding: "3px 12px",
-                    borderRadius: "12px",
-                    fontSize: "11px",
-                    fontWeight: "500",
-                    background: getReasonBadge(selectedRecord.ndrReason).background,
-                    color: getReasonBadge(selectedRecord.ndrReason).color
-                  }}>
+              <div className="ndr-detail-row">
+                <span className="ndr-detail-label">NDR Reason</span>
+                <span className="ndr-detail-value">
+                  <span 
+                    className="ndr-reason-badge"
+                    style={{
+                      background: getReasonBadge(selectedRecord.ndrReason).background,
+                      color: getReasonBadge(selectedRecord.ndrReason).color,
+                    }}
+                  >
                     {selectedRecord.ndrReason || 'N/A'}
                   </span>
                 </span>
               </div>
               
               {actionType === 'reattempt' && (
-                <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "16px" }}>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                <div className="ndr-action-fields">
+                  <div className="ndr-action-grid">
                     <div>
-                      <label style={{ fontWeight: "500", color: "#0f172a", display: "block", marginBottom: "4px", fontSize: "13px" }}>
-                        New Contact Phone
-                      </label>
+                      <label className="ndr-action-label">New Contact Phone</label>
                       <input
                         type="text"
-                        style={{ ...s.filterSelect, width: "100%", padding: "8px 12px" }}
+                        className="ndr-action-input"
                         placeholder="Enter phone number..."
                         value={newPhone}
                         onChange={(e) => setNewPhone(e.target.value)}
                       />
                     </div>
                     <div>
-                      <label style={{ fontWeight: "500", color: "#0f172a", display: "block", marginBottom: "4px", fontSize: "13px" }}>
-                        New Pincode
-                      </label>
+                      <label className="ndr-action-label">New Pincode</label>
                       <input
                         type="text"
-                        style={{ ...s.filterSelect, width: "100%", padding: "8px 12px" }}
+                        className="ndr-action-input"
                         placeholder="Enter pincode..."
                         value={newPincode}
                         onChange={(e) => setNewPincode(e.target.value)}
@@ -1386,11 +972,9 @@ const MerchantNDR = () => {
                     </div>
                   </div>
                   <div>
-                    <label style={{ fontWeight: "500", color: "#0f172a", display: "block", marginBottom: "4px", fontSize: "13px" }}>
-                      New Delivery Address
-                    </label>
+                    <label className="ndr-action-label">New Delivery Address</label>
                     <textarea
-                      style={{ ...s.textarea, minHeight: "60px", marginTop: 0 }}
+                      className="ndr-action-textarea"
                       placeholder="Enter new delivery address..."
                       value={newAddress}
                       onChange={(e) => setNewAddress(e.target.value)}
@@ -1399,12 +983,12 @@ const MerchantNDR = () => {
                 </div>
               )}
 
-              <div style={{ marginTop: "16px" }}>
-                <label style={{ fontWeight: "500", color: "#0f172a", display: "block", marginBottom: "4px" }}>
-                  Action Note <span style={{ color: "#ef4444" }}>*</span>
+              <div className="ndr-action-note">
+                <label className="ndr-action-label">
+                  Action Note <span className="ndr-required">*</span>
                 </label>
                 <textarea
-                  style={s.textarea}
+                  className="ndr-action-textarea"
                   placeholder={actionType === 'reattempt' 
                     ? 'Enter reason for reattempt request...' 
                     : 'Enter reason for marking as RTO...'}
@@ -1413,7 +997,7 @@ const MerchantNDR = () => {
                 />
               </div>
               
-              <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end", marginTop: "16px" }}>
+              <div className="ndr-modal-footer">
                 <button
                   onClick={() => {
                     setActionModal(false);
@@ -1423,17 +1007,7 @@ const MerchantNDR = () => {
                     setNewPincode('');
                     setSelectedRecord(null);
                   }}
-                  style={{
-                    padding: "10px 24px",
-                    border: "1.5px solid #e2e8f0",
-                    borderRadius: "10px",
-                    cursor: "pointer",
-                    fontSize: "14px",
-                    fontWeight: "500",
-                    background: "#fff",
-                    color: "#64748b",
-                    transition: "all 0.2s ease"
-                  }}
+                  className="ndr-btn-cancel"
                   disabled={submitting}
                 >
                   Cancel
@@ -1441,13 +1015,7 @@ const MerchantNDR = () => {
                 <button
                   onClick={submitAction}
                   disabled={submitting}
-                  style={{
-                    ...s.btn(actionType === 'reattempt' ? "#f97316" : "#dc2626"),
-                    padding: "10px 24px",
-                    fontSize: "14px",
-                    opacity: submitting ? 0.6 : 1,
-                    cursor: submitting ? 'not-allowed' : 'pointer'
-                  }}
+                  className={`ndr-btn-submit ${actionType === 'reattempt' ? 'ndr-btn-reattempt' : 'ndr-btn-rto'}`}
                 >
                   {submitting ? '⏳ Submitting...' : (actionType === 'reattempt' ? 'Request Reattempt' : 'Mark RTO')}
                 </button>
@@ -1459,30 +1027,10 @@ const MerchantNDR = () => {
 
       {/* Toast Notification */}
       {toast.visible && (
-        <div style={{
-          position: "fixed",
-          top: "20px",
-          right: "20px",
-          padding: "16px 24px",
-          borderRadius: "12px",
-          color: "#fff",
-          zIndex: 9999,
-          boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
-          maxWidth: "400px",
-          fontWeight: "500",
-          background: toast.type === 'success' ? "linear-gradient(135deg, #22c55e, #16a34a)" : "linear-gradient(135deg, #ef4444, #dc2626)",
-          animation: "slideIn 0.3s ease"
-        }}>
+        <div className={`ndr-toast ndr-toast-${toast.type}`}>
           {toast.type === 'success' ? '✅' : '❌'} {toast.message}
         </div>
       )}
-
-      <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
     </>
   );
 };

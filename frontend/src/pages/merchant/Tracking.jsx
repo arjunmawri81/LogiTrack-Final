@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import api from "../../services/api";
 import { FaTruck, FaBox, FaCalendarAlt, FaPhoneAlt, FaUser, FaCheckCircle, FaClock, FaMapMarkerAlt } from "react-icons/fa";
+import "./Tracking.css"; // ✅ CSS imported
 
 const Tracking = () => {
   const [awb, setAwb] = useState("");
@@ -66,421 +67,88 @@ const Tracking = () => {
     }
   };
 
-  const styles = {
-    container: {
-      display: "flex",
-      flexDirection: "column",
-      background: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)",
-      minHeight: "100vh",
-      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-    },
-    sidebarWrapper: {
-      width: "100%",
-      flexShrink: 0
-    },
-    main: {
-      flex: 1,
-      padding: "24px 20px",
-      width: "100%",
-      maxWidth: "100%",
-      margin: "0 auto",
-      boxSizing: "border-box"
-    },
-    contentWrapper: {
-      maxWidth: "1200px",
-      margin: "0 auto",
-      width: "100%"
-    },
-    pageHeader: {
-      marginBottom: "28px"
-    },
-    title: {
-      fontSize: "28px",
-      fontWeight: "700",
-      color: "#0f172a",
-      margin: "0 0 8px 0",
-      letterSpacing: "-0.5px"
-    },
-    subtitle: {
-      fontSize: "14px",
-      color: "#64748b",
-      margin: 0
-    },
-    searchCard: {
-      background: "#ffffff",
-      borderRadius: "20px",
-      padding: "24px",
-      marginBottom: "24px",
-      border: "1px solid rgba(226, 232, 240, 0.8)",
-      boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-      transition: "box-shadow 0.3s ease"
-    },
-    searchHeader: {
-      display: "flex",
-      alignItems: "center",
-      gap: "12px",
-      marginBottom: "20px"
-    },
-    searchIcon: {
-      width: "40px",
-      height: "40px",
-      background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
-      borderRadius: "12px",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      color: "#fff",
-      fontSize: "20px"
-    },
-    searchTitle: {
-      fontSize: "18px",
-      fontWeight: "600",
-      color: "#1e293b",
-      margin: 0
-    },
-    inputWrapper: {
-      marginBottom: "16px"
-    },
-    inputLabel: {
-      fontSize: "13px",
-      fontWeight: "500",
-      color: "#475569",
-      marginBottom: "8px",
-      display: "block"
-    },
-    input: {
-      width: "100%",
-      padding: "12px 16px",
-      borderRadius: "12px",
-      border: "1.5px solid #e2e8f0",
-      fontSize: "15px",
-      outline: "none",
-      boxSizing: "border-box",
-      transition: "all 0.2s ease",
-      fontFamily: "inherit"
-    },
-    button: {
-      width: "100%",
-      background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
-      color: "#fff",
-      padding: "12px 24px",
-      borderRadius: "12px",
-      border: "none",
-      fontWeight: "600",
-      fontSize: "15px",
-      cursor: "pointer",
-      transition: "transform 0.1s ease, box-shadow 0.2s ease",
-      boxShadow: "0 2px 4px rgba(249, 115, 22, 0.2)"
-    },
-    detailsCard: {
-      background: "#ffffff",
-      borderRadius: "20px",
-      padding: "24px",
-      marginBottom: "24px",
-      border: "1px solid rgba(226, 232, 240, 0.8)",
-      boxShadow: "0 1px 3px rgba(0,0,0,0.05)"
-    },
-    cardHeader: {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      marginBottom: "20px",
-      paddingBottom: "16px",
-      borderBottom: "2px solid #f1f5f9"
-    },
-    cardTitle: {
-      fontSize: "18px",
-      fontWeight: "600",
-      color: "#0f172a",
-      margin: 0,
-      display: "flex",
-      alignItems: "center",
-      gap: "10px"
-    },
-    statusBadgeLarge: {
-      padding: "6px 14px",
-      borderRadius: "100px",
-      fontSize: "13px",
-      fontWeight: "600",
-      display: "inline-flex",
-      alignItems: "center",
-      gap: "8px"
-    },
-    infoGrid: {
-      display: "grid",
-      gridTemplateColumns: "repeat(2, 1fr)",
-      gap: "20px",
-      marginBottom: "24px"
-    },
-    infoItem: {
-      display: "flex",
-      flexDirection: "column",
-      gap: "6px"
-    },
-    infoLabel: {
-      fontSize: "11px",
-      fontWeight: "600",
-      color: "#94a3b8",
-      textTransform: "uppercase",
-      letterSpacing: "0.8px",
-      display: "flex",
-      alignItems: "center",
-      gap: "6px"
-    },
-    infoValue: {
-      fontSize: "15px",
-      fontWeight: "600",
-      color: "#1e293b",
-      margin: 0,
-      wordBreak: "break-word"
-    },
-    infoValueSmall: {
-      fontSize: "13px",
-      fontWeight: "500",
-      color: "#475569",
-      margin: 0
-    },
-    divider: {
-      height: "1px",
-      background: "linear-gradient(90deg, #e2e8f0 0%, transparent 100%)",
-      margin: "20px 0"
-    },
-    progressSection: {
-      marginTop: "8px"
-    },
-    progressHeader: {
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: "10px"
-    },
-    progressLabel: {
-      fontSize: "12px",
-      fontWeight: "500",
-      color: "#64748b"
-    },
-    progressPercent: {
-      fontSize: "12px",
-      fontWeight: "700",
-      color: "#f97316"
-    },
-    progressBarWrapper: {
-      width: "100%",
-      height: "8px",
-      background: "#f1f5f9",
-      borderRadius: "100px",
-      overflow: "hidden"
-    },
-    progressBar: {
-      height: "100%",
-      background: "linear-gradient(90deg, #f97316 0%, #fbbf24 100%)",
-      borderRadius: "100px",
-      transition: "width 0.5s ease"
-    },
-    timelineCard: {
-      background: "#ffffff",
-      borderRadius: "20px",
-      padding: "24px",
-      border: "1px solid rgba(226, 232, 240, 0.8)",
-      boxShadow: "0 1px 3px rgba(0,0,0,0.05)"
-    },
-    timelineItem: {
-      display: "flex",
-      gap: "16px",
-      padding: "16px 0",
-      borderBottom: "1px solid #f1f5f9",
-      position: "relative"
-    },
-    timelineIcon: {
-      width: "40px",
-      height: "40px",
-      background: "#f8fafc",
-      borderRadius: "40px",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      color: "#f97316",
-      fontSize: "18px",
-      flexShrink: 0
-    },
-    timelineContent: {
-      flex: 1
-    },
-    timelineStatus: {
-      fontSize: "15px",
-      fontWeight: "600",
-      color: "#0f172a",
-      marginBottom: "4px"
-    },
-    timelineRemark: {
-      fontSize: "13px",
-      color: "#475569",
-      marginBottom: "6px"
-    },
-    timelineMeta: {
-      display: "flex",
-      alignItems: "center",
-      gap: "16px",
-      flexWrap: "wrap"
-    },
-    timelineLocation: {
-      fontSize: "12px",
-      color: "#94a3b8",
-      display: "flex",
-      alignItems: "center",
-      gap: "4px"
-    },
-    timelineTime: {
-      fontSize: "11px",
-      color: "#94a3b8",
-      display: "flex",
-      alignItems: "center",
-      gap: "4px"
-    },
-    emptyState: {
-      textAlign: "center",
-      padding: "48px 24px",
-      color: "#94a3b8"
-    }
-  };
-
-  const desktopStyles = `
-    @media (min-width: 768px) {
-      .tracking-container {
-        flex-direction: row !important;
-      }
-      .sidebar-wrapper {
-        width: 280px !important;
-      }
-      .tracking-main {
-        padding: 32px 40px !important;
-      }
-      .info-grid {
-        grid-template-columns: repeat(4, 1fr) !important;
-        gap: 28px !important;
-      }
-      .timeline-item:last-child {
-        border-bottom: none !important;
-      }
-    }
-
-    @media (max-width: 767px) {
-      .tracking-container {
-        flex-direction: column !important;
-      }
-      .tracking-main {
-        padding: 16px !important;
-      }
-      .info-grid {
-        grid-template-columns: 1fr !important;
-      }
-      .card-header {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        gap: 10px;
-      }
-    }
-
-    @media (min-width: 1024px) {
-      .tracking-main {
-        padding: 40px !important;
-      }
-    }
-
-    input:focus {
-      border-color: #f97316 !important;
-      box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1) !important;
-    }
-
-    button:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3) !important;
-    }
-
-    button:active {
-      transform: translateY(0);
-    }
-  `;
-
   return (
     <>
-      <style>{desktopStyles}</style>
-      <div className="tracking-container" style={styles.container}>
-        <div className="sidebar-wrapper" style={styles.sidebarWrapper}>
+      <div className="tracking-container">
+        <div className="sidebar-wrapper">
           <Sidebar />
         </div>
 
-        <main className="tracking-main" style={styles.main}>
-          <div style={styles.contentWrapper}>
-            <div style={styles.pageHeader}>
-              <h1 style={styles.title}>Track Shipment</h1>
-              <p style={styles.subtitle}>Real-time shipment tracking and updates</p>
+        <main className="tracking-main">
+          <div className="tracking-content-wrapper">
+            <div className="tracking-page-header">
+              <h1 className="tracking-title">Track Shipment</h1>
+              <p className="tracking-subtitle">Real-time shipment tracking and updates</p>
             </div>
 
             {/* Search Card */}
-            <div style={styles.searchCard}>
-              <div style={styles.searchHeader}>
-                <div style={styles.searchIcon}>
+            <div className="tracking-search-card">
+              <div className="tracking-search-header">
+                <div className="tracking-search-icon">
                   <FaTruck />
                 </div>
                 <div>
-                  <h3 style={styles.searchTitle}>Enter AWB Details</h3>
+                  <h3 className="tracking-search-title">Enter AWB Details</h3>
                 </div>
               </div>
-              <div style={styles.inputWrapper}>
-                <label style={styles.inputLabel}>Air Waybill Number</label>
+              <div className="tracking-input-wrapper">
+                <label className="tracking-input-label">Air Waybill Number</label>
                 <input 
                   type="text" 
                   placeholder="e.g. AWB17813389631365888" 
                   value={awb} 
                   onChange={(e) => setAwb(e.target.value)} 
-                  style={styles.input}
-                  onFocus={(e) => e.target.style.borderColor = "#f97316"}
-                  onBlur={(e) => e.target.style.borderColor = "#e2e8f0"}
+                  className="tracking-input"
                 />
               </div>
-              <button onClick={handleTrack} disabled={loading} style={styles.button}>
+              <button onClick={handleTrack} disabled={loading} className="tracking-track-btn">
                 {loading ? "Tracking..." : "Track Shipment"}
               </button>
             </div>
 
             {/* Shipment Details */}
             {shipment && (
-              <div style={styles.detailsCard}>
-                <div style={styles.cardHeader}>
-                  <div style={styles.cardTitle}>
-                    <FaBox style={{ color: "#f97316" }} />
+              <div className="tracking-details-card">
+                <div className="tracking-card-header">
+                  <div className="tracking-card-title">
+                    <FaBox className="tracking-card-icon" />
                     Shipment Details
                   </div>
-                  <div style={{...styles.statusBadgeLarge, ...getStatusStyle(shipment.status)}}>
+                  <div 
+                    className="tracking-status-badge-large"
+                    style={{
+                      background: getStatusStyle(shipment.status).background,
+                      color: getStatusStyle(shipment.status).color,
+                    }}
+                  >
                     {getStatusStyle(shipment.status).icon}
                     {shipment.status || "PICKUP_PENDING"}
                   </div>
                 </div>
 
-                <div className="info-grid" style={styles.infoGrid}>
-                  <div style={styles.infoItem}>
-                    <div style={styles.infoLabel}>
+                <div className="tracking-info-grid">
+                  <div className="tracking-info-item">
+                    <div className="tracking-info-label">
                       <FaTruck size={11} /> AWB NUMBER
                     </div>
-                    <p style={styles.infoValue}>{shipment.awb || "N/A"}</p>
-                    <p style={styles.infoValueSmall}>{shipment.courier || "Delhivery"}</p>
+                    <p className="tracking-info-value">{shipment.awb || "N/A"}</p>
+                    <p className="tracking-info-value-small">{shipment.courier || "Delhivery"}</p>
                   </div>
-                  <div style={styles.infoItem}>
-                    <div style={styles.infoLabel}>
+                  <div className="tracking-info-item">
+                    <div className="tracking-info-label">
                       <FaUser size={11} /> CUSTOMER
                     </div>
-                    <p style={styles.infoValue}>{shipment.orderId?.customerName || "Rahul Sharma"}</p>
-                    <div style={{ display: "flex", alignItems: "center", gap: "4px", marginTop: "4px" }}>
-                      <FaPhoneAlt size={10} style={{ color: "#94a3b8" }} />
-                      <p style={styles.infoValueSmall}>{shipment.orderId?.customerPhone || "9876543210"}</p>
+                    <p className="tracking-info-value">{shipment.orderId?.customerName || "Rahul Sharma"}</p>
+                    <div className="tracking-customer-phone">
+                      <FaPhoneAlt size={10} className="tracking-phone-icon" />
+                      <p className="tracking-info-value-small">{shipment.orderId?.customerPhone || "9876543210"}</p>
                     </div>
                   </div>
-                  <div style={styles.infoItem}>
-                    <div style={styles.infoLabel}>
+                  <div className="tracking-info-item">
+                    <div className="tracking-info-label">
                       <FaCalendarAlt size={11} /> PICKUP DATE
                     </div>
-                    <p style={styles.infoValue}>
+                    <p className="tracking-info-value">
                       {shipment.pickupDate ? new Date(shipment.pickupDate).toLocaleDateString('en-IN', {
                         day: 'numeric',
                         month: 'short',
@@ -488,11 +156,11 @@ const Tracking = () => {
                       }) : "Pending"}
                     </p>
                   </div>
-                  <div style={styles.infoItem}>
-                    <div style={styles.infoLabel}>
+                  <div className="tracking-info-item">
+                    <div className="tracking-info-label">
                       <FaCalendarAlt size={11} /> DELIVERY DATE
                     </div>
-                    <p style={styles.infoValue}>
+                    <p className="tracking-info-value">
                       {shipment.deliveryDate ? new Date(shipment.deliveryDate).toLocaleDateString('en-IN', {
                         day: 'numeric',
                         month: 'short',
@@ -502,16 +170,19 @@ const Tracking = () => {
                   </div>
                 </div>
 
-                <div style={styles.divider} />
+                <div className="tracking-divider" />
 
                 {/* Progress Bar */}
-                <div style={styles.progressSection}>
-                  <div style={styles.progressHeader}>
-                    <span style={styles.progressLabel}>Shipment Progress</span>
-                    <span style={styles.progressPercent}>{getProgressPercent(shipment.status)} Complete</span>
+                <div className="tracking-progress-section">
+                  <div className="tracking-progress-header">
+                    <span className="tracking-progress-label">Shipment Progress</span>
+                    <span className="tracking-progress-percent">{getProgressPercent(shipment.status)} Complete</span>
                   </div>
-                  <div style={styles.progressBarWrapper}>
-                    <div style={{...styles.progressBar, width: getProgressWidth(shipment.status)}} />
+                  <div className="tracking-progress-bar-wrapper">
+                    <div 
+                      className="tracking-progress-bar" 
+                      style={{ width: getProgressWidth(shipment.status) }}
+                    />
                   </div>
                 </div>
               </div>
@@ -519,28 +190,28 @@ const Tracking = () => {
 
             {/* Tracking Timeline */}
             {shipment?.trackingEvents?.length > 0 && (
-              <div style={styles.timelineCard}>
-                <div style={styles.cardHeader}>
-                  <div style={styles.cardTitle}>
-                    <FaClock style={{ color: "#f97316" }} />
+              <div className="tracking-timeline-card">
+                <div className="tracking-card-header">
+                  <div className="tracking-card-title">
+                    <FaClock className="tracking-card-icon" />
                     Tracking Timeline
                   </div>
                 </div>
                 {[...shipment.trackingEvents].reverse().map((event, index) => (
-                  <div key={index} className="timeline-item" style={styles.timelineItem}>
-                    <div style={styles.timelineIcon}>
+                  <div key={index} className="tracking-timeline-item">
+                    <div className="tracking-timeline-icon">
                       {event.status === "DELIVERED" ? <FaCheckCircle /> : 
                        event.status === "IN_TRANSIT" ? <FaTruck /> : 
                        <FaClock />}
                     </div>
-                    <div style={styles.timelineContent}>
-                      <div style={styles.timelineStatus}>{event.status}</div>
-                      <div style={styles.timelineRemark}>{event.remark}</div>
-                      <div style={styles.timelineMeta}>
-                        <span style={styles.timelineLocation}>
+                    <div className="tracking-timeline-content">
+                      <div className="tracking-timeline-status">{event.status}</div>
+                      <div className="tracking-timeline-remark">{event.remark}</div>
+                      <div className="tracking-timeline-meta">
+                        <span className="tracking-timeline-location">
                           <FaMapMarkerAlt size={10} /> {event.location || "Warehouse"}
                         </span>
-                        <span style={styles.timelineTime}>
+                        <span className="tracking-timeline-time">
                           <FaClock size={10} /> {event.timestamp ? new Date(event.timestamp).toLocaleString() : ""}
                         </span>
                       </div>
@@ -552,8 +223,8 @@ const Tracking = () => {
 
             {/* Empty State */}
             {shipment && shipment?.trackingEvents?.length === 0 && (
-              <div style={styles.emptyState}>
-                <FaTruck size={48} style={{ opacity: 0.3, marginBottom: "16px" }} />
+              <div className="tracking-empty-state">
+                <FaTruck size={48} className="tracking-empty-icon" />
                 <p>No tracking events available yet</p>
               </div>
             )}

@@ -1,4 +1,4 @@
-/* ===== ADMIN SIDEBAR - SUPERADMIN SAME DESIGN ===== */
+/* ===== SIDEBAR - COMPLETE ===== */
 
 .sidebar {
   width: 280px;
@@ -12,98 +12,110 @@
   flex-direction: column;
   border-right: 1px solid #1e293b;
   font-family: 'Inter', sans-serif;
-  z-index: 100;
+  z-index: 1000;
+  transition: transform 0.3s ease-in-out, width 0.3s ease;
+  overflow: hidden;
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
 }
 
+/* ===== HEADER ===== */
 .sidebar-header {
-  padding: 32px 24px 24px 24px;
+  padding: 28px 24px 20px 24px;
   border-bottom: 1px solid #1e293b;
+  flex-shrink: 0;
 }
 
 .logo {
   margin: 0;
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 800;
   color: #ffffff;
   letter-spacing: -0.5px;
 }
 
 .logo-subtitle {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
   color: #f97316;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   display: block;
-  margin-top: 6px;
+  margin-top: 4px;
 }
 
+/* ===== PROFILE ===== */
 .sidebar-profile {
-  padding: 20px;
+  padding: 16px 20px;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   background-color: #1e293b;
-  margin: 16px 20px;
-  border-radius: 14px;
+  margin: 14px 16px;
+  border-radius: 12px;
+  flex-shrink: 0;
 }
 
 .avatar {
-  width: 46px;
-  height: 46px;
+  width: 42px;
+  height: 42px;
   background: linear-gradient(135deg, #f97316, #ea580c);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   color: white;
+  flex-shrink: 0;
 }
 
 .profile-info h4 {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: white;
 }
 
 .profile-info span {
-  font-size: 11px;
+  font-size: 10px;
   color: #94a3b8;
   display: block;
   margin-top: 2px;
 }
 
+/* ===== MENU ===== */
 .sidebar-menu {
   list-style: none;
-  padding: 0 16px;
+  padding: 0 12px;
   margin: 0;
   flex-grow: 1;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .sidebar-menu li {
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .sidebar-menu a {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 12px 16px;
+  gap: 12px;
+  padding: 10px 14px;
   color: #94a3b8;
   text-decoration: none;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   border-radius: 10px;
   transition: all 0.2s;
   position: relative;
+  white-space: nowrap;
 }
 
 .sidebar-menu a svg {
-  font-size: 18px;
+  font-size: 17px;
   min-width: 20px;
+  flex-shrink: 0;
 }
 
 .sidebar-menu a:hover {
@@ -111,7 +123,6 @@
   color: #f97316;
 }
 
-/* 🔥 ORANGE GRADIENT FOR ACTIVE LINK 🔥 */
 .sidebar-menu a.active {
   background: linear-gradient(90deg, #f97316, #ea580c) !important;
   color: white !important;
@@ -123,80 +134,24 @@
   color: white !important;
 }
 
-/* Special NDR Menu Item - Orange warning style when active */
-.sidebar-menu a[href*="/ndr"].active {
-  background: linear-gradient(90deg, #f97316, #ea580c) !important;
-  color: white !important;
-  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3) !important;
-}
-
-/* Special RTO Menu Item - Red/Orange style when active */
-.sidebar-menu a[href*="/rto"].active {
-  background: linear-gradient(90deg, #dc2626, #ea580c) !important;
-  color: white !important;
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3) !important;
-}
-
-/* NDR Badge - Shows count of pending NDRs */
-.ndr-badge {
-  margin-left: auto;
-  background-color: #ef4444;
-  color: white;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 2px 10px;
-  border-radius: 20px;
-  min-width: 20px;
-  text-align: center;
-}
-
-.sidebar-menu a.active .ndr-badge {
-  background-color: rgba(255, 255, 255, 0.2);
-  color: white;
-}
-
-/* RTO Badge - Shows count of pending RTOs */
-.rto-badge {
-  margin-left: auto;
-  background-color: #f97316;
-  color: white;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 2px 10px;
-  border-radius: 20px;
-  min-width: 20px;
-  text-align: center;
-}
-
-.sidebar-menu a.active .rto-badge {
-  background-color: rgba(255, 255, 255, 0.2);
-  color: white;
-}
-
-/* Menu divider for NDR/RTO section */
-.sidebar-menu .menu-divider {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, #1e293b, transparent);
-  margin: 12px 8px;
-  border: none;
-}
-
+/* ===== LOGOUT ===== */
 .logout-section {
-  margin: 16px 20px 24px 20px;
-  padding: 12px 16px;
+  margin: 12px 16px 20px 16px;
+  padding: 10px 14px;
   border-top: 1px solid #1e293b;
   cursor: pointer;
   border-radius: 10px;
   transition: all 0.2s;
+  flex-shrink: 0;
 }
 
 .logout-section a {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   color: #fca5a5;
   text-decoration: none;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
 }
 
@@ -208,73 +163,331 @@
   color: #ef4444;
 }
 
-/* Scrollbar Styling */
+/* ===== SCROLLBAR ===== */
 .sidebar-menu::-webkit-scrollbar {
-  width: 4px;
+  width: 3px;
 }
-
 .sidebar-menu::-webkit-scrollbar-track {
   background: transparent;
 }
-
 .sidebar-menu::-webkit-scrollbar-thumb {
   background: #1e293b;
   border-radius: 4px;
 }
-
 .sidebar-menu::-webkit-scrollbar-thumb:hover {
   background: #334155;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
+/* ============================================ */
+/* ✅ HAMBURGER BUTTON */
+/* ============================================ */
+
+.hamburger-btn {
+  display: none;
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  z-index: 1100;
+  background: #0f172a;
+  border: none;
+  color: white;
+  font-size: 22px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+  transition: all 0.3s ease;
+}
+
+.hamburger-btn:hover {
+  background: #1e293b;
+  transform: scale(1.05);
+}
+
+/* ===== OVERLAY ===== */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  backdrop-filter: blur(2px);
+}
+
+.sidebar-overlay.active {
+  display: block;
+}
+
+/* ============================================ */
+/* ✅ RESPONSIVE */
+/* ============================================ */
+
+/* ===== LAPTOP (1025px+) ===== */
+@media (min-width: 1025px) {
   .sidebar {
-    width: 70px;
-  }
-  
-  .logo, .logo-subtitle, .profile-info, .sidebar-menu a span, .logout-section a span {
-    display: none;
-  }
-  
-  .sidebar-profile {
-    justify-content: center;
-    padding: 12px;
-    margin: 16px 12px;
-  }
-  
-  .sidebar-menu a {
-    justify-content: center;
-    padding: 12px;
-  }
-  
-  .sidebar-menu a svg {
-    margin: 0;
-  }
-  
-  .sidebar-menu a .ndr-badge,
-  .sidebar-menu a .rto-badge {
-    display: none;
-  }
-  
-  .logout-section {
-    justify-content: center;
-    padding: 12px;
-    margin: 16px 12px;
-  }
-  
-  .logout-section a {
-    justify-content: center;
+    width: 280px;
+    transform: translateX(0) !important;
   }
 
-  .sidebar-menu .menu-divider {
-    margin: 8px 4px;
+  .hamburger-btn {
+    display: none !important;
+  }
+
+  .sidebar-overlay {
+    display: none !important;
   }
 }
 
-/* Dark mode support - stays consistent */
-@media (prefers-color-scheme: dark) {
+/* ===== TABLET (769px - 1024px) ===== */
+@media (max-width: 1024px) and (min-width: 769px) {
   .sidebar {
-    background-color: #0f172a;
-    border-right-color: #1e293b;
+    width: 72px;
+    transform: translateX(0) !important;
+  }
+
+  .logo,
+  .logo-subtitle,
+  .profile-info,
+  .sidebar-menu a span {
+    display: none !important;
+  }
+
+  .sidebar-profile {
+    justify-content: center;
+    padding: 10px;
+    margin: 12px 10px;
+  }
+
+  .avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 13px;
+  }
+
+  .sidebar-menu a {
+    justify-content: center;
+    padding: 10px;
+  }
+
+  .sidebar-menu a svg {
+    margin: 0;
+    font-size: 19px;
+  }
+
+  .logout-section {
+    justify-content: center;
+    padding: 10px;
+    margin: 12px 10px 16px 10px;
+  }
+  .logout-section a {
+    justify-content: center;
+  }
+  .logout-section a svg {
+    font-size: 19px;
+  }
+  .logout-section a span {
+    display: none !important;
+  }
+
+  .hamburger-btn {
+    display: none !important;
+  }
+
+  .sidebar-overlay {
+    display: none !important;
+  }
+}
+
+/* ===== MOBILE (768px and below) ===== */
+@media (max-width: 768px) {
+  .hamburger-btn {
+    display: block !important;
+  }
+
+  .sidebar {
+    width: 280px;
+    transform: translateX(-100%);
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.4);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar.open .logo,
+  .sidebar.open .logo-subtitle,
+  .sidebar.open .profile-info,
+  .sidebar.open .sidebar-menu a span,
+  .sidebar.open .logout-section a span {
+    display: inline-block !important;
+  }
+
+  .sidebar.open .sidebar-menu a {
+    justify-content: flex-start;
+    padding: 10px 14px;
+  }
+
+  .sidebar.open .sidebar-menu a svg {
+    margin: 0;
+  }
+
+  .sidebar.open .sidebar-profile {
+    justify-content: flex-start;
+    padding: 16px 20px;
+    margin: 14px 16px;
+  }
+
+  .sidebar.open .logout-section {
+    justify-content: flex-start;
+    padding: 10px 14px;
+    margin: 12px 16px 20px 16px;
+  }
+
+  .sidebar.open .logout-section a {
+    justify-content: flex-start;
+  }
+
+  .sidebar-overlay.active {
+    display: block !important;
+  }
+}
+
+/* ===== SMALL MOBILE (480px and below) ===== */
+@media (max-width: 480px) {
+  .hamburger-btn {
+    top: 10px;
+    left: 10px;
+    font-size: 18px;
+    padding: 8px 10px;
+    border-radius: 8px;
+  }
+
+  .sidebar {
+    width: 260px;
+  }
+
+  .sidebar-header {
+    padding: 18px 16px 14px 16px;
+  }
+
+  .logo {
+    font-size: 18px;
+  }
+  .logo-subtitle {
+    font-size: 9px;
+  }
+
+  .sidebar-profile {
+    padding: 12px 14px;
+    margin: 10px 12px;
+    border-radius: 10px;
+  }
+
+  .avatar {
+    width: 34px;
+    height: 34px;
+    font-size: 12px;
+  }
+
+  .profile-info h4 {
+    font-size: 12px;
+  }
+  .profile-info span {
+    font-size: 9px;
+  }
+
+  .sidebar-menu a {
+    font-size: 12px;
+    padding: 8px 12px;
+    gap: 10px;
+  }
+
+  .sidebar-menu a svg {
+    font-size: 15px;
+    min-width: 18px;
+  }
+
+  .logout-section {
+    padding: 8px 12px;
+    margin: 8px 12px 14px 12px;
+  }
+  .logout-section a {
+    font-size: 12px;
+    gap: 10px;
+  }
+
+  .sidebar.open .sidebar-menu a {
+    padding: 8px 12px;
+  }
+  .sidebar.open .sidebar-profile {
+    padding: 12px 14px;
+    margin: 10px 12px;
+  }
+  .sidebar.open .logout-section {
+    padding: 8px 12px;
+    margin: 8px 12px 14px 12px;
+  }
+}
+
+/* ===== VERY SMALL (360px and below) ===== */
+@media (max-width: 360px) {
+  .hamburger-btn {
+    top: 8px;
+    left: 8px;
+    font-size: 16px;
+    padding: 6px 8px;
+  }
+
+  .sidebar {
+    width: 240px;
+  }
+
+  .sidebar-header {
+    padding: 14px 12px 10px 12px;
+  }
+
+  .logo {
+    font-size: 16px;
+  }
+  .logo-subtitle {
+    font-size: 8px;
+  }
+
+  .sidebar-profile {
+    padding: 10px 12px;
+    margin: 8px 10px;
+  }
+
+  .avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 11px;
+  }
+
+  .profile-info h4 {
+    font-size: 11px;
+  }
+
+  .sidebar-menu a {
+    font-size: 11px;
+    padding: 6px 10px;
+    gap: 8px;
+  }
+
+  .sidebar-menu a svg {
+    font-size: 14px;
+    min-width: 16px;
+  }
+
+  .logout-section {
+    padding: 6px 10px;
+    margin: 6px 10px 10px 10px;
+  }
+  .logout-section a {
+    font-size: 11px;
+    gap: 8px;
   }
 }

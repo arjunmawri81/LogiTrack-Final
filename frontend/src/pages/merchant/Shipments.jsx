@@ -16,6 +16,7 @@ import {
   FaUndo,
   FaFilter,
 } from "react-icons/fa";
+import "./Shipments.css"; // ✅ CSS imported
 
 const Shipments = () => {
   const navigate = useNavigate();
@@ -78,7 +79,6 @@ const Shipments = () => {
     }
   };
 
-  // ✅ UPDATED: Fixed Invoice download function
   const downloadInvoice = async (shipment) => {
     try {
       let invoiceId = null;
@@ -158,339 +158,65 @@ const Shipments = () => {
     return matchesSearch && matchesStatus;
   });
 
-  const s = {
-    container: { 
-      display: "flex", 
-      flexDirection: "column",
-      background: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)", 
-      minHeight: "100vh", 
-      fontFamily: "'Inter', sans-serif" 
-    },
-    sidebarWrapper: { width: "100%", flexShrink: 0 },
-    main: { flex: 1, padding: "20px", overflowX: "hidden" },
-    card: { 
-      background: "#ffffff", 
-      padding: "24px", 
-      borderRadius: "16px", 
-      border: "1px solid #e2e8f0", 
-      marginBottom: "24px",
-      boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-      transition: "box-shadow 0.3s ease"
-    },
-    statsGrid: {
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-      gap: "12px",
-      marginBottom: "24px"
-    },
-    statCard: (color) => ({
-      background: "#ffffff",
-      padding: "16px 20px",
-      borderRadius: "14px",
-      border: "1px solid #e2e8f0",
-      textAlign: "center",
-      boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-      transition: "all 0.2s ease"
-    }),
-    statIcon: (color) => ({
-      fontSize: "20px",
-      color: color,
-      marginBottom: "6px"
-    }),
-    statValue: {
-      fontSize: "24px",
-      fontWeight: "700",
-      color: "#0f172a"
-    },
-    statLabel: {
-      fontSize: "11px",
-      color: "#64748b",
-      fontWeight: "500",
-      textTransform: "uppercase",
-      letterSpacing: "0.3px"
-    },
-    tableHead: { 
-      background: "#f8fafc",
-      borderBottom: "1px solid #e2e8f0"
-    },
-    td: { 
-      padding: "18px 16px",
-      borderBottom: "1px solid #f1f5f9",
-      fontSize: "14px",
-      color: "#334155",
-      background: "#ffffff"
-    },
-    btn: (bg) => ({ 
-      background: bg, 
-      color: "#fff", 
-      border: "none", 
-      padding: "8px 14px", 
-      borderRadius: "10px", 
-      cursor: "pointer", 
-      marginRight: "5px", 
-      fontSize: "12px", 
-      fontWeight: "600",
-      transition: "all 0.2s ease",
-      display: "inline-flex",
-      alignItems: "center",
-      gap: "4px"
-    }),
-    pageTitle: {
-      fontSize: "28px",
-      fontWeight: "700",
-      color: "#0f172a",
-      marginBottom: "8px",
-      letterSpacing: "-0.5px"
-    },
-    pageSubtitle: {
-      fontSize: "14px",
-      color: "#64748b",
-      marginBottom: "24px"
-    },
-    statsIconWrapper: {
-      width: "52px",
-      height: "52px",
-      background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
-      borderRadius: "16px",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      color: "#fff",
-      fontSize: "24px"
-    },
-    searchWrapper: {
-      background: "#ffffff",
-      padding: "8px 20px",
-      borderRadius: "14px",
-      border: "1px solid #e2e8f0",
-      marginBottom: "24px",
-      display: "flex",
-      alignItems: "center",
-      gap: "12px",
-      transition: "all 0.2s ease",
-      flexWrap: "wrap"
-    },
-    searchInput: {
-      border: "none",
-      outline: "none",
-      flex: 1,
-      fontSize: "14px",
-      padding: "12px 0",
-      background: "transparent",
-      minWidth: "200px"
-    },
-    filterSelect: {
-      padding: "10px 16px",
-      borderRadius: "10px",
-      border: "1px solid #e2e8f0",
-      fontSize: "13px",
-      fontWeight: "500",
-      color: "#334155",
-      background: "#ffffff",
-      cursor: "pointer",
-      outline: "none",
-      transition: "all 0.2s ease"
-    },
-    tableWrapper: {
-      overflowX: "auto",
-      borderRadius: "16px"
-    },
-    table: {
-      width: "100%",
-      borderCollapse: "collapse",
-      minWidth: "1000px"
-    },
-    th: {
-      padding: "16px",
-      textAlign: "left",
-      fontSize: "12px",
-      fontWeight: "600",
-      color: "#475569",
-      textTransform: "uppercase",
-      letterSpacing: "0.5px"
-    },
-    statusBadge: (status) => ({
-      ...getStatusStyle(status),
-      padding: "4px 12px",
-      borderRadius: "100px",
-      fontSize: "11px",
-      fontWeight: "600",
-      display: "inline-block"
-    }),
-    awbText: {
-      fontWeight: "700",
-      color: "#2563eb",
-      fontFamily: "monospace",
-      fontSize: "13px"
-    },
-    modalOverlay: {
-      position: "fixed",
-      top: 0,
-      left: 0,
-      width: "100%",
-      height: "100%",
-      background: "rgba(0,0,0,0.6)",
-      backdropFilter: "blur(4px)",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      zIndex: 9999
-    },
-    modalContent: {
-      background: "#fff",
-      width: "500px",
-      maxWidth: "90vw",
-      maxHeight: "80vh",
-      borderRadius: "20px",
-      boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)"
-    },
-    modalHeader: {
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      padding: "20px 24px",
-      borderBottom: "1px solid #f1f5f9"
-    },
-    modalTitle: {
-      margin: 0,
-      fontSize: "18px",
-      fontWeight: "600",
-      color: "#0f172a"
-    },
-    modalCloseBtn: {
-      border: "none",
-      background: "none",
-      cursor: "pointer",
-      color: "#94a3b8",
-      fontSize: "16px"
-    },
-    modalBody: {
-      padding: "20px 24px",
-      maxHeight: "50vh",
-      overflowY: "auto"
-    },
-    timelineItem: {
-      padding: "12px 0",
-      borderBottom: "1px solid #f1f5f9"
-    },
-    timelineStatus: {
-      fontWeight: "600",
-      fontSize: "14px",
-      color: "#0f172a"
-    },
-    timelineRemark: {
-      fontSize: "13px",
-      color: "#64748b",
-      margin: "4px 0"
-    },
-    timelineMeta: {
-      fontSize: "11px",
-      color: "#94a3b8"
-    }
-  };
-
-  const desktopStyles = `
-    @media (min-width: 768px) {
-      .shipments-container {
-        flex-direction: row !important;
-      }
-      .sidebar-wrapper {
-        width: 280px !important;
-      }
-      .shipments-main {
-        padding: 30px !important;
-      }
-    }
-
-    button:hover {
-      transform: translateY(-1px);
-      filter: brightness(1.05);
-    }
-
-    button:active {
-      transform: translateY(0);
-    }
-
-    .search-wrapper:focus-within {
-      border-color: #f97316;
-      box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
-    }
-
-    tr:hover td {
-      background: #f8fafc;
-    }
-
-    .stat-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }
-
-    select:focus {
-      border-color: #f97316;
-      box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
-    }
-  `;
-
   return (
     <>
-      <style>{desktopStyles}</style>
-      <div className="shipments-container" style={s.container}>
-        <div className="sidebar-wrapper" style={s.sidebarWrapper}>
+      <div className="shipments-container">
+        <div className="sidebar-wrapper">
           <Sidebar />
         </div>
 
-        <main className="shipments-main" style={s.main}>
-          <h1 style={s.pageTitle}>Shipments Management</h1>
-          <p style={s.pageSubtitle}>Manage and track all your shipments</p>
+        <main className="shipments-main">
+          <h1 className="shipments-title">Shipments Management</h1>
+          <p className="shipments-subtitle">Manage and track all your shipments</p>
 
           {/* Statistics Cards */}
-          <div style={s.statsGrid}>
-            <div className="stat-card" style={s.statCard("#2563eb")}>
-              <FaBox style={s.statIcon("#2563eb")} />
-              <div style={s.statValue}>{totalShipments}</div>
-              <div style={s.statLabel}>Total</div>
+          <div className="shipments-stats-grid">
+            <div className="stat-card stat-card-blue">
+              <FaBox className="stat-icon stat-icon-blue" />
+              <div className="stat-value">{totalShipments}</div>
+              <div className="stat-label">Total</div>
             </div>
-            <div className="stat-card" style={s.statCard("#d97706")}>
-              <FaClock style={s.statIcon("#d97706")} />
-              <div style={s.statValue}>{pending}</div>
-              <div style={s.statLabel}>Pending</div>
+            <div className="stat-card stat-card-orange">
+              <FaClock className="stat-icon stat-icon-orange" />
+              <div className="stat-value">{pending}</div>
+              <div className="stat-label">Pending</div>
             </div>
-            <div className="stat-card" style={s.statCard("#2563eb")}>
-              <FaTruck style={s.statIcon("#2563eb")} />
-              <div style={s.statValue}>{inTransit}</div>
-              <div style={s.statLabel}>In Transit</div>
+            <div className="stat-card stat-card-blue">
+              <FaTruck className="stat-icon stat-icon-blue" />
+              <div className="stat-value">{inTransit}</div>
+              <div className="stat-label">In Transit</div>
             </div>
-            <div className="stat-card" style={s.statCard("#16a34a")}>
-              <FaCheckCircle style={s.statIcon("#16a34a")} />
-              <div style={s.statValue}>{delivered}</div>
-              <div style={s.statLabel}>Delivered</div>
+            <div className="stat-card stat-card-green">
+              <FaCheckCircle className="stat-icon stat-icon-green" />
+              <div className="stat-value">{delivered}</div>
+              <div className="stat-label">Delivered</div>
             </div>
-            <div className="stat-card" style={s.statCard("#d97706")}>
-              <FaExclamationTriangle style={s.statIcon("#d97706")} />
-              <div style={s.statValue}>{ndr}</div>
-              <div style={s.statLabel}>NDR</div>
+            <div className="stat-card stat-card-yellow">
+              <FaExclamationTriangle className="stat-icon stat-icon-yellow" />
+              <div className="stat-value">{ndr}</div>
+              <div className="stat-label">NDR</div>
             </div>
-            <div className="stat-card" style={s.statCard("#dc2626")}>
-              <FaUndo style={s.statIcon("#dc2626")} />
-              <div style={s.statValue}>{rto}</div>
-              <div style={s.statLabel}>RTO</div>
+            <div className="stat-card stat-card-red">
+              <FaUndo className="stat-icon stat-icon-red" />
+              <div className="stat-value">{rto}</div>
+              <div className="stat-label">RTO</div>
             </div>
           </div>
 
           {/* Search + Status Filter */}
-          <div className="search-wrapper" style={s.searchWrapper}>
-            <FaSearch style={{ color: "#94a3b8" }} />
+          <div className="shipments-search-wrapper">
+            <FaSearch className="search-icon" />
             <input 
               type="text" 
               placeholder="Search by AWB or Customer Name..." 
-              style={s.searchInput} 
+              className="shipments-search-input"
               onChange={(e) => setSearch(e.target.value)} 
             />
             
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <FaFilter style={{ color: "#94a3b8", fontSize: "14px" }} />
+            <div className="filter-wrapper">
+              <FaFilter className="filter-icon" />
               <select
-                style={s.filterSelect}
+                className="shipments-filter-select"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
@@ -508,41 +234,23 @@ const Shipments = () => {
             </div>
           </div>
 
-          <div style={{ ...s.card, padding: 0, overflow: "hidden" }}>
-            <div
-              style={{
-                padding: "20px 24px",
-                borderBottom: "1px solid #e2e8f0",
-                background: "#fff"
-              }}
-            >
-              <h3
-                style={{
-                  margin: 0,
-                  color: "#0f172a",
-                  fontSize: "18px",
-                  fontWeight: "700"
-                }}
-              >
+          <div className="shipments-table-card">
+            <div className="shipments-table-header">
+              <h3 className="shipments-table-title">
                 Shipment Records
-                <span style={{ 
-                  fontSize: "13px", 
-                  fontWeight: "400", 
-                  color: "#64748b",
-                  marginLeft: "10px"
-                }}>
+                <span className="shipments-count">
                   ({filtered.length} shipments)
                 </span>
               </h3>
             </div>
             
-            <div style={s.tableWrapper}>
+            <div className="shipments-table-wrapper">
               {loading ? (
-                <div style={{ padding: "60px", textAlign: "center", color: "#64748b" }}>Loading Shipments...</div>
+                <div className="shipments-loading">Loading Shipments...</div>
               ) : (
-                <table style={s.table}>
+                <table className="shipments-table">
                   <thead>
-                    <tr style={s.tableHead}>
+                    <tr className="shipments-table-head">
                       {[
                         "AWB",
                         "CUSTOMER",
@@ -554,99 +262,98 @@ const Shipments = () => {
                         "LABEL",
                         "TIMELINE"
                       ].map((h) => (
-                        <th key={h} style={s.th}>{h}</th>
+                        <th key={h} className="shipments-th">{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {filtered.length > 0 ? (
-                      filtered.map((shipment) => (
-                        <tr key={shipment._id}>
-                          <td style={s.td}>
-                            <b style={s.awbText}>{shipment.awb}</b>
-                          </td>
-                          <td style={s.td}>
-                            <span
-                              style={{
-                                fontWeight: "600",
-                                color: "#0f172a",
-                                fontSize: "14px"
-                              }}
-                            >
-                              {shipment.orderId?.customerName || "N/A"}
-                            </span>
-                          </td>
-                          <td style={s.td}>
-                            <span
-                              style={{
-                                background: "#f1f5f9",
-                                padding: "6px 10px",
-                                borderRadius: "999px",
-                                fontSize: "12px",
-                                color: "#475569",
-                                fontWeight: "500"
-                              }}
-                            >
-                              {shipment.courier}
-                            </span>
-                          </td>
-                          <td style={s.td}>
-                            <span style={s.statusBadge(shipment.status)}>
-                              {shipment.status}
-                            </span>
-                          </td>
-                          <td style={s.td}>
-                            <span style={{ fontSize: "12px" }}>{new Date(shipment.createdAt).toLocaleDateString('en-GB')}</span>
-                          </td>
-                          
-                          <td style={s.td}>
-                            <button
-                              onClick={() =>
-                                navigate(`/merchant/shipments/${shipment._id}`)
-                              }
-                              style={s.btn("#1e293b")}
-                            >
-                              <FaEye size={11} /> Details
-                            </button>
-                          </td>
-                          
-                          {/* ✅ Updated Invoice Button with fixed function */}
-                          <td style={s.td}>
-                            <button
-                              onClick={() => downloadInvoice(shipment)}
-                              style={s.btn("#059669")}
-                            >
-                              <FaFileInvoice size={11} />
-                              Invoice
-                            </button>
-                          </td>
-                          
-                          <td style={s.td}>
-                            <button onClick={() => downloadLabel(shipment._id, shipment.awb)} style={s.btn("#2563eb")}>
-                              <FaDownload size={11} /> Label
-                            </button>
-                          </td>
-                          <td style={s.td}>
-                            <button 
-                              onClick={async () => { 
-                                try { 
-                                  const res = await api.get(`/shipments/${shipment._id}/timeline`); 
-                                  setSelectedTimeline(res.data.timeline); 
-                                  setShowModal(true); 
-                                } catch (err) { 
-                                  alert("Timeline not available"); 
-                                } 
-                              }} 
-                              style={s.btn("#f97316")}
-                            >
-                              <FaEye size={11} /> Timeline
-                            </button>
-                          </td>
-                        </tr>
-                      ))
+                      filtered.map((shipment) => {
+                        const statusStyle = getStatusStyle(shipment.status);
+                        return (
+                          <tr key={shipment._id} className="shipments-row">
+                            <td className="shipments-td">
+                              <b className="shipments-awb">{shipment.awb}</b>
+                            </td>
+                            <td className="shipments-td">
+                              <span className="shipments-customer">
+                                {shipment.orderId?.customerName || "N/A"}
+                              </span>
+                            </td>
+                            <td className="shipments-td">
+                              <span className="shipments-courier">
+                                {shipment.courier}
+                              </span>
+                            </td>
+                            <td className="shipments-td">
+                              <span 
+                                className="shipments-status-badge"
+                                style={{
+                                  background: statusStyle.background,
+                                  color: statusStyle.color,
+                                }}
+                              >
+                                {shipment.status}
+                              </span>
+                            </td>
+                            <td className="shipments-td">
+                              <span className="shipments-date">
+                                {new Date(shipment.createdAt).toLocaleDateString('en-GB')}
+                              </span>
+                            </td>
+                            
+                            <td className="shipments-td">
+                              <button
+                                onClick={() =>
+                                  navigate(`/merchant/shipments/${shipment._id}`)
+                                }
+                                className="shipments-btn shipments-btn-details"
+                              >
+                                <FaEye size={11} /> Details
+                              </button>
+                            </td>
+                            
+                            <td className="shipments-td">
+                              <button
+                                onClick={() => downloadInvoice(shipment)}
+                                className="shipments-btn shipments-btn-invoice"
+                              >
+                                <FaFileInvoice size={11} />
+                                Invoice
+                              </button>
+                            </td>
+                            
+                            <td className="shipments-td">
+                              <button 
+                                onClick={() => downloadLabel(shipment._id, shipment.awb)} 
+                                className="shipments-btn shipments-btn-label"
+                              >
+                                <FaDownload size={11} /> Label
+                              </button>
+                            </td>
+                            
+                            <td className="shipments-td">
+                              <button 
+                                onClick={async () => { 
+                                  try { 
+                                    const res = await api.get(`/shipments/${shipment._id}/timeline`); 
+                                    setSelectedTimeline(res.data.timeline); 
+                                    setShowModal(true); 
+                                  } catch (err) { 
+                                    alert("Timeline not available"); 
+                                  } 
+                                }} 
+                                className="shipments-btn shipments-btn-timeline"
+                              >
+                                <FaEye size={11} /> Timeline
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
                     ) : (
                       <tr>
-                        <td colSpan="9" style={{ padding: "60px", textAlign: "center", color: "#94a3b8" }}>
+                        <td colSpan="9" className="shipments-empty">
                           {search || statusFilter !== "ALL" ? "No matching shipments found" : "No Shipments Found"}
                         </td>
                       </tr>
@@ -661,26 +368,26 @@ const Shipments = () => {
 
       {/* Timeline Modal */}
       {showModal && (
-        <div style={s.modalOverlay} onClick={() => setShowModal(false)}>
-          <div style={s.modalContent} onClick={(e) => e.stopPropagation()}>
-            <div style={s.modalHeader}>
-              <h2 style={s.modalTitle}>Shipment Timeline</h2>
-              <button onClick={() => setShowModal(false)} style={s.modalCloseBtn}>
+        <div className="shipments-modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="shipments-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="shipments-modal-header">
+              <h2 className="shipments-modal-title">Shipment Timeline</h2>
+              <button onClick={() => setShowModal(false)} className="shipments-modal-close">
                 <FaTimes />
               </button>
             </div>
-            <div style={s.modalBody}>
+            <div className="shipments-modal-body">
               {selectedTimeline?.length > 0 ? selectedTimeline.map((item, index) => (
-                <div key={index} style={s.timelineItem}>
-                  <div style={s.timelineStatus}>{item.status}</div>
-                  <div style={s.timelineRemark}>{item.remark}</div>
-                  <div style={s.timelineMeta}>
+                <div key={index} className="shipments-timeline-item">
+                  <div className="shipments-timeline-status">{item.status}</div>
+                  <div className="shipments-timeline-remark">{item.remark}</div>
+                  <div className="shipments-timeline-meta">
                     {item.location && `📍 ${item.location}`} 
                     {item.location && item.createdAt && " • "}
                     {item.createdAt && new Date(item.createdAt).toLocaleString()}
                   </div>
                 </div>
-              )) : <p style={{ textAlign: "center", color: "#94a3b8", padding: "20px" }}>No updates yet</p>}
+              )) : <p className="shipments-timeline-empty">No updates yet</p>}
             </div>
           </div>
         </div>

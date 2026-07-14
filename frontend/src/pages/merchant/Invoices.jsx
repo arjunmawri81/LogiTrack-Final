@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import api from "../../services/api";
 import { FaDownload } from "react-icons/fa";
+import "./Invoices.css"; // ✅ CSS imported
 
 const Invoices = () => {
   const [invoices, setInvoices] = useState([]);
@@ -88,182 +89,54 @@ const Invoices = () => {
   });
 
   return (
-    <div
-      style={{
-        display: "flex",
-        minHeight: "100vh",
-        background: "#f1f5f9",
-      }}
-    >
-      {/* Sidebar with fixed width */}
-      <div
-        style={{
-          width: "280px",
-          flexShrink: 0,
-        }}
-      >
+    <div className="invoices-container">
+      <div className="invoices-sidebar">
         <Sidebar />
       </div>
 
-      {/* Main Content Area */}
-      <div
-        style={{
-          flex: 1,
-          padding: "30px",
-        }}
-      >
-        <div style={{ marginBottom: "25px" }}>
-          <h1
-            style={{
-              fontSize: "28px",
-              fontWeight: "700",
-              color: "#0f172a",
-              marginBottom: "6px",
-            }}
-          >
-            Invoices
-          </h1>
-
-          <p
-            style={{
-              color: "#64748b",
-              margin: 0,
-            }}
-          >
-            Manage and download billing invoices
-          </p>
+      <div className="invoices-main">
+        <div className="invoices-header">
+          <h1 className="invoices-title">Invoices</h1>
+          <p className="invoices-subtitle">Manage and download billing invoices</p>
         </div>
 
         {/* Summary Cards */}
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns:
-              "repeat(auto-fit,minmax(220px,1fr))",
-            gap: "20px",
-            marginBottom: "30px",
-          }}
-        >
-          <div
-            style={{
-              background: "#fff",
-              padding: "20px",
-              borderRadius: "16px",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-            }}
-          >
-            <h3
-              style={{
-                color: "#64748b",
-                fontSize: "12px",
-                textTransform: "uppercase",
-                letterSpacing: "0.5px",
-              }}
-            >
-              Total Invoices
-            </h3>
-            <h2 style={{ color: "#0f172a" }}>{summary.totalInvoices}</h2>
+        <div className="invoices-summary-grid">
+          <div className="invoices-summary-card">
+            <h3 className="invoices-summary-label">Total Invoices</h3>
+            <h2 className="invoices-summary-value">{summary.totalInvoices}</h2>
           </div>
 
-          <div
-            style={{
-              background: "#fff",
-              padding: "20px",
-              borderRadius: "16px",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-            }}
-          >
-            <h3
-              style={{
-                color: "#64748b",
-                fontSize: "12px",
-                textTransform: "uppercase",
-                letterSpacing: "0.5px",
-              }}
-            >
-              Paid Invoices
-            </h3>
-            <h2 style={{ color: "#0f172a" }}>{summary.paidInvoices}</h2>
+          <div className="invoices-summary-card">
+            <h3 className="invoices-summary-label">Paid Invoices</h3>
+            <h2 className="invoices-summary-value">{summary.paidInvoices}</h2>
           </div>
 
-          <div
-            style={{
-              background: "#fff",
-              padding: "20px",
-              borderRadius: "16px",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-            }}
-          >
-            <h3
-              style={{
-                color: "#64748b",
-                fontSize: "12px",
-                textTransform: "uppercase",
-                letterSpacing: "0.5px",
-              }}
-            >
-              Pending Invoices
-            </h3>
-            <h2 style={{ color: "#0f172a" }}>{summary.pendingInvoices}</h2>
+          <div className="invoices-summary-card">
+            <h3 className="invoices-summary-label">Pending Invoices</h3>
+            <h2 className="invoices-summary-value">{summary.pendingInvoices}</h2>
           </div>
 
-          <div
-            style={{
-              background: "#fff",
-              padding: "20px",
-              borderRadius: "16px",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-            }}
-          >
-            <h3
-              style={{
-                color: "#64748b",
-                fontSize: "12px",
-                textTransform: "uppercase",
-                letterSpacing: "0.5px",
-              }}
-            >
-              Total Billing
-            </h3>
-            <h2 style={{ color: "#0f172a" }}>₹{summary.totalRevenue}</h2>
+          <div className="invoices-summary-card">
+            <h3 className="invoices-summary-label">Total Billing</h3>
+            <h2 className="invoices-summary-value">₹{summary.totalRevenue}</h2>
           </div>
         </div>
 
         {/* Search and Filter Section */}
-        <div
-          style={{
-            display: "flex",
-            gap: "15px",
-            marginBottom: "20px",
-            flexWrap: "wrap",
-          }}
-        >
+        <div className="invoices-filters">
           <input
             type="text"
             placeholder="Search Invoice / AWB / Customer..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            style={{
-              flex: 1,
-              minWidth: "280px",
-              padding: "12px 15px",
-              border: "1px solid #d1d5db",
-              borderRadius: "10px",
-              outline: "none",
-              fontSize: "14px",
-            }}
+            className="invoices-search-input"
           />
 
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            style={{
-              padding: "12px",
-              borderRadius: "10px",
-              border: "1px solid #d1d5db",
-              minWidth: "160px",
-            }}
+            className="invoices-filter-select"
           >
             <option value="ALL">All Status</option>
             <option value="PAID">Paid</option>
@@ -274,12 +147,7 @@ const Invoices = () => {
           <select
             value={courierFilter}
             onChange={(e) => setCourierFilter(e.target.value)}
-            style={{
-              padding: "12px",
-              borderRadius: "10px",
-              border: "1px solid #d1d5db",
-              minWidth: "170px",
-            }}
+            className="invoices-filter-select"
           >
             <option value="ALL">All Couriers</option>
             <option value="delhivery">Delhivery</option>
@@ -291,298 +159,67 @@ const Invoices = () => {
         </div>
 
         {/* Invoice Table */}
-
-        <div
-          style={{
-            background: "#fff",
-            borderRadius: "16px",
-            overflow: "hidden",
-            border: "1px solid #e2e8f0",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-          }}
-        >
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-            }}
-          >
+        <div className="invoices-table-wrapper">
+          <table className="invoices-table">
             <thead>
-              <tr
-                style={{
-                  background: "#f8fafc",
-                  color: "#fff",
-                }}
-              >
-                <th
-                  style={{
-                    padding: "16px",
-                    textAlign: "left",
-                    color: "#64748b",
-                    fontSize: "12px",
-                    fontWeight: "600",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.5px",
-                  }}
-                >
-                  Invoice No
-                </th>
-                <th
-                  style={{
-                    padding: "16px",
-                    textAlign: "left",
-                    color: "#64748b",
-                    fontSize: "12px",
-                    fontWeight: "600",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.5px",
-                  }}
-                >
-                  AWB
-                </th>
-                <th
-                  style={{
-                    padding: "16px",
-                    textAlign: "left",
-                    color: "#64748b",
-                    fontSize: "12px",
-                    fontWeight: "600",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.5px",
-                  }}
-                >
-                  Customer
-                </th>
-                <th
-                  style={{
-                    padding: "16px",
-                    textAlign: "left",
-                    color: "#64748b",
-                    fontSize: "12px",
-                    fontWeight: "600",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.5px",
-                  }}
-                >
-                  Courier
-                </th>
-                <th
-                  style={{
-                    padding: "16px",
-                    textAlign: "left",
-                    color: "#64748b",
-                    fontSize: "12px",
-                    fontWeight: "600",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.5px",
-                  }}
-                >
-                  Amount
-                </th>
-                <th
-                  style={{
-                    padding: "16px",
-                    textAlign: "left",
-                    color: "#64748b",
-                    fontSize: "12px",
-                    fontWeight: "600",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.5px",
-                  }}
-                >
-                  Status
-                </th>
-                <th
-                  style={{
-                    padding: "16px",
-                    textAlign: "left",
-                    color: "#64748b",
-                    fontSize: "12px",
-                    fontWeight: "600",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.5px",
-                  }}
-                >
-                  Date
-                </th>
-                <th
-                  style={{
-                    padding: "16px",
-                    textAlign: "left",
-                    color: "#64748b",
-                    fontSize: "12px",
-                    fontWeight: "600",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.5px",
-                  }}
-                >
-                  Download
-                </th>
+              <tr className="invoices-table-head">
+                <th className="invoices-th">Invoice No</th>
+                <th className="invoices-th">AWB</th>
+                <th className="invoices-th">Customer</th>
+                <th className="invoices-th">Courier</th>
+                <th className="invoices-th">Amount</th>
+                <th className="invoices-th">Status</th>
+                <th className="invoices-th">Date</th>
+                <th className="invoices-th">Download</th>
               </tr>
             </thead>
 
             <tbody>
               {filteredInvoices.map((invoice) => (
-                <tr
-                  key={invoice._id}
-                  style={{
-                    background: "#ffffff",
-                    borderBottom: "1px solid #f1f5f9",
-                    transition: "background 0.2s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "#f8fafc";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "#ffffff";
-                  }}
-                >
-                  {/* Invoice Number */}
-                  <td
-                    style={{
-                      padding: "16px",
-                      color: "#0f172a",
-                      fontSize: "14px",
-                      fontWeight: "500",
-                    }}
-                  >
-                    <span
-                      style={{
-                        color: "#2563eb",
-                        fontWeight: "700",
-                        fontFamily: "monospace",
-                      }}
-                    >
+                <tr key={invoice._id} className="invoices-row">
+                  <td className="invoices-td">
+                    <span className="invoices-invoice-number">
                       {invoice.invoiceNumber}
                     </span>
                   </td>
 
-                  {/* AWB */}
-                  <td
-                    style={{
-                      padding: "16px",
-                      color: "#334155",
-                      fontWeight: "600",
-                      fontSize: "14px",
-                    }}
-                  >
+                  <td className="invoices-td invoices-awb">
                     {invoice.shipmentId?.awb || "-"}
                   </td>
 
-                  {/* Customer */}
-                  <td
-                    style={{
-                      padding: "16px",
-                      color: "#0f172a",
-                      fontSize: "14px",
-                      fontWeight: "500",
-                    }}
-                  >
+                  <td className="invoices-td invoices-customer">
                     {invoice.orderId?.customerName || "-"}
                   </td>
 
-                  {/* Courier */}
-                  <td
-                    style={{
-                      padding: "16px",
-                      color: "#334155",
-                      fontSize: "14px",
-                      fontWeight: "500",
-                    }}
-                  >
+                  <td className="invoices-td invoices-courier">
                     {invoice.shipmentId?.courier || "-"}
                   </td>
 
-                  {/* Amount */}
-                  <td
-                    style={{
-                      padding: "16px",
-                      color: "#0f172a",
-                      fontSize: "14px",
-                      fontWeight: "500",
-                    }}
-                  >
-                    <span
-                      style={{
-                        color: "#0f172a",
-                        fontWeight: "700",
-                      }}
-                    >
-                      ₹{invoice.totalAmount}
-                    </span>
+                  <td className="invoices-td invoices-amount">
+                    ₹{invoice.totalAmount}
                   </td>
 
-                  {/* Status */}
-                  <td
-                    style={{
-                      padding: "16px",
-                      color: "#0f172a",
-                      fontSize: "14px",
-                      fontWeight: "500",
-                    }}
-                  >
+                  <td className="invoices-td">
                     <span
-                      style={{
-                        background:
-                          invoice.status === "PAID"
-                            ? "#dcfce7"
-                            : "#fef3c7",
-                        color:
-                          invoice.status === "PAID"
-                            ? "#166534"
-                            : "#92400e",
-                        padding: "6px 12px",
-                        borderRadius: "999px",
-                        fontSize: "12px",
-                        fontWeight: "600",
-                        display: "inline-block",
-                      }}
+                      className={`invoices-status-badge ${
+                        invoice.status === "PAID"
+                          ? "invoices-status-paid"
+                          : "invoices-status-pending"
+                      }`}
                     >
                       {invoice.status}
                     </span>
                   </td>
 
-                  {/* Date */}
-                  <td
-                    style={{
-                      padding: "16px",
-                      color: "#334155",
-                      fontSize: "14px",
-                      fontWeight: "500",
-                    }}
-                  >
-                    {new Date(
-                      invoice.createdAt
-                    ).toLocaleDateString()}
+                  <td className="invoices-td invoices-date">
+                    {new Date(invoice.createdAt).toLocaleDateString()}
                   </td>
 
-                  {/* Download Button */}
-                  <td
-                    style={{
-                      padding: "16px",
-                      color: "#0f172a",
-                      fontSize: "14px",
-                      fontWeight: "500",
-                    }}
-                  >
+                  <td className="invoices-td">
                     <button
                       title="Download Invoice"
-                      onClick={() =>
-                        downloadInvoice(invoice._id)
-                      }
-                      style={{
-                        border: "none",
-                        background: "#f97316",
-                        color: "#fff",
-                        padding: "8px 14px",
-                        borderRadius: "10px",
-                        cursor: "pointer",
-                        fontWeight: "600",
-                        boxShadow: "0 2px 6px rgba(249,115,22,0.25)",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
+                      onClick={() => downloadInvoice(invoice._id)}
+                      className="invoices-download-btn"
                     >
                       <FaDownload />
                     </button>
@@ -593,13 +230,7 @@ const Invoices = () => {
           </table>
 
           {filteredInvoices.length === 0 && (
-            <div
-              style={{
-                textAlign: "center",
-                padding: "60px 30px",
-                color: "#64748b",
-              }}
-            >
+            <div className="invoices-empty">
               No invoices available.
               <br />
               Create shipments to generate invoices.
