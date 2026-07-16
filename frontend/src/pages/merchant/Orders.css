@@ -13,20 +13,23 @@
 .orders-sidebar {
   width: 280px;
   flex-shrink: 0;
-  height: 100vh;
-  position: sticky;
+  position: fixed;
   top: 0;
-  overflow-y: auto;
+  left: 0;
+  height: 100vh;
   background: #fff;
   border-right: 1px solid #e2e8f0;
+  overflow-y: auto;
   z-index: 50;
 }
 
 .orders-loading-spinner {
   flex: 1;
+  margin-left: 280px;
   display: flex;
   justify-content: center;
   align-items: center;
+  min-height: 100vh;
 }
 
 /* ============================================ */
@@ -43,10 +46,11 @@
 
 .orders-main {
   flex: 1;
+  margin-left: 280px;
   padding: 24px 40px;
   overflow-x: hidden;
   min-width: 0;
-  width: 100%;
+  box-sizing: border-box;
 }
 
 /* ============================================ */
@@ -660,17 +664,21 @@
 
   .orders-sidebar {
     width: 280px;
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
     height: 100vh;
     flex-shrink: 0;
   }
 
   .orders-main {
     flex: 1;
+    margin-left: 280px;
     padding: 24px 40px;
-    width: calc(100% - 280px);
-    max-width: calc(100% - 280px);
+  }
+
+  .orders-loading-spinner {
+    margin-left: 280px;
   }
 }
 
@@ -685,8 +693,9 @@
 
   .orders-sidebar {
     width: 72px;
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
     height: 100vh;
     flex-shrink: 0;
     overflow: hidden;
@@ -694,9 +703,12 @@
 
   .orders-main {
     flex: 1;
+    margin-left: 72px;
     padding: 20px 24px;
-    width: calc(100% - 72px);
-    max-width: calc(100% - 72px);
+  }
+
+  .orders-loading-spinner {
+    margin-left: 72px;
   }
 
   .orders-title {
@@ -731,7 +743,8 @@
     width: 100% !important;
     height: auto !important;
     position: relative !important;
-    top: 0 !important;
+    top: auto !important;
+    left: auto !important;
     border-right: none !important;
     border-bottom: 1px solid #e2e8f0 !important;
     overflow-y: visible !important;
@@ -740,10 +753,15 @@
   }
 
   .orders-main {
-    padding: 16px 14px 20px 14px !important;
+    margin-left: 0 !important;
+    padding: 16px 14px 20px !important;
     width: 100% !important;
     max-width: 100% !important;
     flex: 1 !important;
+  }
+
+  .orders-loading-spinner {
+    margin-left: 0 !important;
   }
 
   .orders-header-top {
@@ -848,7 +866,7 @@
 
 @media (max-width: 480px) {
   .orders-main {
-    padding: 12px 10px 16px 10px !important;
+    padding: 12px 10px 16px !important;
   }
 
   .orders-title {
@@ -903,7 +921,7 @@
 
 @media (max-width: 360px) {
   .orders-main {
-    padding: 10px 8px 14px 8px !important;
+    padding: 10px 8px 14px !important;
   }
 
   .orders-title {

@@ -1,0 +1,930 @@
+/* ============================================
+   MERCHANTS MANAGEMENT STYLES
+   ============================================ */
+
+/* ---------- CONTAINER & LAYOUT ---------- */
+.merchants-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f1f5f9;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.merchants-main {
+  flex: 1;
+  margin-left: 280px;
+  padding: 20px 30px;
+  overflow-x: auto;
+}
+
+/* ---------- HEADER ---------- */
+.merchants-header-block {
+  margin-bottom: 25px;
+}
+
+.merchants-header-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 6px 0;
+}
+
+.merchants-header-subtitle {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+}
+
+/* ---------- STATS GRID ---------- */
+.merchants-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.merchants-stat-card {
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.merchants-stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.merchants-stat-left {
+  flex: 1;
+}
+
+.merchants-stat-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
+
+.merchants-stat-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+.merchants-stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.merchants-stat-icon-blue {
+  background: #dbeafe;
+}
+
+.merchants-stat-icon-green {
+  background: #dcfce7;
+}
+
+.merchants-stat-icon-red {
+  background: #fee2e2;
+}
+
+.merchants-stat-icon-yellow {
+  background: #fef3c7;
+}
+
+/* ---------- SEARCH BOX ---------- */
+.merchants-search-box {
+  display: flex;
+  align-items: center;
+  background: white;
+  padding: 12px 20px;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 25px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.merchants-search-box:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.merchants-search-input {
+  border: none;
+  outline: none;
+  width: 100%;
+  margin-left: 12px;
+  font-size: 14px;
+  background: transparent;
+  color: #0f172a;
+}
+
+.merchants-search-input::placeholder {
+  color: #94a3b8;
+}
+
+/* ---------- TABLE ---------- */
+.merchants-table-container {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  border: 1px solid #eef2f6;
+  color: #0f172a;
+}
+
+.merchants-table-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #eef2f6;
+  background: white;
+}
+
+.merchants-table-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.merchants-table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.merchants-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  min-width: 700px;
+}
+
+.merchants-th {
+  text-align: left;
+  padding: 16px 20px;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  border-bottom: 1px solid #eef2f6;
+  white-space: nowrap;
+}
+
+.merchants-td {
+  padding: 18px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #1e293b;
+  background: #ffffff;
+  font-size: 14px;
+}
+
+/* ---------- USER INFO ---------- */
+.merchants-user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.merchants-avatar {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #f59e0b, #ea580c);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.merchants-company-name {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* ---------- BADGES ---------- */
+.merchants-status-badge {
+  display: inline-block;
+  padding: 5px 14px;
+  border-radius: 30px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.merchants-status-approved {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.merchants-status-pending {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.merchants-status-blocked {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* ---------- ACTIONS ---------- */
+.merchants-action-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.merchants-action-btn {
+  background: white;
+  border: 1px solid #e2e8f0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  color: #64748b;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.merchants-action-btn:hover {
+  transform: translateY(-1px);
+}
+
+.merchants-action-btn:active {
+  transform: translateY(0);
+}
+
+.merchants-action-view {
+  background: #eff6ff;
+  color: #3b82f6;
+  border: 1px solid #bfdbfe;
+}
+
+.merchants-action-view:hover {
+  background: #dbeafe;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
+
+.merchants-action-approve {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.merchants-action-approve:hover {
+  background: #bbf7d0;
+  box-shadow: 0 2px 8px rgba(22, 101, 52, 0.2);
+}
+
+.merchants-action-unblock {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.merchants-action-unblock:hover {
+  background: #bbf7d0;
+  box-shadow: 0 2px 8px rgba(22, 101, 52, 0.2);
+}
+
+.merchants-action-block {
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.merchants-action-block:hover {
+  background: #fecaca;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.2);
+}
+
+/* ---------- NO DATA ---------- */
+.merchants-no-data {
+  text-align: center;
+  padding: 50px;
+  color: #94a3b8;
+  background: white;
+}
+
+/* ============================================
+   MODAL STYLES
+   ============================================ */
+
+.merchants-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  animation: merchantsFadeIn 0.2s ease;
+}
+
+@keyframes merchantsFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.merchants-modal-content {
+  background: white;
+  border-radius: 24px;
+  padding: 40px;
+  max-width: 700px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: merchantsSlideUp 0.3s ease;
+}
+
+@keyframes merchantsSlideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.merchants-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #94a3b8;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.merchants-modal-close:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.merchants-modal-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 24px;
+  border-bottom: 2px solid #f1f5f9;
+  padding-bottom: 16px;
+  padding-right: 40px;
+}
+
+.merchants-modal-field {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #f1f5f9;
+  gap: 16px;
+}
+
+.merchants-modal-field:last-of-type {
+  border-bottom: none;
+}
+
+.merchants-modal-label {
+  font-weight: 600;
+  color: #64748b;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.merchants-modal-value {
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: right;
+  word-break: break-word;
+}
+
+.merchants-modal-status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ---------- MODAL STATS ---------- */
+.merchants-modal-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 2px solid #f1f5f9;
+}
+
+.merchants-modal-stat-item {
+  text-align: center;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 12px;
+  transition: transform 0.2s;
+}
+
+.merchants-modal-stat-item:hover {
+  transform: scale(1.02);
+}
+
+.merchants-modal-stat-number {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.merchants-modal-stat-label {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.merchants-modal-view-rate-btn {
+  width: 100%;
+  margin-top: 20px;
+  padding: 12px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.merchants-modal-view-rate-btn:hover {
+  background: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.merchants-modal-view-rate-btn:active {
+  transform: translateY(0);
+}
+
+.merchants-loading-spinner {
+  text-align: center;
+  padding: 40px;
+  color: #64748b;
+}
+
+.merchants-loading-spinner::after {
+  content: '';
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+  margin-top: 12px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: merchantsSpin 0.8s linear infinite;
+}
+
+@keyframes merchantsSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================
+   RESPONSIVE BREAKPOINTS
+   ============================================ */
+
+/* ---------- LAPTOP (1024px) ---------- */
+@media (max-width: 1024px) {
+  .merchants-main {
+    margin-left: 80px;
+    padding: 15px 20px;
+  }
+
+  .merchants-header-title {
+    font-size: 20px;
+  }
+
+  .merchants-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+  }
+
+  .merchants-stat-value {
+    font-size: 24px;
+  }
+
+  .merchants-modal-content {
+    max-width: 600px;
+    padding: 30px;
+  }
+}
+
+/* ---------- TABLET (768px) ---------- */
+@media (max-width: 768px) {
+  .merchants-main {
+    margin-left: 0;
+    padding: 12px 15px;
+  }
+
+  .merchants-header-title {
+    font-size: 18px;
+  }
+
+  .merchants-header-subtitle {
+    font-size: 12px;
+  }
+
+  .merchants-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .merchants-stat-card {
+    padding: 16px;
+  }
+
+  .merchants-stat-value {
+    font-size: 22px;
+  }
+
+  .merchants-stat-label {
+    font-size: 10px;
+  }
+
+  .merchants-stat-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .merchants-search-box {
+    padding: 10px 16px;
+  }
+
+  .merchants-search-input {
+    font-size: 13px;
+  }
+
+  .merchants-table-header {
+    padding: 16px 18px;
+  }
+
+  .merchants-table-title {
+    font-size: 16px;
+  }
+
+  .merchants-th {
+    padding: 12px 14px;
+    font-size: 11px;
+  }
+
+  .merchants-td {
+    padding: 14px 14px;
+    font-size: 13px;
+  }
+
+  .merchants-avatar {
+    width: 34px;
+    height: 34px;
+    font-size: 12px;
+  }
+
+  .merchants-action-btn {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+
+  .merchants-modal-content {
+    padding: 24px;
+    max-width: 95%;
+  }
+
+  .merchants-modal-title {
+    font-size: 20px;
+  }
+
+  .merchants-modal-field {
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 0;
+  }
+
+  .merchants-modal-value {
+    text-align: left;
+  }
+
+  .merchants-modal-stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .merchants-modal-stat-number {
+    font-size: 20px;
+  }
+}
+
+/* ---------- MOBILE (480px) ---------- */
+@media (max-width: 480px) {
+  .merchants-main {
+    padding: 10px 10px;
+  }
+
+  .merchants-header-title {
+    font-size: 16px;
+  }
+
+  .merchants-header-subtitle {
+    font-size: 11px;
+  }
+
+  .merchants-stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .merchants-stat-card {
+    padding: 14px;
+  }
+
+  .merchants-stat-value {
+    font-size: 20px;
+  }
+
+  .merchants-stat-label {
+    font-size: 9px;
+  }
+
+  .merchants-stat-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .merchants-stat-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .merchants-search-box {
+    padding: 8px 14px;
+    border-radius: 12px;
+    margin-bottom: 18px;
+  }
+
+  .merchants-search-input {
+    font-size: 12px;
+    margin-left: 8px;
+  }
+
+  .merchants-table-container {
+    border-radius: 14px;
+  }
+
+  .merchants-table-header {
+    padding: 14px 14px;
+  }
+
+  .merchants-table-title {
+    font-size: 15px;
+  }
+
+  .merchants-table-wrapper {
+    overflow-x: auto;
+  }
+
+  .merchants-table {
+    min-width: 600px;
+  }
+
+  .merchants-th {
+    padding: 10px 12px;
+    font-size: 10px;
+  }
+
+  .merchants-td {
+    padding: 12px 12px;
+    font-size: 12px;
+  }
+
+  .merchants-user-info {
+    gap: 8px;
+  }
+
+  .merchants-avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 11px;
+    border-radius: 8px;
+  }
+
+  .merchants-company-name {
+    font-size: 12px;
+  }
+
+  .merchants-status-badge {
+    padding: 4px 10px;
+    font-size: 10px;
+  }
+
+  .merchants-action-group {
+    gap: 4px;
+  }
+
+  .merchants-action-btn {
+    padding: 5px 8px;
+    font-size: 10px;
+    border-radius: 8px;
+  }
+
+  .merchants-action-btn svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .merchants-no-data {
+    padding: 30px 20px;
+    font-size: 13px;
+  }
+
+  .merchants-modal-content {
+    padding: 20px;
+    max-height: 90vh;
+  }
+
+  .merchants-modal-title {
+    font-size: 18px;
+    padding-right: 30px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+  }
+
+  .merchants-modal-close {
+    top: 12px;
+    right: 12px;
+    font-size: 20px;
+  }
+
+  .merchants-modal-field {
+    padding: 8px 0;
+  }
+
+  .merchants-modal-label {
+    font-size: 12px;
+  }
+
+  .merchants-modal-value {
+    font-size: 12px;
+  }
+
+  .merchants-modal-stats {
+    grid-template-columns: 1fr;
+    gap: 6px;
+    margin-top: 12px;
+    padding-top: 12px;
+  }
+
+  .merchants-modal-stat-item {
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .merchants-modal-stat-number {
+    font-size: 18px;
+  }
+
+  .merchants-modal-stat-label {
+    font-size: 11px;
+    margin-top: 0;
+  }
+
+  .merchants-modal-view-rate-btn {
+    padding: 10px;
+    font-size: 13px;
+    border-radius: 10px;
+    margin-top: 16px;
+  }
+
+  .merchants-loading-spinner {
+    padding: 30px;
+    font-size: 13px;
+  }
+}
+
+/* ---------- SMALL MOBILE (360px) ---------- */
+@media (max-width: 360px) {
+  .merchants-main {
+    padding: 8px 6px;
+  }
+
+  .merchants-header-title {
+    font-size: 14px;
+  }
+
+  .merchants-stats-grid {
+    gap: 6px;
+  }
+
+  .merchants-stat-card {
+    padding: 10px;
+  }
+
+  .merchants-stat-value {
+    font-size: 16px;
+  }
+
+  .merchants-stat-label {
+    font-size: 8px;
+  }
+
+  .merchants-stat-icon {
+    width: 30px;
+    height: 30px;
+  }
+
+  .merchants-stat-icon svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .merchants-table {
+    min-width: 500px;
+  }
+
+  .merchants-th {
+    padding: 8px 8px;
+    font-size: 9px;
+  }
+
+  .merchants-td {
+    padding: 8px 8px;
+    font-size: 11px;
+  }
+
+  .merchants-avatar {
+    width: 26px;
+    height: 26px;
+    font-size: 9px;
+  }
+
+  .merchants-action-btn {
+    padding: 4px 6px;
+    font-size: 9px;
+  }
+
+  .merchants-modal-content {
+    padding: 16px;
+  }
+
+  .merchants-modal-title {
+    font-size: 16px;
+  }
+
+  .merchants-modal-field {
+    padding: 6px 0;
+  }
+}

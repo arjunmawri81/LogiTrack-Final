@@ -20,9 +20,9 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
+import "./Revenue.css"; // ← Import external CSS
 
 const Revenue = () => {
-  // ✅ STEP 4: Added range state
   const [range, setRange] = useState("month");
   const [stats, setStats] = useState({
     totalRevenue: 0,
@@ -35,23 +35,21 @@ const Revenue = () => {
   const [monthlyData, setMonthlyData] = useState([]);
   const [recentInvoices, setRecentInvoices] = useState([]);
   const [topMerchants, setTopMerchants] = useState([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // ✅ STEP 5: Auto reload on range change
   useEffect(() => {
     fetchRevenue();
   }, [range]);
 
-  const fetchRevenue = async () => {
+  const fetchRevenue = async (showRefresh = false) => {
     try {
-      setLoading(true);
+      if (showRefresh) setIsRefreshing(true);
+      else setLoading(true);
       setError("");
       
-      // ✅ STEP 6: API Call with range filter
       const response = await api.get(`/admin/revenue?range=${range}`);
       
       if (response.data.success) {
-        // ✅ STEP 7: Removed extra dashboard API call
-        // Backend already returns totalOrders and totalShipments
         setStats({
           totalRevenue: response.data.totalRevenue || 0,
           totalOrders: response.data.totalOrders || 0,
@@ -59,7 +57,6 @@ const Revenue = () => {
           totalInvoices: response.data.totalInvoices || 0,
         });
 
-        // Process monthly revenue data
         const revenueData = Object.entries(
           response.data.monthlyRevenue || {}
         ).map(([month, revenue]) => ({
@@ -68,10 +65,8 @@ const Revenue = () => {
         }));
         setMonthlyData(revenueData);
 
-        // Set recent invoices from backend
         setRecentInvoices(response.data.recentInvoices || []);
 
-        // Process top merchants from backend data
         if (response.data.invoices) {
           const merchantMap = {};
           response.data.invoices.forEach(invoice => {
@@ -97,10 +92,12 @@ const Revenue = () => {
         }
       }
       setLoading(false);
+      setIsRefreshing(false);
     } catch (error) {
       console.log("Error fetching revenue:", error);
       setError("Failed to load revenue data. Please try again.");
       setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -113,477 +110,197 @@ const Revenue = () => {
     ? stats.totalRevenue / stats.totalShipments
     : 0;
 
-  // Get status badge style
-  const getStatusStyle = (status) => {
+  // Get status badge class
+  const getStatusClass = (status) => {
     const statusMap = {
-      PAID: { bg: "#dcfce7", color: "#166534", label: "Paid" },
-      PENDING: { bg: "#fef3c7", color: "#92400e", label: "Pending" },
-      FAILED: { bg: "#fee2e2", color: "#991b1b", label: "Failed" },
+      PAID: "revenue-status-paid",
+      PENDING: "revenue-status-pending",
+      FAILED: "revenue-status-failed",
     };
-    return statusMap[status] || { bg: "#f1f5f9", color: "#64748b", label: status || "Unknown" };
+    return statusMap[status] || "revenue-status-default";
   };
 
-  // Clean styles
-  const styles = {
-    container: {
-      display: "flex",
-      minHeight: "100vh",
-      backgroundColor: "#f1f5f9",
-      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-    },
-    mainContent: {
-      flex: 1,
-      marginLeft: "280px",
-      padding: "20px 30px",
-      overflowX: "auto"
-    },
-    headerBlock: {
-      marginBottom: "25px",
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      flexWrap: "wrap",
-      gap: "15px"
-    },
-    headerTitle: {
-      fontSize: "22px",
-      fontWeight: "700",
-      color: "#0f172a",
-      margin: 0
-    },
-    headerSubtitle: {
-      fontSize: "13px",
-      color: "#64748b",
-      margin: "4px 0 0 0"
-    },
-    refreshButton: {
-      padding: "8px 18px",
-      background: "#0f172a",
-      color: "white",
-      border: "none",
-      borderRadius: "8px",
-      cursor: "pointer",
-      fontSize: "13px",
-      fontWeight: "500",
-      display: "flex",
-      alignItems: "center",
-      gap: "8px",
-      transition: "all 0.2s"
-    },
-    filterSelect: {
-      padding: "8px 14px",
-      borderRadius: "8px",
-      border: "1px solid #e2e8f0",
-      background: "#fff",
-      cursor: "pointer",
-      fontSize: "13px",
-      fontWeight: "500",
-      color: "#0f172a",
-      outline: "none",
-      transition: "border-color 0.2s"
-    },
-    statsGrid: {
-      display: "grid",
-      gridTemplateColumns: "repeat(4, 1fr)",
-      gap: "20px",
-      marginBottom: "16px"
-    },
-    statCard: {
-      background: "white",
-      padding: "20px",
-      borderRadius: "12px",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
-      border: "1px solid #eef2f6"
-    },
-    statInfo: {
-      flex: 1
-    },
-    statLabel: {
-      fontSize: "12px",
-      fontWeight: "600",
-      textTransform: "uppercase",
-      color: "#64748b",
-      marginBottom: "6px",
-      letterSpacing: "0.5px"
-    },
-    statValue: {
-      fontSize: "28px",
-      fontWeight: "800",
-      color: "#0f172a",
-      margin: 0
-    },
-    statIconWrapper: {
-      width: "44px",
-      height: "44px",
-      borderRadius: "10px",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      flexShrink: 0
-    },
-    avgMetricsRow: {
-      display: "grid",
-      gridTemplateColumns: "1fr 1fr",
-      gap: "20px",
-      marginBottom: "30px"
-    },
-    avgMetricCard: {
-      background: "white",
-      padding: "16px 20px",
-      borderRadius: "12px",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
-      border: "1px solid #eef2f6"
-    },
-    avgMetricInfo: {
-      flex: 1
-    },
-    avgMetricLabel: {
-      fontSize: "12px",
-      fontWeight: "500",
-      color: "#64748b",
-      marginBottom: "4px"
-    },
-    avgMetricValue: {
-      fontSize: "22px",
-      fontWeight: "700",
-      color: "#0f172a",
-      margin: 0
-    },
-    avgMetricIconWrapper: {
-      width: "40px",
-      height: "40px",
-      borderRadius: "10px",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      flexShrink: 0,
-      background: "#f1f5f9"
-    },
-    chartContainer: {
-      background: "white",
-      borderRadius: "12px",
-      padding: "20px",
-      boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
-      border: "1px solid #eef2f6",
-      marginBottom: "20px",
-      height: "350px"
-    },
-    chartTitle: {
-      fontSize: "16px",
-      fontWeight: "600",
-      color: "#0f172a",
-      margin: "0 0 16px 0"
-    },
-    emptyChartState: {
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      height: "270px",
-      color: "#94a3b8"
-    },
-    emptyChartIcon: {
-      fontSize: "48px",
-      marginBottom: "12px"
-    },
-    emptyChartText: {
-      fontSize: "16px",
-      fontWeight: "500"
-    },
-    emptyChartSubtext: {
-      fontSize: "13px",
-      color: "#cbd5e1",
-      marginTop: "4px"
-    },
-    tableContainer: {
-      background: "white",
-      borderRadius: "12px",
-      boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
-      overflow: "hidden",
-      border: "1px solid #eef2f6",
-      marginBottom: "20px"
-    },
-    tableHeader: {
-      padding: "16px 24px",
-      borderBottom: "1px solid #eef2f6",
-      background: "white",
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center"
-    },
-    tableTitle: {
-      fontSize: "16px",
-      fontWeight: "600",
-      color: "#0f172a",
-      margin: 0
-    },
-    tableWrapper: {
-      overflowX: "auto"
-    },
-    table: {
-      width: "100%",
-      borderCollapse: "collapse",
-      background: "white"
-    },
-    th: {
-      textAlign: "left",
-      padding: "12px 20px",
-      background: "#f8fafc",
-      color: "#475569",
-      fontSize: "11px",
-      fontWeight: "600",
-      textTransform: "uppercase",
-      letterSpacing: "0.5px",
-      borderBottom: "1px solid #eef2f6"
-    },
-    td: {
-      padding: "14px 20px",
-      borderBottom: "1px solid #f1f5f9",
-      color: "#1e293b",
-      fontSize: "14px",
-      background: "white"
-    },
-    revenueCell: {
-      fontWeight: "700",
-      color: "#059669",
-      fontSize: "15px"
-    },
-    invoiceCell: {
-      fontWeight: "500",
-      color: "#0f172a",
-      fontSize: "13px"
-    },
-    statusBadge: {
-      display: "inline-block",
-      padding: "3px 12px",
-      borderRadius: "20px",
-      fontSize: "11px",
-      fontWeight: "600",
-      textTransform: "uppercase",
-      letterSpacing: "0.3px"
-    },
-    twoColumnGrid: {
-      display: "grid",
-      gridTemplateColumns: "1fr 1fr",
-      gap: "20px",
-      marginBottom: "20px"
-    },
-    errorContainer: {
-      background: "#fef2f2",
-      border: "1px solid #fecaca",
-      borderRadius: "12px",
-      padding: "20px 24px",
-      display: "flex",
-      alignItems: "center",
-      gap: "12px",
-      color: "#991b1b",
-      marginBottom: "20px"
-    },
-    errorIcon: {
-      fontSize: "20px"
-    },
-    errorText: {
-      fontSize: "14px",
-      fontWeight: "500"
-    },
-    retryButton: {
-      marginLeft: "auto",
-      padding: "6px 16px",
-      background: "#991b1b",
-      color: "white",
-      border: "none",
-      borderRadius: "6px",
-      cursor: "pointer",
-      fontSize: "13px",
-      fontWeight: "500"
-    },
-    loadingText: {
-      textAlign: "center",
-      padding: "40px",
-      color: "#64748b",
-      fontSize: "16px"
-    },
-    emptyState: {
-      textAlign: "center",
-      padding: "30px",
-      color: "#94a3b8",
-      fontSize: "14px"
-    }
+  // Get status label
+  const getStatusLabel = (status) => {
+    const statusMap = {
+      PAID: "Paid",
+      PENDING: "Pending",
+      FAILED: "Failed",
+    };
+    return statusMap[status] || status || "Unknown";
   };
 
   if (loading) {
     return (
-      <div style={styles.container}>
+      <div className="revenue-container">
         <AdminSidebar />
-        <div style={styles.mainContent}>
+        <div className="revenue-content">
           <AdminTopbar />
-          <div style={styles.loadingText}>Loading revenue data...</div>
+          <div className="revenue-loading">Loading revenue data...</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={styles.container}>
+    <div className="revenue-container">
       <AdminSidebar />
-      <div style={styles.mainContent}>
+      <div className="revenue-content">
         <AdminTopbar />
 
         {/* Header */}
-        <div style={styles.headerBlock}>
-          <div>
-            <h1 style={styles.headerTitle}>Revenue Analytics</h1>
-            <p style={styles.headerSubtitle}>Monitor revenue, commissions and financial performance</p>
+        <div className="revenue-header">
+          <div className="revenue-header-left">
+            <h1 className="revenue-header-title">Revenue Analytics</h1>
+            <p className="revenue-header-subtitle">Monitor revenue, commissions and financial performance</p>
           </div>
-          <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-            {/* ✅ STEP 8: Replace Coming Soon with Working Filter */}
+          <div className="revenue-header-actions">
             <select
               value={range}
               onChange={(e) => setRange(e.target.value)}
-              style={styles.filterSelect}
-              onFocus={(e) => e.target.style.borderColor = "#3b82f6"}
-              onBlur={(e) => e.target.style.borderColor = "#e2e8f0"}
+              className="revenue-select"
             >
               <option value="today">Today</option>
               <option value="week">Last 7 Days</option>
               <option value="month">This Month</option>
             </select>
-            <button onClick={fetchRevenue} style={styles.refreshButton}>
-              <FaSync size={14} /> Refresh
+            <button 
+              onClick={() => fetchRevenue(true)} 
+              className="revenue-refresh-btn"
+              disabled={isRefreshing}
+            >
+              <FaSync className={isRefreshing ? "revenue-refresh-btn-spin" : ""} size={14} />
+              {isRefreshing ? "Refreshing..." : "Refresh"}
             </button>
           </div>
         </div>
 
         {/* Error State */}
         {error && (
-          <div style={styles.errorContainer}>
-            <span style={styles.errorIcon}>⚠️</span>
-            <span style={styles.errorText}>{error}</span>
-            <button onClick={fetchRevenue} style={styles.retryButton}>
+          <div className="revenue-error">
+            <span className="revenue-error-icon">⚠️</span>
+            <span className="revenue-error-text">{error}</span>
+            <button onClick={() => fetchRevenue()} className="revenue-error-btn">
               Retry
             </button>
           </div>
         )}
 
         {/* Stats Cards - 4 Cards */}
-        <div style={styles.statsGrid}>
-          <div style={styles.statCard}>
-            <div style={styles.statInfo}>
-              <div style={styles.statLabel}>Total Revenue</div>
-              <h2 style={styles.statValue}>₹{(stats.totalRevenue || 0).toLocaleString()}</h2>
+        <div className="revenue-stats-grid">
+          <div className="revenue-stat-card">
+            <div className="revenue-stat-info">
+              <div className="revenue-stat-label">Total Revenue</div>
+              <h2 className="revenue-stat-value">₹{(stats.totalRevenue || 0).toLocaleString()}</h2>
             </div>
-            <div style={{ ...styles.statIconWrapper, background: "#dcfce7" }}>
+            <div className="revenue-stat-icon revenue-stat-icon-green">
               <FaRupeeSign color="#10b981" size={20} />
             </div>
           </div>
 
-          <div style={styles.statCard}>
-            <div style={styles.statInfo}>
-              <div style={styles.statLabel}>Total Orders</div>
-              <h2 style={styles.statValue}>{(stats.totalOrders || 0).toLocaleString()}</h2>
+          <div className="revenue-stat-card">
+            <div className="revenue-stat-info">
+              <div className="revenue-stat-label">Total Orders</div>
+              <h2 className="revenue-stat-value">{(stats.totalOrders || 0).toLocaleString()}</h2>
             </div>
-            <div style={{ ...styles.statIconWrapper, background: "#dbeafe" }}>
+            <div className="revenue-stat-icon revenue-stat-icon-blue">
               <FaChartLine color="#3b82f6" size={20} />
             </div>
           </div>
 
-          <div style={styles.statCard}>
-            <div style={styles.statInfo}>
-              <div style={styles.statLabel}>Total Shipments</div>
-              <h2 style={styles.statValue}>{(stats.totalShipments || 0).toLocaleString()}</h2>
+          <div className="revenue-stat-card">
+            <div className="revenue-stat-info">
+              <div className="revenue-stat-label">Total Shipments</div>
+              <h2 className="revenue-stat-value">{(stats.totalShipments || 0).toLocaleString()}</h2>
             </div>
-            <div style={{ ...styles.statIconWrapper, background: "#fef3c7" }}>
+            <div className="revenue-stat-icon revenue-stat-icon-yellow">
               <FaMoneyBillWave color="#f59e0b" size={20} />
             </div>
           </div>
 
-          <div style={styles.statCard}>
-            <div style={styles.statInfo}>
-              <div style={styles.statLabel}>Total Invoices</div>
-              <h2 style={styles.statValue}>{(stats.totalInvoices || 0).toLocaleString()}</h2>
+          <div className="revenue-stat-card">
+            <div className="revenue-stat-info">
+              <div className="revenue-stat-label">Total Invoices</div>
+              <h2 className="revenue-stat-value">{(stats.totalInvoices || 0).toLocaleString()}</h2>
             </div>
-            <div style={{ ...styles.statIconWrapper, background: "#e0e7ff" }}>
+            <div className="revenue-stat-icon revenue-stat-icon-indigo">
               <FaWallet color="#6366f1" size={20} />
             </div>
           </div>
         </div>
 
         {/* Average Revenue Metrics */}
-        <div style={styles.avgMetricsRow}>
-          <div style={styles.avgMetricCard}>
-            <div style={styles.avgMetricInfo}>
-              <div style={styles.avgMetricLabel}>Average Revenue / Order</div>
-              <h3 style={styles.avgMetricValue}>₹{avgOrderRevenue.toFixed(2)}</h3>
+        <div className="revenue-avg-row">
+          <div className="revenue-avg-card">
+            <div className="revenue-avg-info">
+              <div className="revenue-avg-label">Average Revenue / Order</div>
+              <h3 className="revenue-avg-value">₹{avgOrderRevenue.toFixed(2)}</h3>
             </div>
-            <div style={styles.avgMetricIconWrapper}>
+            <div className="revenue-avg-icon">
               <FaCalculator color="#64748b" size={18} />
             </div>
           </div>
-          <div style={styles.avgMetricCard}>
-            <div style={styles.avgMetricInfo}>
-              <div style={styles.avgMetricLabel}>Average Revenue / Shipment</div>
-              <h3 style={styles.avgMetricValue}>₹{avgShipmentRevenue.toFixed(2)}</h3>
+          <div className="revenue-avg-card">
+            <div className="revenue-avg-info">
+              <div className="revenue-avg-label">Average Revenue / Shipment</div>
+              <h3 className="revenue-avg-value">₹{avgShipmentRevenue.toFixed(2)}</h3>
             </div>
-            <div style={styles.avgMetricIconWrapper}>
+            <div className="revenue-avg-icon">
               <FaCalculator color="#64748b" size={18} />
             </div>
           </div>
         </div>
 
         {/* Revenue Trend Chart */}
-        <div style={styles.chartContainer}>
-          <h3 style={styles.chartTitle}>Revenue Trend</h3>
+        <div className="revenue-chart-container">
+          <h3 className="revenue-chart-title">Revenue Trend</h3>
           {monthlyData.length > 1 ? (
-            <ResponsiveContainer width="100%" height={270}>
-              <LineChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis 
-                  dataKey="month" 
-                  stroke="#94a3b8"
-                  fontSize={12}
-                  tickLine={false}
-                />
-                <YAxis 
-                  stroke="#94a3b8"
-                  fontSize={12}
-                  tickLine={false}
-                  tickFormatter={(value) => `₹${value.toLocaleString()}`}
-                />
-                <Tooltip 
-                  formatter={(value) => [`₹${value.toLocaleString()}`, 'Revenue']}
-                  contentStyle={{
-                    background: 'white',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '8px',
-                    padding: '10px 14px'
-                  }}
-                />
-                <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="revenue" 
-                  stroke="#10b981" 
-                  strokeWidth={3}
-                  dot={{ fill: '#10b981', r: 4 }}
-                  activeDot={{ r: 6 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            <div className="revenue-chart-wrapper">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={monthlyData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                  <XAxis 
+                    dataKey="month" 
+                    stroke="#94a3b8"
+                    fontSize={12}
+                    tickLine={false}
+                  />
+                  <YAxis 
+                    stroke="#94a3b8"
+                    fontSize={12}
+                    tickLine={false}
+                    tickFormatter={(value) => `₹${value.toLocaleString()}`}
+                  />
+                  <Tooltip 
+                    formatter={(value) => [`₹${value.toLocaleString()}`, 'Revenue']}
+                    contentStyle={{
+                      background: 'white',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '8px',
+                      padding: '10px 14px'
+                    }}
+                  />
+                  <Legend />
+                  <Line 
+                    type="monotone" 
+                    dataKey="revenue" 
+                    stroke="#10b981" 
+                    strokeWidth={3}
+                    dot={{ fill: '#10b981', r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           ) : (
-            <div style={styles.emptyChartState}>
-              <div style={styles.emptyChartIcon}>📊</div>
-              <div style={styles.emptyChartText}>
+            <div className="revenue-chart-empty">
+              <div className="revenue-chart-empty-icon">📊</div>
+              <div className="revenue-chart-empty-text">
                 {monthlyData.length === 0 
                   ? "No revenue data available yet" 
                   : "Not enough data for trend analysis"}
               </div>
-              <div style={styles.emptyChartSubtext}>
+              <div className="revenue-chart-empty-sub">
                 {monthlyData.length === 0 
                   ? "Revenue data will appear here as transactions are processed"
                   : "Need at least 2 months of data to show trend"}
@@ -593,57 +310,52 @@ const Revenue = () => {
         </div>
 
         {/* Two Column Layout: Recent Activity & Top Merchants */}
-        <div style={styles.twoColumnGrid}>
+        <div className="revenue-two-col">
           {/* Recent Revenue Activity with Status */}
-          <div style={styles.tableContainer}>
-            <div style={styles.tableHeader}>
-              <h3 style={styles.tableTitle}>Recent Revenue Activity</h3>
-              <span style={{ fontSize: "13px", color: "#64748b" }}>
+          <div className="revenue-table-container">
+            <div className="revenue-table-header">
+              <h3 className="revenue-table-title">Recent Revenue Activity</h3>
+              <span className="revenue-table-count">
                 Latest transactions
               </span>
             </div>
-            <div style={styles.tableWrapper}>
-              <table style={styles.table}>
+            <div className="revenue-table-wrapper">
+              <table className="revenue-table">
                 <thead>
                   <tr>
-                    <th style={styles.th}>Invoice</th>
-                    <th style={styles.th}>Merchant</th>
-                    <th style={styles.th}>Amount</th>
-                    <th style={styles.th}>Status</th>
-                    <th style={styles.th}>Date</th>
+                    <th className="revenue-th">Invoice</th>
+                    <th className="revenue-th">Merchant</th>
+                    <th className="revenue-th">Amount</th>
+                    <th className="revenue-th">Status</th>
+                    <th className="revenue-th">Date</th>
                   </tr>
                 </thead>
                 <tbody>
                   {recentInvoices.length > 0 ? (
                     recentInvoices.map((invoice, index) => {
-                      const statusStyle = getStatusStyle(invoice.status);
                       return (
-                        <tr key={index}>
-                          <td style={styles.td}>
-                            <span style={styles.invoiceCell}>
+                        <tr key={index} className="revenue-tr">
+                          <td className="revenue-td">
+                            <span className="revenue-td-invoice">
                               {invoice.invoiceNumber || `INV-${index + 1}`}
                             </span>
                           </td>
-                          <td style={styles.td}>
-                            <span style={{ fontWeight: "500" }}>
+                          <td className="revenue-td">
+                            <span className="revenue-td-merchant">
                               {invoice.merchantId?.name || "Unknown Merchant"}
                             </span>
                           </td>
-                          <td style={styles.td}>
-                            <span style={styles.revenueCell}>
+                          <td className="revenue-td">
+                            <span className="revenue-td-amount">
                               ₹{(invoice.totalAmount || 0).toLocaleString()}
                             </span>
                           </td>
-                          <td style={styles.td}>
-                            <span style={{
-                              ...styles.statusBadge,
-                              background: statusStyle.bg,
-                              color: statusStyle.color
-                            }}>
-                              {statusStyle.label}
+                          <td className="revenue-td">
+                            <span className={`revenue-status-badge ${getStatusClass(invoice.status)}`}>
+                              {getStatusLabel(invoice.status)}
                             </span>
                           </td>
-                          <td style={styles.td}>
+                          <td className="revenue-td">
                             {invoice.createdAt 
                               ? new Date(invoice.createdAt).toLocaleDateString()
                               : "-"}
@@ -653,7 +365,7 @@ const Revenue = () => {
                     })
                   ) : (
                     <tr>
-                      <td colSpan="5" style={styles.emptyState}>
+                      <td colSpan="5" className="revenue-empty">
                         No recent activity
                       </td>
                     </tr>
@@ -664,32 +376,32 @@ const Revenue = () => {
           </div>
 
           {/* Top Revenue Merchants */}
-          <div style={styles.tableContainer}>
-            <div style={styles.tableHeader}>
-              <h3 style={styles.tableTitle}>Top Revenue Merchants</h3>
-              <span style={{ fontSize: "13px", color: "#64748b" }}>
+          <div className="revenue-table-container">
+            <div className="revenue-table-header">
+              <h3 className="revenue-table-title">Top Revenue Merchants</h3>
+              <span className="revenue-table-count">
                 {topMerchants.length} merchants
               </span>
             </div>
-            <div style={styles.tableWrapper}>
-              <table style={styles.table}>
+            <div className="revenue-table-wrapper">
+              <table className="revenue-table">
                 <thead>
                   <tr>
-                    <th style={styles.th}>Merchant</th>
-                    <th style={styles.th}>Company</th>
-                    <th style={styles.th}>Revenue</th>
+                    <th className="revenue-th">Merchant</th>
+                    <th className="revenue-th">Company</th>
+                    <th className="revenue-th">Revenue</th>
                   </tr>
                 </thead>
                 <tbody>
                   {topMerchants.length > 0 ? (
                     topMerchants.map((merchant, index) => (
-                      <tr key={index}>
-                        <td style={styles.td}>
-                          <span style={{ fontWeight: "500" }}>{merchant.name}</span>
+                      <tr key={index} className="revenue-tr">
+                        <td className="revenue-td">
+                          <span className="revenue-td-merchant">{merchant.name}</span>
                         </td>
-                        <td style={styles.td}>{merchant.companyName || "-"}</td>
-                        <td style={styles.td}>
-                          <span style={styles.revenueCell}>
+                        <td className="revenue-td">{merchant.companyName || "-"}</td>
+                        <td className="revenue-td">
+                          <span className="revenue-td-amount">
                             ₹{merchant.totalRevenue.toLocaleString()}
                           </span>
                         </td>
@@ -697,7 +409,7 @@ const Revenue = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="3" style={styles.emptyState}>
+                      <td colSpan="3" className="revenue-empty">
                         No merchant data available
                       </td>
                     </tr>

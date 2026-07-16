@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import api from "../../services/api";
 import { FaWallet, FaPlus } from "react-icons/fa";
+import "./Wallet.css";
 
 const Wallet = () => {
   const [wallet, setWallet] = useState({
@@ -70,257 +71,72 @@ const Wallet = () => {
     }
   };
 
-  const s = {
-    container: {
-      display: "flex",
-      background: "#f8fafc",
-      minHeight: "100vh",
-      fontFamily: "'Inter', sans-serif",
-    },
-
-    main: {
-      flex: 1,
-      padding: "30px",
-    },
-
-    balanceCard: {
-      background:
-        "linear-gradient(135deg,#0f172a,#1e293b)",
-      color: "#fff",
-      padding: "30px",
-      borderRadius: "16px",
-      marginBottom: "20px",
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-    },
-
-    summaryCard: {
-      background: "#fff",
-      border: "1px solid #e2e8f0",
-      borderRadius: "16px",
-      padding: "20px",
-      textAlign: "center",
-    },
-
-    card: {
-      background: "#fff",
-      border: "1px solid #e2e8f0",
-      borderRadius: "16px",
-      padding: 0,
-      marginBottom: "20px",
-      overflow: "hidden",
-    },
-
-    cardHeader: {
-      padding: "20px 24px",
-      borderBottom: "1px solid #e2e8f0",
-      background: "#fff",
-    },
-
-    cardTitle: {
-      margin: 0,
-      color: "#0f172a",
-      fontSize: "18px",
-      fontWeight: "700",
-    },
-
-    inputWrapper: {
-      padding: "24px",
-    },
-
-    input: {
-      width: "100%",
-      padding: "12px",
-      border: "1px solid #cbd5e1",
-      borderRadius: "8px",
-      marginBottom: "15px",
-      outline: "none",
-      fontSize: "14px",
-    },
-
-    btn: {
-      background: "#f97316",
-      color: "#fff",
-      border: "none",
-      padding: "12px 20px",
-      borderRadius: "8px",
-      cursor: "pointer",
-      fontWeight: "600",
-      display: "flex",
-      alignItems: "center",
-      gap: "8px",
-      transition: "all 0.2s ease",
-    },
-
-    tableHead: {
-      background: "#f8fafc",
-      borderBottom: "1px solid #e2e8f0",
-    },
-
-    th: {
-      padding: "16px",
-      textAlign: "left",
-      fontSize: "12px",
-      fontWeight: "600",
-      color: "#475569",
-      textTransform: "uppercase",
-      letterSpacing: "0.5px",
-    },
-
-    td: {
-      padding: "18px 16px",
-      borderBottom: "1px solid #f1f5f9",
-      fontSize: "14px",
-      color: "#334155",
-      background: "#ffffff",
-    },
-
-    tableWrapper: {
-      overflowX: "auto",
-      padding: "0",
-    },
-
-    table: {
-      width: "100%",
-      borderCollapse: "collapse",
-      minWidth: "600px",
-    },
-
-    typeBadge: (type) => ({
-      color: type === "CREDIT" ? "#16a34a" : "#dc2626",
-      fontWeight: "700",
-      fontSize: "13px",
-      background: type === "CREDIT" ? "#dcfce7" : "#fee2e2",
-      padding: "4px 12px",
-      borderRadius: "100px",
-      display: "inline-block",
-    }),
-  };
-
   return (
-    <div style={s.container}>
-      <div style={{ width: "280px", flexShrink: 0 }}>
+    <div className="wallet-container">
+      <div className="wallet-sidebar-wrapper">
         <Sidebar />
       </div>
 
-      <main style={s.main}>
-        <h1
-          style={{
-            fontSize: "30px",
-            fontWeight: "700",
-            color: "#0f172a",
-            marginBottom: "8px",
-            letterSpacing: "-0.5px",
-          }}
-        >
-          My Wallet
-        </h1>
-        <p
-          style={{
-            fontSize: "14px",
-            color: "#64748b",
-            marginBottom: "24px",
-          }}
-        >
+      <main className="wallet-main">
+        <h1 className="wallet-title">My Wallet</h1>
+        <p className="wallet-subtitle">
           Manage your wallet and transactions
         </p>
 
         {/* Balance */}
-        <div style={s.balanceCard}>
+        <div className="wallet-balance-card">
           <div>
-            <p style={{ margin: 0, color: "#94a3b8", fontSize: "14px" }}>
+            <p className="wallet-balance-label">
               Available Balance
             </p>
 
-            <h2
-              style={{
-                marginTop: "10px",
-                fontSize: "42px",
-                fontWeight: "700",
-              }}
-            >
+            <h2 className="wallet-balance-amount">
               ₹{wallet.balance || 0}
             </h2>
           </div>
 
-          <FaWallet size={50} />
+          <FaWallet className="wallet-balance-icon" />
         </div>
 
         {/* Summary Cards */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns:
-              "repeat(auto-fit,minmax(220px,1fr))",
-            gap: "20px",
-            marginBottom: "20px",
-          }}
-        >
-          <div style={s.summaryCard}>
-            <h4
-              style={{
-                color: "#64748b",
-                marginBottom: "10px",
-                fontSize: "12px",
-                fontWeight: "600",
-                textTransform: "uppercase",
-                letterSpacing: "0.5px",
-              }}
-            >
+        <div className="wallet-summary-grid">
+          <div className="wallet-summary-card">
+            <h4 className="wallet-summary-label">
               Total Credit
             </h4>
 
-            <h2 style={{ color: "#16a34a", fontWeight: "700" }}>
+            <h2 className="wallet-summary-value-green">
               ₹{summary.totalCredit}
             </h2>
           </div>
 
-          <div style={s.summaryCard}>
-            <h4
-              style={{
-                color: "#64748b",
-                marginBottom: "10px",
-                fontSize: "12px",
-                fontWeight: "600",
-                textTransform: "uppercase",
-                letterSpacing: "0.5px",
-              }}
-            >
+          <div className="wallet-summary-card">
+            <h4 className="wallet-summary-label">
               Total Debit
             </h4>
 
-            <h2 style={{ color: "#dc2626", fontWeight: "700" }}>
+            <h2 className="wallet-summary-value-red">
               ₹{summary.totalDebit}
             </h2>
           </div>
 
-          <div style={s.summaryCard}>
-            <h4
-              style={{
-                color: "#64748b",
-                marginBottom: "10px",
-                fontSize: "12px",
-                fontWeight: "600",
-                textTransform: "uppercase",
-                letterSpacing: "0.5px",
-              }}
-            >
+          <div className="wallet-summary-card">
+            <h4 className="wallet-summary-label">
               Transactions
             </h4>
 
-            <h2 style={{ color: "#0f172a", fontWeight: "700" }}>
+            <h2 className="wallet-summary-value-dark">
               {summary.totalTransactions}
             </h2>
           </div>
         </div>
 
         {/* Recharge */}
-        <div style={s.card}>
-          <div style={s.cardHeader}>
-            <h3 style={s.cardTitle}>Recharge Wallet</h3>
+        <div className="wallet-card">
+          <div className="wallet-card-header">
+            <h3 className="wallet-card-title">Recharge Wallet</h3>
           </div>
-          <div style={s.inputWrapper}>
+          <div className="wallet-input-wrapper">
             <input
               type="number"
               placeholder="Enter Amount"
@@ -328,12 +144,12 @@ const Wallet = () => {
               onChange={(e) =>
                 setAmount(e.target.value)
               }
-              style={s.input}
+              className="wallet-input"
             />
 
             <button
               onClick={rechargeWallet}
-              style={s.btn}
+              className="wallet-btn"
             >
               <FaPlus />
               Recharge Now
@@ -342,19 +158,19 @@ const Wallet = () => {
         </div>
 
         {/* Transactions */}
-        <div style={s.card}>
-          <div style={s.cardHeader}>
-            <h3 style={s.cardTitle}>Recent Transactions</h3>
+        <div className="wallet-card">
+          <div className="wallet-card-header">
+            <h3 className="wallet-card-title">Recent Transactions</h3>
           </div>
 
-          <div style={s.tableWrapper}>
-            <table style={s.table}>
+          <div className="wallet-table-wrapper">
+            <table className="wallet-table">
               <thead>
-                <tr style={s.tableHead}>
-                  <th style={s.th}>Date</th>
-                  <th style={s.th}>Type</th>
-                  <th style={s.th}>Amount</th>
-                  <th style={s.th}>Description</th>
+                <tr className="wallet-table-head">
+                  <th className="wallet-th">Date</th>
+                  <th className="wallet-th">Type</th>
+                  <th className="wallet-th">Amount</th>
+                  <th className="wallet-th">Description</th>
                 </tr>
               </thead>
 
@@ -368,26 +184,26 @@ const Wallet = () => {
                     )
                     .map((t, index) => (
                       <tr key={index}>
-                        <td style={s.td}>
+                        <td className="wallet-td">
                           {new Date(
                             t.createdAt
                           ).toLocaleDateString('en-GB')}
                         </td>
 
-                        <td style={s.td}>
-                          <span style={s.typeBadge(t.type)}>
+                        <td className="wallet-td">
+                          <span className={`wallet-type-badge ${t.type === 'CREDIT' ? 'wallet-type-credit' : 'wallet-type-debit'}`}>
                             {t.type}
                           </span>
                         </td>
 
-                        <td style={s.td}>
-                          <span style={{ fontWeight: "600", color: "#0f172a" }}>
+                        <td className="wallet-td">
+                          <span className="wallet-amount">
                             ₹{t.amount}
                           </span>
                         </td>
 
-                        <td style={s.td}>
-                          <span style={{ color: "#475569" }}>
+                        <td className="wallet-td">
+                          <span className="wallet-description">
                             {t.description}
                           </span>
                         </td>
@@ -397,12 +213,7 @@ const Wallet = () => {
                   <tr>
                     <td
                       colSpan="4"
-                      style={{
-                        textAlign: "center",
-                        padding: "60px",
-                        color: "#94a3b8",
-                        fontSize: "14px",
-                      }}
+                      className="wallet-empty"
                     >
                       No Transactions Found
                     </td>

@@ -11,21 +11,23 @@
 .dashboard-sidebar {
   width: 280px;
   flex-shrink: 0;
-  height: 100vh;
-  position: sticky;
+  position: fixed;
   top: 0;
-  overflow-y: auto;
+  left: 0;
+  height: 100vh;
   background: #fff;
   border-right: 1px solid #e2e8f0;
+  overflow-y: auto;
   z-index: 50;
 }
 
 .dashboard-main {
   flex: 1;
+  margin-left: 280px;
   padding: 30px 40px;
-  overflow-x: hidden;
   min-width: 0;
-  width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 /* Header */
@@ -138,17 +140,17 @@
 
   .dashboard-sidebar {
     width: 280px;
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
     height: 100vh;
     flex-shrink: 0;
   }
 
   .dashboard-main {
     flex: 1;
+    margin-left: 280px;
     padding: 30px 40px;
-    width: calc(100% - 280px);
-    max-width: calc(100% - 280px);
   }
 
   .dashboard-grid {
@@ -170,8 +172,9 @@
 
   .dashboard-sidebar {
     width: 72px;
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
     height: 100vh;
     flex-shrink: 0;
     overflow: hidden;
@@ -179,9 +182,8 @@
 
   .dashboard-main {
     flex: 1;
-    padding: 24px 24px;
-    width: calc(100% - 72px);
-    max-width: calc(100% - 72px);
+    margin-left: 72px;
+    padding: 24px;
   }
 
   .dashboard-grid {
@@ -210,10 +212,11 @@
   }
 
   .dashboard-sidebar {
+    position: relative !important;
     width: 100% !important;
     height: auto !important;
-    position: relative !important;
-    top: 0 !important;
+    top: auto !important;
+    left: auto !important;
     border-right: none !important;
     border-bottom: 1px solid #e2e8f0 !important;
     overflow-y: visible !important;
@@ -222,10 +225,11 @@
   }
 
   .dashboard-main {
-    padding: 16px 14px 20px 14px !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    flex: 1 !important;
+    flex: 1;
+    width: 100%;
+    max-width: 100%;
+    margin-left: 0 !important;
+    padding: 16px 14px 20px !important;
   }
 
   .dashboard-header {
@@ -290,7 +294,7 @@
 /* Small Mobile */
 @media (max-width: 480px) {
   .dashboard-main {
-    padding: 12px 10px 16px 10px !important;
+    padding: 12px 10px 16px !important;
   }
 
   .dashboard-title {
@@ -345,7 +349,7 @@
 /* Very Small */
 @media (max-width: 360px) {
   .dashboard-main {
-    padding: 10px 8px 14px 8px !important;
+    padding: 10px 8px 14px !important;
   }
 
   .dashboard-grid {

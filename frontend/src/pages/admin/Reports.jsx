@@ -14,6 +14,7 @@ import {
   FaPrint,
   FaPlus,
 } from "react-icons/fa";
+import "./Reports.css"; // ← Import external CSS
 
 const Reports = () => {
   const [stats, setStats] = useState({
@@ -47,199 +48,39 @@ const Reports = () => {
     { id: 5, name: "Merchant Settlement", date: "May 2026", type: "Financial", size: "943 KB", status: "Ready" },
   ];
 
-  const styles = {
-    container: {
-      display: "flex",
-      minHeight: "100vh",
-      backgroundColor: "#f1f5f9",
-      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-    },
-    mainContent: {
-      flex: 1,
-      marginLeft: "280px",
-      padding: "20px 30px",
-      overflowX: "auto"
-    },
-    headerBlock: {
-      marginBottom: "25px",
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      flexWrap: "wrap",
-      gap: "15px"
-    },
-    headerTitle: {
-      fontSize: "22px",
-      fontWeight: "700",
-      color: "#0f172a",
-      margin: 0
-    },
-    headerSubtitle: {
-      fontSize: "13px",
-      color: "#64748b",
-      margin: "4px 0 0 0"
-    },
-    filterGroup: {
-      display: "flex",
-      gap: "10px",
-      flexWrap: "wrap"
-    },
-    filterSelect: {
-      padding: "8px 16px",
-      borderRadius: "10px",
-      border: "1px solid #e2e8f0",
-      background: "white",
-      fontSize: "13px",
-      color: "#334155",
-      cursor: "pointer",
-      outline: "none"
-    },
-    statsGrid: {
-      display: "grid",
-      gridTemplateColumns: "repeat(4, 1fr)",
-      gap: "20px",
-      marginBottom: "30px"
-    },
-    statCard: {
-      background: "white",
-      padding: "20px",
-      borderRadius: "16px",  // Changed from 12px to 16px
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
-      border: "1px solid #eef2f6"
-    },
-    statInfo: {
-      flex: 1
-    },
-    statLabel: {
-      fontSize: "12px",
-      fontWeight: "600",
-      textTransform: "uppercase",
-      color: "#64748b",
-      marginBottom: "6px",
-      letterSpacing: "0.5px"
-    },
-    statValue: {
-      fontSize: "28px",
-      fontWeight: "800",
-      color: "#0f172a",
-      margin: 0
-    },
-    statIconWrapper: {
-      width: "44px",
-      height: "44px",
-      borderRadius: "10px",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      flexShrink: 0
-    },
-    // Table Section
-    tableContainer: {
-      background: "white",
-      borderRadius: "16px",  // Changed from 12px to 16px
-      boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
-      overflow: "hidden",
-      border: "1px solid #eef2f6"
-    },
-    tableHeader: {
-      padding: "16px 24px",
-      borderBottom: "1px solid #eef2f6",
-      background: "white",
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      flexWrap: "wrap",
-      gap: "10px"
-    },
-    tableTitle: {
-      fontSize: "16px",
-      fontWeight: "600",
-      color: "#0f172a",
-      margin: 0
-    },
-    generateBtn: {
-      background: "#3b82f6",
-      border: "none",
-      padding: "8px 18px",
-      borderRadius: "8px",
-      cursor: "pointer",
-      fontSize: "13px",
-      fontWeight: "500",
-      display: "flex",
-      alignItems: "center",
-      gap: "8px",
-      color: "#fff",
-      transition: "all 0.2s"
-    },
-    tableWrapper: {
-      overflowX: "auto"
-    },
-    table: {
-      width: "100%",
-      borderCollapse: "collapse",
-      background: "white"
-    },
-    th: {
-      textAlign: "left",
-      padding: "12px 20px",
-      background: "#f8fafc",
-      color: "#64748b",
-      fontSize: "11px",
-      fontWeight: "600",
-      textTransform: "uppercase",
-      letterSpacing: "0.5px",
-      borderBottom: "1px solid #eef2f6"
-    },
-    td: {
-      padding: "14px 20px",
-      borderBottom: "1px solid #f1f5f9",
-      color: "#1e293b",
-      fontSize: "14px",
-      background: "white"
-    },
-    statusBadge: {
-      display: "inline-block",
-      padding: "4px 12px",
-      borderRadius: "20px",
-      fontSize: "12px",
-      fontWeight: "500"
-    },
-    actionGroup: {
-      display: "flex",
-      gap: "6px"
-    },
-    actionBtn: {
-      background: "white",
-      border: "1px solid #e2e8f0",
-      padding: "6px 10px",
-      borderRadius: "8px",
-      cursor: "pointer",
-      color: "#64748b",
-      transition: "all 0.2s",
-      display: "inline-flex",
-      alignItems: "center",
-      gap: "6px"
+  const getStatusClass = (status) => {
+    switch(status) {
+      case "Ready": return "reports-status-ready";
+      case "Processing": return "reports-status-processing";
+      case "Failed": return "reports-status-failed";
+      default: return "reports-status-default";
+    }
+  };
+
+  const getReportIconColor = (type) => {
+    switch(type) {
+      case "Financial": return "#10b981";
+      case "Operations": return "#f59e0b";
+      case "Analytics": return "#3b82f6";
+      default: return "#64748b";
     }
   };
 
   return (
-    <div style={styles.container}>
+    <div className="reports-container">
       <AdminSidebar />
-      <div style={styles.mainContent}>
+      <div className="reports-content">
         <AdminTopbar />
 
         {/* Header */}
-        <div style={styles.headerBlock}>
-          <div>
-            <h1 style={styles.headerTitle}>Reports & Analytics</h1>
-            <p style={styles.headerSubtitle}>Generate and download business reports</p>
+        <div className="reports-header">
+          <div className="reports-header-left">
+            <h1 className="reports-header-title">Reports & Analytics</h1>
+            <p className="reports-header-subtitle">Generate and download business reports</p>
           </div>
-          <div style={styles.filterGroup}>
+          <div className="reports-header-filters">
             <select 
-              style={styles.filterSelect} 
+              className="reports-select" 
               value={selectedReport} 
               onChange={(e) => setSelectedReport(e.target.value)}
             >
@@ -249,7 +90,7 @@ const Reports = () => {
               <option value="analytics">Analytics Reports</option>
             </select>
             <select 
-              style={styles.filterSelect} 
+              className="reports-select" 
               value={dateRange} 
               onChange={(e) => setDateRange(e.target.value)}
             >
@@ -263,122 +104,110 @@ const Reports = () => {
         </div>
 
         {/* Stats Cards */}
-        <div style={styles.statsGrid}>
-          <div style={styles.statCard}>
-            <div style={styles.statInfo}>
-              <div style={styles.statLabel}>Total Users</div>
-              <h2 style={styles.statValue}>{stats.totalUsers || 0}</h2>
+        <div className="reports-stats-grid">
+          <div className="reports-stat-card">
+            <div className="reports-stat-info">
+              <div className="reports-stat-label">Total Users</div>
+              <h2 className="reports-stat-value">{stats.totalUsers || 0}</h2>
             </div>
-            <div style={{ ...styles.statIconWrapper, background: "#dbeafe" }}>
+            <div className="reports-stat-icon reports-stat-icon-blue">
               <FaFileInvoice color="#3b82f6" size={20} />
             </div>
           </div>
 
-          <div style={styles.statCard}>
-            <div style={styles.statInfo}>
-              <div style={styles.statLabel}>Total Shipments</div>
-              <h2 style={styles.statValue}>{stats.totalShipments || 0}</h2>
+          <div className="reports-stat-card">
+            <div className="reports-stat-info">
+              <div className="reports-stat-label">Total Shipments</div>
+              <h2 className="reports-stat-value">{stats.totalShipments || 0}</h2>
             </div>
-            <div style={{ ...styles.statIconWrapper, background: "#fef3c7" }}>
+            <div className="reports-stat-icon reports-stat-icon-yellow">
               <FaTruck color="#f59e0b" size={20} />
             </div>
           </div>
 
-          <div style={styles.statCard}>
-            <div style={styles.statInfo}>
-              <div style={styles.statLabel}>Total Revenue</div>
-              <h2 style={styles.statValue}>₹{(stats.totalRevenue || 0).toLocaleString()}</h2>
+          <div className="reports-stat-card">
+            <div className="reports-stat-info">
+              <div className="reports-stat-label">Total Revenue</div>
+              <h2 className="reports-stat-value">₹{(stats.totalRevenue || 0).toLocaleString()}</h2>
             </div>
-            <div style={{ ...styles.statIconWrapper, background: "#dcfce7" }}>
+            <div className="reports-stat-icon reports-stat-icon-green">
               <FaRupeeSign color="#10b981" size={20} />
             </div>
           </div>
 
-          <div style={styles.statCard}>
-            <div style={styles.statInfo}>
-              <div style={styles.statLabel}>Total Orders</div>
-              <h2 style={styles.statValue}>{stats.totalOrders || 0}</h2>
+          <div className="reports-stat-card">
+            <div className="reports-stat-info">
+              <div className="reports-stat-label">Total Orders</div>
+              <h2 className="reports-stat-value">{stats.totalOrders || 0}</h2>
             </div>
-            <div style={{ ...styles.statIconWrapper, background: "#fee2e2" }}>
+            <div className="reports-stat-icon reports-stat-icon-red">
               <FaStore color="#ef4444" size={20} />
             </div>
           </div>
         </div>
 
         {/* Generated Reports Table - Main Section */}
-        <div style={styles.tableContainer}>
-          <div style={styles.tableHeader}>
-            <h3 style={styles.tableTitle}>Generated Reports</h3>
-            <button style={styles.generateBtn}>
+        <div className="reports-table-container">
+          <div className="reports-table-header">
+            <h3 className="reports-table-title">Generated Reports</h3>
+            <button className="reports-generate-btn">
               <FaPlus size={12} /> Generate New
             </button>
           </div>
-          <div style={styles.tableWrapper}>
-            <table style={styles.table}>
+          <div className="reports-table-wrapper">
+            <table className="reports-table">
               <thead>
                 <tr>
-                  <th style={styles.th}>REPORT NAME</th>
-                  <th style={styles.th}>DATE</th>
-                  <th style={styles.th}>TYPE</th>
-                  <th style={styles.th}>SIZE</th>
-                  <th style={styles.th}>STATUS</th>
-                  <th style={styles.th}>ACTIONS</th>
+                  <th className="reports-th">REPORT NAME</th>
+                  <th className="reports-th">DATE</th>
+                  <th className="reports-th">TYPE</th>
+                  <th className="reports-th">SIZE</th>
+                  <th className="reports-th">STATUS</th>
+                  <th className="reports-th">ACTIONS</th>
                 </tr>
               </thead>
               <tbody>
                 {detailedReports.map((report) => (
-                  <tr key={report.id}>
-                    <td style={styles.td}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <tr key={report.id} className="reports-tr">
+                    <td className="reports-td">
+                      <div className="reports-report-name">
                         <FaFileInvoice 
-                          color={
-                            report.type === "Financial" ? "#10b981" : 
-                            report.type === "Operations" ? "#f59e0b" : "#3b82f6"
-                          } 
+                          className="reports-report-icon"
+                          color={getReportIconColor(report.type)} 
                           size={14} 
                         />
-                        <span style={{ fontWeight: "500" }}>{report.name}</span>
+                        <span>{report.name}</span>
                       </div>
                     </td>
-                    <td style={styles.td}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    <td className="reports-td">
+                      <div className="reports-report-date">
                         <FaCalendarAlt size={11} color="#94a3b8" />
                         {report.date}
                       </div>
                     </td>
-                    <td style={styles.td}>
-                      <span style={{ 
-                        background: "#f1f5f9", 
-                        padding: "3px 10px", 
-                        borderRadius: "6px", 
-                        fontSize: "12px",
-                        color: "#475569"
-                      }}>
+                    <td className="reports-td">
+                      <span className="reports-report-type">
                         {report.type}
                       </span>
                     </td>
-                    <td style={styles.td}>{report.size}</td>
-                    <td style={styles.td}>
-                      <span style={{
-                        ...styles.statusBadge,
-                        background: report.status === "Ready" ? "#dcfce7" : "#fef3c7",
-                        color: report.status === "Ready" ? "#166534" : "#92400e"
-                      }}>
+                    <td className="reports-td reports-report-size">{report.size}</td>
+                    <td className="reports-td">
+                      <span className={`reports-status-badge ${getStatusClass(report.status)}`}>
                         {report.status}
                       </span>
                     </td>
-                    <td style={styles.td}>
-                      <div style={styles.actionGroup}>
-                        <button style={styles.actionBtn} title="View Report">
+                    <td className="reports-td">
+                      <div className="reports-actions">
+                        <button className="reports-action-btn" title="View Report">
                           <FaEye size={12} />
                         </button>
-                        <button style={styles.actionBtn} title="Download PDF">
+                        <button className="reports-action-btn reports-action-btn-pdf" title="Download PDF">
                           <FaFilePdf size={12} color="#ef4444" />
                         </button>
-                        <button style={styles.actionBtn} title="Download Excel">
+                        <button className="reports-action-btn reports-action-btn-excel" title="Download Excel">
                           <FaFileExcel size={12} color="#10b981" />
                         </button>
-                        <button style={styles.actionBtn} title="Print">
+                        <button className="reports-action-btn" title="Print">
                           <FaPrint size={12} />
                         </button>
                       </div>

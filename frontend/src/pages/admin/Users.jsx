@@ -10,6 +10,7 @@ import {
   FaSearch,
   FaTrash,
 } from "react-icons/fa";
+import "./Users.css"; // ← Import external CSS
 
 const Users = () => {
   const [users, setUsers] = useState([]);
@@ -74,119 +75,115 @@ const Users = () => {
     user.role?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const styles = {
-    container: { display: "flex", minHeight: "100vh", backgroundColor: "#f1f5f9", fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" },
-    mainContent: { flex: 1, marginLeft: "280px", padding: "20px 30px", overflowX: "auto" },
-    headerBlock: { marginBottom: "30px" },
-    headerTitle: { fontSize: "28px", fontWeight: "700", color: "#0f172a", margin: "0 0 8px 0" },
-    headerSubtitle: { fontSize: "14px", color: "#64748b", margin: 0 },
-    statsGrid: { display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "20px", marginBottom: "30px" },
-    statCard: { background: "white", padding: "20px", borderRadius: "16px", borderLeft: "4px solid", boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05)" },
-    statLabel: { fontSize: "12px", fontWeight: "600", textTransform: "uppercase", color: "#64748b", marginBottom: "8px", letterSpacing: "0.5px" },
-    statValue: { fontSize: "28px", fontWeight: "800", color: "#0f172a", margin: 0 },
-    searchBox: { display: "flex", alignItems: "center", background: "white", padding: "12px 20px", borderRadius: "14px", border: "1px solid #e2e8f0", marginBottom: "25px" },
-    searchInput: { border: "none", outline: "none", width: "100%", marginLeft: "12px", fontSize: "14px", background: "transparent" },
-    tableContainer: { background: "white", borderRadius: "20px", boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05)", overflow: "hidden", border: "1px solid #eef2f6" },
-    tableHeader: { padding: "20px 24px", borderBottom: "1px solid #eef2f6", background: "white" },
-    tableTitle: { fontSize: "18px", fontWeight: "700", color: "#0f172a", margin: 0 },
-    tableWrapper: { overflowX: "auto" },
-    table: { width: "100%", borderCollapse: "collapse", background: "white" },
-    th: { textAlign: "left", padding: "16px 20px", background: "#f8fafc", color: "#475569", fontSize: "12px", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px", borderBottom: "1px solid #eef2f6" },
-    td: { padding: "18px 20px", borderBottom: "1px solid #f1f5f9", color: "#166534", fontSize: "14px", background: "white" },
-    userInfo: { display: "flex", alignItems: "center", gap: "12px" },
-    avatar: { width: "40px", height: "40px", background: "linear-gradient(135deg, #3b82f6, #8b5cf6)", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: "14px", fontWeight: "700" },
-    userName: { fontWeight: "600", color: "#0f172a" },
-    emailText: { color: "#64748b" },
-    roleBadge: { display: "inline-block", padding: "5px 14px", borderRadius: "30px", fontSize: "12px", fontWeight: "600" },
-    statusBadge: { display: "inline-block", padding: "5px 14px", borderRadius: "30px", fontSize: "12px", fontWeight: "600" },
-    actionGroup: { display: "flex", gap: "8px" },
-    actionBtn: { background: "white", border: "1px solid #e2e8f0", padding: "8px 12px", borderRadius: "10px", cursor: "pointer", color: "#64748b", transition: "all 0.2s", display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px" },
-    noData: { textAlign: "center", padding: "50px", color: "#94a3b8", fontSize: "14px" }
-  };
-
-  const getRoleStyle = (role) => {
-    if (role === "ADMIN" || role === "SUPER_ADMIN") return { ...styles.roleBadge, background: "#dbeafe", color: "#1e40af" };
-    if (role === "MERCHANT") return { ...styles.roleBadge, background: "#dcfce7", color: "#166534" };
-    return { ...styles.roleBadge, background: "#f1f5f9", color: "#475569" };
+  const getRoleClass = (role) => {
+    if (role === "ADMIN" || role === "SUPER_ADMIN") return "users-role-admin";
+    if (role === "MERCHANT") return "users-role-merchant";
+    return "users-role-default";
   };
 
   return (
-    <div style={styles.container}>
+    <div className="users-container">
       <AdminSidebar />
-      <div style={styles.mainContent}>
+      <div className="users-main">
         <AdminTopbar />
 
-        <div style={styles.headerBlock}>
-          <h1 style={styles.headerTitle}>👥 Users Management</h1>
-          <p style={styles.headerSubtitle}>Manage platform users, admins and merchants</p>
+        <div className="users-header-block">
+          <h1 className="users-header-title">👥 Users Management</h1>
+          <p className="users-header-subtitle">Manage platform users, admins and merchants</p>
         </div>
 
-        <div style={styles.statsGrid}>
-          <div style={{ ...styles.statCard, borderLeftColor: "#3b82f6" }}>
-            <div style={styles.statLabel}>Total Users</div>
-            <h2 style={styles.statValue}>{users.length}</h2>
+        <div className="users-stats-grid">
+          <div className="users-stat-card users-stat-card-blue">
+            <div className="users-stat-label">Total Users</div>
+            <h2 className="users-stat-value">{users.length}</h2>
           </div>
-          <div style={{ ...styles.statCard, borderLeftColor: "#10b981" }}>
-            <div style={styles.statLabel}>Admins</div>
-            <h2 style={styles.statValue}>{totalAdmins}</h2>
+          <div className="users-stat-card users-stat-card-green">
+            <div className="users-stat-label">Admins</div>
+            <h2 className="users-stat-value">{totalAdmins}</h2>
           </div>
-          <div style={{ ...styles.statCard, borderLeftColor: "#f59e0b" }}>
-            <div style={styles.statLabel}>Merchants</div>
-            <h2 style={styles.statValue}>{totalMerchants}</h2>
+          <div className="users-stat-card users-stat-card-yellow">
+            <div className="users-stat-label">Merchants</div>
+            <h2 className="users-stat-value">{totalMerchants}</h2>
           </div>
-          <div style={{ ...styles.statCard, borderLeftColor: "#ef4444" }}>
-            <div style={styles.statLabel}>Pending Users</div>
-            <h2 style={styles.statValue}>{pendingUsers}</h2>
+          <div className="users-stat-card users-stat-card-red">
+            <div className="users-stat-label">Pending Users</div>
+            <h2 className="users-stat-value">{pendingUsers}</h2>
           </div>
         </div>
 
-        <div style={styles.searchBox}>
+        <div className="users-search-box">
           <FaSearch color="#94a3b8" size={16} />
-          <input type="text" placeholder="Search users by name, email or role..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={styles.searchInput} />
+          <input 
+            type="text" 
+            placeholder="Search users by name, email or role..." 
+            value={searchTerm} 
+            onChange={(e) => setSearchTerm(e.target.value)} 
+            className="users-search-input" 
+          />
         </div>
 
-        <div style={styles.tableContainer}>
-          <div style={styles.tableHeader}><h3 style={styles.tableTitle}>User List</h3></div>
-          <div style={styles.tableWrapper}>
-            <table style={styles.table}>
+        <div className="users-table-container">
+          <div className="users-table-header">
+            <h3 className="users-table-title">User List</h3>
+          </div>
+          <div className="users-table-wrapper">
+            <table className="users-table">
               <thead>
                 <tr>
-                  <th style={styles.th}>NAME</th>
-                  <th style={styles.th}>EMAIL</th>
-                  <th style={styles.th}>ROLE</th>
-                  <th style={styles.th}>STATUS</th>
-                  <th style={styles.th}>ACTION</th>
+                  <th className="users-th">NAME</th>
+                  <th className="users-th">EMAIL</th>
+                  <th className="users-th">ROLE</th>
+                  <th className="users-th">STATUS</th>
+                  <th className="users-th">ACTION</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredUsers.length > 0 ? (
                   filteredUsers.map((user) => (
                     <tr key={user._id}>
-                      <td style={styles.td}>
-                        <div style={styles.userInfo}>
-                          <div style={styles.avatar}>{user.name?.substring(0, 2).toUpperCase()}</div>
-                          <span style={styles.userName}>{user.name}</span>
+                      <td className="users-td">
+                        <div className="users-user-info">
+                          <div className="users-avatar">
+                            {user.name?.substring(0, 2).toUpperCase()}
+                          </div>
+                          <span className="users-user-name">{user.name}</span>
                         </div>
                       </td>
-                      <td style={styles.td}><span style={styles.emailText}>{user.email}</span></td>
-                      <td style={styles.td}><span style={getRoleStyle(user.role)}>{user.role}</span></td>
-                      <td style={styles.td}>
-                        <span style={{ ...styles.statusBadge, background: user.isBlocked ? "#fee2e2" : "#dcfce7", color: user.isBlocked ? "#dc2626" : "#166534" }}>
+                      <td className="users-td">
+                        <span className="users-email-text">{user.email}</span>
+                      </td>
+                      <td className="users-td">
+                        <span className={`users-role-badge ${getRoleClass(user.role)}`}>
+                          {user.role}
+                        </span>
+                      </td>
+                      <td className="users-td">
+                        <span className={`users-status-badge ${user.isBlocked ? 'users-status-blocked' : 'users-status-active'}`}>
                           {user.isBlocked ? "Blocked" : "Active"}
                         </span>
                       </td>
-                      <td style={styles.td}>
-                        <div style={styles.actionGroup}>
-                          <button style={styles.actionBtn} onClick={() => toggleUserStatus(user._id, user.isBlocked)}>
+                      <td className="users-td">
+                        <div className="users-action-group">
+                          <button 
+                            className={`users-action-btn ${user.isBlocked ? 'users-action-btn-unblock' : 'users-action-btn-block'}`}
+                            onClick={() => toggleUserStatus(user._id, user.isBlocked)}
+                          >
                             {user.isBlocked ? "Unblock" : "Block"}
                           </button>
-                          <button style={styles.actionBtn} onClick={() => deleteUser(user._id)}>Delete</button>
+                          <button 
+                            className="users-action-btn users-action-btn-delete"
+                            onClick={() => deleteUser(user._id)}
+                          >
+                            Delete
+                          </button>
                         </div>
                       </td>
                     </tr>
                   ))
                 ) : (
-                  <tr><td colSpan="5" style={styles.noData}>No Users Found</td></tr>
+                  <tr>
+                    <td colSpan="5" className="users-no-data">No Users Found</td>
+                  </tr>
                 )}
               </tbody>
             </table>
