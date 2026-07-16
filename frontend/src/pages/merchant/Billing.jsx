@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import api from "../../services/api";
 import { FaDownload, FaSearch, FaFilter, FaWallet, FaFileInvoice, FaCheckCircle, FaClock, FaRupeeSign } from "react-icons/fa";
-import "./Billing.css"; // ✅ CSS imported
+import "./Billing.css"; 
 
 const Billing = () => {
   const [invoices, setInvoices] = useState([]);
@@ -123,7 +123,7 @@ const Billing = () => {
 
   const copyInvoiceNumber = (invoiceNumber) => {
     navigator.clipboard.writeText(invoiceNumber);
-    // You can add toast notification here
+    
   };
 
   const downloadInvoice = async (id) => {

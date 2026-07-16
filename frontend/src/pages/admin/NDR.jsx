@@ -20,7 +20,7 @@ import {
 } from 'react-icons/fa';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 import api from '../../services/api';
-import './NDR.css'; // ← Import external CSS
+import './NDR.css'; 
 
 const NDR = () => {
   const [ndrRecords, setNdrRecords] = useState([]);

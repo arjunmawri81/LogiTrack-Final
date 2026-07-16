@@ -14,7 +14,7 @@ import {
   FaChartLine,
   FaBell
 } from "react-icons/fa";
-import "./Dashboard.css"; // ← Import external CSS
+import "./Dashboard.css"; 
 
 const Dashboard = () => {
   const navigate = useNavigate();

@@ -15,7 +15,7 @@ import {
   FaBox,
   FaShoppingCart,
 } from "react-icons/fa";
-import "./Merchants.css"; // ← Import external CSS
+import "./Merchants.css"; 
 
 const Merchants = () => {
   // States

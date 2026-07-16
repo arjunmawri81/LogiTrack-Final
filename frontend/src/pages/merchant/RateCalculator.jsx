@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import { FaCalculator, FaTruck, FaClock, FaRupeeSign, FaBox, FaRulerCombined, FaCreditCard } from "react-icons/fa";
-import "./RateCalculator.css"; // ✅ CSS imported
+import "./RateCalculator.css"; 
 
 const RateCalculator = () => {
   const [pickup, setPickup] = useState("");

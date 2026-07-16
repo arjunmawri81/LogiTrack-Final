@@ -22,7 +22,7 @@ import {
 } from "react-icons/fa";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import api from "../../services/api";
-import "./RTO.css"; // ← Import external CSS
+import "./RTO.css"; 
 
 const RTO = () => {
   const [shipments, setShipments] = useState([]);
@@ -36,7 +36,7 @@ const RTO = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
-  // Status Styles - Updated with new workflow
+  
   const statusStyles = {
     INITIATED: {
       className: "rto-status-initiated",

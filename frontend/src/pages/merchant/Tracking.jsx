@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import api from "../../services/api";
 import { FaTruck, FaBox, FaCalendarAlt, FaPhoneAlt, FaUser, FaCheckCircle, FaClock, FaMapMarkerAlt } from "react-icons/fa";
-import "./Tracking.css"; // ✅ CSS imported
+import "./Tracking.css"; 
 
 const Tracking = () => {
   const [awb, setAwb] = useState("");

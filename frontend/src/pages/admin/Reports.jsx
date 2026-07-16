@@ -14,7 +14,7 @@ import {
   FaPrint,
   FaPlus,
 } from "react-icons/fa";
-import "./Reports.css"; // ← Import external CSS
+import "./Reports.css"; 
 
 const Reports = () => {
   const [stats, setStats] = useState({

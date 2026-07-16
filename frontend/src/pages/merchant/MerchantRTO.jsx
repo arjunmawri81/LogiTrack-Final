@@ -25,7 +25,7 @@ import {
   FaInfoCircle,
   FaLocationArrow
 } from 'react-icons/fa';
-import "./MerchantRTO.css"; // ✅ CSS imported
+import "./MerchantRTO.css"; 
 
 const MerchantRTO = () => {
   const navigate = useNavigate();

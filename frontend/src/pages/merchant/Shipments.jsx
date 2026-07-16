@@ -16,7 +16,7 @@ import {
   FaUndo,
   FaFilter,
 } from "react-icons/fa";
-import "./Shipments.css"; // ✅ CSS imported
+import "./Shipments.css"; 
 
 const Shipments = () => {
   const navigate = useNavigate();

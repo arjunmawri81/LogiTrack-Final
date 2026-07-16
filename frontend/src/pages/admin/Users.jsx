@@ -10,7 +10,7 @@ import {
   FaSearch,
   FaTrash,
 } from "react-icons/fa";
-import "./Users.css"; // ← Import external CSS
+import "./Users.css"; 
 
 const Users = () => {
   const [users, setUsers] = useState([]);

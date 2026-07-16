@@ -3,14 +3,14 @@ import { useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import api from "../../services/api";
 import { FaBox, FaTruck, FaArrowLeft, FaCheckCircle, FaShippingFast, FaWallet, FaRupeeSign, FaStar, FaSortAmountUp, FaShieldAlt } from "react-icons/fa";
-import "./CreateShipment.css"; // ✅ CSS imported
+import "./CreateShipment.css"; 
 
 const CreateShipment = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const selectedOrder = location.state?.order;
   
-  // ✅ Step 1: Added bulk shipment support
+  //   bulk shipment support
   const bulkOrderIds = location.state?.orderIds || [];
   const isBulk = location.state?.isBulk || false;
 
@@ -57,12 +57,12 @@ const CreateShipment = () => {
     fetchWallet();
   }, []);
 
-  // ✅ Step 2: Bulk order auto-select effect
+  // Bulk order auto-select effect
   useEffect(() => {
     if (isBulk && bulkOrderIds.length > 0 && orders.length > 0) {
       setFormData((prev) => ({
         ...prev,
-        orderId: bulkOrderIds[0], // recommendation ke liye pehla order
+        orderId: bulkOrderIds[0], 
       }));
     }
   }, [orders, isBulk, bulkOrderIds]);

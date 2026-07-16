@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import api from "../../services/api";
 import { FaDownload } from "react-icons/fa";
-import "./Invoices.css"; // ✅ CSS imported
+import "./Invoices.css"; 
 
 const Invoices = () => {
   const [invoices, setInvoices] = useState([]);

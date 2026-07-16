@@ -11,7 +11,7 @@ import {
   FaTimesCircle,
   FaTruck,
 } from "react-icons/fa";
-import "./Orders.css"; // ← Import external CSS
+import "./Orders.css"; 
 
 const Orders = () => {
   const navigate = useNavigate();

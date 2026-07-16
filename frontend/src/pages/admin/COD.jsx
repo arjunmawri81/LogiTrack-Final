@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 import api from "../../services/api";
-import "./COD.css"; // ← Import external CSS
+import "./COD.css"; 
 
 const COD = () => {
   const navigate = useNavigate();

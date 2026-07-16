@@ -23,7 +23,7 @@ import {
   FaFileAlt,
   FaInfoCircle
 } from 'react-icons/fa';
-import "./MerchantNDR.css"; // ✅ CSS imported
+import "./MerchantNDR.css"; 
 
 const MerchantNDR = () => {
   const [ndrRecords, setNdrRecords] = useState([]);

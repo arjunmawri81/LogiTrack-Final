@@ -20,7 +20,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import "./Revenue.css"; // ← Import external CSS
+import "./Revenue.css"; 
 
 const Revenue = () => {
   const [range, setRange] = useState("month");

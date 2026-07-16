@@ -19,7 +19,7 @@ import {
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 import api from "../../services/api";
-import "./AdminTickets.css"; // ← Import external CSS
+import "./AdminTickets.css"; 
 
 const AdminTickets = () => {
   const [tickets, setTickets] = useState([]);
