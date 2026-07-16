@@ -47,7 +47,6 @@ import MerchantRTO from "./pages/merchant/MerchantRTO";
 import AdminDashboard from "./pages/admin/Dashboard";
 import Users from "./pages/admin/Users";
 import Merchants from "./pages/admin/Merchants";
-// ❌ REMOVED: import Couriers from "./pages/admin/Couriers";
 import Pricing from "./pages/admin/Pricing";
 import AdminRevenue from "./pages/admin/Revenue";
 import AdminReports from "./pages/admin/Reports";
@@ -61,7 +60,6 @@ import AdminNDR from "./pages/admin/NDR";
 import AdminRTO from "./pages/admin/RTO";
 import COD from "./pages/admin/COD";
 import AdminTickets from "./pages/admin/AdminTickets";
-// ✅ NEW IMPORT: Admin RateCardManagement (Read-Only)
 import AdminRateCardManagement from "./pages/admin/RateCardManagement";
 
 // ======================
@@ -77,9 +75,9 @@ import ApiMonitoring from "./pages/superadmin/ApiMonitoring";
 import Revenue from "./pages/superadmin/Revenue";
 import AuditLogs from "./pages/superadmin/AuditLogs";
 import SuperAdminSettings from "./pages/superadmin/Settings";
-// ✅ NEW IMPORT: Super Admin RateCardManagement (Full Access)
+
 import SuperAdminRateCardManagement from "./pages/superadmin/RateCardManagement";
-// ✅ NEW IMPORT: Couriers from superadmin
+
 import Couriers from "./pages/superadmin/Couriers";
 
 // ======================
@@ -142,8 +140,7 @@ function App() {
         <Route path="/admin/orders/edit/:id" element={<AdminRoute><AdminEditOrder /></AdminRoute>} />
         <Route path="/admin/shipments" element={<AdminRoute><AdminShipments /></AdminRoute>} />
         <Route path="/admin/shipments/:id" element={<AdminRoute><AdminShipmentDetails /></AdminRoute>} />
-        {/* ❌ REMOVED: Admin Couriers Route */}
-        {/* <Route path="/admin/couriers" element={<AdminRoute><Couriers /></AdminRoute>} /> */}
+      
         <Route path="/admin/pricing" element={<AdminRoute><Pricing /></AdminRoute>} />
         <Route path="/admin/revenue" element={<AdminRoute><AdminRevenue /></AdminRoute>} />
         <Route path="/admin/reports" element={<AdminRoute><AdminReports /></AdminRoute>} />
@@ -152,7 +149,7 @@ function App() {
         <Route path="/admin/rto" element={<AdminRoute><AdminRTO /></AdminRoute>} />
         <Route path="/admin/cod" element={<AdminRoute><COD /></AdminRoute>} />
         <Route path="/admin/tickets" element={<AdminRoute><AdminTickets /></AdminRoute>} />
-        {/* ✅ UPDATED: Admin RateCardManagement Route - Read-Only */}
+       
         <Route
           path="/admin/ratecard/:merchantId"
           element={
@@ -168,9 +165,7 @@ function App() {
         <Route path="/superadmin/users" element={<SuperAdminRoute><UserManagement /></SuperAdminRoute>} />
         <Route path="/superadmin/orders" element={<SuperAdminRoute><OrderManagement /></SuperAdminRoute>} />
         <Route path="/superadmin/merchants" element={<SuperAdminRoute><MerchantManagement /></SuperAdminRoute>} />
-        {/* ✅ NEW: Super Admin Couriers Route */}
         <Route path="/superadmin/couriers" element={<SuperAdminRoute><Couriers /></SuperAdminRoute>} />
-        {/* ✅ UPDATED: Super Admin RateCardManagement Route - Full Access */}
         <Route path="/superadmin/ratecard/:merchantId" element={<SuperAdminRoute><SuperAdminRateCardManagement /></SuperAdminRoute>} />
         <Route path="/superadmin/commission" element={<SuperAdminRoute><Commission /></SuperAdminRoute>} />
         <Route path="/superadmin/revenue" element={<SuperAdminRoute><Revenue /></SuperAdminRoute>} />
