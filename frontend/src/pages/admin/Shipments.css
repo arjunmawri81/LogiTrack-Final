@@ -4,15 +4,30 @@
 
 /* ---------- CONTAINER ---------- */
 .shipments-container {
+  display: flex;
   background: #f8fafc;
   min-height: 100vh;
+  font-family: 'Inter', sans-serif;
 }
 
+/* ---------- SIDEBAR WRAPPER ---------- */
+.shipments-sidebar-wrapper {
+  width: 280px;
+  flex-shrink: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  z-index: 50;
+}
+
+/* ---------- CONTENT ---------- */
 .shipments-content {
   flex: 1;
   margin-left: 280px;
   min-height: 100vh;
   background: #f8fafc;
+  box-sizing: border-box;
 }
 
 /* ---------- HEADER ---------- */
@@ -312,15 +327,15 @@
   table-layout: fixed;
 }
 
-/* Table Columns */
+/* Table Columns - Fixed Widths */
 .shipments-table .col-awb { width: 12%; }
-.shipments-table .col-order { width: 10%; }
+.shipments-table .col-order { width: 12%; }
 .shipments-table .col-merchant { width: 12%; }
-.shipments-table .col-customer { width: 12%; }
+.shipments-table .col-customer { width: 14%; }
 .shipments-table .col-courier { width: 10%; }
-.shipments-table .col-status { width: 13%; }
-.shipments-table .col-scan { width: 13%; }
-.shipments-table .col-actions { width: 18%; }
+.shipments-table .col-status { width: 12%; }
+.shipments-table .col-scan { width: 12%; }
+.shipments-table .col-actions { width: 16%; }
 
 .shipments-th {
   padding: 14px 12px;
@@ -332,6 +347,7 @@
   letter-spacing: 0.5px;
   background: #f8fafc;
   border-bottom: 2px solid #e2e8f0;
+  white-space: nowrap;
 }
 
 .shipments-td {
@@ -340,6 +356,8 @@
   color: #0f172a;
   border-bottom: 1px solid #f1f5f9;
   transition: background 0.15s;
+  vertical-align: middle;
+  word-break: break-word;
 }
 
 .shipments-row {
@@ -354,15 +372,30 @@
   border-bottom: none;
 }
 
+/* AWB */
 .shipments-awb {
   font-weight: 500;
   word-break: break-all;
+  font-size: 12px;
 }
 
+/* Order ID */
+.shipments-order-id {
+  font-weight: 500;
+  color: #0f172a;
+  word-break: break-all;
+  font-size: 12px;
+}
+
+/* Merchant */
 .shipments-merchant {
   display: flex;
   align-items: center;
   gap: 6px;
+  font-weight: 500;
+  color: #0f172a;
+  word-break: break-word;
+  font-size: 12px;
 }
 
 .shipments-merchant-icon {
@@ -370,6 +403,7 @@
   font-size: 11px;
 }
 
+/* Customer */
 .shipments-customer {
   display: flex;
   flex-direction: column;
@@ -401,10 +435,17 @@
   font-size: 9px;
 }
 
+/* Courier */
+.shipments-courier {
+  font-weight: 500;
+  color: #0f172a;
+  font-size: 12px;
+}
+
 /* ---------- STATUS BADGE ---------- */
 .shipments-status-badge {
   display: inline-block;
-  padding: 3px 10px;
+  padding: 4px 12px;
   border-radius: 20px;
   color: #fff;
   font-size: 10px;
@@ -412,15 +453,34 @@
   letter-spacing: 0.3px;
 }
 
-.shipments-status-scan {
-  font-size: 9px;
-  color: #94a3b8;
-  margin-top: 3px;
+.shipments-status-pickup {
+  background: #f59e0b;
+}
+
+.shipments-status-transit {
+  background: #3b82f6;
+}
+
+.shipments-status-delivered {
+  background: #10b981;
+}
+
+.shipments-status-ndr {
+  background: #ef4444;
+}
+
+.shipments-status-rto {
+  background: #8b5cf6;
+}
+
+.shipments-status-default {
+  background: #64748b;
 }
 
 .shipments-last-scan-date {
   font-size: 12px;
   font-weight: 500;
+  color: #0f172a;
 }
 
 .shipments-last-scan-time {
@@ -591,8 +651,17 @@
 
 /* ---------- LAPTOP (1024px) ---------- */
 @media (max-width: 1024px) {
+  .shipments-sidebar-wrapper {
+    width: 72px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    overflow: hidden;
+  }
+
   .shipments-content {
-    margin-left: 80px;
+    margin-left: 72px;
   }
 
   .shipments-table-wrapper {
@@ -602,12 +671,39 @@
   .shipments-table {
     min-width: 1100px;
   }
+
+  .shipments-table .col-awb { width: 10%; }
+  .shipments-table .col-order { width: 11%; }
+  .shipments-table .col-merchant { width: 11%; }
+  .shipments-table .col-customer { width: 13%; }
+  .shipments-table .col-courier { width: 10%; }
+  .shipments-table .col-status { width: 12%; }
+  .shipments-table .col-scan { width: 15%; }
+  .shipments-table .col-actions { width: 18%; }
+
+  .shipments-th,
+  .shipments-td {
+    padding: 10px 10px;
+    font-size: 11px;
+  }
 }
 
 /* ---------- TABLET (768px) ---------- */
 @media (max-width: 768px) {
+  .shipments-sidebar-wrapper {
+    width: 100% !important;
+    height: auto !important;
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    overflow: visible !important;
+  }
+
   .shipments-content {
-    margin-left: 0;
+    margin-left: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
   }
 
   .shipments-header {
@@ -671,6 +767,14 @@
 
 /* ---------- MOBILE (480px) ---------- */
 @media (max-width: 480px) {
+  .shipments-sidebar-wrapper {
+    width: 100% !important;
+  }
+
+  .shipments-content {
+    padding: 0;
+  }
+
   .shipments-header {
     padding: 12px 16px;
     flex-direction: column;
