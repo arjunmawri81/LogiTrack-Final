@@ -1,4 +1,4 @@
-// NDR.jsx - Merchant NDR Page (Updated with Complete View Modal)
+
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../../components/Sidebar';
 import api from '../../services/api';

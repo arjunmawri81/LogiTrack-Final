@@ -256,32 +256,6 @@ const Login = () => {
       textDecoration: "none",
       fontWeight: "600",
     },
-    demoBox: {
-      marginTop: "30px",
-      padding: "16px",
-      background: "#f8fafc",
-      borderRadius: "12px",
-    },
-    demoTitle: {
-      fontSize: "12px",
-      fontWeight: "600",
-      color: "#64748b",
-      margin: "0 0 8px 0",
-    },
-    demoRow: {
-      display: "flex",
-      gap: "8px",
-      fontSize: "11px",
-      marginBottom: "4px",
-    },
-    demoLabel: {
-      fontWeight: "600",
-      color: "#0f172a",
-      minWidth: "65px",
-    },
-    demoCode: {
-      color: "#f97316",
-    },
     spinner: {
       display: "inline-block",
       width: "20px",
@@ -410,18 +384,6 @@ const Login = () => {
             <p style={styles.footerText}>
               Don't have an account? <Link to="/register" style={styles.footerLink}>Register</Link>
             </p>
-          </div>
-
-          <div style={styles.demoBox}>
-            <p style={styles.demoTitle}>Demo Credentials:</p>
-            <div style={styles.demoRow}>
-              <span style={styles.demoLabel}>Admin:</span>
-              <code style={styles.demoCode}>admin@gmail.com / admin123</code>
-            </div>
-            <div style={styles.demoRow}>
-              <span style={styles.demoLabel}>Merchant:</span>
-              <code style={styles.demoCode}>merchant@gmail.com / merchant123</code>
-            </div>
           </div>
         </div>
       </div>

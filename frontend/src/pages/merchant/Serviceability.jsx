@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Sidebar from "../../components/Sidebar";
-import "./Serviceability.css"; // ✅ CSS imported
+import "./Serviceability.css"; 
 
 const Serviceability = () => {
   const [pickup, setPickup] = useState("");

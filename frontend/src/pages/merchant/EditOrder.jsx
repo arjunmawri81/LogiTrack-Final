@@ -169,7 +169,7 @@ const EditOrder = () => {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
               <button
-                onClick={() => navigate(`/merchant/orders/${id}`)}
+                onClick={() => navigate(-1)} // ✅ Changed: Now goes back to previous page
                 style={{
                   background: "transparent",
                   border: "none",
@@ -184,7 +184,7 @@ const EditOrder = () => {
                 onMouseEnter={(e) => e.currentTarget.style.color = "#0f172a"}
                 onMouseLeave={(e) => e.currentTarget.style.color = "#64748b"}
               >
-                <FaArrowLeft /> Back to Order Details
+                <FaArrowLeft /> Back
               </button>
               <h1 style={{
                 fontSize: "28px",
@@ -560,7 +560,7 @@ const EditOrder = () => {
             }}>
               <button
                 type="button"
-                onClick={() => navigate(`/merchant/orders/${id}`)}
+                onClick={() => navigate(-1)} // ✅ Changed: Now goes back to previous page
                 style={{
                   padding: "12px 24px",
                   borderRadius: "10px",
@@ -573,7 +573,7 @@ const EditOrder = () => {
                   transition: "all 0.2s",
                   display: "flex",
                   alignItems: "center",
-                  gap: "8px"
+                  gap: "8px",
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.background = "#f8fafc";
