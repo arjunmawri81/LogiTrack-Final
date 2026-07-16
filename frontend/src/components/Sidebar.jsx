@@ -58,10 +58,15 @@ const Sidebar = () => {
       </button>
 
       {/* ===== OVERLAY ===== */}
-      <div className={`sidebar-overlay ${isOpen ? "active" : ""}`} onClick={closeSidebar} />
+      {isOpen && (
+        <div
+          className="sidebar-overlay"
+          onClick={closeSidebar}
+        />
+      )}
 
       {/* ===== SIDEBAR ===== */}
-      <div className={`sidebar ${isOpen ? "open" : ""}`}>
+      <aside className={`sidebar ${isOpen ? "open" : ""}`}>
         <div className="sidebar-header">
           <h2 className="logo">LogiTrack</h2>
           <span className="logo-subtitle">
@@ -230,7 +235,7 @@ const Sidebar = () => {
             <span>Logout</span>
           </a>
         </div>
-      </div>
+      </aside>
     </>
   );
 };
