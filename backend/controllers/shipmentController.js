@@ -14,6 +14,7 @@ const AdmZip = require("adm-zip");
 const fs = require("fs");
 const path = require("path");
 const mongoose = require("mongoose");
+const Warehouse = require("../models/Warehouse"); // Added Warehouse import
 
 // ===============================
 // LOGGER (Simple Structured Logger)
@@ -819,26 +820,48 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
        align: 'left',
      });
   
-  const gstY = companyY + 14;
+  const pickup = shipment.pickupAddress || {};
+
+  doc.font(regularFont)
+     .fontSize(fontSize)
+     .text(pickup.warehouseName || "", leftFromX, companyY + 14);
+
+  doc.text(
+    `${pickup.addressLine1 || ""} ${pickup.addressLine2 || ""}`,
+    leftFromX,
+    companyY + 28,
+    {
+      width: leftFromWidth
+    }
+  );
+
+  doc.text(
+    `${pickup.city || ""}, ${pickup.state || ""} - ${pickup.pincode || ""}`,
+    leftFromX,
+    companyY + 42,
+    {
+      width: leftFromWidth
+    }
+  );
+
+  doc.text(
+    `Contact: ${pickup.contactPerson || ""}`,
+    leftFromX,
+    companyY + 56
+  );
+
+  doc.text(
+    `Phone: ${pickup.phone || ""}`,
+    leftFromX,
+    companyY + 70
+  );
+
   if (shipment.merchantId?.gst) {
-    doc.font(regularFont)
-       .fontSize(fontSize)
-       .fillColor('#000000')
-       .text(`GST: ${shipment.merchantId.gst}`, leftFromX, gstY, {
-         width: leftFromWidth,
-         align: 'left',
-       });
-  }
-  
-  const fromPhoneY = gstY + 14;
-  if (shipment.merchantId?.phone) {
-    doc.font(regularFont)
-       .fontSize(fontSize)
-       .fillColor('#000000')
-       .text(`Phone: ${shipment.merchantId.phone}`, leftFromX, fromPhoneY, {
-         width: leftFromWidth,
-         align: 'left',
-       });
+    doc.text(
+      `GST: ${shipment.merchantId.gst}`,
+      leftFromX,
+      companyY + 84
+    );
   }
   
   const rightOrderX = dividerX3 + padding;
@@ -1088,15 +1111,16 @@ const createShipment = async (req, res) => {
     const {
       orderId,
       courierId,
+      warehouseId, // Added warehouseId
       insuranceEnabled = false,
     } = req.body;
 
-    if (!orderId || !courierId) {
+    if (!orderId || !courierId || !warehouseId) { // Updated validation
       await session.abortTransaction();
-      logger.warn("Missing required fields", { orderId, courierId });
+      logger.warn("Missing required fields", { orderId, courierId, warehouseId });
       return res.status(400).json({
         success: false,
-        message: "OrderId and CourierId are required",
+        message: "Order, Courier and Warehouse are required",
       });
     }
 
@@ -1125,6 +1149,21 @@ const createShipment = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Shipment already exists for this order",
+      });
+    }
+
+    const warehouse = await Warehouse.findOne({ // Added warehouse fetch
+      _id: warehouseId,
+      merchantId: req.user.id,
+      isActive: true,
+    }).session(session);
+
+    if (!warehouse) {
+      await session.abortTransaction();
+      logger.warn("Warehouse not found", { warehouseId, userId: req.user.id });
+      return res.status(404).json({
+        success: false,
+        message: "Warehouse not found",
       });
     }
 
@@ -1239,6 +1278,18 @@ const createShipment = async (req, res) => {
     const shipment = await Shipment.create([{
       orderId,
       merchantId: req.user.id,
+      warehouseId: warehouse._id, // Added warehouseId
+      pickupAddress: { // Added pickupAddress - FIXED: warehouse.warehouseName
+        warehouseName: warehouse.warehouseName,
+        contactPerson: warehouse.contactPerson,
+        phone: warehouse.phone,
+        email: warehouse.email,
+        addressLine1: warehouse.addressLine1,
+        addressLine2: warehouse.addressLine2,
+        city: warehouse.city,
+        state: warehouse.state,
+        pincode: warehouse.pincode,
+      },
       courier: courier.name,
       courierId: courier._id,
       awb,
@@ -1255,6 +1306,17 @@ const createShipment = async (req, res) => {
       manifestUrl: courierResponse.manifestUrl,
       apiResponse: courierResponse.rawResponse,
       expectedDeliveryDate: courierResponse.estimatedDeliveryDate,
+      weight: order.weight || 0, // Added weight
+      dimensions: { // Added dimensions
+        length: order.dimensions?.length || 0,
+        breadth: order.dimensions?.breadth || 0,
+        height: order.dimensions?.height || 0,
+      },
+      isCOD: order.paymentMode === "COD", // Added isCOD
+      codAmount: order.paymentMode === "COD" ? order.amount : 0, // Added codAmount
+      shippingCharge: SHIPPING_CHARGE, // Added shippingCharge
+      codCharge: order.paymentMode === "COD" ? rateCard.codCharge || 0 : 0, // Added codCharge
+      fuelCharge: rateCard.fuelCharge || 0, // Added fuelCharge
       tracking: [
         {
           status: "PICKUP_PENDING",
@@ -1319,7 +1381,8 @@ const createShipment = async (req, res) => {
     const finalShipment = await Shipment.findById(createdShipment._id)
       .populate("orderId")
       .populate("invoiceId")
-      .populate("merchantId", "companyName phone logo gst");
+      .populate("merchantId", "companyName phone logo gst")
+      .populate("warehouseId"); // Added warehouse population
 
     return res.status(201).json({
       success: true,
@@ -1363,7 +1426,7 @@ const createBulkShipments = async (req, res) => {
       body: req.body 
     });
 
-    const { orderIds, courierId } = req.body;
+    const { orderIds, courierId, warehouseId } = req.body; // Added warehouseId
 
     if (!orderIds || orderIds.length === 0) {
       await session.abortTransaction();
@@ -1378,6 +1441,29 @@ const createBulkShipments = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "CourierId is required",
+      });
+    }
+
+    if (!warehouseId) { // Added warehouse validation
+      await session.abortTransaction();
+      return res.status(400).json({
+        success: false,
+        message: "WarehouseId is required",
+      });
+    }
+
+    const warehouse = await Warehouse.findOne({ // Added warehouse fetch
+      _id: warehouseId,
+      merchantId: req.user.id,
+      isActive: true,
+    }).session(session);
+
+    if (!warehouse) {
+      await session.abortTransaction();
+      logger.warn("Warehouse not found", { warehouseId, userId: req.user.id });
+      return res.status(404).json({
+        success: false,
+        message: "Warehouse not found",
       });
     }
 
@@ -1501,6 +1587,18 @@ const createBulkShipments = async (req, res) => {
         const shipment = await Shipment.create([{
           orderId,
           merchantId: req.user.id,
+          warehouseId: warehouse._id, // Added warehouseId
+          pickupAddress: { // Added pickupAddress - FIXED: warehouse.warehouseName
+            warehouseName: warehouse.warehouseName,
+            contactPerson: warehouse.contactPerson,
+            phone: warehouse.phone,
+            email: warehouse.email,
+            addressLine1: warehouse.addressLine1,
+            addressLine2: warehouse.addressLine2,
+            city: warehouse.city,
+            state: warehouse.state,
+            pincode: warehouse.pincode,
+          },
           courier: courier.name,
           courierId: courier._id,
           awb,
@@ -1517,6 +1615,17 @@ const createBulkShipments = async (req, res) => {
           manifestUrl: courierResponse.manifestUrl,
           apiResponse: courierResponse.rawResponse,
           expectedDeliveryDate: courierResponse.estimatedDeliveryDate,
+          weight: order.weight || 0, // Added weight
+          dimensions: { // Added dimensions
+            length: order.dimensions?.length || 0,
+            breadth: order.dimensions?.breadth || 0,
+            height: order.dimensions?.height || 0,
+          },
+          isCOD: order.paymentMode === "COD", // Added isCOD
+          codAmount: order.paymentMode === "COD" ? order.amount : 0, // Added codAmount
+          shippingCharge: shippingCharge, // Added shippingCharge
+          codCharge: order.paymentMode === "COD" ? rateCard.codCharge || 0 : 0, // Added codCharge
+          fuelCharge: rateCard.fuelCharge || 0, // Added fuelCharge
           tracking: [
             {
               status: "PICKUP_PENDING",
@@ -1597,7 +1706,8 @@ const createBulkShipments = async (req, res) => {
     })
       .populate("orderId")
       .populate("invoiceId")
-      .populate("merchantId", "companyName phone logo gst");
+      .populate("merchantId", "companyName phone logo gst")
+      .populate("warehouseId"); // Added warehouse population
 
     return res.status(201).json({
       success: true,
@@ -1643,6 +1753,7 @@ const getShipments = async (req, res) => {
       })
       .populate("invoiceId")
       .populate("courierId", "name code")
+      .populate("warehouseId") // Added warehouse population
       .sort({ createdAt: -1 });
 
     return res.status(200).json({
@@ -1672,7 +1783,8 @@ const getShipmentById = async (req, res) => {
         },
       })
       .populate("invoiceId")
-      .populate("courierId", "name code");
+      .populate("courierId", "name code")
+      .populate("warehouseId"); // Added warehouse population
 
     if (!shipment) {
       return res.status(404).json({
@@ -1715,7 +1827,8 @@ const trackShipment = async (req, res) => {
         },
       })
       .populate("invoiceId")
-      .populate("courierId", "name code");
+      .populate("courierId", "name code")
+      .populate("warehouseId"); // Added warehouse population
 
     if (!shipment) {
       logger.warn("Shipment not found for tracking", { awb: id });
@@ -1988,7 +2101,8 @@ const generateLabel = async (req, res) => {
     })
       .populate("merchantId", "companyName phone logo gst")
       .populate("orderId")
-      .populate("invoiceId");
+      .populate("invoiceId")
+      .populate("warehouseId"); // Added warehouse population
 
     if (!shipment) {
       return res.status(404).json({
@@ -2139,7 +2253,8 @@ const bulkLabels = async (req, res) => {
     })
       .populate("merchantId", "companyName phone logo gst")
       .populate("orderId")
-      .populate("invoiceId");
+      .populate("invoiceId")
+      .populate("warehouseId"); // Added warehouse population
 
     if (shipments.length === 0) {
       return res.status(404).json({

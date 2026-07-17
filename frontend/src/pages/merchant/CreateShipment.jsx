@@ -15,9 +15,11 @@ const CreateShipment = () => {
   const isBulk = location.state?.isBulk || false;
 
   const [orders, setOrders] = useState([]);
+  const [warehouses, setWarehouses] = useState([]); // Added warehouses state
   const [formData, setFormData] = useState({
     orderId: selectedOrder?._id || "",
     courier: "",
+    warehouseId: "", // Added warehouseId
   });
   const [loading, setLoading] = useState(false);
   const [walletBalance, setWalletBalance] = useState(0);
@@ -55,6 +57,7 @@ const CreateShipment = () => {
   useEffect(() => {
     fetchOrders();
     fetchWallet();
+    fetchWarehouses(); // Added warehouse fetch
   }, []);
 
   // Bulk order auto-select effect
@@ -99,6 +102,18 @@ const CreateShipment = () => {
       setOrders(res.data.orders || []);
     } catch (error) {
       console.log(error);
+    }
+  };
+
+  const fetchWarehouses = async () => { // Added fetchWarehouses function
+    try {
+      const res = await api.get("/warehouses");
+      setWarehouses(
+        (res.data.warehouses || []).filter((w) => w.isActive)
+      );
+    } catch (err) {
+      console.log("Warehouse fetch failed:", err);
+      setWarehouses([]);
     }
   };
 
@@ -213,8 +228,10 @@ const CreateShipment = () => {
   const balanceAfterShipment = Math.max(0, walletBalance - totalCharge);
   const isInsufficientBalance = walletBalance < totalCharge;
 
+  // Updated form validation with warehouseId
   const isFormValid = 
     formData.orderId && 
+    formData.warehouseId && // Added warehouse validation
     formData.courier && 
     !isInsufficientBalance &&
     !loading;
@@ -231,6 +248,7 @@ const CreateShipment = () => {
         const payload = {
           orderIds: bulkOrderIds,
           courierId: formData.courier,
+          warehouseId: formData.warehouseId, // Added warehouseId
           insuranceEnabled: insuranceEnabled,
           insuranceAmount: insuranceEnabled ? insuranceAmount : 0
         };
@@ -239,10 +257,11 @@ const CreateShipment = () => {
         alert(`✅ ${bulkOrderIds.length} shipments created successfully!`);
         navigate("/merchant/shipments");
       } else {
-        // Single shipment
+        // Single shipment - Updated payload structure
         const payload = {
-          ...formData,
+          orderId: formData.orderId,
           courierId: formData.courier,
+          warehouseId: formData.warehouseId, // Added warehouseId
           insuranceEnabled: insuranceEnabled,
           insuranceAmount: insuranceEnabled ? insuranceAmount : 0
         };
@@ -389,6 +408,31 @@ const CreateShipment = () => {
                     </div>
                   </div>
                 )}
+
+                {/* ==================== WAREHOUSE DROPDOWN (ADDED) ==================== */}
+                <div className="form-group">
+                  <div className="form-label">
+                    <span>Select Warehouse <span className="required-star">*</span></span>
+                  </div>
+                  <select
+                    value={formData.warehouseId}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        warehouseId: e.target.value,
+                      })
+                    }
+                    required
+                    className="form-select"
+                  >
+                    <option value="">Choose Warehouse</option>
+                    {warehouses.map((w) => (
+                      <option key={w._id} value={w._id}>
+                        {w.name} ({w.city})
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
                 {/* Top 3 Recommended Couriers Card */}
                 {recommendationLoading ? (
@@ -671,6 +715,8 @@ const CreateShipment = () => {
                       <>⏳ Creating Shipment{isBulk ? 's' : ''}...</>
                     ) : !formData.orderId && !isBulk ? (
                       <>📋 Select an Order</>
+                    ) : !formData.warehouseId ? ( // Added warehouse check
+                      <>🏭 Select a Warehouse</>
                     ) : !formData.courier ? (
                       <>🚚 Select a Courier</>
                     ) : isInsufficientBalance ? (

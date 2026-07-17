@@ -1,37 +1,59 @@
 const mongoose = require("mongoose");
 const { SHIPMENT_STATUSES } = require("../constants/statusConstants");
 
+const pickupAddressSchema = new mongoose.Schema(
+  {
+    warehouseName: { type: String, required: true },
+    contactPerson: { type: String, required: true },
+    phone: { type: String, required: true },
+    email: String,
+    addressLine1: { type: String, required: true },
+    addressLine2: String,
+    city: { type: String, required: true },
+    state: { type: String, required: true },
+    pincode: { type: String, required: true },
+  },
+  { _id: false }
+);
+
 const shipmentSchema = new mongoose.Schema(
   {
     orderId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Order",
       required: true,
-      // ✅ No index: true here - using compound index below
     },
 
     merchantId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true, // ✅ Optional but good for single-field queries
+      index: true,
+    },
+
+    warehouseId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Warehouse",
+      required: true,
+    },
+
+    pickupAddress: {
+      type: pickupAddressSchema,
+      immutable: true,
     },
 
     awb: {
       type: String,
       required: true,
-      unique: true, // ✅ Unique constraint - no separate index needed
-      match: [/^[A-Za-z0-9-_]{6,40}$/, 'AWB must be 6-40 characters and can include letters, numbers, hyphens, and underscores']
+      match: [/^[A-Za-z0-9-_]{6,40}$/, 'AWB must be 6-40 characters and can include letters, numbers, hyphens and underscores']
     },
 
-    // ✅ Snapshot of courier name at time of shipment creation
     courier: {
       type: String,
       required: true,
       trim: true,
     },
 
-    // ✅ Reference to courier master data
     courierId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Courier",
@@ -45,6 +67,18 @@ const shipmentSchema = new mongoose.Schema(
       index: true,
     },
 
+    statusBeforeNDR: {
+      type: String,
+      enum: SHIPMENT_STATUSES,
+      default: null,
+    },
+
+    statusBeforeRTO: {
+      type: String,
+      enum: SHIPMENT_STATUSES,
+      default: null,
+    },
+
     lastTrackingUpdate: {
       type: Date,
       default: Date.now,
@@ -54,6 +88,7 @@ const shipmentSchema = new mongoose.Schema(
       {
         status: {
           type: String,
+          enum: SHIPMENT_STATUSES,
           required: true,
         },
         location: {
@@ -91,71 +126,56 @@ const shipmentSchema = new mongoose.Schema(
       default: "",
     },
 
-    // ==============================
-    // COURIER PROVIDER DETAILS
-    // ==============================
-
-    // Provider Name
     provider: {
       type: String,
       default: "",
     },
 
-    // Shipment ID returned by courier
     providerShipmentId: {
       type: String,
       default: "",
     },
 
-    // Tracking ID returned by courier
     providerTrackingId: {
       type: String,
       default: "",
     },
 
-    // Status returned by courier API
     providerStatus: {
       type: String,
       default: "",
     },
 
-    // Tracking URL from courier
     trackingUrl: {
       type: String,
       default: "",
     },
 
-    // Manifest URL
     manifestUrl: {
       type: String,
       default: "",
     },
 
-    // Pickup Request ID
     pickupRequestId: {
       type: String,
       default: "",
     },
 
-    // Courier estimated delivery
     estimatedDeliveryDate: {
       type: Date,
       default: null,
     },
 
-    // Last API Sync
     lastSyncedAt: {
       type: Date,
       default: null,
     },
 
-    // Last Webhook Received
     lastWebhookAt: {
       type: Date,
       default: null,
     },
 
-    // Courier API Raw Response
     apiResponse: {
       type: mongoose.Schema.Types.Mixed,
       default: {},
@@ -278,7 +298,6 @@ const shipmentSchema = new mongoose.Schema(
   }
 );
 
-// ============ PRE-SAVE HOOK ============
 shipmentSchema.pre("save", function() {
   if (!this.tracking || this.tracking.length === 0) {
     this.tracking = [
@@ -306,17 +325,19 @@ shipmentSchema.pre("save", function() {
   }
 });
 
-// ============ INSTANCE METHODS ============
-
 shipmentSchema.methods.isDeliverable = function() {
   return ["PICKUP_PENDING", "PICKUP_SCHEDULED", "PICKED_UP", "IN_TRANSIT", "OUT_FOR_DELIVERY"].includes(this.status);
 };
 
 shipmentSchema.methods.isCompleted = function() {
-  return ["DELIVERED", "CANCELLED", "RTO"].includes(this.status);
+  return ["DELIVERED", "CANCELLED", "RTO_COMPLETED"].includes(this.status);
 };
 
 shipmentSchema.methods.addTrackingEvent = function(status, location, remarks) {
+  if (!SHIPMENT_STATUSES.includes(status)) {
+    throw new Error(`Invalid tracking status: ${status}`);
+  }
+
   this.tracking.push({
     status,
     location: location || "",
@@ -349,9 +370,18 @@ shipmentSchema.methods.updateNDR = function(ndrStatus, ndrDetails) {
   }
   
   if (ndrStatus === "PENDING") {
+    if (!this.statusBeforeNDR) {
+      this.statusBeforeNDR = this.status;
+    }
     return this.addTrackingEvent("NDR", "NDR Created", ndrDetails?.reason || "NDR initiated");
   } else if (ndrStatus === "RESOLVED") {
-    return this.addTrackingEvent(this.status, "NDR Resolved", "NDR issue resolved");
+    const resumeStatus = this.statusBeforeNDR || "IN_TRANSIT";
+    this.statusBeforeNDR = null;
+    return this.addTrackingEvent(resumeStatus, "NDR Resolved", "NDR issue resolved");
+  } else if (ndrStatus === "FAILED") {
+    return this.updateRTO("INITIATED", { 
+      reason: ndrDetails?.reason || "NDR attempts failed" 
+    });
   }
   
   return this.save();
@@ -365,18 +395,25 @@ shipmentSchema.methods.updateRTO = function(rtoStatus, rtoDetails) {
   
   if (rtoStatus === "INITIATED" && !this.rtoDetails.initiatedDate) {
     this.rtoDetails.initiatedDate = new Date();
-    return this.addTrackingEvent("RTO", "RTO Initiated", rtoDetails?.reason || "RTO initiated");
+    
+    if (!this.statusBeforeRTO) {
+      this.statusBeforeRTO = this.status;
+    }
+    return this.addTrackingEvent("RTO_INITIATED", "RTO Initiated", rtoDetails?.reason || "RTO initiated");
+  }
+  
+  if (rtoStatus === "IN_TRANSIT") {
+    return this.addTrackingEvent("RTO_IN_TRANSIT", "RTO In Transit", "RTO in transit");
   }
   
   if (rtoStatus === "COMPLETED" && !this.rtoDetails.completedDate) {
     this.rtoDetails.completedDate = new Date();
-    return this.addTrackingEvent("RTO", "RTO Completed", "RTO completed");
+    this.statusBeforeRTO = null;
+    return this.addTrackingEvent("RTO_COMPLETED", "RTO Completed", "RTO completed");
   }
   
   return this.save();
 };
-
-// ============ VIRTUAL PROPERTIES ============
 
 shipmentSchema.virtual("totalCost").get(function() {
   return (
@@ -409,7 +446,6 @@ shipmentSchema.virtual("lastScan").get(function() {
   };
 });
 
-// ============ JSON/OBJECT TRANSFORM ============
 shipmentSchema.set("toJSON", {
   virtuals: true,
   transform: function(doc, ret) {
@@ -423,58 +459,23 @@ shipmentSchema.set("toObject", {
   virtuals: true,
 });
 
-// ============ FINAL PRODUCTION INDEXES ============
-
-// ✅ Compound index for merchant queries - covers merchantId + createdAt
 shipmentSchema.index({ merchantId: 1, createdAt: -1 });
-
-// ✅ Compound index for merchant + status filtering
 shipmentSchema.index({ merchantId: 1, status: 1, createdAt: -1 });
-
-// ✅ Unique index for orderId - one shipment per order
 shipmentSchema.index({ orderId: 1 }, { unique: true });
-
-// ✅ Courier indexes for different query patterns
 shipmentSchema.index({ courier: 1 });
 shipmentSchema.index({ courierId: 1 });
-
-// ✅ Date-based indexes for filtering and sorting
 shipmentSchema.index({ expectedDeliveryDate: 1 });
 shipmentSchema.index({ lastTrackingUpdate: -1 });
-
-// ✅ COD and status combinations
 shipmentSchema.index({ isCOD: 1, status: 1 });
 shipmentSchema.index({ merchantId: 1, isCOD: 1 });
-
-// ✅ Status + createdAt for recent shipments queries
 shipmentSchema.index({ status: 1, createdAt: -1 });
-
-// ✅ AWB + merchant queries (AWB has unique:true, but this covers merchant-specific lookups)
-shipmentSchema.index({ awb: 1, merchantId: 1 });
-
-// ✅ Most specific compound index for merchant AWB lookups with status
-shipmentSchema.index({
-  merchantId: 1,
-  awb: 1,
-  status: 1,
-});
-
-// ============ COURIER PROVIDER INDEXES ============
-
-// ✅ Index for courier provider shipment ID lookups
+shipmentSchema.index({ merchantId: 1, awb: 1 }, { unique: true });
 shipmentSchema.index({ providerShipmentId: 1 });
-
-// ✅ Index for courier provider tracking ID lookups
 shipmentSchema.index({ providerTrackingId: 1 });
-
-// ✅ Index for provider name queries
 shipmentSchema.index({ provider: 1 });
-
-// ✅ Index for provider status queries
 shipmentSchema.index({ providerStatus: 1 });
-
-// ✅ Index for last sync date queries
 shipmentSchema.index({ lastSyncedAt: -1 });
+shipmentSchema.index({ warehouseId: 1 });
+shipmentSchema.index({ merchantId: 1, warehouseId: 1 });
 
-// ============ EXPORT ============
 module.exports = mongoose.model("Shipment", shipmentSchema);

@@ -136,12 +136,11 @@ const warehouseSchema = new mongoose.Schema(
     warehouseType: {
       type: String,
       enum: [
-        "Warehouse",
-        "Office",
-        "Store",
-        "Fulfillment Center",
+        "MAIN",
+        "BRANCH",
+        "FULFILLMENT",
       ],
-      default: "Warehouse",
+      default: "MAIN",
     },
 
     pickupInstructions: {

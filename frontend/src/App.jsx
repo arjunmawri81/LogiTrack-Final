@@ -40,7 +40,7 @@ import RateCalculator from "./pages/merchant/RateCalculator";
 import Tickets from "./pages/merchant/Tickets";
 import MerchantNDR from "./pages/merchant/MerchantNDR";
 import MerchantRTO from "./pages/merchant/MerchantRTO";
-import Warehouse from "./pages/merchant/Warehouse"; // ✅ Added Warehouse import
+import Warehouse from "./pages/merchant/Warehouse"; 
 
 // ======================
 // ADMIN PAGES

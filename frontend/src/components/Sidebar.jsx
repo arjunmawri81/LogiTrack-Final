@@ -5,7 +5,7 @@ import {
   FaBox,
   FaClipboardList,
   FaTruck,
-  FaWarehouse, // ✅ Added FaWarehouse
+  FaWarehouse, 
   FaWallet,
   FaFileInvoice,
   FaChartBar,
