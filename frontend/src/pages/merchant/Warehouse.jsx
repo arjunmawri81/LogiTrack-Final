@@ -1081,12 +1081,24 @@ const Warehouse = () => {
                             <Chip
                               label={option}
                               {...getTagProps({ index })}
-                              color="primary"
                               size="small"
-                              sx={{ backgroundColor: '#f1f5f9', color: '#0f172a' }}
+                              sx={{ 
+                                backgroundColor: '#f1f5f9', 
+                                color: '#0f172a',
+                                fontWeight: 500,
+                                '&:hover': {
+                                  backgroundColor: '#e2e8f0',
+                                }
+                              }}
                             />
                           ))
                         }
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                            backgroundColor: '#ffffff',
+                          }
+                        }}
                       />
                     </Grid>
                     <Grid item xs={12}>
@@ -1100,6 +1112,12 @@ const Warehouse = () => {
                         rows={2}
                         helperText="Optional"
                         size="small"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                            backgroundColor: '#ffffff',
+                          }
+                        }}
                       />
                     </Grid>
                   </Grid>
