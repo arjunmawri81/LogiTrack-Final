@@ -47,7 +47,7 @@ import {
 } from '@mui/icons-material';
 import api from '../../services/api';
 import Sidebar from "../../components/Sidebar";
-import "./Warehouse.css"; // ✅ Warehouse specific CSS
+import "./Warehouse.css";
 
 const Warehouse = () => {
   const [warehouses, setWarehouses] = useState([]);
@@ -419,9 +419,9 @@ const Warehouse = () => {
           : 'Get started by creating your first warehouse'}
       </Typography>
       {!searchQuery && filterStatus === 'ALL' && (
-        <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog()}>
-          Add Warehouse
-        </Button>
+        <button className="warehouse-empty-btn" onClick={() => handleOpenDialog()}>
+          <AddIcon /> Add Warehouse
+        </button>
       )}
     </div>
   );
@@ -433,19 +433,23 @@ const Warehouse = () => {
       </div>
 
       <main className="warehouse-main">
-        {/* Header */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h4" component="h1" fontWeight="bold">
-            Warehouses
-          </Typography>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => handleOpenDialog()}
-          >
-            Add Warehouse
-          </Button>
-        </Box>
+        {/* Orange Gradient Header */}
+        <div className="warehouse-header">
+          <div className="warehouse-header-left">
+            <div className="warehouse-header-icon">
+              <WarehouseIcon />
+            </div>
+            <div>
+              <h1 className="warehouse-header-title">Warehouses</h1>
+              <p className="warehouse-header-subtitle">Manage your warehouse locations</p>
+            </div>
+          </div>
+          <div className="warehouse-header-actions">
+            <button className="warehouse-header-btn warehouse-header-btn-primary" onClick={() => handleOpenDialog()}>
+              <AddIcon /> Add Warehouse
+            </button>
+          </div>
+        </div>
 
         {/* Stats Cards */}
         <div className="warehouse-stats-grid">
@@ -467,7 +471,7 @@ const Warehouse = () => {
           </div>
           <div className="warehouse-stat-card">
             <div className="warehouse-stat-label">Total Capacity</div>
-            <div className="warehouse-stat-value">
+            <div className="warehouse-stat-value orange">
               {warehouses.reduce((sum, w) => sum + (parseInt(w.dailyCapacity) || 0), 0)}
             </div>
           </div>
@@ -629,377 +633,650 @@ const Warehouse = () => {
           />
         </div>
 
-        {/* Add/Edit Dialog */}
+        {/* ============================================ */}
+        {/* ADD/EDIT DIALOG - PROFESSIONAL CARDS LAYOUT */}
+        {/* ============================================ */}
         <Dialog 
           open={openDialog} 
           onClose={handleCloseDialog} 
-          maxWidth="lg" 
-          fullWidth
+          PaperProps={{
+            sx: {
+              maxWidth: '1000px',
+              borderRadius: 4,
+              width: '100%',
+              maxHeight: '90vh',
+            }
+          }}
           className="warehouse-dialog"
         >
-          <DialogTitle>
+          <DialogTitle sx={{ 
+            fontWeight: 700, 
+            color: '#0f172a', 
+            padding: '24px 32px 16px 32px',
+            fontSize: '20px',
+            borderBottom: '1px solid #f1f5f9',
+          }}>
             {editingWarehouse ? 'Edit Warehouse' : 'Add New Warehouse'}
           </DialogTitle>
-          <DialogContent>
-            <Grid container spacing={2} sx={{ mt: 1 }}>
-              {/* Basic Information */}
+          
+          <DialogContent sx={{ padding: '32px' }}>
+            <Grid container spacing={3}>
+              
+              {/* ===== SECTION 1: BASIC INFORMATION ===== */}
               <Grid item xs={12}>
-                <Typography className="warehouse-section-title">
-                  Basic Information
-                </Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Warehouse Name"
-                  name="warehouseName"
-                  value={formData.warehouseName}
-                  onChange={(e) => setFormData({ ...formData, warehouseName: e.target.value })}
-                  required
-                  error={!!formErrors.warehouseName}
-                  helperText={formErrors.warehouseName}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Company Name"
-                  name="companyName"
-                  value={formData.companyName}
-                  onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
-                  required
-                  error={!!formErrors.companyName}
-                  helperText={formErrors.companyName}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Contact Person"
-                  name="contactPerson"
-                  value={formData.contactPerson}
-                  onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
-                  required
-                  error={!!formErrors.contactPerson}
-                  helperText={formErrors.contactPerson}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      phone: e.target.value.replace(/\D/g, ""),
-                    })
-                  }
-                  required
-                  error={!!formErrors.phone}
-                  helperText={formErrors.phone}
-                  inputProps={{ maxLength: 10 }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Alternate Phone"
-                  name="alternatePhone"
-                  value={formData.alternatePhone}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      alternatePhone: e.target.value.replace(/\D/g, ""),
-                    })
-                  }
-                  error={!!formErrors.alternatePhone}
-                  helperText={formErrors.alternatePhone}
-                  inputProps={{ maxLength: 10 }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  error={!!formErrors.email}
-                  helperText={formErrors.email}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="GST Number"
-                  name="gstNumber"
-                  value={formData.gstNumber}
-                  onChange={(e) => setFormData({ ...formData, gstNumber: e.target.value.toUpperCase() })}
-                  error={!!formErrors.gstNumber}
-                  helperText={formErrors.gstNumber || '15 characters'}
-                  inputProps={{ maxLength: 15 }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="PAN Number"
-                  name="panNumber"
-                  value={formData.panNumber}
-                  onChange={(e) => setFormData({ ...formData, panNumber: e.target.value.toUpperCase() })}
-                  error={!!formErrors.panNumber}
-                  helperText={formErrors.panNumber || '10 characters'}
-                  inputProps={{ maxLength: 10 }}
-                />
-              </Grid>
-
-              {/* Address */}
-              <Grid item xs={12}>
-                <Typography className="warehouse-section-title">
-                  Address
-                </Typography>
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Address Line 1"
-                  name="addressLine1"
-                  value={formData.addressLine1}
-                  onChange={(e) => setFormData({ ...formData, addressLine1: e.target.value })}
-                  required
-                  error={!!formErrors.addressLine1}
-                  helperText={formErrors.addressLine1}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Address Line 2"
-                  name="addressLine2"
-                  value={formData.addressLine2}
-                  onChange={(e) => setFormData({ ...formData, addressLine2: e.target.value })}
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  label="Landmark"
-                  name="landmark"
-                  value={formData.landmark}
-                  onChange={(e) => setFormData({ ...formData, landmark: e.target.value })}
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  label="City"
-                  name="city"
-                  value={formData.city}
-                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                  required
-                  error={!!formErrors.city}
-                  helperText={formErrors.city}
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  label="State"
-                  name="state"
-                  value={formData.state}
-                  onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                  required
-                  error={!!formErrors.state}
-                  helperText={formErrors.state}
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  label="Pincode"
-                  name="pincode"
-                  value={formData.pincode}
-                  onChange={(e) => setFormData({ ...formData, pincode: e.target.value })}
-                  required
-                  error={!!formErrors.pincode}
-                  helperText={formErrors.pincode || '6 digits'}
-                  inputProps={{ maxLength: 6 }}
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  label="Country"
-                  name="country"
-                  value={formData.country}
-                  onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                />
-              </Grid>
-
-              {/* Warehouse Details */}
-              <Grid item xs={12}>
-                <Typography className="warehouse-section-title">
-                  Warehouse Details
-                </Typography>
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <FormControl fullWidth>
-                  <InputLabel>Warehouse Type</InputLabel>
-                  <Select
-                    name="warehouseType"
-                    value={formData.warehouseType}
-                    onChange={(e) => setFormData({ ...formData, warehouseType: e.target.value })}
-                    label="Warehouse Type"
-                  >
-                    <MenuItem value="MAIN">Main</MenuItem>
-                    <MenuItem value="BRANCH">Branch</MenuItem>
-                    <MenuItem value="FULFILLMENT">Fulfillment</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  label="Daily Capacity (Orders)"
-                  name="dailyCapacity"
-                  type="number"
-                  value={formData.dailyCapacity}
-                  onChange={(e) => setFormData({ ...formData, dailyCapacity: e.target.value })}
-                />
-              </Grid>
-
-              {/* Pickup Schedule */}
-              <Grid item xs={12}>
-                <Typography className="warehouse-section-title">
-                  Pickup Schedule
-                </Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Pickup Start Time"
-                  name="pickupStartTime"
-                  type="time"
-                  value={formData.pickupStartTime}
-                  onChange={(e) => setFormData({ ...formData, pickupStartTime: e.target.value })}
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Pickup End Time"
-                  name="pickupEndTime"
-                  type="time"
-                  value={formData.pickupEndTime}
-                  onChange={(e) => setFormData({ ...formData, pickupEndTime: e.target.value })}
-                  InputLabelProps={{ shrink: true }}
-                  error={!!formErrors.pickupEndTime}
-                  helperText={formErrors.pickupEndTime}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <Autocomplete
-                  multiple
-                  options={workingDaysList}
-                  value={formData.workingDays}
-                  onChange={(event, newValue) => {
-                    setFormData({ ...formData, workingDays: newValue });
-                  }}
-                  renderInput={(params) => (
-                    <MuiTextField
-                      {...params}
-                      label="Working Days"
-                      placeholder="Select working days"
-                    />
-                  )}
-                  renderTags={(value, getTagProps) =>
-                    value.map((option, index) => (
-                      <Chip
-                        label={option}
-                        {...getTagProps({ index })}
-                        color="primary"
+                <Paper elevation={0} sx={{ 
+                  p: 3, 
+                  border: '1px solid #f1f5f9', 
+                  borderRadius: 3,
+                  backgroundColor: '#fafbfc',
+                }}>
+                  <Typography sx={{ 
+                    fontSize: '15px', 
+                    fontWeight: 600, 
+                    color: '#0f172a',
+                    mb: 2,
+                    pb: 1,
+                    borderBottom: '2px solid #f1f5f9',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                  }}>
+                    <Box sx={{ 
+                      width: '4px', 
+                      height: '18px', 
+                      background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+                      borderRadius: '2px',
+                      display: 'inline-block',
+                    }} />
+                    Basic Information
+                  </Typography>
+                  
+                  <Grid container spacing={2.5}>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        label="Warehouse Name *"
+                        name="warehouseName"
+                        value={formData.warehouseName}
+                        onChange={(e) => setFormData({ ...formData, warehouseName: e.target.value })}
+                        required
+                        error={!!formErrors.warehouseName}
+                        helperText={formErrors.warehouseName}
                         size="small"
                       />
-                    ))
-                  }
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Pickup Instructions"
-                  name="pickupInstructions"
-                  value={formData.pickupInstructions}
-                  onChange={(e) => setFormData({ ...formData, pickupInstructions: e.target.value })}
-                  multiline
-                  rows={2}
-                />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        label="Company Name *"
+                        name="companyName"
+                        value={formData.companyName}
+                        onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+                        required
+                        error={!!formErrors.companyName}
+                        helperText={formErrors.companyName}
+                        size="small"
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        label="Contact Person *"
+                        name="contactPerson"
+                        value={formData.contactPerson}
+                        onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
+                        required
+                        error={!!formErrors.contactPerson}
+                        helperText={formErrors.contactPerson}
+                        size="small"
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        label="Phone Number *"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            phone: e.target.value.replace(/\D/g, ""),
+                          })
+                        }
+                        required
+                        error={!!formErrors.phone}
+                        helperText={formErrors.phone}
+                        inputProps={{ maxLength: 10 }}
+                        size="small"
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        label="Alternate Phone"
+                        name="alternatePhone"
+                        value={formData.alternatePhone}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            alternatePhone: e.target.value.replace(/\D/g, ""),
+                          })
+                        }
+                        error={!!formErrors.alternatePhone}
+                        helperText={formErrors.alternatePhone || 'Optional'}
+                        inputProps={{ maxLength: 10 }}
+                        size="small"
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        label="Email Address"
+                        name="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        error={!!formErrors.email}
+                        helperText={formErrors.email || 'Optional'}
+                        size="small"
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        label="GST Number"
+                        name="gstNumber"
+                        value={formData.gstNumber}
+                        onChange={(e) => setFormData({ ...formData, gstNumber: e.target.value.toUpperCase() })}
+                        error={!!formErrors.gstNumber}
+                        helperText={formErrors.gstNumber || 'Optional • 15 characters'}
+                        inputProps={{ maxLength: 15 }}
+                        size="small"
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        label="PAN Number"
+                        name="panNumber"
+                        value={formData.panNumber}
+                        onChange={(e) => setFormData({ ...formData, panNumber: e.target.value.toUpperCase() })}
+                        error={!!formErrors.panNumber}
+                        helperText={formErrors.panNumber || 'Optional • 10 characters'}
+                        inputProps={{ maxLength: 10 }}
+                        size="small"
+                      />
+                    </Grid>
+                  </Grid>
+                </Paper>
               </Grid>
 
-              {/* Settings */}
+              {/* ===== SECTION 2: ADDRESS ===== */}
               <Grid item xs={12}>
-                <Typography className="warehouse-section-title">
-                  Settings
-                </Typography>
+                <Paper elevation={0} sx={{ 
+                  p: 3, 
+                  border: '1px solid #f1f5f9', 
+                  borderRadius: 3,
+                  backgroundColor: '#fafbfc',
+                }}>
+                  <Typography sx={{ 
+                    fontSize: '15px', 
+                    fontWeight: 600, 
+                    color: '#0f172a',
+                    mb: 2,
+                    pb: 1,
+                    borderBottom: '2px solid #f1f5f9',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                  }}>
+                    <Box sx={{ 
+                      width: '4px', 
+                      height: '18px', 
+                      background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+                      borderRadius: '2px',
+                      display: 'inline-block',
+                    }} />
+                    Address
+                  </Typography>
+                  
+                  <Grid container spacing={2.5}>
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        label="Address Line 1 *"
+                        name="addressLine1"
+                        value={formData.addressLine1}
+                        onChange={(e) => setFormData({ ...formData, addressLine1: e.target.value })}
+                        required
+                        error={!!formErrors.addressLine1}
+                        helperText={formErrors.addressLine1}
+                        size="small"
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        label="Address Line 2"
+                        name="addressLine2"
+                        value={formData.addressLine2}
+                        onChange={(e) => setFormData({ ...formData, addressLine2: e.target.value })}
+                        helperText="Optional"
+                        size="small"
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <TextField
+                        fullWidth
+                        label="Landmark"
+                        name="landmark"
+                        value={formData.landmark}
+                        onChange={(e) => setFormData({ ...formData, landmark: e.target.value })}
+                        helperText="Optional"
+                        size="small"
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <TextField
+                        fullWidth
+                        label="City *"
+                        name="city"
+                        value={formData.city}
+                        onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                        required
+                        error={!!formErrors.city}
+                        helperText={formErrors.city}
+                        size="small"
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <TextField
+                        fullWidth
+                        label="State *"
+                        name="state"
+                        value={formData.state}
+                        onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                        required
+                        error={!!formErrors.state}
+                        helperText={formErrors.state}
+                        size="small"
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <TextField
+                        fullWidth
+                        label="Pincode *"
+                        name="pincode"
+                        value={formData.pincode}
+                        onChange={(e) => setFormData({ ...formData, pincode: e.target.value })}
+                        required
+                        error={!!formErrors.pincode}
+                        helperText={formErrors.pincode || '6 digits'}
+                        inputProps={{ maxLength: 6 }}
+                        size="small"
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <TextField
+                        fullWidth
+                        label="Country"
+                        name="country"
+                        value={formData.country}
+                        onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                        size="small"
+                      />
+                    </Grid>
+                  </Grid>
+                </Paper>
               </Grid>
-              <Grid item xs={12} md={4}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      name="allowCOD"
-                      checked={formData.allowCOD}
-                      onChange={(e) => setFormData({ ...formData, allowCOD: e.target.checked })}
-                    />
-                  }
-                  label="Allow COD"
-                />
+
+              {/* ===== SECTION 3: WAREHOUSE DETAILS ===== */}
+              <Grid item xs={12}>
+                <Paper elevation={0} sx={{ 
+                  p: 3, 
+                  border: '1px solid #f1f5f9', 
+                  borderRadius: 3,
+                  backgroundColor: '#fafbfc',
+                }}>
+                  <Typography sx={{ 
+                    fontSize: '15px', 
+                    fontWeight: 600, 
+                    color: '#0f172a',
+                    mb: 2,
+                    pb: 1,
+                    borderBottom: '2px solid #f1f5f9',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                  }}>
+                    <Box sx={{ 
+                      width: '4px', 
+                      height: '18px', 
+                      background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+                      borderRadius: '2px',
+                      display: 'inline-block',
+                    }} />
+                    Warehouse Details
+                  </Typography>
+                  
+                  <Grid container spacing={2.5}>
+                    <Grid item xs={12} md={6}>
+                      <FormControl fullWidth size="small">
+                        <InputLabel>Warehouse Type</InputLabel>
+                        <Select
+                          name="warehouseType"
+                          value={formData.warehouseType}
+                          onChange={(e) => setFormData({ ...formData, warehouseType: e.target.value })}
+                          label="Warehouse Type"
+                        >
+                          <MenuItem value="MAIN">Main</MenuItem>
+                          <MenuItem value="BRANCH">Branch</MenuItem>
+                          <MenuItem value="FULFILLMENT">Fulfillment</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        label="Daily Capacity (Orders)"
+                        name="dailyCapacity"
+                        type="number"
+                        value={formData.dailyCapacity}
+                        onChange={(e) => setFormData({ ...formData, dailyCapacity: e.target.value })}
+                        helperText="Optional"
+                        size="small"
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            name="isDefault"
+                            checked={formData.isDefault}
+                            onChange={(e) => setFormData({ ...formData, isDefault: e.target.checked })}
+                            sx={{ color: '#94a3b8', '&.Mui-checked': { color: '#f97316' } }}
+                          />
+                        }
+                        label="Default Warehouse"
+                      />
+                    </Grid>
+                  </Grid>
+                </Paper>
               </Grid>
-              <Grid item xs={12} md={4}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      name="allowReversePickup"
-                      checked={formData.allowReversePickup}
-                      onChange={(e) => setFormData({ ...formData, allowReversePickup: e.target.checked })}
-                    />
-                  }
-                  label="Allow Reverse Pickup"
-                />
+
+              {/* ===== SECTION 4: PICKUP SCHEDULE ===== */}
+              <Grid item xs={12}>
+                <Paper elevation={0} sx={{ 
+                  p: 3, 
+                  border: '1px solid #f1f5f9', 
+                  borderRadius: 3,
+                  backgroundColor: '#fafbfc',
+                }}>
+                  <Typography sx={{ 
+                    fontSize: '15px', 
+                    fontWeight: 600, 
+                    color: '#0f172a',
+                    mb: 2,
+                    pb: 1,
+                    borderBottom: '2px solid #f1f5f9',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                  }}>
+                    <Box sx={{ 
+                      width: '4px', 
+                      height: '18px', 
+                      background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+                      borderRadius: '2px',
+                      display: 'inline-block',
+                    }} />
+                    Pickup Schedule
+                  </Typography>
+                  
+                  <Grid container spacing={2.5}>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        label="Pickup Start Time"
+                        name="pickupStartTime"
+                        type="time"
+                        value={formData.pickupStartTime}
+                        onChange={(e) => setFormData({ ...formData, pickupStartTime: e.target.value })}
+                        InputLabelProps={{ shrink: true }}
+                        size="small"
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        label="Pickup End Time"
+                        name="pickupEndTime"
+                        type="time"
+                        value={formData.pickupEndTime}
+                        onChange={(e) => setFormData({ ...formData, pickupEndTime: e.target.value })}
+                        InputLabelProps={{ shrink: true }}
+                        error={!!formErrors.pickupEndTime}
+                        helperText={formErrors.pickupEndTime || 'Must be after start time'}
+                        size="small"
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Autocomplete
+                        multiple
+                        options={workingDaysList}
+                        value={formData.workingDays}
+                        onChange={(event, newValue) => {
+                          setFormData({ ...formData, workingDays: newValue });
+                        }}
+                        renderInput={(params) => (
+                          <MuiTextField
+                            {...params}
+                            label="Working Days"
+                            placeholder="Select working days"
+                            size="small"
+                          />
+                        )}
+                        renderTags={(value, getTagProps) =>
+                          value.map((option, index) => (
+                            <Chip
+                              label={option}
+                              {...getTagProps({ index })}
+                              color="primary"
+                              size="small"
+                              sx={{ backgroundColor: '#f1f5f9', color: '#0f172a' }}
+                            />
+                          ))
+                        }
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        label="Pickup Instructions"
+                        name="pickupInstructions"
+                        value={formData.pickupInstructions}
+                        onChange={(e) => setFormData({ ...formData, pickupInstructions: e.target.value })}
+                        multiline
+                        rows={2}
+                        helperText="Optional"
+                        size="small"
+                      />
+                    </Grid>
+                  </Grid>
+                </Paper>
               </Grid>
+
+              {/* ===== SECTION 5: SETTINGS ===== */}
+              <Grid item xs={12}>
+                <Paper elevation={0} sx={{ 
+                  p: 3, 
+                  border: '1px solid #f1f5f9', 
+                  borderRadius: 3,
+                  backgroundColor: '#fafbfc',
+                }}>
+                  <Typography sx={{ 
+                    fontSize: '15px', 
+                    fontWeight: 600, 
+                    color: '#0f172a',
+                    mb: 2,
+                    pb: 1,
+                    borderBottom: '2px solid #f1f5f9',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                  }}>
+                    <Box sx={{ 
+                      width: '4px', 
+                      height: '18px', 
+                      background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+                      borderRadius: '2px',
+                      display: 'inline-block',
+                    }} />
+                    Settings
+                  </Typography>
+                  
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} md={6}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            name="allowCOD"
+                            checked={formData.allowCOD}
+                            onChange={(e) => setFormData({ ...formData, allowCOD: e.target.checked })}
+                            sx={{ color: '#94a3b8', '&.Mui-checked': { color: '#f97316' } }}
+                          />
+                        }
+                        label="Allow COD"
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            name="allowReversePickup"
+                            checked={formData.allowReversePickup}
+                            onChange={(e) => setFormData({ ...formData, allowReversePickup: e.target.checked })}
+                            sx={{ color: '#94a3b8', '&.Mui-checked': { color: '#f97316' } }}
+                          />
+                        }
+                        label="Allow Reverse Pickup"
+                      />
+                    </Grid>
+                  </Grid>
+                </Paper>
+              </Grid>
+
             </Grid>
           </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseDialog}>Cancel</Button>
-            <Button variant="contained" onClick={handleSubmit}>
-              {editingWarehouse ? 'Update' : 'Create'}
+          
+          <DialogActions sx={{ 
+            padding: '16px 32px 24px 32px', 
+            borderTop: '1px solid #f1f5f9',
+            gap: '12px',
+          }}>
+            <Button 
+              onClick={handleCloseDialog}
+              sx={{
+                px: 3,
+                py: 1,
+                borderRadius: 2,
+                color: '#64748b',
+                fontWeight: 600,
+                '&:hover': {
+                  backgroundColor: 'rgba(249, 115, 22, 0.05)',
+                  color: '#f97316',
+                }
+              }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="contained" 
+              onClick={handleSubmit}
+              sx={{
+                px: 3,
+                py: 1,
+                borderRadius: 2,
+                fontWeight: 600,
+                background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+                boxShadow: '0 4px 12px rgba(249, 115, 22, 0.3)',
+                '&:hover': {
+                  boxShadow: '0 6px 20px rgba(249, 115, 22, 0.4)',
+                  transform: 'translateY(-1px)',
+                }
+              }}
+            >
+              {editingWarehouse ? 'Update Warehouse' : 'Create Warehouse'}
             </Button>
           </DialogActions>
         </Dialog>
 
-        {/* Delete Confirmation Dialog */}
+        {/* ============================================ */}
+        {/* DELETE CONFIRMATION DIALOG */}
+        {/* ============================================ */}
         <Dialog
           open={deleteDialog.open}
           onClose={() => setDeleteDialog({ open: false, warehouseId: null, warehouseName: "" })}
           className="warehouse-delete-dialog"
+          PaperProps={{
+            sx: {
+              borderRadius: 4,
+              maxWidth: '500px',
+            }
+          }}
         >
-          <DialogTitle>Delete Warehouse</DialogTitle>
-          <DialogContent>
+          <DialogTitle sx={{ 
+            color: '#dc2626', 
+            fontWeight: 700,
+            borderBottom: '1px solid #f1f5f9',
+            padding: '24px 28px 16px 28px',
+          }}>
+            Delete Warehouse
+          </DialogTitle>
+          <DialogContent sx={{ padding: '24px 28px' }}>
             <Typography>
               Are you sure you want to delete{" "}
               <strong>{deleteDialog.warehouseName}</strong>?
               <br />
-              <span className="warehouse-delete-warning">This action cannot be undone.</span>
+              <span style={{ color: '#6b7280', fontSize: '14px', display: 'block', marginTop: '8px' }}>
+                This action cannot be undone.
+              </span>
             </Typography>
           </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setDeleteDialog({ open: false, warehouseId: null, warehouseName: "" })}>
+          <DialogActions sx={{ 
+            padding: '16px 28px 24px 28px',
+            borderTop: '1px solid #f1f5f9',
+            gap: '12px',
+          }}>
+            <Button 
+              onClick={() => setDeleteDialog({ open: false, warehouseId: null, warehouseName: "" })}
+              sx={{
+                px: 3,
+                py: 1,
+                borderRadius: 2,
+                color: '#64748b',
+                fontWeight: 600,
+              }}
+            >
               Cancel
             </Button>
-            <Button variant="contained" color="error" onClick={handleDelete}>
+            <Button 
+              variant="contained" 
+              color="error" 
+              onClick={handleDelete}
+              sx={{
+                px: 3,
+                py: 1,
+                borderRadius: 2,
+                fontWeight: 600,
+                background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
+                boxShadow: '0 4px 12px rgba(220, 38, 38, 0.3)',
+                '&:hover': {
+                  boxShadow: '0 6px 20px rgba(220, 38, 38, 0.4)',
+                  transform: 'translateY(-1px)',
+                }
+              }}
+            >
               Delete
             </Button>
           </DialogActions>

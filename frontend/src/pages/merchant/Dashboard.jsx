@@ -59,7 +59,7 @@ const Dashboard = () => {
       </div>
 
       <main className="dashboard-main">
-        {/* ✅ Updated Header with Wallet - No duplication */}
+        {/*  Header with Wallet - No duplication */}
         <div className="dashboard-header">
           <h1 className="dashboard-title">
             Welcome Back, {user?.name || "Merchant"}
