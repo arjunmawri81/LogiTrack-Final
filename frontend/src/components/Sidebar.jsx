@@ -5,6 +5,7 @@ import {
   FaBox,
   FaClipboardList,
   FaTruck,
+  FaWarehouse, // ✅ Added FaWarehouse
   FaWallet,
   FaFileInvoice,
   FaChartBar,
@@ -158,6 +159,17 @@ const Sidebar = () => {
               <li>
                 <NavLink to="/merchant/create-shipment" className={({ isActive }) => isActive ? "active" : ""} onClick={closeSidebar}>
                   <FaBox /> <span>Create Shipment</span>
+                </NavLink>
+              </li>
+              {/* ✅ Warehouse Menu Item - Added after Create Shipment */}
+              <li>
+                <NavLink
+                  to="/merchant/warehouses"
+                  className={({ isActive }) => (isActive ? "active" : "")}
+                  onClick={closeSidebar}
+                >
+                  <FaWarehouse />
+                  <span>Warehouses</span>
                 </NavLink>
               </li>
               <li>

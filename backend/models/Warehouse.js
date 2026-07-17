@@ -1,0 +1,203 @@
+const mongoose = require("mongoose");
+
+const warehouseSchema = new mongoose.Schema(
+  {
+    merchantId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
+
+    warehouseCode: {
+      type: String,
+      unique: true,
+      uppercase: true,
+      trim: true,
+    },
+
+    warehouseName: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 100,
+    },
+
+    companyName: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 150,
+    },
+
+    contactPerson: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 100,
+    },
+
+    phone: {
+      type: String,
+      required: true,
+      match: /^[6-9]\d{9}$/,
+    },
+
+    alternatePhone: {
+      type: String,
+      default: "",
+      match: /^[6-9]\d{9}$/,
+    },
+
+    email: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      default: "",
+    },
+
+    gstNumber: {
+      type: String,
+      uppercase: true,
+      trim: true,
+      default: "",
+    },
+
+    panNumber: {
+      type: String,
+      uppercase: true,
+      trim: true,
+      default: "",
+    },
+
+    addressLine1: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    addressLine2: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    landmark: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    city: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    state: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    pincode: {
+      type: String,
+      required: true,
+      match: /^\d{6}$/,
+    },
+
+    country: {
+      type: String,
+      default: "India",
+    },
+
+    pickupStartTime: {
+      type: String,
+      default: "10:00",
+    },
+
+    pickupEndTime: {
+      type: String,
+      default: "18:00",
+    },
+
+    workingDays: {
+      type: [String],
+      default: [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+      ],
+    },
+
+    warehouseType: {
+      type: String,
+      enum: [
+        "Warehouse",
+        "Office",
+        "Store",
+        "Fulfillment Center",
+      ],
+      default: "Warehouse",
+    },
+
+    pickupInstructions: {
+      type: String,
+      default: "",
+      maxlength: 500,
+    },
+
+    latitude: {
+      type: Number,
+      default: null,
+    },
+
+    longitude: {
+      type: Number,
+      default: null,
+    },
+
+    dailyCapacity: {
+      type: Number,
+      default: 0,
+    },
+
+    allowCOD: {
+      type: Boolean,
+      default: true,
+    },
+
+    allowReversePickup: {
+      type: Boolean,
+      default: true,
+    },
+
+    isDefault: {
+      type: Boolean,
+      default: false,
+    },
+
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+warehouseSchema.index({
+  merchantId: 1,
+  warehouseName: 1,
+});
+
+warehouseSchema.index({
+  merchantId: 1,
+  isDefault: 1,
+});
+
+module.exports = mongoose.model("Warehouse", warehouseSchema);

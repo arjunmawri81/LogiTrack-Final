@@ -40,6 +40,7 @@ import RateCalculator from "./pages/merchant/RateCalculator";
 import Tickets from "./pages/merchant/Tickets";
 import MerchantNDR from "./pages/merchant/MerchantNDR";
 import MerchantRTO from "./pages/merchant/MerchantRTO";
+import Warehouse from "./pages/merchant/Warehouse"; // ✅ Added Warehouse import
 
 // ======================
 // ADMIN PAGES
@@ -130,6 +131,16 @@ function App() {
         <Route path="/merchant/serviceability" element={<MerchantRoute><Serviceability /></MerchantRoute>} />
         <Route path="/merchant/rate-calculator" element={<MerchantRoute><RateCalculator /></MerchantRoute>} />
         <Route path="/merchant/tickets" element={<MerchantRoute><Tickets /></MerchantRoute>} />
+        
+        {/* ✅ Warehouse Route - Added after Tickets */}
+        <Route
+          path="/merchant/warehouses"
+          element={
+            <MerchantRoute>
+              <Warehouse />
+            </MerchantRoute>
+          }
+        />
 
         {/* ================= ADMIN ================= */}
         <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />

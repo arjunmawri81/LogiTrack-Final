@@ -20,7 +20,8 @@ const codRoutes = require("./routes/codRoutes");
 const ndrRoutes = require("./routes/ndrRoutes");
 const rtoRoutes = require("./routes/rtoRoutes");
 const rateCardRoutes = require("./routes/rateCardRoutes");
-const ticketRoutes = require("./routes/ticketRoutes"); 
+const ticketRoutes = require("./routes/ticketRoutes");
+const warehouseRoutes = require("./routes/warehouseRoutes"); 
 
 dotenv.config();
 connectDB().then(() => {
@@ -92,7 +93,8 @@ app.use("/api/cod", codRoutes);
 app.use("/api/ndr", ndrRoutes);
 app.use("/api/rto", rtoRoutes);
 app.use("/api/ratecards", rateCardRoutes);
-app.use("/api/tickets", ticketRoutes); 
+app.use("/api/tickets", ticketRoutes);
+app.use("/api/warehouses", warehouseRoutes); 
 
 // ====================================
 // 404 HANDLER

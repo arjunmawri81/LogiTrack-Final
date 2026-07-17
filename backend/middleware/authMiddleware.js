@@ -98,8 +98,10 @@ const isApprovedMerchant = async (req, res, next) => {
   }
 };
 
+// ✅ Final export with both authMiddleware and verifyToken alias
 module.exports = {
-  authMiddleware,
+  verifyToken: authMiddleware, 
+  authMiddleware,              
   authorizeRoles,
-  isApprovedMerchant
+  isApprovedMerchant,
 };
