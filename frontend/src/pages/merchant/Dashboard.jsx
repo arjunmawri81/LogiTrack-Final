@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { FaWallet } from "react-icons/fa";
 import Sidebar from "../../components/Sidebar";
 import api from "../../services/api";
-import "./Dashboard.css"; 
+import "./Dashboard.css";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -46,6 +47,11 @@ const Dashboard = () => {
     }
   };
 
+  // Format currency with Indian number formatting
+  const formatCurrency = (amount) => {
+    return Number(amount).toLocaleString("en-IN");
+  };
+
   return (
     <div className="dashboard-page">
       <div className="dashboard-sidebar">
@@ -53,13 +59,32 @@ const Dashboard = () => {
       </div>
 
       <main className="dashboard-main">
+        {/* ✅ Updated Header with Wallet - No duplication */}
         <div className="dashboard-header">
-          <div>
-            <h1 className="dashboard-title">Welcome Back, {user?.name || "Merchant"}</h1>
-            <p className="dashboard-subtitle">Manage shipments and activity.</p>
+          <h1 className="dashboard-title">
+            Welcome Back, {user?.name || "Merchant"}
+          </h1>
+
+          <div className="dashboard-wallet">
+            <div className="dashboard-wallet-info">
+              <FaWallet className="dashboard-wallet-icon" />
+              <span className="dashboard-wallet-balance">
+                ₹{formatCurrency(stats.walletBalance)}
+              </span>
+            </div>
+
+            <button
+              className="dashboard-wallet-btn"
+              onClick={() => navigate("/merchant/wallet")}
+            >
+              Recharge Wallet
+            </button>
           </div>
         </div>
 
+       
+
+        {/* Stats Cards - Removed Wallet Balance Card */}
         <div className="dashboard-grid">
           <div className="dashboard-card card-blue">
             <h4>TOTAL ORDERS</h4>
@@ -79,15 +104,13 @@ const Dashboard = () => {
           </div>
           <div className="dashboard-card card-purple">
             <h4>COD REVENUE</h4>
-            <h1>₹{stats.codRevenue}</h1>
+            <h1>₹{formatCurrency(stats.codRevenue)}</h1>
           </div>
-          <div className="dashboard-card card-dark">
-            <h4>WALLET BALANCE</h4>
-            <h1>₹{stats.walletBalance}</h1>
-          </div>
+          {/* ✅ Removed Wallet Balance Card - Duplicate removed */}
+          {/* Future: Add PICKUP PENDING / IN TRANSIT / OUT FOR DELIVERY here */}
         </div>
 
-        {/* New White Professional Summary Cards */}
+        {/* White Professional Summary Cards */}
         <div className="dashboard-summary-grid">
           <div className="dashboard-summary-card">
             <div className="dashboard-summary-icon">📋</div>
@@ -107,7 +130,7 @@ const Dashboard = () => {
           <div className="dashboard-summary-card">
             <div className="dashboard-summary-icon">💰</div>
             <p className="dashboard-summary-label">Total Revenue</p>
-            <h3 className="dashboard-summary-value">₹{stats.totalRevenue}</h3>
+            <h3 className="dashboard-summary-value">₹{formatCurrency(stats.totalRevenue)}</h3>
           </div>
         </div>
       </main>
