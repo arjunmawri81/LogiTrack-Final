@@ -9,20 +9,20 @@ const saveRateCard = async (req, res) => {
   try {
     const {
       merchantId,
-      courierId,        // ✅ PRIMARY: Use ObjectId
-      courierPartner,   // ⚠️ DEPRECATED: Only for backward compatibility during migration
+      courierId,        
+      courierPartner,   
       forwardRates,
       zoneRates,
       codCharge,
       rtoCharge,
       reversePickup,
       fuelCharge,
-      enabled,          // ✅ NEW: Added here
+      enabled,          
       isActive,
       serviceability,
     } = req.body;
 
-    // ✅ Role-Based Access Control
+    //  Role-Based Access Control
     const userRole = req.user?.role;
 
     if (userRole === "SUPER_ADMIN") {
@@ -47,7 +47,7 @@ const saveRateCard = async (req, res) => {
       });
     }
 
-    // ✅ PRIMARY: Courier ID is required
+    // Courier ID is requird
     if (!courierId) {
       return res.status(400).json({
         success: false,
@@ -84,7 +84,7 @@ const saveRateCard = async (req, res) => {
       finalCourierPartner = normalizedName;
     }
 
-    // ✅ Prepare forwardRates with rate5kg
+    // Prepare forwardRates with rate5kg
     const forwardRatesData = {
       rate500gm: forwardRates?.rate500gm || 0,
       rate1kg: forwardRates?.rate1kg || 0,
@@ -110,7 +110,7 @@ const saveRateCard = async (req, res) => {
       rateCard.reversePickup = reversePickup;
       rateCard.fuelCharge = fuelCharge;
       
-      // ✅ CHANGE 2: Added enabled field update
+      // Added enabled field update
       rateCard.enabled =
         enabled !== undefined ? enabled : rateCard.enabled;
       
@@ -144,7 +144,7 @@ const saveRateCard = async (req, res) => {
       reversePickup,
       fuelCharge,
       
-      // ✅ CHANGE 3: Added enabled field for new rate card
+      // Added enabled field for new rate card
       enabled: enabled !== undefined ? enabled : false,
       
       isActive: isActive !== undefined ? isActive : true,

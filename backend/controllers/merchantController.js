@@ -43,7 +43,7 @@ const updateProfile = async (req, res) => {
       address,
     } = req.body;
 
-    // ✅ Production validation: Company Name is required
+    // Production validation: Company Name is required
     if (
       companyName !== undefined &&
       !companyName.trim()

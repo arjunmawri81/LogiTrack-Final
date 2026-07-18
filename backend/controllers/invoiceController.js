@@ -7,7 +7,7 @@ const Order = require("../models/Order");
 // ================================
 const downloadInvoice = async (req, res) => {
   try {
-    // ✅ FIX 1: Security - Find invoice by ID AND merchantId
+    // Security - Find invoice by ID AND merchantId
     const invoice = await Invoice.findOne({
       _id: req.params.id,
       merchantId: req.user.id,
@@ -144,7 +144,7 @@ const downloadInvoice = async (req, res) => {
 
     doc.fontSize(16);
 
-    // ✅ FIX 2: Use invoice.totalAmount if available, else calculate
+    //  Use invoice.totalAmount if available, else calculate
     const totalAmount =
       invoice.totalAmount ??
       (

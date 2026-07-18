@@ -19,13 +19,13 @@ const createOrder = async (req, res) => {
     console.log("BODY =>", req.body);
     console.log("USER =>", req.user);
 
-    // ✅ Auto-generate order number if not provided
-    // ✅ Map frontend field names to model field names
+    // Auto-generate order number if not provided
+    //  Map frontend field names to model field names
     const customerCity = req.body.customerCity || req.body.city;
     const customerState = req.body.customerState || req.body.state;
     const customerPincode = req.body.customerPincode || req.body.pincode;
 
-    // ✅ Validate required address fields
+    //  Validate required address fields
     if (!customerCity || !customerState || !customerPincode) {
       const missing = [];
       if (!customerCity) missing.push("City");

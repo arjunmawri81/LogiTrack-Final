@@ -129,7 +129,7 @@ const reattemptNDR = async (req, res) => {
       ndr.actionNote = req.body.note;
     }
 
-    // ✅ Save new address, phone, and pincode if corrected
+    //  Save new address, phone, and p
     if (req.body.address) ndr.address = req.body.address;
     if (req.body.customerPhone) ndr.customerPhone = req.body.customerPhone;
     if (req.body.pincode) ndr.pincode = req.body.pincode;
@@ -166,7 +166,7 @@ const convertToRTO = async (req, res) => {
       });
     }
 
-    // ✅ Check if NDR is in PENDING status
+    //  Check if NDR is in PENDING status
     if (ndr.status !== "PENDING") {
       return res.status(400).json({
         success: false,
@@ -174,11 +174,11 @@ const convertToRTO = async (req, res) => {
       });
     }
 
-    // ✅ Update status to RTO_REQUESTED
+    // Update status to RTO_REQUESTED
     ndr.status = "RTO_REQUESTED";
     ndr.actionTaken = "RTO_REQUESTED";
     
-    // ✅ Save merchant's note
+    //  Save merchant's note
     if (req.body.note) {
       ndr.actionNote = req.body.note;
     }
@@ -222,26 +222,26 @@ const approveReattempt = async (req, res) => {
       });
     }
 
-    // ✅ Update status to REATTEMPT
+    // Update status to REATTEMPT
     ndr.status = "REATTEMPT";
     ndr.actionTaken = "REATTEMPT_APPROVED";
     
-    // ✅ Save admin's note
+    //  Save admin's note
     if (req.body.adminNote) {
       ndr.adminNote = req.body.adminNote;
     }
 
-    // ✅ Increment attempt count
+    //  Increment attempt count
     ndr.deliveryAttempts += 1;
     
-    // ✅ Set next attempt date (e.g., 2 days from now)
+    // Set next attempt date (e.g., 2 days from now)
     const nextDate = new Date();
     nextDate.setDate(nextDate.getDate() + 2);
     ndr.nextAttemptDate = nextDate;
 
     await ndr.save();
 
-    // ✅ Sync details to Order, update Order and Shipment status, and update timeline
+    //  Sync details to Order, update Order and Shipment status, and update timeline
     const order = await Order.findById(ndr.orderId);
     if (order) {
       if (ndr.address) order.customerAddress = ndr.address;
@@ -292,7 +292,7 @@ const rejectReattempt = async (req, res) => {
       });
     }
 
-    // ✅ Check if NDR is in REATTEMPT_REQUESTED status
+    // Check if NDR is in REATTEMPT_REQUESTED status
     if (ndr.status !== "REATTEMPT_REQUESTED") {
       return res.status(400).json({
         success: false,
@@ -300,11 +300,11 @@ const rejectReattempt = async (req, res) => {
       });
     }
 
-    // ✅ Revert back to PENDING
+    //  Revert back to PENDING
     ndr.status = "PENDING";
     ndr.actionTaken = "REATTEMPT_REJECTED";
     
-    // ✅ Save admin's note
+    //  Save admin's note
     if (req.body.adminNote) {
       ndr.adminNote = req.body.adminNote;
     }
@@ -340,7 +340,7 @@ const approveRTO = async (req, res) => {
       });
     }
 
-    // ✅ Check if NDR is in RTO_REQUESTED status
+    //  Check if NDR is in RTO_REQUESTED status
     if (ndr.status !== "RTO_REQUESTED") {
       return res.status(400).json({
         success: false,
@@ -348,18 +348,18 @@ const approveRTO = async (req, res) => {
       });
     }
 
-    // ✅ Update status to RTO
+    //  Update status to RTO
     ndr.status = "RTO";
     ndr.actionTaken = "RTO_APPROVED";
     
-    // ✅ Save admin's note
+    //  Save admin's note
     if (req.body.adminNote) {
       ndr.adminNote = req.body.adminNote;
     }
 
     await ndr.save();
 
-    // ✅ Update Order and Shipment statuses, and push tracking timeline
+    //  Update Order and Shipment statuses, and push tracking timeline
     const order = await Order.findById(ndr.orderId);
     if (order) {
       order.status = "RTO";
@@ -378,7 +378,7 @@ const approveRTO = async (req, res) => {
       await shipment.save();
     }
 
-    // ✅ Create RTO record in RTO collection
+    //  Create RTO record in RTO collection
     await RTO.create({
       shipmentId: ndr.shipmentId,
       merchantId: ndr.merchantId,
@@ -431,7 +431,7 @@ const rejectRTO = async (req, res) => {
       });
     }
 
-    // ✅ Check if NDR is in RTO_REQUESTED status
+    //  Check if NDR is in RTO_REQUESTED status
     if (ndr.status !== "RTO_REQUESTED") {
       return res.status(400).json({
         success: false,
@@ -439,11 +439,11 @@ const rejectRTO = async (req, res) => {
       });
     }
 
-    // ✅ Revert back to PENDING
+    //  Revert back to PENDING
     ndr.status = "PENDING";
     ndr.actionTaken = "RTO_REJECTED";
     
-    // ✅ Save admin's note
+    //  Save admin's note
     if (req.body.adminNote) {
       ndr.adminNote = req.body.adminNote;
     }
