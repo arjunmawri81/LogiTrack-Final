@@ -20,6 +20,9 @@ const SHIPMENT_STATUSES = [
   "DELIVERED",
   "NDR",
   "RTO",
+  "RTO_INITIATED",      // ✅ Added — used by Shipment.updateRTO("INITIATED")
+  "RTO_IN_TRANSIT",     // ✅ Added — used by Shipment.updateRTO("IN_TRANSIT")
+  "RTO_COMPLETED",      // ✅ Added — used by Shipment.updateRTO("COMPLETED") and isCompleted()
   "CANCELLED"
 ];
 
@@ -33,6 +36,9 @@ const ORDER_STATUS_MAP = {
   DELIVERED: "DELIVERED",
   NDR: "NDR",
   RTO: "RTO",
+  RTO_INITIATED: "RTO",     // ✅ Added
+  RTO_IN_TRANSIT: "RTO",    // ✅ Added
+  RTO_COMPLETED: "RTO",     // ✅ Added
   CANCELLED: "CANCELLED"
 };
 

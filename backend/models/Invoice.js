@@ -6,6 +6,8 @@ const invoiceSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+      trim: true,
+      index: true,
     },
 
     merchantId: {
@@ -29,16 +31,19 @@ const invoiceSchema = new mongoose.Schema(
     amount: {
       type: Number,
       required: true,
+      min: 0,
     },
 
     taxAmount: {
       type: Number,
       default: 0,
+      min: 0,
     },
 
     shippingCharge: {
       type: Number,
       default: 0,
+      min: 0,
     },
 
     totalAmount: {
@@ -81,13 +86,18 @@ const invoiceSchema = new mongoose.Schema(
 );
 
 // ================================
-// AUTO CALCULATE TOTAL AMOUNT
+// AUTO GENERATE INVOICE NUMBER + CALCULATE TOTAL
 // ================================
 invoiceSchema.pre("save", function () {
+  // ✅ Auto-generate invoiceNumber if not provided
+  if (!this.invoiceNumber) {
+    this.invoiceNumber = "INV" + Date.now() + Math.floor(1000 + Math.random() * 9000);
+  }
+
+  // ✅ Auto-calculate totalAmount (shipping charge + tax)
   this.totalAmount =
-    Number(this.amount || 0) +
-    Number(this.taxAmount || 0) +
-    Number(this.shippingCharge || 0);
+    Number(this.shippingCharge || 0) +
+    Number(this.taxAmount || 0);
 });
 
 // ================================
@@ -107,7 +117,7 @@ invoiceSchema.index({
   createdAt: -1,
 });
 
-module.exports = mongoose.model(
+module.exports = mongoose.models.Invoice || mongoose.model(
   "Invoice",
   invoiceSchema
 );

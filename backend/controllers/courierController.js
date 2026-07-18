@@ -1,4 +1,7 @@
 const Courier = require("../models/Courier");
+const Shipment = require("../models/Shipment");
+const Order = require("../models/Order");
+const { ORDER_STATUS_MAP } = require("../constants/statusConstants");
 
 // ==============================
 // CREATE COURIER
@@ -201,6 +204,71 @@ const deleteCourier = async (req, res) => {
   }
 };
 
+// ==============================
+// COURIER WEBHOOK STATUS UPDATE
+// ==============================
+const handleWebhook = async (req, res) => {
+  try {
+    const { awb, status, trackingUrl, location, remarks } = req.body;
+
+    if (!awb || !status || !trackingUrl) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required webhook payload fields: awb, status, trackingUrl",
+      });
+    }
+
+    const shipment = await Shipment.findOne({ awb });
+
+    if (!shipment) {
+      console.warn(`[Webhook] Shipment with AWB ${awb} not found`);
+      return res.status(404).json({
+        success: false,
+        message: `Shipment with AWB ${awb} not found`,
+      });
+    }
+
+    if (shipment.status === "DELIVERED" || shipment.status === "CANCELLED") {
+      console.warn(`[Webhook] Terminal state shipment ${awb} cannot be updated via webhook`);
+      return res.status(400).json({
+        success: false,
+        message: `Terminal state shipment (${shipment.status}) cannot be updated`,
+      });
+    }
+
+    shipment.trackingUrl = trackingUrl;
+    shipment.lastWebhookAt = new Date();
+
+    await shipment.addTrackingEvent(
+      status,
+      location || "Courier Webhook",
+      remarks || `Status updated via webhook: ${status}`
+    );
+
+    const order = await Order.findById(shipment.orderId);
+    if (order) {
+      const mappedStatus = ORDER_STATUS_MAP[status];
+      if (mappedStatus) {
+        order.status = mappedStatus;
+        await order.save();
+      }
+    }
+
+    console.log(`[Webhook] Successfully updated AWB ${awb} to status ${status}`);
+
+    res.status(200).json({
+      success: true,
+      message: "Webhook processed and shipment updated successfully",
+    });
+  } catch (error) {
+    console.error("[Webhook Error]", error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createCourier,
   getCouriers,
@@ -209,4 +277,5 @@ module.exports = {
   updateCourier,
   toggleCourierStatus,
   deleteCourier,
+  handleWebhook,
 };

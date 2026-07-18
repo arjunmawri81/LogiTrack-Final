@@ -312,4 +312,4 @@ rtoSchema.methods.updateStatus = function(newStatus, remarks, userId) {
   return this.save();
 };
 
-module.exports = mongoose.model("RTO", rtoSchema);
+module.exports = mongoose.models.RTO || mongoose.model("RTO", rtoSchema);

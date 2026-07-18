@@ -30,6 +30,8 @@ const Invoices = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [courierFilter, setCourierFilter] = useState("ALL");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [summary, setSummary] = useState({
     totalInvoices: 0,
     paidInvoices: 0,
@@ -49,12 +51,17 @@ const Invoices = () => {
 
   const fetchInvoices = async () => {
     try {
+      setLoading(true);
+      setError("");
       const res = await api.get(
         `/invoices?year=${selectedYear}&month=${selectedMonth}`
       );
       setInvoices(res.data.invoices || []);
     } catch (error) {
       console.error("Failed to fetch invoices:", error);
+      setError("Failed to load invoices. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -230,89 +237,104 @@ const Invoices = () => {
           </select>
         </div>
 
-        <div className="invoices-table-wrapper">
-          <table className="invoices-table">
-            <thead>
-              <tr className="invoices-table-head">
-                <th className="invoices-th">Invoice No</th>
-                <th className="invoices-th">AWB</th>
-                <th className="invoices-th">Customer</th>
-                <th className="invoices-th">Courier</th>
-                <th className="invoices-th">Amount</th>
-                <th className="invoices-th">Status</th>
-                <th className="invoices-th">Date</th>
-                <th className="invoices-th">Download</th>
-              </tr>
-            </thead>
+        {error && (
+          <div className="invoices-error">
+            <p>{error}</p>
+          </div>
+        )}
 
-            <tbody>
-              {filteredInvoices.map((invoice) => (
-                <tr key={invoice._id} className="invoices-row">
-                  <td className="invoices-td">
-                    <span className="invoices-invoice-number">
-                      {invoice.invoiceNumber}
-                    </span>
-                  </td>
-
-                  <td className="invoices-td invoices-awb">
-                    {invoice.shipmentId?.awb || "-"}
-                  </td>
-
-                  <td className="invoices-td invoices-customer">
-                    {invoice.orderId?.customerName || "-"}
-                  </td>
-
-                  <td className="invoices-td invoices-courier">
-                    {invoice.shipmentId?.courier || "-"}
-                  </td>
-
-                  <td className="invoices-td invoices-amount">
-                    ₹{Number(invoice.totalAmount || 0).toLocaleString("en-IN")}
-                  </td>
-
-                  <td className="invoices-td">
-                    <span
-                      className={`invoices-status-badge ${
-                        invoice.status === "PAID"
-                          ? "invoices-status-paid"
-                          : "invoices-status-pending"
-                      }`}
-                    >
-                      {invoice.status}
-                    </span>
-                  </td>
-
-                  <td className="invoices-td invoices-date">
-                    {new Date(invoice.createdAt).toLocaleDateString("en-IN", {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </td>
-
-                  <td className="invoices-td">
-                    <button
-                      className="invoices-download-btn"
-                      title="Download Invoice PDF"
-                      onClick={() => downloadInvoice(invoice._id)}
-                    >
-                      <FaDownload />
-                    </button>
-                  </td>
+        {loading ? (
+          <div className="invoices-loading">
+            <div className="invoices-spinner"></div>
+            <p>Loading invoices...</p>
+          </div>
+        ) : (
+          <div className="invoices-table-wrapper">
+            <table className="invoices-table">
+              <thead>
+                <tr className="invoices-table-head">
+                  <th className="invoices-th">Invoice No</th>
+                  <th className="invoices-th">AWB</th>
+                  <th className="invoices-th">Customer</th>
+                  <th className="invoices-th">Courier</th>
+                  <th className="invoices-th">Amount</th>
+                  <th className="invoices-th">Status</th>
+                  <th className="invoices-th">Date</th>
+                  <th className="invoices-th">Download</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
 
-          {filteredInvoices.length === 0 && (
-            <div className="invoices-empty">
-              <h3>No Invoices Found</h3>
-              <p>
-                Create shipments to automatically generate invoices.
-              </p>
-            </div>
-          )}
-        </div>
+              <tbody>
+                {filteredInvoices.map((invoice) => (
+                  <tr key={invoice._id} className="invoices-row">
+                    <td className="invoices-td">
+                      <span className="invoices-invoice-number">
+                        {invoice.invoiceNumber}
+                      </span>
+                    </td>
+
+                    <td className="invoices-td invoices-awb">
+                      {invoice.shipmentId?.awb || "-"}
+                    </td>
+
+                    <td className="invoices-td invoices-customer">
+                      {invoice.orderId?.customerName || "-"}
+                    </td>
+
+                    <td className="invoices-td invoices-courier">
+                      {invoice.shipmentId?.courier || "-"}
+                    </td>
+
+                    <td className="invoices-td invoices-amount">
+                      ₹{Number(invoice.totalAmount || 0).toLocaleString("en-IN")}
+                    </td>
+
+                    <td className="invoices-td">
+                      <span
+                        className={`invoices-status-badge ${
+                          invoice.status === "PAID"
+                            ? "invoices-status-paid"
+                            : invoice.status === "FAILED"
+                            ? "invoices-status-failed"
+                            : "invoices-status-pending"
+                        }`}
+                      >
+                        {invoice.status}
+                      </span>
+                    </td>
+
+                    <td className="invoices-td invoices-date">
+                      {new Date(invoice.createdAt).toLocaleDateString("en-IN", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </td>
+
+                    <td className="invoices-td">
+                      <button
+                        className="invoices-download-btn"
+                        title="Download Invoice PDF"
+                        onClick={() => downloadInvoice(invoice._id)}
+                      >
+                        <FaDownload />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {filteredInvoices.length === 0 && (
+              <div className="invoices-empty">
+                <h3>No Invoices Found</h3>
+                <p>
+                  Create shipments to automatically generate invoices.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

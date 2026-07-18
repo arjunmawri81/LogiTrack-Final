@@ -183,7 +183,8 @@ const shipmentSchema = new mongoose.Schema(
 
     manifestId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Manifest",
+      // ref: "Manifest" — removed: Manifest model does not exist yet.
+      // Add ref back when the Manifest feature is implemented.
       default: null,
     },
 
@@ -478,4 +479,6 @@ shipmentSchema.index({ lastSyncedAt: -1 });
 shipmentSchema.index({ warehouseId: 1 });
 shipmentSchema.index({ merchantId: 1, warehouseId: 1 });
 
-module.exports = mongoose.model("Shipment", shipmentSchema);
+module.exports =
+  mongoose.models.Shipment ||
+  mongoose.model("Shipment", shipmentSchema);

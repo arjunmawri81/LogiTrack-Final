@@ -8,8 +8,10 @@ const Order = require("../models/Order");
 // =================================
 const createNDR = async (req, res) => {
   try {
-    // Validate required fields
-    const { orderId, shipmentId, awb, reason } = req.body;
+    const {
+      orderId, shipmentId, awb, reason, status, remarks, actionNote,
+      customerName, customerPhone, address, pincode, expectedDeliveryDate
+    } = req.body;
     
     if (!orderId || !shipmentId || !awb || !reason) {
       return res.status(400).json({
@@ -19,7 +21,18 @@ const createNDR = async (req, res) => {
     }
 
     const ndr = await NDR.create({
-      ...req.body,
+      orderId,
+      shipmentId,
+      awb,
+      reason,
+      status,
+      remarks,
+      actionNote,
+      customerName,
+      customerPhone,
+      address,
+      pincode,
+      expectedDeliveryDate,
       merchantId: req.user.id,
     });
 
@@ -44,7 +57,7 @@ const getNDRs = async (req, res) => {
       merchantId: req.user.id,
     })
       .populate("orderId", "orderNumber customerName customerPhone")
-      .populate("shipmentId", "courier trackingNumber")
+      .populate("shipmentId", "courier awb status")
       .sort({ createdAt: -1 });
 
     res.status(200).json({
@@ -224,7 +237,7 @@ const approveReattempt = async (req, res) => {
 
     // Update status to REATTEMPT
     ndr.status = "REATTEMPT";
-    ndr.actionTaken = "REATTEMPT_APPROVED";
+    ndr.actionTaken = "REATTEMPT";
     
     //  Save admin's note
     if (req.body.adminNote) {
@@ -253,14 +266,12 @@ const approveReattempt = async (req, res) => {
 
     const shipment = await Shipment.findById(ndr.shipmentId);
     if (shipment) {
-      shipment.status = "IN_TRANSIT";
-      shipment.tracking.push({
-        status: "IN_TRANSIT",
-        location: "Sorting Hub",
-        remarks: `Reattempt approved by admin. Remarks: ${ndr.adminNote || ndr.actionNote || "Delivery details updated."}`,
-        eventTime: new Date(),
-      });
-      await shipment.save();
+      // Use addTrackingEvent to properly sync status and tracking timeline
+      await shipment.addTrackingEvent(
+        "IN_TRANSIT",
+        "Sorting Hub",
+        `Reattempt approved by admin. Remarks: ${ndr.adminNote || ndr.actionNote || "Delivery details updated."}`
+      );
     }
 
     res.status(200).json({
@@ -302,7 +313,7 @@ const rejectReattempt = async (req, res) => {
 
     //  Revert back to PENDING
     ndr.status = "PENDING";
-    ndr.actionTaken = "REATTEMPT_REJECTED";
+    ndr.actionTaken = "NONE";
     
     //  Save admin's note
     if (req.body.adminNote) {
@@ -350,7 +361,7 @@ const approveRTO = async (req, res) => {
 
     //  Update status to RTO
     ndr.status = "RTO";
-    ndr.actionTaken = "RTO_APPROVED";
+    ndr.actionTaken = "RTO";
     
     //  Save admin's note
     if (req.body.adminNote) {
@@ -368,14 +379,12 @@ const approveRTO = async (req, res) => {
 
     const shipment = await Shipment.findById(ndr.shipmentId);
     if (shipment) {
-      shipment.status = "RTO";
-      shipment.tracking.push({
-        status: "RTO",
-        location: "Sorting Hub",
-        remarks: `RTO approved by admin. Package is returning to origin. Remarks: ${ndr.adminNote || ndr.actionNote || ""}`,
-        eventTime: new Date(),
-      });
-      await shipment.save();
+      // Use addTrackingEvent to properly sync status and tracking timeline
+      await shipment.addTrackingEvent(
+        "RTO_INITIATED",
+        "Sorting Hub",
+        `RTO approved by admin. Package is returning to origin. Remarks: ${ndr.adminNote || ndr.actionNote || ""}`
+      );
     }
 
     //  Create RTO record in RTO collection
@@ -441,7 +450,7 @@ const rejectRTO = async (req, res) => {
 
     //  Revert back to PENDING
     ndr.status = "PENDING";
-    ndr.actionTaken = "RTO_REJECTED";
+    ndr.actionTaken = "NONE";
     
     //  Save admin's note
     if (req.body.adminNote) {

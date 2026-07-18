@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const { authMiddleware } = require("../middleware/authMiddleware");
+const { authMiddleware, validateMongoId } = require("../middleware/authMiddleware");
 const logoUpload = require("../middleware/logoUploadMiddleware");
 
 const {
@@ -21,7 +21,12 @@ const {
 // ===============================
 // CREATE SHIPMENT
 // ===============================
-router.post("/", authMiddleware, createShipment);
+router.post(
+  "/",
+  authMiddleware,
+  validateMongoId("orderId", "courierId", "warehouseId"),
+  createShipment
+);
 
 // ===============================
 // BULK CREATE SHIPMENTS

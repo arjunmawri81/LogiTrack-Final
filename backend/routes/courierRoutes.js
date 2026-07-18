@@ -5,6 +5,7 @@ const router = express.Router();
 const {
   authMiddleware,
   authorizeRoles,
+  validateSignature,
 } = require("../middleware/authMiddleware");
 
 const {
@@ -15,6 +16,7 @@ const {
   updateCourier,
   toggleCourierStatus,
   deleteCourier,
+  handleWebhook,
 } = require("../controllers/courierController");
 
 // ========================================
@@ -82,6 +84,13 @@ router.get(
     "MERCHANT"
   ),
   getActiveCouriers
+);
+
+// Courier Webhook status updates (secured by signature verification)
+router.post(
+  "/webhook",
+  validateSignature,
+  handleWebhook
 );
 
 module.exports = router;

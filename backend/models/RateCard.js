@@ -6,7 +6,7 @@ const rateCardSchema = new mongoose.Schema(
     // merchantId = Merchant Custom Rate
     merchantId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Merchant",
+      ref: "User",   // ✅ Fixed: was "Merchant" — merchant accounts live in User collection
       default: null,
     },
 
@@ -111,4 +111,6 @@ rateCardSchema.index(
   }
 );
 
-module.exports = mongoose.model("RateCard", rateCardSchema);
+module.exports =
+  mongoose.models.RateCard ||
+  mongoose.model("RateCard", rateCardSchema);

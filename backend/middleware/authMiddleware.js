@@ -1,5 +1,6 @@
 // backend/middleware/authMiddleware.js
 const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
 
 // Main Authentication Middleware
 const authMiddleware = (req, res, next) => {
@@ -98,10 +99,70 @@ const isApprovedMerchant = async (req, res, next) => {
   }
 };
 
+// ====================================
+// MONGO ID VALIDATION MIDDLEWARE
+// ====================================
+// Validates that specified req.body or req.params fields are valid MongoDB ObjectIds.
+// Returns 400 instead of letting Mongoose throw a CastError (which would produce a 500).
+const validateMongoId = (...fields) =>
+  (req, res, next) => {
+    for (const field of fields) {
+      const value = req.body[field] ?? req.params[field];
+      if (value !== undefined && value !== null && value !== "") {
+        if (!mongoose.Types.ObjectId.isValid(value)) {
+          return res.status(400).json({
+            success: false,
+            message: `Invalid value for field: ${field}. Expected a valid ID.`,
+          });
+        }
+      }
+    }
+    next();
+  };
+
+// ====================================
+// WEBHOOK SIGNATURE VALIDATION MIDDLEWARE
+// ====================================
+const crypto = require("crypto");
+
+const validateSignature = (req, res, next) => {
+  const signature = req.headers["x-courier-signature"];
+  const secret = process.env.COURIER_WEBHOOK_SECRET;
+
+  if (!secret) {
+    return res.status(500).json({
+      success: false,
+      message: "Webhook secret is not configured on the server.",
+    });
+  }
+
+  if (!signature) {
+    return res.status(401).json({
+      success: false,
+      message: "Missing signature header x-courier-signature.",
+    });
+  }
+
+  const hmac = crypto.createHmac("sha256", secret);
+  const payload = JSON.stringify(req.body);
+  const calculatedSignature = hmac.update(payload).digest("hex");
+
+  if (signature !== calculatedSignature) {
+    return res.status(401).json({
+      success: false,
+      message: "Invalid signature.",
+    });
+  }
+
+  next();
+};
+
 // ✅ Final export with both authMiddleware and verifyToken alias
 module.exports = {
-  verifyToken: authMiddleware, 
-  authMiddleware,              
+  verifyToken: authMiddleware,
+  authMiddleware,
   authorizeRoles,
   isApprovedMerchant,
-};
+  validateMongoId,
+  validateSignature,
+};

@@ -947,7 +947,7 @@ const approveReattempt = async (req, res) => {
     await Shipment.findByIdAndUpdate(
       ndr.shipmentId,
       {
-        status: "READY_FOR_REATTEMPT",
+        status: "IN_TRANSIT",
         updatedAt: new Date(),
       },
       { new: true }
@@ -997,7 +997,7 @@ const approveRTO = async (req, res) => {
     await Shipment.findByIdAndUpdate(
       ndr.shipmentId,
       {
-        status: "RTO_IN_PROGRESS",
+        status: "RTO_INITIATED",
         updatedAt: new Date(),
       },
       { new: true }

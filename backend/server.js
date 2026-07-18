@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
 const dotenv = require("dotenv");
 
 const connectDB = require("./config/db");
@@ -54,10 +55,17 @@ const app = express();
 // ====================================
 app.use(
   cors({
-    origin: true,
+    origin: process.env.ALLOWED_ORIGINS
+      ? process.env.ALLOWED_ORIGINS.split(",")
+      : ["http://localhost:5173", "http://localhost:3000"],
     credentials: true,
   })
 );
+
+// ====================================
+// SECURITY HEADERS
+// ====================================
+app.use(helmet());
 
 // ====================================
 // MIDDLEWARE
@@ -125,6 +133,18 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(` Server Running On Port ${PORT}`);
+});
+
+// ====================================
+// PROCESS CRASH GUARDS
+// ====================================
+process.on("unhandledRejection", (err) => {
+  console.error("[UnhandledRejection]", err);
+});
+
+process.on("uncaughtException", (err) => {
+  console.error("[UncaughtException]", err);
+  process.exit(1);
 });
 
 module.exports = app;

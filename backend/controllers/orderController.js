@@ -38,9 +38,9 @@ const createOrder = async (req, res) => {
     }
 
     const orderData = {
+      ...req.body,
       merchantId: req.user.id,
       orderNumber: req.body.orderNumber || generateOrderNumber(),
-      ...req.body,
       customerCity,
       customerState,
       customerPincode,
@@ -59,7 +59,7 @@ const createOrder = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: error.message,
-      stack: error.stack,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
     });
   }
 };
@@ -91,7 +91,7 @@ const getOrders = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: error.message,
-      stack: error.stack,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
     });
   }
 };
@@ -307,13 +307,49 @@ const uploadCSVOrders = async (req, res) => {
     const errors = [];
 
     fs.createReadStream(req.file.path)
+      .on("error", (err) => {
+        if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+        if (!res.headersSent) {
+          return res.status(400).json({
+            success: false,
+            message: "Failed to read CSV file",
+            error: err.message,
+          });
+        }
+      })
       .pipe(csv())
+      .on("error", (err) => {
+        if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+        if (!res.headersSent) {
+          return res.status(400).json({
+            success: false,
+            message: "Failed to parse CSV",
+            error: err.message,
+          });
+        }
+      })
       .on("data", (data) => {
-        // ✅ Validate required fields
+              // ✅ Validate required fields
         if (!data.customerName || !data.customerPhone || !data.customerAddress) {
           errors.push({
             row: results.length + 1,
             message: "Missing required fields: customerName, customerPhone, customerAddress",
+          });
+          return;
+        }
+
+        // ✅ Validate required address fields (mapped from CSV columns)
+        const city = data.customerCity || data.city;
+        const state = data.customerState || data.state;
+        const pincode = data.customerPincode || data.pincode;
+        if (!city || !state || !pincode) {
+          const missing = [];
+          if (!city) missing.push("city");
+          if (!state) missing.push("state");
+          if (!pincode) missing.push("pincode");
+          errors.push({
+            row: results.length + 1,
+            message: `Missing required address fields: ${missing.join(", ")}`,
           });
           return;
         }
@@ -339,39 +375,35 @@ const uploadCSVOrders = async (req, res) => {
           });
         }
 
-        // ✅ Map all fields including additional ones
-        const orders = results.map((row, index) => ({
+                const orders = results.map((row) => ({
           merchantId: req.user.id,
           orderNumber: generateOrderNumber(),
-          
+
           // Customer Details
           customerName: row.customerName,
           customerPhone: row.customerPhone,
           customerAddress: row.customerAddress,
           customerEmail: row.customerEmail || "",
-          city: row.city || "",
-          state: row.state || "",
-          pincode: row.pincode || "",
-          
+          customerCity: row.customerCity || row.city || "",
+          customerState: row.customerState || row.state || "",
+          customerPincode: row.customerPincode || row.pincode || "",
+
           // Product Details
           productName: row.productName || "",
-          productDescription: row.productDescription || "",
           quantity: Number(row.quantity) || 1,
           weight: Number(row.weight) || 0,
-          SKU: row.SKU || "",
-          
+          sku: row.sku || row.SKU || "",
+
           // Order Details
           amount: Number(row.amount) || 0,
           paymentMode: row.paymentMode || "COD",
-          paymentStatus: row.paymentStatus || "PENDING",
-          
-          // Additional Fields
+          insuranceEnabled:
+            row.insuranceEnabled === "true" || row.insurance === "true" || false,
+
+          // Notes
           notes: row.notes || "",
-          insurance: row.insurance === "true" || false,
-          isGift: row.isGift === "true" || false,
-          giftMessage: row.giftMessage || "",
-          
-          // Status - Changed from "PENDING" to "NEW"
+
+          // Status
           status: "NEW",
         }));
 
@@ -430,7 +462,7 @@ const uploadExcelOrders = async (req, res) => {
     const errors = [];
     const validData = [];
 
-    data.forEach((row, index) => {
+        data.forEach((row, index) => {
       if (!row.customerName || !row.customerPhone || !row.customerAddress) {
         errors.push({
           row: index + 1,
@@ -438,6 +470,23 @@ const uploadExcelOrders = async (req, res) => {
         });
         return;
       }
+
+      // ✅ Validate required address fields
+      const city = row.customerCity || row.city;
+      const state = row.customerState || row.state;
+      const pincode = row.customerPincode || row.pincode;
+      if (!city || !state || !pincode) {
+        const missing = [];
+        if (!city) missing.push("city");
+        if (!state) missing.push("state");
+        if (!pincode) missing.push("pincode");
+        errors.push({
+          row: index + 1,
+          message: `Missing required address fields: ${missing.join(", ")}`,
+        });
+        return;
+      }
+
       validData.push(row);
     });
 
@@ -449,38 +498,35 @@ const uploadExcelOrders = async (req, res) => {
       });
     }
 
-    const orders = validData.map((row, index) => ({
+        const orders = validData.map((row) => ({
       merchantId: req.user.id,
       orderNumber: generateOrderNumber(),
-      
+
       // Customer Details
       customerName: row.customerName,
       customerPhone: row.customerPhone,
       customerAddress: row.customerAddress,
       customerEmail: row.customerEmail || "",
-      city: row.city || "",
-      state: row.state || "",
-      pincode: row.pincode || "",
-      
+      customerCity: row.customerCity || row.city || "",
+      customerState: row.customerState || row.state || "",
+      customerPincode: row.customerPincode || row.pincode || "",
+
       // Product Details
       productName: row.productName || "",
-      productDescription: row.productDescription || "",
       quantity: Number(row.quantity) || 1,
       weight: Number(row.weight) || 0,
-      SKU: row.SKU || "",
-      
+      sku: row.sku || row.SKU || "",
+
       // Order Details
       amount: Number(row.amount) || 0,
       paymentMode: row.paymentMode || "COD",
-      paymentStatus: row.paymentStatus || "PENDING",
-      
-      // Additional Fields
+      insuranceEnabled:
+        row.insuranceEnabled === "true" || row.insurance === "true" || false,
+
+      // Notes
       notes: row.notes || "",
-      insurance: row.insurance === "true" || false,
-      isGift: row.isGift === "true" || false,
-      giftMessage: row.giftMessage || "",
-      
-      // Status - Changed from "PENDING" to "NEW"
+
+      // Status
       status: "NEW",
     }));
 

@@ -37,4 +37,4 @@ const walletSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("Wallet", walletSchema);
+module.exports = mongoose.models.Wallet || mongoose.model("Wallet", walletSchema);

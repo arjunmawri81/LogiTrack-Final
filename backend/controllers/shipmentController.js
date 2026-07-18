@@ -1095,14 +1095,27 @@ async function renderLabel(doc, shipment, settings = {}, labelWidth = null, labe
   return renderLabelV2(doc, shipment, settings, labelWidth, labelHeight, x, y);
 }
 
+const checkReplicaSet = async () => {
+  try {
+    if (!mongoose.connection || !mongoose.connection.db) return false;
+    const hello = await mongoose.connection.db.admin().command({ hello: 1 });
+    return !!hello.setName;
+  } catch (err) {
+    return false;
+  }
+};
+
 // ===============================
 // CREATE SHIPMENT WITH TRANSACTION
 // ===============================
 const createShipment = async (req, res) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
+  let session = null;
   try {
+    const isReplSet = await checkReplicaSet();
+    if (isReplSet) {
+      session = await mongoose.startSession();
+      session.startTransaction();
+    }
     logger.info("Create shipment request received", { 
       userId: req.user?.id,
       body: req.body 
@@ -1116,7 +1129,7 @@ const createShipment = async (req, res) => {
     } = req.body;
 
     if (!orderId || !courierId || !warehouseId) { // Updated validation
-      await session.abortTransaction();
+      if (session) await session.abortTransaction();
       logger.warn("Missing required fields", { orderId, courierId, warehouseId });
       return res.status(400).json({
         success: false,
@@ -1130,7 +1143,7 @@ const createShipment = async (req, res) => {
     }).session(session);
 
     if (!order) {
-      await session.abortTransaction();
+      if (session) await session.abortTransaction();
       logger.warn("Order not found", { orderId, userId: req.user.id });
       return res.status(404).json({
         success: false,
@@ -1144,7 +1157,7 @@ const createShipment = async (req, res) => {
     }).session(session);
 
     if (existingShipment) {
-      await session.abortTransaction();
+      if (session) await session.abortTransaction();
       logger.warn("Shipment already exists", { orderId });
       return res.status(400).json({
         success: false,
@@ -1159,7 +1172,7 @@ const createShipment = async (req, res) => {
     }).session(session);
 
     if (!warehouse) {
-      await session.abortTransaction();
+      if (session) await session.abortTransaction();
       logger.warn("Warehouse not found", { warehouseId, userId: req.user.id });
       return res.status(404).json({
         success: false,
@@ -1170,7 +1183,7 @@ const createShipment = async (req, res) => {
     const courier = await Courier.findById(courierId).session(session);
 
     if (!courier) {
-      await session.abortTransaction();
+      if (session) await session.abortTransaction();
       logger.warn("Courier not found", { courierId });
       return res.status(404).json({
         success: false,
@@ -1193,7 +1206,7 @@ const createShipment = async (req, res) => {
     }
 
     if (!rateCard) {
-      await session.abortTransaction();
+      if (session) await session.abortTransaction();
       logger.warn("No rate card found", { merchantId: req.user.id, courierId });
       return res.status(404).json({
         success: false,
@@ -1213,12 +1226,10 @@ const createShipment = async (req, res) => {
       SHIPPING_CHARGE = rateCard.forwardRates?.rate2kg || 0;
     } else if (weight <= 5) {
       SHIPPING_CHARGE = rateCard.forwardRates?.rate5kg || 0;
-    } else if (weight <= 10) {
-      SHIPPING_CHARGE = rateCard.forwardRates?.rate10kg || 0;
     } else {
       SHIPPING_CHARGE = 
-        (rateCard.forwardRates?.rate10kg || 0) +
-        (Math.ceil(weight - 10) * (rateCard.forwardRates?.additionalKg || 0));
+        (rateCard.forwardRates?.rate5kg || 0) +
+        (Math.ceil(weight - 5) * (rateCard.forwardRates?.additionalKg || 0));
     }
 
     if (order.paymentMode === "COD") {
@@ -1254,7 +1265,7 @@ const createShipment = async (req, res) => {
     }
 
     if (wallet.balance < SHIPPING_CHARGE) {
-      await session.abortTransaction();
+      if (session) await session.abortTransaction();
       logger.warn("Insufficient wallet balance", { 
         balance: wallet.balance, 
         required: SHIPPING_CHARGE 
@@ -1339,7 +1350,7 @@ const createShipment = async (req, res) => {
     await wallet.save({ session });
 
     const taxPercentage = Number(process.env.GST_PERCENTAGE || 18);
-    const taxAmount = Math.ceil((order.amount || 0) * (taxPercentage / 100));
+    const taxAmount = Math.ceil((SHIPPING_CHARGE) * (taxPercentage / 100));
 
     const invoice = await Invoice.create([{
       invoiceNumber: generateInvoiceNumber(),
@@ -1370,7 +1381,7 @@ const createShipment = async (req, res) => {
     order.status = ORDER_STATUS_MAP[createdShipment.status] || "READY_FOR_PICKUP";
     await order.save({ session });
 
-    await session.commitTransaction();
+    if (session) await session.commitTransaction();
 
     logger.info("Shipment created successfully", { 
       shipmentId: createdShipment._id,
@@ -1396,7 +1407,13 @@ const createShipment = async (req, res) => {
       paymentMode: order.paymentMode,
     });
   } catch (error) {
-    await session.abortTransaction();
+    if (session) {
+      try {
+        await session.abortTransaction();
+      } catch (err) {
+        // ignore abort errors on standalone/failed sessions
+      }
+    }
     logger.error("Shipment creation failed", { 
       error: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
@@ -1409,7 +1426,7 @@ const createShipment = async (req, res) => {
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
     });
   } finally {
-    await session.endSession();
+    if (session) await session.endSession();
   }
 };
 
@@ -1417,10 +1434,13 @@ const createShipment = async (req, res) => {
 // BULK CREATE SHIPMENTS WITH TRANSACTION
 // ===============================
 const createBulkShipments = async (req, res) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
+  let session = null;
   try {
+    const isReplSet = await checkReplicaSet();
+    if (isReplSet) {
+      session = await mongoose.startSession();
+      session.startTransaction();
+    }
     logger.info("Bulk shipment request received", { 
       userId: req.user?.id,
       body: req.body 
@@ -1429,7 +1449,7 @@ const createBulkShipments = async (req, res) => {
     const { orderIds, courierId, warehouseId } = req.body; // Added warehouseId
 
     if (!orderIds || orderIds.length === 0) {
-      await session.abortTransaction();
+      if (session) await session.abortTransaction();
       return res.status(400).json({
         success: false,
         message: "No orders selected",
@@ -1437,7 +1457,7 @@ const createBulkShipments = async (req, res) => {
     }
 
     if (!courierId) {
-      await session.abortTransaction();
+      if (session) await session.abortTransaction();
       return res.status(400).json({
         success: false,
         message: "CourierId is required",
@@ -1445,7 +1465,7 @@ const createBulkShipments = async (req, res) => {
     }
 
     if (!warehouseId) { // Added warehouse validation
-      await session.abortTransaction();
+      if (session) await session.abortTransaction();
       return res.status(400).json({
         success: false,
         message: "WarehouseId is required",
@@ -1459,7 +1479,7 @@ const createBulkShipments = async (req, res) => {
     }).session(session);
 
     if (!warehouse) {
-      await session.abortTransaction();
+      if (session) await session.abortTransaction();
       logger.warn("Warehouse not found", { warehouseId, userId: req.user.id });
       return res.status(404).json({
         success: false,
@@ -1470,7 +1490,7 @@ const createBulkShipments = async (req, res) => {
     const courier = await Courier.findById(courierId).session(session);
 
     if (!courier) {
-      await session.abortTransaction();
+      if (session) await session.abortTransaction();
       logger.warn("Courier not found", { courierId });
       return res.status(404).json({
         success: false,
@@ -1493,7 +1513,7 @@ const createBulkShipments = async (req, res) => {
     }
 
     if (!rateCard) {
-      await session.abortTransaction();
+      if (session) await session.abortTransaction();
       return res.status(404).json({
         success: false,
         message: "No pricing available for this courier. Please contact administrator.",
@@ -1554,24 +1574,20 @@ const createBulkShipments = async (req, res) => {
           shippingCharge = rateCard.forwardRates?.rate2kg || 0;
         } else if (weight <= 5) {
           shippingCharge = rateCard.forwardRates?.rate5kg || 0;
-        } else if (weight <= 10) {
-          shippingCharge = rateCard.forwardRates?.rate10kg || 0;
         } else {
           shippingCharge = 
-            (rateCard.forwardRates?.rate10kg || 0) +
-            (Math.ceil(weight - 10) * (rateCard.forwardRates?.additionalKg || 0));
+            (rateCard.forwardRates?.rate5kg || 0) +
+            (Math.ceil(weight - 5) * (rateCard.forwardRates?.additionalKg || 0));
         }
 
         if (order.paymentMode === "COD") {
           shippingCharge += rateCard.codCharge || 0;
         }
 
-        totalCharges += shippingCharge;
-
-        if (wallet.balance < totalCharges) {
+        if (wallet.balance < shippingCharge) {
           failedOrders.push({ 
             orderId, 
-            reason: `Insufficient wallet balance. Required: ${totalCharges}, Available: ${wallet.balance}` 
+            reason: `Insufficient wallet balance. Required: ${shippingCharge}, Available: ${wallet.balance}` 
           });
           continue;
         }
@@ -1640,7 +1656,7 @@ const createBulkShipments = async (req, res) => {
         createdShipmentIds.push(createdShipment._id);
 
         const taxPercentage = Number(process.env.GST_PERCENTAGE || 18);
-        const taxAmount = Math.ceil((order.amount || 0) * (taxPercentage / 100));
+        const taxAmount = Math.ceil((shippingCharge) * (taxPercentage / 100));
 
         const invoice = await Invoice.create([{
           invoiceNumber: generateInvoiceNumber(),
@@ -1675,6 +1691,7 @@ const createBulkShipments = async (req, res) => {
         shipments.push(createdShipment);
 
         wallet.balance -= shippingCharge;
+        totalCharges += shippingCharge;
         wallet.transactions.push({
           amount: shippingCharge,
           type: "DEBIT",
@@ -1693,7 +1710,7 @@ const createBulkShipments = async (req, res) => {
 
     await wallet.save({ session });
 
-    await session.commitTransaction();
+    if (session) await session.commitTransaction();
 
     logger.info("Bulk shipments created", { 
       total: shipments.length,
@@ -1723,7 +1740,13 @@ const createBulkShipments = async (req, res) => {
       },
     });
   } catch (error) {
-    await session.abortTransaction();
+    if (session) {
+      try {
+        await session.abortTransaction();
+      } catch (err) {
+        // ignore abort errors
+      }
+    }
     logger.error("Bulk shipment creation failed", { 
       error: error.message,
       userId: req.user?.id 
@@ -1733,7 +1756,7 @@ const createBulkShipments = async (req, res) => {
       message: error.message,
     });
   } finally {
-    await session.endSession();
+    if (session) await session.endSession();
   }
 };
 
@@ -2018,13 +2041,13 @@ const schedulePickup = async (req, res) => {
     const courier = await Courier.findById(shipment.courierId);
     await CourierService.schedulePickup(courier, shipment._id);
 
+    shipment.pickupDate = new Date();
+
     await shipment.addTrackingEvent(
       "PICKUP_SCHEDULED",
       "Admin Panel",
       "Pickup Scheduled"
     );
-
-    shipment.pickupDate = new Date();
 
     const order = await Order.findById(shipment.orderId);
     if (order) {
@@ -2377,8 +2400,32 @@ const cancelShipment = async (req, res) => {
       });
     }
 
+    // ✅ Ownership check: MERCHANT must own their shipment, ADMIN/SUPER_ADMIN is allowed.
+    if (req.user.role === "MERCHANT" && shipment.merchantId.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized to cancel this shipment",
+      });
+    }
+
     const courier = await Courier.findById(shipment.courierId);
     await CourierService.cancelShipment(courier, shipment._id);
+
+    // ✅ Refund merchant wallet
+    const refundAmount = shipment.shippingCharge || 0;
+    if (refundAmount > 0) {
+      const wallet = await Wallet.findOne({ merchantId: shipment.merchantId });
+      if (wallet) {
+        wallet.balance += refundAmount;
+        wallet.transactions.push({
+          amount: refundAmount,
+          type: "CREDIT",
+          description: `Refund for Cancelled Shipment AWB #${shipment.awb}`,
+          createdAt: new Date(),
+        });
+        await wallet.save();
+      }
+    }
 
     shipment.status = "CANCELLED";
     await shipment.save();

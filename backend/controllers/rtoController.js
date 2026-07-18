@@ -11,8 +11,14 @@ const Order = require("../models/Order");
 // ================================
 const createRTO = async (req, res) => {
   try {
+    const {
+      shipmentId, orderId, ndrId, reason, rtoReason, remarks, awb, courier,
+      customerName, customerPhone, address, pincode, city, state
+    } = req.body;
+
     const rto = await RTO.create({
-      ...req.body,
+      shipmentId, orderId, ndrId, reason, rtoReason, remarks, awb, courier,
+      customerName, customerPhone, address, pincode, city, state,
       merchantId: req.user.id,
     });
 
@@ -196,11 +202,9 @@ const requestRTOFromNDR = async (req, res) => {
 
     // Update NDR status to RTO_REQUESTED
     ndr.status = "RTO_REQUESTED";
-    ndr.rtoReason = rtoReason || ndr.ndrReason || "Customer requested return";
-    ndr.rtoSubReason = rtoSubReason || ndr.ndrSubReason || "";
+    ndr.actionTaken = "RTO_REQUESTED";
+    ndr.actionNote = rtoReason || remarks || "Customer requested return";
     ndr.remarks = remarks || ndr.remarks || "RTO requested by merchant";
-    ndr.rtoRequestedAt = new Date();
-    ndr.rtoRequestedBy = req.user.id;
 
     await ndr.save();
 
@@ -214,20 +218,18 @@ const requestRTOFromNDR = async (req, res) => {
       // Customer Info
       customerName: ndr.customerName || ndr.orderId?.customerName || "",
       customerPhone: ndr.customerPhone || ndr.orderId?.customerPhone || "",
-      customerEmail: ndr.customerEmail || ndr.orderId?.customerEmail || "",
-      address: ndr.address || ndr.orderId?.address || "",
+      address: ndr.address || ndr.orderId?.customerAddress || ndr.orderId?.address || "",
       pincode: ndr.pincode || ndr.orderId?.pincode || "",
-      city: ndr.city || ndr.orderId?.city || "",
-      state: ndr.state || ndr.orderId?.state || "",
+      city: ndr.city || ndr.orderId?.customerCity || ndr.orderId?.city || "",
+      state: ndr.state || ndr.orderId?.customerState || ndr.orderId?.state || "",
       
       // Shipment Info
       awb: ndr.awb || ndr.shipmentId?.awb || "",
       courier: ndr.courier || ndr.shipmentId?.courier || "",
       
       // RTO Specific
-      rtoReason: rtoReason || ndr.ndrReason || "Customer requested return",
-      rtoSubReason: rtoSubReason || ndr.ndrSubReason || "",
-      reason: rtoReason || ndr.ndrReason || "Customer requested return",
+      rtoReason: rtoReason || ndr.reason || "Customer requested return",
+      reason: rtoReason || ndr.reason || "Customer requested return",
       status: "INITIATED",
       
       // Timestamps
@@ -238,7 +240,7 @@ const requestRTOFromNDR = async (req, res) => {
       
       // Metadata
       createdBy: "merchant",
-      source: "ndr_rto_request"
+      source: "ndr_rto_approval"
     };
 
     const rto = await RTO.create(rtoData);

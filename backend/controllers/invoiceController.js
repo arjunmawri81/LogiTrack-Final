@@ -1,6 +1,5 @@
 const PDFDocument = require("pdfkit");
 const Invoice = require("../models/Invoice");
-const Order = require("../models/Order");
 
 // ================================
 // DOWNLOAD INVOICE PDF
@@ -38,7 +37,7 @@ const downloadInvoice = async (req, res) => {
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename=${invoice.invoiceNumber}.pdf`
+      `attachment; filename="${invoice.invoiceNumber}.pdf"`
     );
 
     doc.pipe(res);
@@ -79,17 +78,18 @@ const downloadInvoice = async (req, res) => {
     doc.fontSize(12);
     
     const order = invoice.orderId;
-    doc.text(`Order Number: ${order.orderNumber || 'N/A'}`);
-    doc.text(`Customer Name: ${order.customerName || 'N/A'}`);
-    doc.text(`Customer Phone: ${order.customerPhone || 'N/A'}`);
-    doc.text(`Customer Address: ${order.customerAddress || 'N/A'}`);
+    const shipment = invoice.shipmentId;
+    doc.text(`Order Number: ${order?.orderNumber || 'N/A'}`);
+    doc.text(`Customer Name: ${order?.customerName || 'N/A'}`);
+    doc.text(`Customer Phone: ${order?.customerPhone || 'N/A'}`);
+    doc.text(`Customer Address: ${order?.customerAddress || 'N/A'}`);
     
-    if (order.awb) {
-      doc.text(`AWB: ${order.awb}`);
+    if (shipment?.awb) {
+      doc.text(`AWB: ${shipment.awb}`);
     }
     
-    if (order.courierPartner) {
-      doc.text(`Courier: ${order.courierPartner}`);
+    if (shipment?.courier) {
+      doc.text(`Courier: ${shipment.courier}`);
     }
 
     doc.moveDown();
@@ -126,12 +126,6 @@ const downloadInvoice = async (req, res) => {
       `Shipping Charge: ₹${invoice.shippingCharge || 0}`
     );
 
-    if (invoice.insuranceCharge) {
-      doc.text(
-        `Insurance Charge: ₹${invoice.insuranceCharge || 0}`
-      );
-    }
-
     doc.moveDown();
 
     // Draw a line separator
@@ -148,9 +142,8 @@ const downloadInvoice = async (req, res) => {
     const totalAmount =
       invoice.totalAmount ??
       (
-        (invoice.amount || 0) +
-        (invoice.taxAmount || 0) +
         (invoice.shippingCharge || 0) +
+        (invoice.taxAmount || 0) +
         (invoice.insuranceCharge || 0)
       );
 
@@ -172,12 +165,15 @@ const downloadInvoice = async (req, res) => {
 
     doc.end();
   } catch (error) {
-    console.log("DOWNLOAD INVOICE ERROR =>", error);
+    console.error("DOWNLOAD INVOICE ERROR =>", error);
 
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    // Prevent double-header crash if PDF pipe already started
+    if (!res.headersSent) {
+      res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
   }
 };
 
@@ -186,16 +182,26 @@ const downloadInvoice = async (req, res) => {
 // ================================
 const getInvoices = async (req, res) => {
   try {
-    console.log("REQ USER ID =>", req.user.id);
+    const { year, month } = req.query;
 
-    const invoices = await Invoice.find({
-      merchantId: req.user.id,
-    })
+    const filter = { merchantId: req.user.id };
+
+    // Billing Cycle filtering
+    if (year && month) {
+      const y = parseInt(year, 10);
+      const m = parseInt(month, 10);
+
+      if (!isNaN(y) && !isNaN(m) && m >= 1 && m <= 12) {
+        const startDate = new Date(y, m - 1, 1);
+        const endDate = new Date(y, m, 1);
+        filter.createdAt = { $gte: startDate, $lt: endDate };
+      }
+    }
+
+    const invoices = await Invoice.find(filter)
       .populate("orderId")
       .populate("shipmentId")
       .sort({ createdAt: -1 });
-
-    console.log("INVOICES FOUND =>", invoices.length);
 
     res.status(200).json({
       success: true,
@@ -203,7 +209,7 @@ const getInvoices = async (req, res) => {
       invoices,
     });
   } catch (error) {
-    console.log("GET INVOICES ERROR =>", error);
+    console.error("GET INVOICES ERROR =>", error);
 
     res.status(500).json({
       success: false,
@@ -217,9 +223,23 @@ const getInvoices = async (req, res) => {
 // ================================
 const getInvoiceSummary = async (req, res) => {
   try {
-    const invoices = await Invoice.find({
-      merchantId: req.user.id,
-    });
+    const { year, month } = req.query;
+
+    const matchStage = { merchantId: req.user._id || req.user.id };
+
+    // Billing Cycle filtering (same logic as getInvoices)
+    if (year && month) {
+      const y = parseInt(year, 10);
+      const m = parseInt(month, 10);
+
+      if (!isNaN(y) && !isNaN(m) && m >= 1 && m <= 12) {
+        const startDate = new Date(y, m - 1, 1);
+        const endDate = new Date(y, m, 1);
+        matchStage.createdAt = { $gte: startDate, $lt: endDate };
+      }
+    }
+
+    const invoices = await Invoice.find(matchStage);
 
     const totalInvoices = invoices.length;
 
@@ -245,7 +265,7 @@ const getInvoiceSummary = async (req, res) => {
       totalRevenue,
     });
   } catch (error) {
-    console.log("GET INVOICE SUMMARY ERROR =>", error);
+    console.error("GET INVOICE SUMMARY ERROR =>", error);
 
     res.status(500).json({
       success: false,

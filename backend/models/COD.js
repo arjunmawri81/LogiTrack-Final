@@ -30,4 +30,4 @@ const codSchema = new mongoose.Schema({
   }
 });
 
-module.exports = mongoose.model('COD', codSchema);
+module.exports = mongoose.models.COD || mongoose.model('COD', codSchema);

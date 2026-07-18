@@ -12,6 +12,7 @@ const warehouseSchema = new mongoose.Schema(
     warehouseCode: {
       type: String,
       unique: true,
+      sparse: true,          // ✅ Allows multiple null values without E11000
       uppercase: true,
       trim: true,
     },
@@ -199,4 +200,16 @@ warehouseSchema.index({
   isDefault: 1,
 });
 
-module.exports = mongoose.model("Warehouse", warehouseSchema);
+// ================================
+// AUTO-GENERATE WAREHOUSE CODE
+// ================================
+warehouseSchema.pre("save", function () {
+  if (!this.warehouseCode) {
+    this.warehouseCode =
+      "WH" + Date.now() + Math.floor(1000 + Math.random() * 9000);
+  }
+});
+
+module.exports =
+  mongoose.models.Warehouse ||
+  mongoose.model("Warehouse", warehouseSchema);

@@ -62,6 +62,7 @@ const ndrSchema = new mongoose.Schema(
         "REATTEMPT",
         "RTO_REQUESTED",
         "RTO",
+        "RESOLVED",
       ],
       default: "NONE",
     },
@@ -150,4 +151,4 @@ const ndrSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("NDR", ndrSchema);
+module.exports = mongoose.models.NDR || mongoose.model("NDR", ndrSchema);

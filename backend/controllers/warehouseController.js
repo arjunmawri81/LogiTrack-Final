@@ -71,7 +71,7 @@ exports.createWarehouse = async (req, res) => {
       );
     }
 
-    const warehouseCode = `WH-${Date.now().toString().slice(-6)}`;
+    const warehouseCode = `WH-${Date.now()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
 
     const warehouse = await Warehouse.create({
       merchantId,
@@ -256,7 +256,21 @@ exports.updateWarehouse = async (req, res) => {
       );
     }
 
-    Object.assign(warehouse, req.body);
+    // ✅ SECURITY FIX: Whitelist updatable fields instead of Object.assign(warehouse, req.body)
+    const ALLOWED_UPDATE_FIELDS = [
+      "warehouseName", "companyName", "contactPerson", "phone", "alternatePhone",
+      "email", "gstNumber", "panNumber", "addressLine1", "addressLine2",
+      "landmark", "city", "state", "pincode", "country",
+      "pickupStartTime", "pickupEndTime", "workingDays", "warehouseType",
+      "pickupInstructions", "latitude", "longitude", "dailyCapacity",
+      "allowCOD", "allowReversePickup", "isDefault", "isActive",
+    ];
+
+    for (const field of ALLOWED_UPDATE_FIELDS) {
+      if (req.body[field] !== undefined) {
+        warehouse[field] = req.body[field];
+      }
+    }
 
     await warehouse.save();
 

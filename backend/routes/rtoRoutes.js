@@ -52,41 +52,41 @@ router.put("/:id/cancel", authMiddleware, cancelRTO);
 
 // Schedule Pickup (Admin only)
 router.put(
-  "/:id/schedule-pickup", 
-  authMiddleware, 
-  authorizeRoles(["ADMIN", "SUPER_ADMIN"]), 
+  "/:id/schedule-pickup",
+  authMiddleware,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
   schedulePickup
 );
 
 // Mark Picked Up (Admin only)
 router.put(
-  "/:id/picked-up", 
-  authMiddleware, 
-  authorizeRoles(["ADMIN", "SUPER_ADMIN"]), 
+  "/:id/picked-up",
+  authMiddleware,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
   markPickedUp
 );
 
 // Move to Transit (Admin only)
 router.put(
-  "/:id/in-transit", 
-  authMiddleware, 
-  authorizeRoles(["ADMIN", "SUPER_ADMIN"]), 
+  "/:id/in-transit",
+  authMiddleware,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
   moveTransit
 );
 
 // Warehouse Received (Admin only)
 router.put(
-  "/:id/received", 
-  authMiddleware, 
-  authorizeRoles(["ADMIN", "SUPER_ADMIN"]), 
+  "/:id/received",
+  authMiddleware,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
   warehouseReceived
 );
 
 // Complete RTO (Admin only)
 router.put(
-  "/:id/complete", 
-  authMiddleware, 
-  authorizeRoles(["ADMIN", "SUPER_ADMIN"]), 
+  "/:id/complete",
+  authMiddleware,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
   completeRTO
 );
 

@@ -1,3 +1,16 @@
+/**
+ * @deprecated billingController is a legacy duplicate of invoiceController.
+ *
+ * This controller has no billing-cycle filtering, no PDF generation, and no populate.
+ * All new billing logic should go through invoiceController (/api/invoices).
+ *
+ * Migration path:
+ *   POST /api/billing/create   → (invoices are auto-created on shipment)
+ *   GET  /api/billing          → GET /api/invoices?year=YYYY&month=MM
+ *   GET  /api/billing/summary  → GET /api/invoices/summary?year=YYYY&month=MM
+ *
+ * This file will be removed once no frontend page calls /api/billing.
+ */
 const Invoice = require("../models/Invoice");
 
 // Create Invoice

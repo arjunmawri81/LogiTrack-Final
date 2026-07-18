@@ -116,4 +116,4 @@ courierSchema.index({ type: 1 });
 courierSchema.index({ isActive: 1 });
 courierSchema.index({ priority: 1 });
 
-module.exports = mongoose.model("Courier", courierSchema);
+module.exports = mongoose.models.Courier || mongoose.model("Courier", courierSchema);

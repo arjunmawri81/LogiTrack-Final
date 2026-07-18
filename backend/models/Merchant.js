@@ -39,7 +39,7 @@ const merchantSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model(
+module.exports = mongoose.models.Merchant || mongoose.model(
   "Merchant",
   merchantSchema
 );
