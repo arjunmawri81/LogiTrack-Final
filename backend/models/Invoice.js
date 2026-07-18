@@ -83,11 +83,28 @@ const invoiceSchema = new mongoose.Schema(
 // ================================
 // AUTO CALCULATE TOTAL AMOUNT
 // ================================
-invoiceSchema.pre("save", async function () {
+invoiceSchema.pre("save", function () {
   this.totalAmount =
     Number(this.amount || 0) +
     Number(this.taxAmount || 0) +
     Number(this.shippingCharge || 0);
+});
+
+// ================================
+// INDEXES FOR PERFORMANCE
+// ================================
+
+// Merchant invoices sorted by latest
+invoiceSchema.index({
+  merchantId: 1,
+  createdAt: -1,
+});
+
+// Merchant + Status filter
+invoiceSchema.index({
+  merchantId: 1,
+  status: 1,
+  createdAt: -1,
 });
 
 module.exports = mongoose.model(

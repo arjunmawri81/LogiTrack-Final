@@ -1,8 +1,29 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Sidebar from "../../components/Sidebar";
 import api from "../../services/api";
 import { FaDownload } from "react-icons/fa";
-import "./Invoices.css"; 
+import "./Invoices.css";
+
+const MONTHS = [
+  { id: 1, name: "January" },
+  { id: 2, name: "February" },
+  { id: 3, name: "March" },
+  { id: 4, name: "April" },
+  { id: 5, name: "May" },
+  { id: 6, name: "June" },
+  { id: 7, name: "July" },
+  { id: 8, name: "August" },
+  { id: 9, name: "September" },
+  { id: 10, name: "October" },
+  { id: 11, name: "November" },
+  { id: 12, name: "December" },
+];
+
+const currentYear = new Date().getFullYear();
+const YEARS = Array.from(
+  { length: 5 },
+  (_, i) => currentYear - 2 + i
+);
 
 const Invoices = () => {
   const [invoices, setInvoices] = useState([]);
@@ -16,44 +37,48 @@ const Invoices = () => {
     totalRevenue: 0,
   });
 
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [selectedMonth, setSelectedMonth] = useState(
+    new Date().getMonth() + 1
+  );
+
   useEffect(() => {
     fetchInvoices();
     fetchSummary();
-  }, []);
+  }, [selectedYear, selectedMonth]);
 
   const fetchInvoices = async () => {
     try {
-      const res = await api.get("/invoices");
+      const res = await api.get(
+        `/invoices?year=${selectedYear}&month=${selectedMonth}`
+      );
       setInvoices(res.data.invoices || []);
     } catch (error) {
-      console.log(error);
+      console.error("Failed to fetch invoices:", error);
     }
   };
 
   const fetchSummary = async () => {
     try {
-      const res = await api.get("/invoices/summary");
+      const res = await api.get(
+        `/invoices/summary?year=${selectedYear}&month=${selectedMonth}`
+      );
       setSummary(res.data);
     } catch (error) {
-      console.log(error);
+      console.error("Failed to fetch summary:", error);
     }
   };
 
   const downloadInvoice = async (id) => {
     try {
-      const token = localStorage.getItem("token");
-
-      const response = await fetch(
-        `http://localhost:5000/api/invoices/${id}/download`,
+      const response = await api.get(
+        `/invoices/${id}/download`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          responseType: "blob",
         }
       );
 
-      const blob = await response.blob();
-
+      const blob = new Blob([response.data], { type: "application/pdf" });
       const url = window.URL.createObjectURL(blob);
 
       const a = document.createElement("a");
@@ -65,28 +90,29 @@ const Invoices = () => {
 
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.log(error);
+      console.error("Failed to download invoice:", error);
     }
   };
 
-  // ✅ Filter invoices
-  const filteredInvoices = invoices.filter((invoice) => {
-    const searchText = search.toLowerCase();
+  const filteredInvoices = useMemo(() => {
+    return invoices.filter((invoice) => {
+      const searchText = search.toLowerCase();
 
-    const matchesSearch =
-      invoice.invoiceNumber?.toLowerCase().includes(searchText) ||
-      invoice.shipmentId?.awb?.toLowerCase().includes(searchText) ||
-      invoice.orderId?.customerName?.toLowerCase().includes(searchText);
+      const matchesSearch =
+        invoice.invoiceNumber?.toLowerCase().includes(searchText) ||
+        invoice.shipmentId?.awb?.toLowerCase().includes(searchText) ||
+        invoice.orderId?.customerName?.toLowerCase().includes(searchText);
 
-    const matchesStatus =
-      statusFilter === "ALL" || invoice.status === statusFilter;
+      const matchesStatus =
+        statusFilter === "ALL" || invoice.status === statusFilter;
 
-    const matchesCourier =
-      courierFilter === "ALL" ||
-      invoice.shipmentId?.courier?.toLowerCase() === courierFilter.toLowerCase();
+      const matchesCourier =
+        courierFilter === "ALL" ||
+        invoice.shipmentId?.courier?.toLowerCase() === courierFilter.toLowerCase();
 
-    return matchesSearch && matchesStatus && matchesCourier;
-  });
+      return matchesSearch && matchesStatus && matchesCourier;
+    });
+  }, [invoices, search, statusFilter, courierFilter]);
 
   return (
     <div className="invoices-container">
@@ -100,7 +126,52 @@ const Invoices = () => {
           <p className="invoices-subtitle">Manage and download billing invoices</p>
         </div>
 
-        {/* Summary Cards */}
+        <div className="billing-cycle-card">
+          <div className="billing-header">
+            <div className="billing-header-left">
+              <h3>Billing Cycle</h3>
+              <p>View invoices for {selectedYear}</p>
+            </div>
+          </div>
+
+          <div className="billing-selectors">
+            <div className="billing-selector-group">
+              <label>Month</label>
+              <select
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(Number(e.target.value))}
+              >
+                {MONTHS.map((month) => (
+                  <option key={month.id} value={month.id}>
+                    {month.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="billing-selector-group">
+              <label>Year</label>
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(Number(e.target.value))}
+              >
+                {YEARS.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="selected-cycle">
+            <span>Current Billing Cycle</span>
+            <strong>
+              {MONTHS.find((m) => m.id === selectedMonth)?.name} {selectedYear}
+            </strong>
+          </div>
+        </div>
+
         <div className="invoices-summary-grid">
           <div className="invoices-summary-card">
             <h3 className="invoices-summary-label">Total Invoices</h3>
@@ -119,11 +190,12 @@ const Invoices = () => {
 
           <div className="invoices-summary-card">
             <h3 className="invoices-summary-label">Total Billing</h3>
-            <h2 className="invoices-summary-value">₹{summary.totalRevenue}</h2>
+            <h2 className="invoices-summary-value">
+              ₹{Number(summary.totalRevenue || 0).toLocaleString("en-IN")}
+            </h2>
           </div>
         </div>
 
-        {/* Search and Filter Section */}
         <div className="invoices-filters">
           <input
             type="text"
@@ -158,7 +230,6 @@ const Invoices = () => {
           </select>
         </div>
 
-        {/* Invoice Table */}
         <div className="invoices-table-wrapper">
           <table className="invoices-table">
             <thead>
@@ -196,7 +267,7 @@ const Invoices = () => {
                   </td>
 
                   <td className="invoices-td invoices-amount">
-                    ₹{invoice.totalAmount}
+                    ₹{Number(invoice.totalAmount || 0).toLocaleString("en-IN")}
                   </td>
 
                   <td className="invoices-td">
@@ -212,14 +283,18 @@ const Invoices = () => {
                   </td>
 
                   <td className="invoices-td invoices-date">
-                    {new Date(invoice.createdAt).toLocaleDateString()}
+                    {new Date(invoice.createdAt).toLocaleDateString("en-IN", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })}
                   </td>
 
                   <td className="invoices-td">
                     <button
-                      title="Download Invoice"
-                      onClick={() => downloadInvoice(invoice._id)}
                       className="invoices-download-btn"
+                      title="Download Invoice PDF"
+                      onClick={() => downloadInvoice(invoice._id)}
                     >
                       <FaDownload />
                     </button>
@@ -231,9 +306,10 @@ const Invoices = () => {
 
           {filteredInvoices.length === 0 && (
             <div className="invoices-empty">
-              No invoices available.
-              <br />
-              Create shipments to generate invoices.
+              <h3>No Invoices Found</h3>
+              <p>
+                Create shipments to automatically generate invoices.
+              </p>
             </div>
           )}
         </div>
