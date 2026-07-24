@@ -157,15 +157,24 @@ const startServer = async () => {
     });
 
     const mongoose = require("mongoose");
-    const gracefulShutdown = (signal) => {
+    const gracefulShutdown = async (signal) => {
       console.log(`${signal} received. Shutting down gracefully...`);
-      server.close(() => {
-        mongoose.connection.close(false, () => {
+
+      server.close(async () => {
+        try {
+          await mongoose.connection.close();
           console.log("MongoDB connection closed.");
           process.exit(0);
-        });
+        } catch (error) {
+          console.error("Error closing MongoDB connection:", error);
+          process.exit(1);
+        }
       });
-      setTimeout(() => process.exit(1), 10000);
+
+      setTimeout(() => {
+        console.error("Forced shutdown after timeout.");
+        process.exit(1);
+      }, 10000);
     };
 
     process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
