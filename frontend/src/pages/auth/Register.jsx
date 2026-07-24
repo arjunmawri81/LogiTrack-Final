@@ -8,6 +8,7 @@ import {
   FaMapMarkerAlt, FaIdCard, FaArrowRight, FaStore,
   FaRegIdCard, FaHandshake, FaClock, FaGlobe
 } from "react-icons/fa";
+import "./Auth.css";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -253,7 +254,7 @@ const Register = () => {
     stats: { display: "flex", gap: "40px", paddingTop: "30px", borderTop: "1px solid rgba(255, 255, 255, 0.1)" },
     statValue: { fontSize: "28px", fontWeight: "800", color: "#f97316", margin: "0 0 4px 0" },
     statLabel: { fontSize: "12px", color: "#94a3b8", margin: 0 },
-    rightSection: { flex: 1, display: "flex", alignItems: "center", justifyContent: "center", background: "white", padding: "40px", overflowY: "auto", maxHeight: "100vh" },
+    rightSection: { flex: 1, display: "flex", alignItems: "center", justifyContent: "center", background: "white", padding: "40px", overflowY: "auto" },
     formWrapper: { maxWidth: "550px", width: "100%" },
     formHeader: { textAlign: "center", marginBottom: "30px" },
     formTitle: { fontSize: "28px", fontWeight: "700", color: "#0f172a", margin: "0 0 8px 0" },
@@ -286,8 +287,8 @@ const Register = () => {
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.leftSection}>
+    <div className="auth-container" style={styles.container}>
+      <div className="auth-left-section" style={styles.leftSection}>
         <div style={styles.brandContent}>
           <div style={styles.brandLogo}>
             <span style={styles.logoIcon}>📦</span>
@@ -307,18 +308,18 @@ const Register = () => {
         </div>
       </div>
 
-      <div style={styles.rightSection}>
-        <div style={styles.formWrapper}>
+      <div className="auth-right-section" style={styles.rightSection}>
+        <div className="register-form-wrapper" style={styles.formWrapper}>
           <div style={styles.formHeader}>
             <h2 style={styles.formTitle}>Create Account</h2>
             <p style={styles.formSubtitle}>Register your company</p>
           </div>
 
           <div style={styles.progressBar}>
-            <div style={styles.progressStep(currentStep >= 1)}></div>
-            <div style={styles.progressStep(currentStep >= 2)}></div>
-            <div style={styles.progressStep(currentStep >= 3)}></div>
-            <div style={styles.progressStep(currentStep >= 4)}></div>
+            <div className="progress-step-responsive" style={styles.progressStep(currentStep >= 1)}></div>
+            <div className="progress-step-responsive" style={styles.progressStep(currentStep >= 2)}></div>
+            <div className="progress-step-responsive" style={styles.progressStep(currentStep >= 3)}></div>
+            <div className="progress-step-responsive" style={styles.progressStep(currentStep >= 4)}></div>
           </div>
 
           <form onSubmit={handleSubmit} style={styles.form}>
@@ -326,20 +327,20 @@ const Register = () => {
               <>
                 <div style={styles.inputGroup}>
                   <FaBuilding style={styles.inputIcon} />
-                  <input type="text" name="companyName" placeholder="Company Name" value={formData.companyName} onChange={handleChange} style={styles.input} />
+                  <input type="text" name="companyName" placeholder="Company Name" value={formData.companyName} onChange={handleChange} className="auth-input" style={styles.input} />
                 </div>
                 {errors.companyName && <span style={styles.errorText}>{errors.companyName}</span>}
 
                 <div style={styles.inputGroup}>
                   <FaUser style={styles.inputIcon} />
-                  <input type="text" name="ownerName" placeholder="Owner Name" value={formData.ownerName} onChange={handleChange} style={styles.input} />
+                  <input type="text" name="ownerName" placeholder="Owner Name" value={formData.ownerName} onChange={handleChange} className="auth-input" style={styles.input} />
                 </div>
                 {errors.ownerName && <span style={styles.errorText}>{errors.ownerName}</span>}
 
-                <div style={styles.otpGroup}>
+                <div className="otp-group-responsive" style={styles.otpGroup}>
                   <div style={{ ...styles.inputGroup, ...styles.otpInput }}>
                     <FaEnvelope style={styles.inputIcon} />
-                    <input type="email" name="email" placeholder="Email Address" value={formData.email} onChange={handleChange} style={styles.input} disabled={emailVerified} />
+                    <input type="email" name="email" placeholder="Email Address" value={formData.email} onChange={handleChange} className="auth-input" style={styles.input} disabled={emailVerified} />
                     {emailVerified && <FaCheckCircle style={styles.verifiedBadge} />}
                   </div>
                   <button type="button" style={styles.otpBtn} onClick={sendEmailOtp} disabled={emailVerified}>
@@ -349,19 +350,19 @@ const Register = () => {
                 {errors.email && <span style={styles.errorText}>{errors.email}</span>}
 
                 {emailOtpSent && !emailVerified && (
-                  <div style={styles.otpGroup}>
+                  <div className="otp-group-responsive" style={styles.otpGroup}>
                     <div style={{ ...styles.inputGroup, ...styles.otpInput }}>
                       <FaClock style={styles.inputIcon} />
-                      <input type="text" name="emailOtp" placeholder="Enter Email OTP" value={formData.emailOtp} onChange={handleChange} style={styles.input} />
+                      <input type="text" name="emailOtp" placeholder="Enter Email OTP" value={formData.emailOtp} onChange={handleChange} className="auth-input" style={styles.input} />
                     </div>
                     <button type="button" style={styles.verifyBtn} onClick={verifyEmailOtp}>Verify</button>
                   </div>
                 )}
 
-                <div style={styles.otpGroup}>
+                <div className="otp-group-responsive" style={styles.otpGroup}>
                   <div style={{ ...styles.inputGroup, ...styles.otpInput }}>
                     <FaMobile style={styles.inputIcon} />
-                    <input type="tel" name="mobile" placeholder="Mobile Number" value={formData.mobile} onChange={handleChange} style={styles.input} disabled={mobileVerified} />
+                    <input type="tel" name="mobile" placeholder="Mobile Number" value={formData.mobile} onChange={handleChange} className="auth-input" style={styles.input} disabled={mobileVerified} />
                     {mobileVerified && <FaCheckCircle style={styles.verifiedBadge} />}
                   </div>
                   <button type="button" style={styles.otpBtn} onClick={sendMobileOtp} disabled={mobileVerified}>
@@ -371,10 +372,10 @@ const Register = () => {
                 {errors.mobile && <span style={styles.errorText}>{errors.mobile}</span>}
 
                 {mobileOtpSent && !mobileVerified && (
-                  <div style={styles.otpGroup}>
+                  <div className="otp-group-responsive" style={styles.otpGroup}>
                     <div style={{ ...styles.inputGroup, ...styles.otpInput }}>
                       <FaClock style={styles.inputIcon} />
-                      <input type="text" name="mobileOtp" placeholder="Enter Mobile OTP" value={formData.mobileOtp} onChange={handleChange} style={styles.input} />
+                      <input type="text" name="mobileOtp" placeholder="Enter Mobile OTP" value={formData.mobileOtp} onChange={handleChange} className="auth-input" style={styles.input} />
                     </div>
                     <button type="button" style={styles.verifyBtn} onClick={verifyMobileOtp}>Verify</button>
                   </div>
@@ -382,7 +383,7 @@ const Register = () => {
 
                 <div style={styles.inputGroup}>
                   <FaLock style={styles.inputIcon} />
-                  <input type={showPassword ? "text" : "password"} name="password" placeholder="Password" value={formData.password} onChange={handleChange} style={styles.input} />
+                  <input type={showPassword ? "text" : "password"} name="password" placeholder="Password" value={formData.password} onChange={handleChange} className="auth-input" style={styles.input} />
                   <button type="button" style={styles.passwordToggle} onClick={() => setShowPassword(!showPassword)}>
                     {showPassword ? <FaEyeSlash /> : <FaEye />}
                   </button>
@@ -391,7 +392,7 @@ const Register = () => {
 
                 <div style={styles.inputGroup}>
                   <FaLock style={styles.inputIcon} />
-                  <input type={showConfirmPassword ? "text" : "password"} name="confirmPassword" placeholder="Confirm Password" value={formData.confirmPassword} onChange={handleChange} style={styles.input} />
+                  <input type={showConfirmPassword ? "text" : "password"} name="confirmPassword" placeholder="Confirm Password" value={formData.confirmPassword} onChange={handleChange} className="auth-input" style={styles.input} />
                   <button type="button" style={styles.passwordToggle} onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
                     {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
                   </button>
@@ -402,20 +403,20 @@ const Register = () => {
 
             {currentStep === 2 && (
               <>
-                <div style={styles.otpGroup}>
+                <div className="otp-group-responsive" style={styles.otpGroup}>
                   <div style={{ ...styles.inputGroup, ...styles.otpInput }}>
                     <FaFileInvoice style={styles.inputIcon} />
-                    <input type="text" name="gstNumber" placeholder="GST Number (15 digits)" value={formData.gstNumber} onChange={handleChange} style={styles.input} disabled={gstVerified} />
+                    <input type="text" name="gstNumber" placeholder="GST Number (15 digits)" value={formData.gstNumber} onChange={handleChange} className="auth-input" style={styles.input} disabled={gstVerified} />
                     {gstVerified && <FaCheckCircle style={styles.verifiedBadge} />}
                   </div>
                   <button type="button" style={styles.verifyBtn} onClick={verifyGST} disabled={gstVerified}>Verify GST</button>
                 </div>
                 {errors.gstNumber && <span style={styles.errorText}>{errors.gstNumber}</span>}
 
-                <div style={styles.otpGroup}>
+                <div className="otp-group-responsive" style={styles.otpGroup}>
                   <div style={{ ...styles.inputGroup, ...styles.otpInput }}>
                     <FaRegIdCard style={styles.inputIcon} />
-                    <input type="text" name="panNumber" placeholder="PAN Number (10 digits)" value={formData.panNumber} onChange={handleChange} style={styles.input} disabled={panVerified} />
+                    <input type="text" name="panNumber" placeholder="PAN Number (10 digits)" value={formData.panNumber} onChange={handleChange} className="auth-input" style={styles.input} disabled={panVerified} />
                     {panVerified && <FaCheckCircle style={styles.verifiedBadge} />}
                   </div>
                   <button type="button" style={styles.verifyBtn} onClick={verifyPAN} disabled={panVerified}>Verify PAN</button>
@@ -424,7 +425,7 @@ const Register = () => {
 
                 <div style={styles.inputGroup}>
                   <FaHandshake style={styles.inputIcon} />
-                  <select name="businessType" value={formData.businessType} onChange={handleChange} style={styles.select}>
+                  <select name="businessType" value={formData.businessType} onChange={handleChange} className="auth-input" style={styles.select}>
                     <option value="">Select Business Type</option>
                     {businessTypes.map(type => <option key={type} value={type}>{type}</option>)}
                   </select>
@@ -433,21 +434,21 @@ const Register = () => {
 
                 <div style={styles.inputGroup}>
                   <FaStore style={styles.inputIcon} />
-                  <select name="businessCategory" value={formData.businessCategory} onChange={handleChange} style={styles.select}>
+                  <select name="businessCategory" value={formData.businessCategory} onChange={handleChange} className="auth-input" style={styles.select}>
                     <option value="">Select Business Category</option>
                     {businessCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                   </select>
                 </div>
                 {errors.businessCategory && <span style={styles.errorText}>{errors.businessCategory}</span>}
 
-                <div style={styles.row2}>
+                <div className="row2-responsive" style={styles.row2}>
                   <div style={styles.inputGroup}>
                     <FaClock style={styles.inputIcon} />
-                    <input type="text" name="yearOfEstablishment" placeholder="Year of Establishment" value={formData.yearOfEstablishment} onChange={handleChange} style={styles.input} />
+                    <input type="text" name="yearOfEstablishment" placeholder="Year of Establishment" value={formData.yearOfEstablishment} onChange={handleChange} className="auth-input" style={styles.input} />
                   </div>
                   <div style={styles.inputGroup}>
                     <FaGlobe style={styles.inputIcon} />
-                    <input type="text" name="website" placeholder="Website (Optional)" value={formData.website} onChange={handleChange} style={styles.input} />
+                    <input type="text" name="website" placeholder="Website (Optional)" value={formData.website} onChange={handleChange} className="auth-input" style={styles.input} />
                   </div>
                 </div>
               </>
@@ -457,18 +458,18 @@ const Register = () => {
               <>
                 <div style={styles.inputGroup}>
                   <FaMapMarkerAlt style={styles.inputIcon} />
-                  <textarea name="address" placeholder="Full Address" value={formData.address} onChange={handleChange} style={{ ...styles.input, resize: "vertical", minHeight: "80px" }} />
+                  <textarea name="address" placeholder="Full Address" value={formData.address} onChange={handleChange} className="auth-input" style={{ ...styles.input, resize: "vertical", minHeight: "80px" }} />
                 </div>
                 {errors.address && <span style={styles.errorText}>{errors.address}</span>}
 
-                <div style={styles.row2}>
+                <div className="row2-responsive" style={styles.row2}>
                   <div style={styles.inputGroup}>
                     <FaBuilding style={styles.inputIcon} />
-                    <input type="text" name="city" placeholder="City" value={formData.city} onChange={handleChange} style={styles.input} />
+                    <input type="text" name="city" placeholder="City" value={formData.city} onChange={handleChange} className="auth-input" style={styles.input} />
                   </div>
                   <div style={styles.inputGroup}>
                     <FaMapMarkerAlt style={styles.inputIcon} />
-                    <select name="state" value={formData.state} onChange={handleChange} style={styles.select}>
+                    <select name="state" value={formData.state} onChange={handleChange} className="auth-input" style={styles.select}>
                       <option value="">Select State</option>
                       {states.map(state => <option key={state} value={state}>{state}</option>)}
                     </select>
@@ -477,14 +478,14 @@ const Register = () => {
                 {errors.city && <span style={styles.errorText}>{errors.city}</span>}
                 {errors.state && <span style={styles.errorText}>{errors.state}</span>}
 
-                <div style={styles.row2}>
+                <div className="row2-responsive" style={styles.row2}>
                   <div style={styles.inputGroup}>
                     <FaMapMarkerAlt style={styles.inputIcon} />
-                    <input type="text" name="pincode" placeholder="Pincode" value={formData.pincode} onChange={handleChange} style={styles.input} />
+                    <input type="text" name="pincode" placeholder="Pincode" value={formData.pincode} onChange={handleChange} className="auth-input" style={styles.input} />
                   </div>
                   <div style={styles.inputGroup}>
                     <FaMapMarkerAlt style={styles.inputIcon} />
-                    <input type="text" name="landmark" placeholder="Landmark (Optional)" value={formData.landmark} onChange={handleChange} style={styles.input} />
+                    <input type="text" name="landmark" placeholder="Landmark (Optional)" value={formData.landmark} onChange={handleChange} className="auth-input" style={styles.input} />
                   </div>
                 </div>
                 {errors.pincode && <span style={styles.errorText}>{errors.pincode}</span>}
@@ -495,30 +496,30 @@ const Register = () => {
               <>
                 <div style={styles.inputGroup}>
                   <FaUser style={styles.inputIcon} />
-                  <input type="text" name="accountHolderName" placeholder="Account Holder Name" value={formData.accountHolderName} onChange={handleChange} style={styles.input} />
+                  <input type="text" name="accountHolderName" placeholder="Account Holder Name" value={formData.accountHolderName} onChange={handleChange} className="auth-input" style={styles.input} />
                 </div>
                 {errors.accountHolderName && <span style={styles.errorText}>{errors.accountHolderName}</span>}
 
                 <div style={styles.inputGroup}>
                   <FaUniversity style={styles.inputIcon} />
-                  <input type="text" name="accountNumber" placeholder="Account Number" value={formData.accountNumber} onChange={handleChange} style={styles.input} />
+                  <input type="text" name="accountNumber" placeholder="Account Number" value={formData.accountNumber} onChange={handleChange} className="auth-input" style={styles.input} />
                 </div>
                 {errors.accountNumber && <span style={styles.errorText}>{errors.accountNumber}</span>}
 
                 <div style={styles.inputGroup}>
                   <FaUniversity style={styles.inputIcon} />
-                  <input type="text" name="confirmAccountNumber" placeholder="Confirm Account Number" value={formData.confirmAccountNumber} onChange={handleChange} style={styles.input} />
+                  <input type="text" name="confirmAccountNumber" placeholder="Confirm Account Number" value={formData.confirmAccountNumber} onChange={handleChange} className="auth-input" style={styles.input} />
                 </div>
                 {errors.confirmAccountNumber && <span style={styles.errorText}>{errors.confirmAccountNumber}</span>}
 
-                <div style={styles.row2}>
+                <div className="row2-responsive" style={styles.row2}>
                   <div style={styles.inputGroup}>
                     <FaIdCard style={styles.inputIcon} />
-                    <input type="text" name="ifscCode" placeholder="IFSC Code" value={formData.ifscCode} onChange={handleChange} style={styles.input} />
+                    <input type="text" name="ifscCode" placeholder="IFSC Code" value={formData.ifscCode} onChange={handleChange} className="auth-input" style={styles.input} />
                   </div>
                   <div style={styles.inputGroup}>
                     <FaUniversity style={styles.inputIcon} />
-                    <input type="text" name="bankName" placeholder="Bank Name" value={formData.bankName} onChange={handleChange} style={styles.input} />
+                    <input type="text" name="bankName" placeholder="Bank Name" value={formData.bankName} onChange={handleChange} className="auth-input" style={styles.input} />
                   </div>
                 </div>
                 {errors.ifscCode && <span style={styles.errorText}>{errors.ifscCode}</span>}
@@ -526,12 +527,12 @@ const Register = () => {
 
                 <div style={styles.inputGroup}>
                   <FaUniversity style={styles.inputIcon} />
-                  <input type="text" name="branchName" placeholder="Branch Name" value={formData.branchName} onChange={handleChange} style={styles.input} />
+                  <input type="text" name="branchName" placeholder="Branch Name" value={formData.branchName} onChange={handleChange} className="auth-input" style={styles.input} />
                 </div>
 
                 <div style={styles.inputGroup}>
                   <FaMobile style={styles.inputIcon} />
-                  <input type="text" name="upiId" placeholder="UPI ID (Optional)" value={formData.upiId} onChange={handleChange} style={styles.input} />
+                  <input type="text" name="upiId" placeholder="UPI ID (Optional)" value={formData.upiId} onChange={handleChange} className="auth-input" style={styles.input} />
                 </div>
 
                 <div style={styles.checkboxGroup}>
@@ -565,12 +566,6 @@ const Register = () => {
           </div>
         </div>
       </div>
-
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-        input:focus, select:focus, textarea:focus { border-color: #f97316 !important; box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1) !important; background: white !important; }
-        @media (max-width: 992px) { .register-left { display: none; } }
-      `}</style>
     </div>
   );
 };

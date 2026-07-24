@@ -29,6 +29,18 @@ const merchantSchema = new mongoose.Schema(
       default: "",
     },
 
+    ifscCode: {
+      type: String,
+      default: "",
+      uppercase: true,
+      trim: true,
+    },
+
+    bankName: {
+      type: String,
+      default: "",
+    },
+
     address: {
       type: String,
       default: "",

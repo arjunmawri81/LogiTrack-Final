@@ -3,6 +3,7 @@ const router = express.Router();
 
 const {
   authMiddleware,
+  authorizeRoles,
 } = require("../middleware/authMiddleware");
 
 const {
@@ -42,14 +43,14 @@ router.patch(
   resolveNDR
 );
 
-// ✅ Merchant requests reattempt
+// Merchant requests reattempt
 router.patch(
   "/:id/reattempt",
   authMiddleware,
   reattemptNDR
 );
 
-// ✅ Merchant requests RTO
+// Merchant requests RTO
 router.patch(
   "/:id/rto",
   authMiddleware,
@@ -64,6 +65,7 @@ router.patch(
 router.patch(
   "/:id/approve-reattempt",
   authMiddleware,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
   approveReattempt
 );
 
@@ -71,6 +73,7 @@ router.patch(
 router.patch(
   "/:id/reject-reattempt",
   authMiddleware,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
   rejectReattempt
 );
 
@@ -78,6 +81,7 @@ router.patch(
 router.patch(
   "/:id/approve-rto",
   authMiddleware,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
   approveRTO
 );
 
@@ -85,6 +89,7 @@ router.patch(
 router.patch(
   "/:id/reject-rto",
   authMiddleware,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
   rejectRTO
 );
 

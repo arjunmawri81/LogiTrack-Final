@@ -1,88 +1,190 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import api from "../../services/api";
 import SuperAdminLayout from "./SuperAdminLayout";
+import {
+  FaRupeeSign,
+  FaChartLine,
+  FaMoneyBillWave,
+  FaUsers,
+  FaSync,
+  FaDownload,
+  FaSearch,
+  FaStore,
+  FaChevronLeft,
+  FaChevronRight,
+  FaExclamationTriangle,
+  FaCheckCircle,
+} from "react-icons/fa";
+import "./Revenue.css";
 
 const Revenue = () => {
-  const [revenueData, setRevenueData] = useState({
-    platformRevenue: 0,
-    netRevenue: 0,
-    totalCommission: 0,
-    activeMerchants: 0,
-    monthlyCommission: 0,
-    todayCommission: 0,
-    merchantBreakdown: [],
-  });
+  const [range, setRange] = useState("month");
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [error, setError] = useState("");
+
+  const [revenueData, setRevenueData] = useState({
+    totalRevenue: 0,
+    totalCourierCost: 0,
+    profit: 0,
+    profitMargin: 0,
+    totalCommission: 0,
+    netRevenue: 0,
+    activeMerchants: 0,
+    totalOrders: 0,
+    totalShipments: 0,
+    totalInvoices: 0,
+    recentInvoices: [],
+    merchantBreakdown: [],
+    overallTrackedPercentage: 100,
+    overallEstimationRatio: 0,
+    showEstimationWarning: false,
+  });
+
+  // Search, Filter, Sort & Pagination
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [sortOption, setSortOption] = useState("netProfit-desc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     fetchRevenueData();
-  }, []);
+  }, [range]);
 
-  const fetchRevenueData = async () => {
-    setLoading(true);
+  const fetchRevenueData = async (showRefresh = false) => {
+    if (showRefresh) setIsRefreshing(true);
+    else setLoading(true);
+    setError("");
+
     try {
-      const res = await api.get("/admin/commission");
-      const data = res.data;
-
-      setRevenueData({
-        platformRevenue: data.totalRevenue || 0,
-        netRevenue: data.netRevenue || 0,
-        totalCommission: data.totalCommission || 0,
-        activeMerchants: data.activeMerchants || 0,
-        monthlyCommission: data.monthlyCommission || 0,
-        todayCommission: data.todayCommission || 0,
-        merchantBreakdown: data.merchantBreakdown || [],
-      });
-    } catch (error) {
-      console.error("Error fetching revenue analytics:", error);
+      const res = await api.get(`/admin/revenue?range=${range}`);
+      if (res.data && res.data.success) {
+        setRevenueData({
+          totalRevenue: res.data.totalRevenue || 0,
+          totalCourierCost: res.data.totalCourierCost || 0,
+          profit: res.data.profit || 0,
+          profitMargin: res.data.profitMargin || 0,
+          totalCommission: res.data.totalCommission || 0,
+          netRevenue: res.data.netRevenue || 0,
+          activeMerchants: res.data.activeMerchants || 0,
+          totalOrders: res.data.totalOrders || 0,
+          totalShipments: res.data.totalShipments || 0,
+          totalInvoices: res.data.totalInvoices || 0,
+          recentInvoices: res.data.recentInvoices || [],
+          merchantBreakdown: res.data.merchantBreakdown || [],
+          overallTrackedPercentage: res.data.overallTrackedPercentage !== undefined ? res.data.overallTrackedPercentage : 100,
+          overallEstimationRatio: res.data.overallEstimationRatio !== undefined ? res.data.overallEstimationRatio : 0,
+          showEstimationWarning: !!res.data.showEstimationWarning,
+        });
+      } else {
+        setError("Failed to fetch revenue data.");
+      }
+    } catch (err) {
+      console.error("Error fetching revenue analytics:", err);
+      setError("Error loading revenue data.");
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
-  const fontStyle = {
-    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+  // Filtered & Sorted Merchants
+  const filteredMerchants = useMemo(() => {
+    let list = (revenueData.merchantBreakdown || []).filter((m) => {
+      const nameMatch =
+        (m.merchantName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (m.email || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (m.companyName || "").toLowerCase().includes(searchQuery.toLowerCase());
+
+      const statusMatch =
+        statusFilter === "ALL" || m.status === statusFilter;
+
+      return nameMatch && statusMatch;
+    });
+
+    list.sort((a, b) => {
+      const netA = a.netProfit !== undefined ? a.netProfit : (a.revenue || 0) - (a.courierCost || 0);
+      const netB = b.netProfit !== undefined ? b.netProfit : (b.revenue || 0) - (b.courierCost || 0);
+
+      if (sortOption === "netProfit-desc") return netB - netA;
+      if (sortOption === "netProfit-asc") return netA - netB;
+      if (sortOption === "revenue-desc") return (b.revenue || 0) - (a.revenue || 0);
+      if (sortOption === "name-asc") return (a.merchantName || "").localeCompare(b.merchantName || "");
+      return 0;
+    });
+
+    return list;
+  }, [revenueData.merchantBreakdown, searchQuery, statusFilter, sortOption]);
+
+  // Paginated Merchants
+  const paginatedMerchants = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredMerchants.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredMerchants, currentPage]);
+
+  const totalPages = Math.ceil(filteredMerchants.length / itemsPerPage) || 1;
+
+  // Key Statistics
+  const activeMerchantsCount = revenueData.activeMerchants || 1;
+  const avgRevenuePerMerchant = revenueData.totalRevenue / activeMerchantsCount;
+
+  // Export CSV
+  const exportToCSV = () => {
+    if (filteredMerchants.length === 0) return;
+
+    const headers = [
+      "Merchant Name",
+      "Email",
+      "Company",
+      "Orders",
+      "Shipments",
+      "Data Quality",
+      "Tracked %",
+      "Revenue (INR)",
+      "Courier Cost (INR)",
+      "Net Profit (INR)",
+      "Commission (INR)",
+      "Status"
+    ];
+    const rows = filteredMerchants.map((m) => {
+      const netProf = m.netProfit !== undefined ? m.netProfit : (m.revenue || 0) - (m.courierCost || 0);
+      const qualityText = m.isEstimated || m.dataConfidence === "ESTIMATED" ? "Estimated (70% fallback)" : "Actual Data";
+      const trackedPct = `${m.trackedPercentage || 0}% (${m.trackedShipments || 0}/${m.shipments || 0})`;
+      return [
+        `"${m.merchantName || "-"}"`,
+        `"${m.email || "-"}"`,
+        `"${m.companyName || "-"}"`,
+        m.orders || 0,
+        m.shipments || 0,
+        `"${qualityText}"`,
+        `"${trackedPct}"`,
+        m.revenue || 0,
+        m.courierCost || 0,
+        netProf,
+        m.commission || 0,
+        m.status || "INACTIVE",
+      ];
+    });
+
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `Revenue_Data_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
-
-  // Filter merchants with revenue > 0
-  const merchantBreakdown = revenueData.merchantBreakdown.filter(
-    m => m.revenue > 0
-  );
-  
-  // ✅ CHANGE 1: Use backend activeMerchants instead of filtered count
-  const activeMerchants = revenueData.activeMerchants;
-
-  const highestRevenueMerchant = merchantBreakdown.length > 0
-    ? merchantBreakdown.reduce((max, curr) => curr.revenue > max.revenue ? curr : max)
-    : null;
-
-  const highestCommissionMerchant = merchantBreakdown.length > 0
-    ? merchantBreakdown.reduce((max, curr) => curr.commission > max.commission ? curr : max)
-    : null;
-
-  const averageRevenuePerMerchant = activeMerchants > 0
-    ? revenueData.platformRevenue / activeMerchants
-    : 0;
-
-  // Top 5 merchants
-  const topMerchants = [...merchantBreakdown]
-    .sort((a, b) => b.revenue - a.revenue)
-    .slice(0, 5);
 
   if (loading) {
     return (
       <SuperAdminLayout>
-        <div style={{ 
-          ...fontStyle, 
-          display: "flex", 
-          justifyContent: "center", 
-          alignItems: "center", 
-          height: "60vh",
-          color: "#64748b",
-          fontSize: "16px",
-          fontWeight: "500"
-        }}>
-          Loading Revenue Analytics...
+        <div className="revenue-loading-container">
+          Loading Revenue Data...
         </div>
       </SuperAdminLayout>
     );
@@ -90,213 +192,402 @@ const Revenue = () => {
 
   return (
     <SuperAdminLayout>
-      <div style={{ 
-        ...fontStyle, 
-        maxWidth: "1400px", 
-        margin: "0 auto", 
-        padding: "10px",
-        width: "100%",
-        boxSizing: "border-box"
-      }}>
-        
-        {/* HEADER SECTION - ✅ CHANGE 2: Updated title */}
-        <div style={{ 
-          borderBottom: "1px solid #f1f5f9", 
-          paddingBottom: "20px", 
-          marginBottom: "30px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: "12px"
-        }}>
-          <div>
-            <h1 style={{ 
-              fontSize: "clamp(24px, 5vw, 32px)", 
-              fontWeight: "800", 
-              color: "#0f172a", 
-              margin: "0 0 6px 0", 
-              letterSpacing: "-0.025em" 
-            }}>
-              Revenue & Commission Analytics
-            </h1>
-            <p style={{ color: "#64748b", fontSize: "14px", margin: 0, fontWeight: "500" }}>
-              Platform revenue tracking and merchant analytics
-            </p>
-          </div>
-          <button
-            onClick={fetchRevenueData}
+      <div className="revenue-container">
+
+        {/* TOP ESTIMATION WARNING BANNER */}
+        {revenueData.showEstimationWarning && (
+          <div
             style={{
-              padding: "10px 20px",
-              border: "1px solid #e2e8f0",
-              background: "#ffffff",
-              borderRadius: "10px",
-              cursor: "pointer",
-              fontWeight: "600",
-              fontSize: "14px",
-              color: "#0f172a",
-              transition: "all 0.2s",
-              fontFamily: "'Inter', sans-serif",
-              flexShrink: 0
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.background = "#f8fafc";
-              e.target.style.borderColor = "#cbd5e1";
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.background = "#ffffff";
-              e.target.style.borderColor = "#e2e8f0";
+              background: "#fffbe6",
+              border: "1.5px solid #ffe58f",
+              borderRadius: "14px",
+              padding: "16px 20px",
+              marginBottom: "24px",
+              display: "flex",
+              alignItems: "flex-start",
+              gap: "14px",
+              boxShadow: "0 2px 4px rgba(0,0,0,0.03)",
             }}
           >
-            Refresh Data
-          </button>
+            <FaExclamationTriangle size={22} color="#d48806" style={{ flexShrink: 0, marginTop: "2px" }} />
+            <div>
+              <h4 style={{ margin: "0 0 4px 0", color: "#873800", fontSize: "15px", fontWeight: "700" }}>
+                ⚠️ Data Quality Notice: High Estimation Ratio ({revenueData.overallEstimationRatio}% Estimated)
+              </h4>
+              <p style={{ margin: 0, color: "#a75d00", fontSize: "13px", lineHeight: "1.5" }}>
+                Historical profit figures rely on a 70% cost estimation fallback due to legacy shipments without recorded courier buy rates. As new shipments are booked with explicit rate cards, tracked profit confidence will automatically improve to 100% actual data.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* HEADER SECTION */}
+        <div className="page-header">
+          <div>
+            <h1 className="page-title">
+              Revenue & Commission Analytics
+            </h1>
+            <p className="page-subtitle">
+              Platform revenue tracking, cost estimation transparency, and merchant analytics
+            </p>
+          </div>
+
+          <div className="header-actions">
+            <select
+              value={range}
+              onChange={(e) => setRange(e.target.value)}
+              className="range-select"
+            >
+              <option value="today">Today</option>
+              <option value="week">Last 7 Days</option>
+              <option value="month">This Month</option>
+              <option value="year">This Year</option>
+              <option value="all">All Time</option>
+            </select>
+
+            <button
+              onClick={() => fetchRevenueData(true)}
+              className="refresh-btn"
+              disabled={isRefreshing}
+            >
+              <FaSync className={isRefreshing ? "spin-icon" : ""} />
+              {isRefreshing ? "Refreshing..." : "Refresh Data"}
+            </button>
+
+            <button onClick={exportToCSV} className="export-btn">
+              <FaDownload />
+              Export CSV
+            </button>
+          </div>
         </div>
 
-        {/* TOP 6 CARDS - Fully Responsive Grid */}
-        <div style={{ 
-          display: "grid", 
-          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-          gap: "12px", 
-          marginBottom: "35px" 
-        }}>
-          <MetricCard 
-            label="Platform Revenue" 
-            value={revenueData.platformRevenue} 
-            color="#3b82f6" 
+        {error && <div className="revenue-error">{error}</div>}
+
+        {/* 6 SUMMARY CARDS GRID */}
+        <div className="metrics-grid">
+          <MetricCard
+            label="Platform Revenue"
+            value={`₹${(revenueData.totalRevenue || 0).toLocaleString()}`}
+            color="#3b82f6"
+            icon={<FaRupeeSign />}
           />
-          <MetricCard 
-            label="Net Revenue" 
-            value={revenueData.netRevenue} 
-            color="#8b5cf6" 
+          <MetricCard
+            label="Net Revenue"
+            value={`₹${(revenueData.profit || 0).toLocaleString()}`}
+            color="#8b5cf6"
+            icon={<FaChartLine />}
           />
-          <MetricCard 
-            label="Total Commission" 
-            value={revenueData.totalCommission} 
-            color="#ec4899" 
+          <MetricCard
+            label="Total Commission"
+            value={`₹${(revenueData.totalCommission || 0).toLocaleString()}`}
+            color="#ec4899"
+            icon={<FaMoneyBillWave />}
           />
-          <MetricCard 
-            label="Active Merchants" 
-            value={activeMerchants} 
-            color="#10b981" 
-            isNumber
+          <MetricCard
+            label="Active Merchants"
+            value={(revenueData.activeMerchants || 0).toLocaleString()}
+            color="#10b981"
+            icon={<FaUsers />}
           />
-          <MetricCard 
-            label="Monthly Commission" 
-            value={revenueData.monthlyCommission} 
-            color="#f59e0b" 
+          <MetricCard
+            label="Total Orders"
+            value={(revenueData.totalOrders || 0).toLocaleString()}
+            color="#f59e0b"
+            icon={<FaStore />}
           />
-          <MetricCard 
-            label="Today's Commission" 
-            value={revenueData.todayCommission} 
-            color="#ef4444" 
+          <MetricCard
+            label="Avg Rev / Merchant"
+            value={`₹${Math.round(avgRevenuePerMerchant || 0).toLocaleString()}`}
+            color="#06b6d4"
+            icon={<FaRupeeSign />}
           />
         </div>
 
-        {/* SECTION 1: Merchant Revenue Breakdown - Mobile Responsive */}
-        <div style={{ 
-          background: "#ffffff", 
-          borderRadius: "16px", 
-          padding: "16px", 
-          marginBottom: "30px",
-          border: "1px solid #f1f5f9", 
-          boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05)",
-          overflow: "hidden"
-        }}>
-          <h2 style={{ 
-            color: "#0f172a", 
-            margin: "0 0 16px 0", 
-            fontSize: "clamp(16px, 2.5vw, 18px)", 
-            fontWeight: "700", 
-            letterSpacing: "-0.02em" 
-          }}>
-            Merchant Revenue Breakdown
-          </h2>
+        {/* MERCHANT REVENUE BREAKDOWN TABLE */}
+        <div className="table-card">
+          <div className="table-header-flex">
+            <h2 className="table-title">
+              Merchant Revenue Breakdown
+            </h2>
 
-          <div style={{ 
-            overflowX: "auto", 
-            WebkitOverflowScrolling: "touch",
-            margin: "0 -16px",
-            padding: "0 16px"
-          }}>
-            <table style={{ 
-              width: "100%", 
-              minWidth: "700px",
-              borderCollapse: "separate", 
-              borderSpacing: "0", 
-              background: "#ffffff", 
-              borderRadius: "12px", 
-              overflow: "hidden", 
-              border: "1px solid #e2e8f0" 
-            }}>
+            <div className="table-filters">
+              <div className="search-box">
+                <FaSearch className="search-icon" />
+                <input
+                  type="text"
+                  placeholder="Search merchant..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="search-input"
+                />
+              </div>
+
+              <select
+                value={sortOption}
+                onChange={(e) => {
+                  setSortOption(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="status-select"
+                title="Sort By"
+              >
+                <option value="netProfit-desc">Profit: High to Low</option>
+                <option value="netProfit-asc">Profit: Low to High</option>
+                <option value="revenue-desc">Revenue: High to Low</option>
+                <option value="name-asc">Name: A to Z</option>
+              </select>
+
+              <select
+                value={statusFilter}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="status-select"
+              >
+                <option value="ALL">All Status</option>
+                <option value="ACTIVE">Active</option>
+                <option value="PENDING">Pending</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="table-responsive">
+            <table className="data-table">
               <thead>
                 <tr>
-                  <th style={thStyle}>Merchant</th>
-                  <th style={thStyle}>Orders</th>
-                  <th style={thStyle}>Revenue</th>
-                  <th style={thStyle}>Commission</th>
-                  <th style={thStyle}>Status</th>
-                  <th style={thStyle}>Last Activity</th>
+                  <th>Merchant Name</th>
+                  <th>Email</th>
+                  <th>Orders</th>
+                  <th>Shipments</th>
+                  <th>Data Quality</th>
+                  <th>Gross Revenue</th>
+                  <th>Courier Cost</th>
+                  <th>Freight Margin</th>
+                  <th>COD Margin</th>
+                  <th>RTO Margin</th>
+                  <th>Net Profit</th>
+                  <th>Commission</th>
+                  <th>Status</th>
                 </tr>
               </thead>
               <tbody>
-                {merchantBreakdown.length > 0 ? (
-                  merchantBreakdown.map((merchant) => (
-                    <tr key={merchant._id} style={{ background: "#ffffff" }}>
-                      <td style={{ ...tdStyle, fontWeight: "600" }}>
-                        {merchant.merchantName || merchant._id}
+                {paginatedMerchants.length > 0 ? (
+                  paginatedMerchants.map((merchant) => {
+                    const netProf = merchant.netProfit !== undefined ? merchant.netProfit : (merchant.revenue || 0) - (merchant.courierCost || 0);
+                    const isProfitPos = netProf >= 0;
+                    const isEst = merchant.isEstimated || merchant.dataConfidence === "ESTIMATED";
+
+                    return (
+                      <tr key={merchant._id}>
+                        <td style={{ fontWeight: "600", color: "#0f172a" }}>
+                          {merchant.merchantName || "Unknown"}
+                        </td>
+                        <td style={{ color: "#64748b" }}>{merchant.email || "-"}</td>
+                        <td>{merchant.orders || 0}</td>
+                        <td>{merchant.shipments || 0}</td>
+                        
+                        {/* Data Quality Confidence Badge */}
+                        <td>
+                          {merchant.shipments === 0 ? (
+                            <span style={{ fontSize: "12px", color: "#94a3b8" }}>No Shipments</span>
+                          ) : isEst ? (
+                            <div>
+                              <span
+                                style={{
+                                  display: "inline-block",
+                                  padding: "3px 8px",
+                                  borderRadius: "12px",
+                                  fontSize: "11px",
+                                  fontWeight: "700",
+                                  background: "#fef3c7",
+                                  color: "#b45309",
+                                  border: "1px solid #fde68a",
+                                }}
+                              >
+                                ⚠️ Estimated (70% fallback)
+                              </span>
+                              <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "3px" }}>
+                                {merchant.trackedPercentage || 0}% tracked ({merchant.trackedShipments || 0}/{merchant.shipments})
+                              </div>
+                            </div>
+                          ) : (
+                            <div>
+                              <span
+                                style={{
+                                  display: "inline-block",
+                                  padding: "3px 8px",
+                                  borderRadius: "12px",
+                                  fontSize: "11px",
+                                  fontWeight: "700",
+                                  background: "#dcfce7",
+                                  color: "#15803d",
+                                  border: "1px solid #86efac",
+                                }}
+                              >
+                                ✅ Actual Data
+                              </span>
+                              <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "3px" }}>
+                                {merchant.trackedPercentage || 100}% tracked ({merchant.trackedShipments || merchant.shipments}/{merchant.shipments})
+                              </div>
+                            </div>
+                          )}
+                        </td>
+
+                        <td>
+                          <span style={{ color: "#059669", fontWeight: "600" }}>
+                            ₹{(merchant.revenue || 0).toLocaleString()}
+                          </span>
+                        </td>
+                        <td>
+                          <span style={{ color: "#dc2626", fontWeight: "600" }}>
+                            ₹{(merchant.courierCost || 0).toLocaleString()}
+                          </span>
+                        </td>
+                        <td>
+                          <span style={{ color: "#2563eb", fontWeight: "600" }}>
+                            ₹{(merchant.freightMargin || 0).toLocaleString()}
+                          </span>
+                        </td>
+                        <td>
+                          <span style={{ color: "#d97706", fontWeight: "600" }}>
+                            ₹{(merchant.codMargin || 0).toLocaleString()}
+                          </span>
+                        </td>
+                        <td>
+                          <span style={{ color: "#9333ea", fontWeight: "600" }}>
+                            ₹{(merchant.rtoMargin || 0).toLocaleString()}
+                          </span>
+                        </td>
+                        <td>
+                          <span
+                            style={{
+                              display: "inline-block",
+                              padding: "4px 10px",
+                              borderRadius: "12px",
+                              fontWeight: "700",
+                              fontSize: "13px",
+                              background: isProfitPos ? "#dcfce7" : "#fee2e2",
+                              color: isProfitPos ? "#166534" : "#991b1b",
+                              border: `1px solid ${isProfitPos ? "#86efac" : "#fca5a5"}`,
+                            }}
+                          >
+                            {isProfitPos ? "✨ +" : "⚠️ "}₹{netProf.toLocaleString()}
+                          </span>
+                        </td>
+                        <td>
+                          <span style={{ color: "#7c3aed", fontWeight: "600" }}>
+                            ₹{(merchant.commission || 0).toLocaleString()}
+                          </span>
+                        </td>
+                        <td>
+                          <span
+                            className={`status-badge ${
+                              merchant.status === "ACTIVE" ? "active" : "pending"
+                            }`}
+                          >
+                            {merchant.status || "INACTIVE"}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan="10" style={{ textAlign: "center", padding: "32px 16px" }}>
+                      <div style={{ color: "#94a3b8", fontSize: "14px", fontWeight: "500" }}>
+                        No Revenue Data Available
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          {filteredMerchants.length > itemsPerPage && (
+            <div className="pagination-wrapper">
+              <span className="pagination-text">
+                Showing {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredMerchants.length)} of {filteredMerchants.length}
+              </span>
+              <div className="pagination-actions">
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((p) => p - 1)}
+                  className="page-btn"
+                >
+                  <FaChevronLeft /> Prev
+                </button>
+                <span className="page-num">
+                  {currentPage} / {totalPages}
+                </span>
+                <button
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((p) => p + 1)}
+                  className="page-btn"
+                >
+                  Next <FaChevronRight />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* RECENT INVOICES SECTION */}
+        <div className="table-card" style={{ marginTop: "24px" }}>
+          <h2 className="table-title">Recent Invoices</h2>
+
+          <div className="table-responsive">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Invoice #</th>
+                  <th>Merchant</th>
+                  <th>Amount</th>
+                  <th>Payment Method</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {revenueData.recentInvoices && revenueData.recentInvoices.length > 0 ? (
+                  revenueData.recentInvoices.map((inv, idx) => (
+                    <tr key={inv._id || idx}>
+                      <td style={{ fontWeight: "600", color: "#2563eb" }}>
+                        {inv.invoiceNumber || `INV-${idx + 1}`}
                       </td>
-                      <td style={tdStyle}>{merchant.orders || 0}</td>
-                      <td style={tdStyle}>
+                      <td style={{ fontWeight: "500", color: "#0f172a" }}>
+                        {inv.merchantId?.name || inv.merchantId?.companyName || "Merchant"}
+                      </td>
+                      <td>
                         <span style={{ color: "#059669", fontWeight: "600" }}>
-                          ₹{merchant.revenue?.toLocaleString()}
+                          ₹{(inv.totalAmount || 0).toLocaleString()}
                         </span>
                       </td>
-                      <td style={tdStyle}>
-                        <span style={{ color: "#7c3aed", fontWeight: "600" }}>
-                          ₹{merchant.commission?.toLocaleString()}
+                      <td>
+                        <span className="method-tag">
+                          {inv.paymentMethod || "PREPAID"}
                         </span>
                       </td>
-                      <td style={tdStyle}>
-                        <span
-                          style={{
-                            background:
-                              merchant.status === "ACTIVE"
-                                ? "#dcfce7"
-                                : merchant.status === "PENDING"
-                                ? "#fef3c7"
-                                : "#fee2e2",
-                            color:
-                              merchant.status === "ACTIVE"
-                                ? "#166534"
-                                : merchant.status === "PENDING"
-                                ? "#92400e"
-                                : "#991b1b",
-                            padding: "4px 8px",
-                            borderRadius: "999px",
-                            fontWeight: "600",
-                            fontSize: "11px",
-                            display: "inline-block",
-                            whiteSpace: "nowrap"
-                          }}
-                        >
-                          {merchant.status || "INACTIVE"}
+                      <td>
+                        <span className={`status-badge ${inv.status === "PAID" ? "active" : "pending"}`}>
+                          {inv.status || "PAID"}
                         </span>
                       </td>
-                      <td style={tdStyle}>
-                        {merchant.orders > 0
-                          ? "Recently Active"
-                          : "No Activity"}
+                      <td style={{ color: "#64748b" }}>
+                        {inv.createdAt ? new Date(inv.createdAt).toLocaleDateString() : "-"}
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="6" style={{ textAlign: "center", padding: "32px 16px", background: "#ffffff" }}>
-                      <div style={{ color: "#94a3b8", fontSize: "14px", fontWeight: "500" }}>
-                        No Revenue Data Available
-                      </div>
-                      <div style={{ color: "#cbd5e1", fontSize: "13px", marginTop: "6px" }}>
-                        Revenue analytics will appear once merchants start generating orders.
+                    <td colSpan="6" style={{ textAlign: "center", padding: "24px" }}>
+                      <div style={{ color: "#94a3b8", fontSize: "14px" }}>
+                        No recent invoices found
                       </div>
                     </td>
                   </tr>
@@ -306,254 +597,24 @@ const Revenue = () => {
           </div>
         </div>
 
-        {/* SECTION 2 & 3: Two Column Layout - Responsive */}
-        <div style={{ 
-          display: "grid", 
-          gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-          gap: "20px",
-          marginBottom: "20px"
-        }}>
-          
-          {/* SECTION 2: Top Revenue Merchants */}
-          <div style={{ 
-            background: "#ffffff", 
-            borderRadius: "16px", 
-            padding: "16px",
-            border: "1px solid #f1f5f9", 
-            boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05)"
-          }}>
-            <h2 style={{ 
-              color: "#0f172a", 
-              margin: "0 0 16px 0", 
-              fontSize: "clamp(16px, 2.5vw, 18px)", 
-              fontWeight: "700", 
-              letterSpacing: "-0.02em" 
-            }}>
-              Top Revenue Merchants
-            </h2>
-
-            {topMerchants.length > 0 ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                {topMerchants.map((merchant, index) => (
-                  <div key={merchant._id} style={{ 
-                    display: "flex", 
-                    flexDirection: "column",
-                    padding: "12px 14px",
-                    background: "#ffffff",
-                    borderRadius: "12px",
-                    border: "1px solid #e2e8f0",
-                    gap: "6px"
-                  }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                      <span style={{ 
-                        background: index === 0 ? "#f59e0b" : "#cbd5e1",
-                        color: index === 0 ? "#ffffff" : "#475569",
-                        width: "24px",
-                        height: "24px",
-                        borderRadius: "50%",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontWeight: "700",
-                        fontSize: "12px",
-                        flexShrink: 0
-                      }}>
-                        {index + 1}
-                      </span>
-                      <span style={{ fontWeight: "600", color: "#0f172a", fontSize: "14px" }}>
-                        {merchant.merchantName || merchant._id}
-                      </span>
-                    </div>
-                    <div style={{ 
-                      display: "flex", 
-                      flexWrap: "wrap",
-                      gap: "12px", 
-                      paddingLeft: "36px"
-                    }}>
-                      <span style={{ color: "#059669", fontWeight: "600", fontSize: "13px" }}>
-                        Revenue: ₹{merchant.revenue?.toLocaleString()}
-                      </span>
-                      <span style={{ color: "#7c3aed", fontWeight: "500", fontSize: "13px" }}>
-                        Commission: ₹{merchant.commission?.toLocaleString()}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div style={{ textAlign: "center", padding: "24px 0" }}>
-                <div style={{ color: "#94a3b8", fontSize: "14px", fontWeight: "500" }}>
-                  No Revenue Data Available
-                </div>
-                <div style={{ color: "#cbd5e1", fontSize: "13px", marginTop: "6px" }}>
-                  Revenue analytics will appear once merchants start generating orders.
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* SECTION 3: Revenue Insights */}
-          <div style={{ 
-            background: "#ffffff", 
-            borderRadius: "16px", 
-            padding: "16px",
-            border: "1px solid #f1f5f9", 
-            boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05)"
-          }}>
-            <h2 style={{ 
-              color: "#0f172a", 
-              margin: "0 0 16px 0", 
-              fontSize: "clamp(16px, 2.5vw, 18px)", 
-              fontWeight: "700", 
-              letterSpacing: "-0.02em" 
-            }}>
-              Revenue Insights
-            </h2>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              {/* Highest Revenue Merchant */}
-              <div style={{ 
-                background: "#ffffff", 
-                padding: "14px 16px", 
-                borderRadius: "12px",
-                border: "1px solid #e2e8f0",
-                borderLeft: "4px solid #2563eb",
-                minHeight: "auto"
-              }}>
-                <div style={{ fontSize: "11px", fontWeight: "600", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>
-                  Highest Revenue Merchant
-                </div>
-                <div style={{ 
-                  display: "flex", 
-                  flexDirection: "column",
-                  gap: "4px"
-                }}>
-                  <span style={{ fontWeight: "600", color: "#1e293b", fontSize: "14px" }}>
-                    {highestRevenueMerchant ? highestRevenueMerchant.merchantName || highestRevenueMerchant._id : "N/A"}
-                  </span>
-                  <span style={{ fontWeight: "700", color: "#059669", fontSize: "16px" }}>
-                    ₹{highestRevenueMerchant ? highestRevenueMerchant.revenue.toLocaleString() : "0"}
-                  </span>
-                </div>
-              </div>
-
-              {/* Highest Commission Merchant */}
-              <div style={{ 
-                background: "#ffffff", 
-                padding: "14px 16px", 
-                borderRadius: "12px",
-                border: "1px solid #e2e8f0",
-                borderLeft: "4px solid #7c3aed",
-                minHeight: "auto"
-              }}>
-                <div style={{ fontSize: "11px", fontWeight: "600", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>
-                  Highest Commission Merchant
-                </div>
-                <div style={{ 
-                  display: "flex", 
-                  flexDirection: "column",
-                  gap: "4px"
-                }}>
-                  <span style={{ fontWeight: "600", color: "#1e293b", fontSize: "14px" }}>
-                    {highestCommissionMerchant ? highestCommissionMerchant.merchantName || highestCommissionMerchant._id : "N/A"}
-                  </span>
-                  <span style={{ fontWeight: "700", color: "#7c3aed", fontSize: "16px" }}>
-                    ₹{highestCommissionMerchant ? highestCommissionMerchant.commission.toLocaleString() : "0"}
-                  </span>
-                </div>
-              </div>
-
-              {/* Average Revenue Per Merchant */}
-              <div style={{ 
-                background: "#ffffff", 
-                padding: "14px 16px", 
-                borderRadius: "12px",
-                border: "1px solid #e2e8f0",
-                borderLeft: "4px solid #059669",
-                minHeight: "auto"
-              }}>
-                <div style={{ fontSize: "11px", fontWeight: "600", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>
-                  Average Revenue Per Merchant
-                </div>
-                <div style={{ 
-                  display: "flex", 
-                  flexDirection: "column",
-                  gap: "2px"
-                }}>
-                  <span style={{ fontWeight: "700", color: "#059669", fontSize: "16px" }}>
-                    ₹{averageRevenuePerMerchant.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                  </span>
-                  <span style={{ color: "#94a3b8", fontSize: "12px", fontWeight: "400" }}>
-                    Based on {activeMerchants} Active Merchant{activeMerchants !== 1 ? 's' : ''}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </SuperAdminLayout>
   );
 };
 
-// Metric Card Component - Mobile Responsive
-const MetricCard = ({ label, value, color, isNumber }) => {
-  const formattedValue = isNumber 
-    ? value.toLocaleString()
-    : `₹${value.toLocaleString()}`;
-  
+// Simple Metric Card Component
+const MetricCard = ({ label, value, color, icon }) => {
   return (
-    <div style={{ 
-      background: "#ffffff", 
-      borderRadius: "12px", 
-      padding: "14px 16px",
-      border: "1px solid #f1f5f9",
-      borderTop: `3px solid ${color}`,
-      boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05)"
-    }}>
-      <div style={{ 
-        fontSize: "10px", 
-        fontWeight: "600", 
-        color: "#64748b", 
-        textTransform: "uppercase", 
-        letterSpacing: "0.05em",
-        marginBottom: "6px"
-      }}>
-        {label}
+    <div className="metric-card" style={{ borderTop: `3px solid ${color}` }}>
+      <div className="metric-header">
+        <span className="metric-card-label">{label}</span>
+        {icon && <span className="metric-icon" style={{ color }}>{icon}</span>}
       </div>
-      <div style={{ 
-        fontSize: "clamp(18px, 3vw, 26px)", 
-        fontWeight: "800", 
-        color: color,
-        letterSpacing: "-0.02em",
-        wordBreak: "break-word"
-      }}>
-        {formattedValue}
+      <div className="metric-card-value" style={{ color }}>
+        {value}
       </div>
     </div>
   );
-};
-
-const thStyle = { 
-  padding: "10px 12px", 
-  textAlign: "left", 
-  color: "#475569", 
-  fontWeight: "600", 
-  fontSize: "11px", 
-  textTransform: "uppercase", 
-  letterSpacing: "0.05em", 
-  background: "#f8fafc", 
-  borderBottom: "1px solid #e2e8f0",
-  whiteSpace: "nowrap"
-};
-
-const tdStyle = { 
-  padding: "10px 12px", 
-  color: "#334155", 
-  fontSize: "13px", 
-  fontWeight: "500", 
-  borderBottom: "1px solid #f1f5f9",
-  whiteSpace: "nowrap"
 };
 
 export default Revenue;

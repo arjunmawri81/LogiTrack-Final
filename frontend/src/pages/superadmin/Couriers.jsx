@@ -16,6 +16,7 @@ import {
 } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import "./Couriers.css";
 
 const Couriers = () => {
   const [couriers, setCouriers] = useState([]);

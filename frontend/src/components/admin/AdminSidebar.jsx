@@ -1,4 +1,4 @@
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
   FaHome,
   FaUsers,
@@ -18,7 +18,15 @@ import {
 import "./AdminSidebar.css"; // Merchant wala CSS use karo
 
 const AdminSidebar = () => {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/login");
+  };
+
   return (
+    <div className="admin-scope">
     <div className="sidebar">
       {/* Header */}
       <div className="sidebar-header">
@@ -182,12 +190,13 @@ const AdminSidebar = () => {
       </ul>
 
       {/* Logout */}
-      <div className="logout-section">
-        <Link to="/login">
+      <div className="logout-section" onClick={handleLogout} style={{ cursor: "pointer" }}>
+        <a style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <FaSignOutAlt />
           <span>Logout</span>
-        </Link>
+        </a>
       </div>
+    </div>
     </div>
   );
 };

@@ -6,8 +6,10 @@ const { authMiddleware } = require("../middleware/authMiddleware");
 const {
   getProfile,
   updateProfile,
-  changePassword, 
+  changePassword,
+  uploadKYCDocument,
 } = require("../controllers/merchantController");
+const kycUpload = require("../middleware/kycUploadMiddleware");
 
 // Get Profile
 router.get(
@@ -23,11 +25,19 @@ router.put(
   updateProfile
 );
 
-// ✅ Change Password Route
+// Change Password Route
 router.put(
   "/change-password",
   authMiddleware,
   changePassword
 );
 
-module.exports = router;
+// KYC Upload Route
+router.post(
+  "/kyc-upload",
+  authMiddleware,
+  kycUpload.single("document"),
+  uploadKYCDocument
+);
+
+module.exports = router;

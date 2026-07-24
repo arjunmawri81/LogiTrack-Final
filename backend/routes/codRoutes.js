@@ -3,6 +3,7 @@ const router = express.Router();
 
 const {
 authMiddleware,
+authorizeRoles,
 } = require("../middleware/authMiddleware");
 
 const {
@@ -15,6 +16,7 @@ updateCODStatus,
 router.post(
 "/",
 authMiddleware,
+authorizeRoles("MERCHANT"),
 createCOD
 );
 
@@ -29,6 +31,7 @@ getCODs
 router.patch(
 "/:id/status",
 authMiddleware,
+authorizeRoles("ADMIN", "SUPER_ADMIN"),
 updateCODStatus
 );
 

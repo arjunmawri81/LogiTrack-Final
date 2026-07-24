@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import api from "../../services/api";
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaTruck, FaShieldAlt, FaHeadset } from "react-icons/fa";
+import "./Auth.css";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -268,9 +269,9 @@ const Login = () => {
   };
 
   return (
-    <div style={styles.container}>
+    <div className="auth-container" style={styles.container}>
       {/* Left Side - Brand Section */}
-      <div style={styles.leftSection}>
+      <div className="auth-left-section" style={styles.leftSection}>
         <div style={styles.brandContent}>
           <div style={styles.brandLogo}>
             <span style={styles.logoIcon}>📦</span>
@@ -320,8 +321,8 @@ const Login = () => {
       </div>
 
       {/* Right Side - Login Form */}
-      <div style={styles.rightSection}>
-        <div style={styles.formWrapper}>
+      <div className="auth-right-section" style={styles.rightSection}>
+        <div className="auth-form-wrapper" style={styles.formWrapper}>
           <div style={styles.formHeader}>
             <h2 style={styles.formTitle}>Welcome Back!</h2>
             <p style={styles.formSubtitle}>Login to access your dashboard</p>
@@ -336,10 +337,10 @@ const Login = () => {
                 placeholder="Email Address"
                 value={formData.email}
                 onChange={handleChange}
+                className="auth-input"
                 style={styles.input}
                 required
-                onFocus={(e) => e.target.style.borderColor = "#f97316"}
-                onBlur={(e) => e.target.style.borderColor = "#e2e8f0"}
+                autoComplete="username"
               />
             </div>
 
@@ -351,10 +352,10 @@ const Login = () => {
                 placeholder="Password"
                 value={formData.password}
                 onChange={handleChange}
+                className="auth-input"
                 style={styles.input}
                 required
-                onFocus={(e) => e.target.style.borderColor = "#f97316"}
-                onBlur={(e) => e.target.style.borderColor = "#e2e8f0"}
+                autoComplete="current-password"
               />
               <button
                 type="button"
@@ -387,20 +388,6 @@ const Login = () => {
           </div>
         </div>
       </div>
-
-      <style>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-        input:focus {
-          border-color: #f97316 !important;
-          box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1) !important;
-          background: white !important;
-        }
-        @media (max-width: 992px) {
-          .login-left { display: none; }
-        }
-      `}</style>
     </div>
   );
 };

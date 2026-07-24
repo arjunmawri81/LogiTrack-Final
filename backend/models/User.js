@@ -161,9 +161,26 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+
+    kycDocuments: {
+      gstCertificate: { type: String, default: "" },
+      panCard: { type: String, default: "" },
+      addressProof: { type: String, default: "" },
+    },
+
+    permissions: {
+      type: [String],
+      default: [],
+    },
   },
   {
     timestamps: true,
+    toJSON: {
+      transform: function (doc, ret) {
+        delete ret.password;
+        return ret;
+      },
+    },
   }
 );
 

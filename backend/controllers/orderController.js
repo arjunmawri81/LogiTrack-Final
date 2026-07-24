@@ -16,14 +16,13 @@ const generateOrderNumber = () => {
 // ================================
 const createOrder = async (req, res) => {
   try {
-    console.log("BODY =>", req.body);
-    console.log("USER =>", req.user);
 
     // Auto-generate order number if not provided
     //  Map frontend field names to model field names
     const customerCity = req.body.customerCity || req.body.city;
     const customerState = req.body.customerState || req.body.state;
     const customerPincode = req.body.customerPincode || req.body.pincode;
+    const serviceType = req.body.serviceType || req.body.shippingMode || "Surface";
 
     //  Validate required address fields
     if (!customerCity || !customerState || !customerPincode) {
@@ -44,6 +43,7 @@ const createOrder = async (req, res) => {
       customerCity,
       customerState,
       customerPincode,
+      serviceType,
     };
 
     const order = await Order.create(orderData);
@@ -69,16 +69,12 @@ const createOrder = async (req, res) => {
 // ================================
 const getOrders = async (req, res) => {
   try {
-    console.log("REQ USER =>", req.user);
-
     const orders = await Order.find({
       merchantId: req.user.id,
     })
     .populate("shipmentId")
     .populate("invoiceId")
     .sort({ createdAt: -1 });
-
-    console.log("ORDERS FOUND =>", orders.length);
 
     return res.status(200).json({
       success: true,
@@ -154,13 +150,44 @@ const updateOrder = async (req, res) => {
       });
     }
 
+    // Whitelist only safe-to-edit fields to prevent mass assignment vulnerability
+    const allowedUpdates = {
+      customerName: req.body.customerName,
+      customerPhone: req.body.customerPhone,
+      customerEmail: req.body.customerEmail,
+      customerAddress: req.body.customerAddress,
+      customerCity: req.body.customerCity || req.body.city,
+      customerState: req.body.customerState || req.body.state,
+      customerPincode: req.body.customerPincode || req.body.pincode,
+      productName: req.body.productName,
+      sku: req.body.sku,
+      quantity: req.body.quantity,
+      items: req.body.items,
+      dimensions: req.body.dimensions,
+      length: req.body.length,
+      breadth: req.body.breadth,
+      height: req.body.height,
+      weight: req.body.weight,
+      serviceType: req.body.serviceType || req.body.shippingMode,
+      paymentMode: req.body.paymentMode,
+      amount: req.body.amount,
+      insuranceEnabled: req.body.insuranceEnabled,
+      insuranceAmount: req.body.insuranceAmount,
+      notes: req.body.notes
+    };
+
+    // Remove undefined properties
+    Object.keys(allowedUpdates).forEach(
+      key => allowedUpdates[key] === undefined && delete allowedUpdates[key]
+    );
+
     const order = await Order.findOneAndUpdate(
       {
         _id: req.params.id,
         merchantId: req.user.id,
       },
-      req.body,
-      { new: true }
+      { $set: allowedUpdates },
+      { new: true, runValidators: true }
     )
     .populate("shipmentId")
     .populate("invoiceId");
@@ -329,7 +356,7 @@ const uploadCSVOrders = async (req, res) => {
         }
       })
       .on("data", (data) => {
-              // ✅ Validate required fields
+              // Validate required fields
         if (!data.customerName || !data.customerPhone || !data.customerAddress) {
           errors.push({
             row: results.length + 1,
@@ -338,7 +365,7 @@ const uploadCSVOrders = async (req, res) => {
           return;
         }
 
-        // ✅ Validate required address fields (mapped from CSV columns)
+        // Validate required address fields (mapped from CSV columns)
         const city = data.customerCity || data.city;
         const state = data.customerState || data.state;
         const pincode = data.customerPincode || data.pincode;
@@ -357,7 +384,7 @@ const uploadCSVOrders = async (req, res) => {
         results.push(data);
       })
       .on("end", async () => {
-        // ✅ Delete the temporary file
+        // Delete the temporary file
         fs.unlinkSync(req.file.path);
 
         if (errors.length > 0) {
@@ -399,6 +426,7 @@ const uploadCSVOrders = async (req, res) => {
           paymentMode: row.paymentMode || "COD",
           insuranceEnabled:
             row.insuranceEnabled === "true" || row.insurance === "true" || false,
+          serviceType: row.serviceType || row.shippingMode || "Surface",
 
           // Notes
           notes: row.notes || "",
@@ -417,7 +445,7 @@ const uploadCSVOrders = async (req, res) => {
         });
       });
   } catch (error) {
-    // ✅ Clean up file if exists
+    // Clean up file if exists
     if (req.file && req.file.path) {
       try {
         fs.unlinkSync(req.file.path);
@@ -448,7 +476,7 @@ const uploadExcelOrders = async (req, res) => {
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const data = XLSX.utils.sheet_to_json(sheet);
 
-    // ✅ Delete the temporary file
+    // Delete the temporary file
     fs.unlinkSync(req.file.path);
 
     if (data.length === 0) {
@@ -458,7 +486,7 @@ const uploadExcelOrders = async (req, res) => {
       });
     }
 
-    // ✅ Validate and map all fields
+    // Validate and map all fields
     const errors = [];
     const validData = [];
 
@@ -471,7 +499,7 @@ const uploadExcelOrders = async (req, res) => {
         return;
       }
 
-      // ✅ Validate required address fields
+      // Validate required address fields
       const city = row.customerCity || row.city;
       const state = row.customerState || row.state;
       const pincode = row.customerPincode || row.pincode;
@@ -539,7 +567,7 @@ const uploadExcelOrders = async (req, res) => {
       orders: insertedOrders,
     });
   } catch (error) {
-    // ✅ Clean up file if exists
+    // Clean up file if exists
     if (req.file && req.file.path) {
       try {
         fs.unlinkSync(req.file.path);

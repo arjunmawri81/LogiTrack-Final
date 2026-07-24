@@ -52,15 +52,19 @@ exports.createWarehouse = async (req, res) => {
       });
     }
 
+    const escapedName = warehouseName.trim().replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
     const duplicate = await Warehouse.findOne({
       merchantId,
-      warehouseName: warehouseName.trim(),
+      warehouseName: {
+        $regex: `^${escapedName}$`,
+        $options: "i",
+      },
     });
 
     if (duplicate) {
       return res.status(400).json({
         success: false,
-        message: "Warehouse already exists.",
+        message: "Warehouse already exists (case-insensitive duplicate check).",
       });
     }
 
@@ -256,7 +260,7 @@ exports.updateWarehouse = async (req, res) => {
       );
     }
 
-    // ✅ SECURITY FIX: Whitelist updatable fields instead of Object.assign(warehouse, req.body)
+    // SECURITY FIX: Whitelist updatable fields instead of Object.assign(warehouse, req.body)
     const ALLOWED_UPDATE_FIELDS = [
       "warehouseName", "companyName", "contactPerson", "phone", "alternatePhone",
       "email", "gstNumber", "panNumber", "addressLine1", "addressLine2",
@@ -310,6 +314,20 @@ exports.deleteWarehouse = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Default warehouse cannot be deleted.",
+      });
+    }
+
+    // Referential integrity check: Check for active shipments using this warehouse
+    const Shipment = require("../models/Shipment");
+    const activeShipments = await Shipment.countDocuments({
+      warehouseId: warehouse._id,
+      status: { $nin: ["DELIVERED", "CANCELLED", "RTO_COMPLETED"] }
+    });
+
+    if (activeShipments > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot delete warehouse. It is linked to ${activeShipments} active shipment(s).`,
       });
     }
 

@@ -106,7 +106,7 @@ const Dashboard = () => {
             <h4>COD REVENUE</h4>
             <h1>₹{formatCurrency(stats.codRevenue)}</h1>
           </div>
-          {/* ✅ Removed Wallet Balance Card - Duplicate removed */}
+          {/* Removed Wallet Balance Card - Duplicate removed */}
           {/* Future: Add PICKUP PENDING / IN TRANSIT / OUT FOR DELIVERY here */}
         </div>
 

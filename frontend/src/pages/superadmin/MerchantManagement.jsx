@@ -3,6 +3,7 @@ import api from "../../services/api";
 import SuperAdminLayout from "./SuperAdminLayout";
 import { FaEye, FaBox, FaTruck, FaWallet, FaBuilding, FaCheckCircle, FaTimesCircle, FaClock } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
+import "./MerchantManagement.css";
 
 const MerchantManagement = () => {
   const [merchants, setMerchants] = useState([]);
@@ -83,10 +84,6 @@ const MerchantManagement = () => {
     window.location.href = `/superadmin/ratecard/${merchantId}`;
   };
 
-  const fontStyle = {
-    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-  };
-
   // Status badge helper
   const getStatusBadge = (isBlocked, isApproved) => {
     if (isBlocked) {
@@ -100,142 +97,78 @@ const MerchantManagement = () => {
 
   return (
     <SuperAdminLayout>
-      <div style={{ ...fontStyle, maxWidth: "1400px", margin: "0 auto", padding: "24px" }}>
+      <div className="merchant-mgmt-container">
         
         {/* HEADER SECTION */}
-        <div style={{ 
-          display: "flex", 
-          justifyContent: "space-between", 
-          alignItems: "flex-start",
-          borderBottom: "1px solid #e2e8f0", 
-          paddingBottom: "24px", 
-          marginBottom: "32px",
-          flexWrap: "wrap",
-          gap: "16px"
-        }}>
+        <div className="page-header">
           <div>
-            <h1 style={{ 
-              fontSize: "28px", 
-              fontWeight: "700", 
-              color: "#0f172a", 
-              margin: "0 0 4px 0", 
-              letterSpacing: "-0.025em" 
-            }}>
+            <h1 className="page-title">
               Merchant Management
             </h1>
-            <p style={{ color: "#64748b", fontSize: "14px", margin: 0, fontWeight: "400" }}>
+            <p className="page-subtitle">
               Manage registered merchants and business accounts
             </p>
           </div>
-          <button
-            style={{
-              padding: "8px 20px",
-              background: "#0f172a",
-              color: "#fff",
-              border: "none",
-              borderRadius: "8px",
-              fontSize: "14px",
-              fontWeight: "500",
-              cursor: "pointer",
-              transition: "all 0.2s"
-            }}
-            onMouseEnter={(e) => e.target.style.background = "#1e293b"}
-            onMouseLeave={(e) => e.target.style.background = "#0f172a"}
-          >
+          <button className="add-btn">
             + Add Merchant
           </button>
         </div>
 
         {/* STATS CARDS */}
-        <div style={{ 
-          display: "grid", 
-          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", 
-          gap: "16px", 
-          marginBottom: "32px" 
-        }}>
-          <div style={{ 
-            background: "#ffffff", 
-            borderRadius: "12px", 
-            padding: "20px 24px", 
-            border: "1px solid #e2e8f0",
-            boxShadow: "0 1px 2px rgba(0,0,0,0.05)"
-          }}>
-            <div style={{ fontSize: "12px", fontWeight: "500", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+        <div className="stats-grid">
+          <div className="stat-card">
+            <div className="stat-card-label">
               Total Merchants
             </div>
-            <div style={{ fontSize: "32px", fontWeight: "700", color: "#0f172a", marginTop: "4px" }}>
+            <div className="stat-card-value total">
               {merchants.length}
             </div>
           </div>
-          <div style={{ 
-            background: "#ffffff", 
-            borderRadius: "12px", 
-            padding: "20px 24px", 
-            border: "1px solid #e2e8f0",
-            boxShadow: "0 1px 2px rgba(0,0,0,0.05)"
-          }}>
-            <div style={{ fontSize: "12px", fontWeight: "500", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+          <div className="stat-card">
+            <div className="stat-card-label">
               Approved
             </div>
-            <div style={{ fontSize: "32px", fontWeight: "700", color: "#16a34a", marginTop: "4px" }}>
+            <div className="stat-card-value approved">
               {merchants.filter(m => m.isApproved && !m.isBlocked).length}
             </div>
           </div>
-          <div style={{ 
-            background: "#ffffff", 
-            borderRadius: "12px", 
-            padding: "20px 24px", 
-            border: "1px solid #e2e8f0",
-            boxShadow: "0 1px 2px rgba(0,0,0,0.05)"
-          }}>
-            <div style={{ fontSize: "12px", fontWeight: "500", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+          <div className="stat-card">
+            <div className="stat-card-label">
               Pending
             </div>
-            <div style={{ fontSize: "32px", fontWeight: "700", color: "#d97706", marginTop: "4px" }}>
+            <div className="stat-card-value pending">
               {merchants.filter(m => !m.isApproved && !m.isBlocked).length}
             </div>
           </div>
-          <div style={{ 
-            background: "#ffffff", 
-            borderRadius: "12px", 
-            padding: "20px 24px", 
-            border: "1px solid #e2e8f0",
-            boxShadow: "0 1px 2px rgba(0,0,0,0.05)"
-          }}>
-            <div style={{ fontSize: "12px", fontWeight: "500", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+          <div className="stat-card">
+            <div className="stat-card-label">
               Blocked
             </div>
-            <div style={{ fontSize: "32px", fontWeight: "700", color: "#dc2626", marginTop: "4px" }}>
+            <div className="stat-card-value blocked">
               {merchants.filter(m => m.isBlocked).length}
             </div>
           </div>
         </div>
 
         {/* TABLE */}
-        <div style={{ 
-          background: "#ffffff", 
-          borderRadius: "12px", 
-          border: "1px solid #e2e8f0",
-          boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
-          overflow: "hidden"
-        }}>
-          <div style={{ padding: "20px 24px", borderBottom: "1px solid #e2e8f0" }}>
-            <h2 style={{ color: "#0f172a", margin: 0, fontSize: "16px", fontWeight: "600" }}>
+        <div className="table-card">
+          <div className="table-header">
+            <h2 className="table-title">
               Merchant Directory
             </h2>
           </div>
 
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <div className="table-responsive">
+            <table className="data-table">
               <thead>
                 <tr>
-                  <th style={thStyle}>Company</th>
-                  <th style={thStyle}>Merchant</th>
-                  <th style={thStyle}>GST</th>
-                  <th style={thStyle}>PAN</th>
-                  <th style={{ ...thStyle, minWidth: "200px" }}>Address</th>
-                  <th style={thStyle}>Status</th>
-                  <th style={{ ...thStyle, minWidth: "340px" }}>Actions</th>
+                  <th>Company</th>
+                  <th>Merchant</th>
+                  <th>GST</th>
+                  <th>PAN</th>
+                  <th style={{ minWidth: "200px" }}>Address</th>
+                  <th>Status</th>
+                  <th style={{ minWidth: "340px" }}>Actions</th>
                 </tr>
               </thead>
               <tbody>

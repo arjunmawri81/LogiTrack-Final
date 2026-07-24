@@ -1,352 +1,738 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
-import SuperAdminLayout from "./SuperAdminLayout";
 import api from "../../services/api";
-import { FaTruck } from "react-icons/fa";
+import SuperAdminLayout from "./SuperAdminLayout";
+import {
+  FaTruck,
+  FaPlane,
+  FaCheckCircle,
+  FaExclamationTriangle,
+  FaSpinner,
+  FaInfoCircle,
+  FaBoxes,
+  FaMapMarkerAlt,
+  FaReceipt,
+  FaSlidersH,
+  FaEye,
+  FaShieldAlt,
+  FaArrowLeft,
+  FaSave,
+  FaUndo,
+  FaWallet,
+  FaBuilding,
+  FaEnvelope,
+  FaPhone,
+  FaIdCard,
+  FaCalendarAlt,
+  FaSearch,
+  FaEdit,
+  FaPlusCircle,
+} from "react-icons/fa";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import "./RateCardManagement.css";
+
+// ─────────────────────────────────────────────────────────────────
+// CONSTANTS & HELPERS
+// ─────────────────────────────────────────────────────────────────
+
+const EMPTY_FORM = {
+  forwardRates: { rate500gm: "", rate1kg: "", rate2kg: "", rate5kg: "", additionalKg: "" },
+  codCharges:   { codCharge: "" },
+  rtoCharges:   { rtoCharge: "" },
+  additionalCharges: { reversePickup: "", fuelCharge: "" },
+  zoneRates:    { local: "", regional: "", national: "" },
+  gst:          18,
+  odaCharge:    "",
+  handlingCharge: "",
+  effectiveFrom: "",
+  effectiveTo:   "",
+  serviceability: { codEnabled: true, prepaidEnabled: true, rtoEnabled: true, reversePickup: true },
+};
+
+const normalizeFromBackend = (data) => {
+  if (!data) return { ...EMPTY_FORM };
+  const str = (v) => (v !== undefined && v !== null ? String(v) : "");
+  return {
+    forwardRates: {
+      rate500gm:    str(data.forwardRates?.rate500gm),
+      rate1kg:      str(data.forwardRates?.rate1kg),
+      rate2kg:      str(data.forwardRates?.rate2kg),
+      rate5kg:      str(data.forwardRates?.rate5kg),
+      additionalKg: str(data.forwardRates?.additionalKg),
+    },
+    codCharges:   { codCharge: str(data.codCharge) },
+    rtoCharges:   { rtoCharge: str(data.rtoCharge) },
+    additionalCharges: {
+      reversePickup: str(data.reversePickup),
+      fuelCharge:    str(data.fuelCharge),
+    },
+    zoneRates: {
+      local:    str(data.zoneRates?.local),
+      regional: str(data.zoneRates?.regional),
+      national: str(data.zoneRates?.national),
+    },
+    gst:           data.gst !== undefined && data.gst !== null ? Number(data.gst) : 18,
+    odaCharge:     str(data.odaCharge),
+    handlingCharge:str(data.handlingCharge),
+    effectiveFrom: data.effectiveFrom ? data.effectiveFrom.split("T")[0] : "",
+    effectiveTo:   data.effectiveTo   ? data.effectiveTo.split("T")[0]   : "",
+    serviceability: {
+      codEnabled:     data.serviceability?.codEnabled     !== false,
+      prepaidEnabled: data.serviceability?.prepaidEnabled !== false,
+      rtoEnabled:     data.serviceability?.rtoEnabled     !== false,
+      reversePickup:  data.serviceability?.reversePickup  !== false,
+    },
+  };
+};
+
+const validateForm = (formData) => {
+  if (formData.gst === "" || formData.gst === null || formData.gst === undefined)
+    return "GST percentage is required.";
+  if (!formData.forwardRates.rate500gm) return "500gm Forward Rate is required.";
+  if (formData.codCharges.codCharge === "" || formData.codCharges.codCharge === null)
+    return "COD Charge is required.";
+  if (!formData.effectiveFrom) return "Effective From date is required.";
+  if (!formData.effectiveTo)   return "Effective To date is required.";
+  if (Number(formData.gst) < 0)   return "GST cannot be negative.";
+  if (Number(formData.gst) > 100) return "GST must be between 0 and 100.";
+  if (Number(formData.forwardRates.rate500gm)    < 0) return "500gm rate cannot be negative.";
+  if (Number(formData.forwardRates.rate1kg)      < 0) return "1kg rate cannot be negative.";
+  if (Number(formData.forwardRates.rate2kg)      < 0) return "2kg rate cannot be negative.";
+  if (Number(formData.forwardRates.rate5kg)      < 0) return "5kg rate cannot be negative.";
+  if (Number(formData.forwardRates.additionalKg) < 0) return "Additional kg rate cannot be negative.";
+  if (Number(formData.zoneRates.local)    < 0) return "Local zone rate cannot be negative.";
+  if (Number(formData.zoneRates.regional) < 0) return "Regional zone rate cannot be negative.";
+  if (Number(formData.zoneRates.national) < 0) return "National zone rate cannot be negative.";
+  if (Number(formData.codCharges.codCharge)            < 0) return "COD charge cannot be negative.";
+  if (Number(formData.rtoCharges.rtoCharge)            < 0) return "RTO charge cannot be negative.";
+  if (Number(formData.additionalCharges.reversePickup) < 0) return "Reverse pickup cannot be negative.";
+  if (Number(formData.additionalCharges.fuelCharge)    < 0) return "Fuel charge cannot be negative.";
+  if (Number(formData.odaCharge)      < 0) return "ODA charge cannot be negative.";
+  if (Number(formData.handlingCharge) < 0) return "Handling charge cannot be negative.";
+  if (formData.effectiveFrom && formData.effectiveTo) {
+    if (new Date(formData.effectiveTo) < new Date(formData.effectiveFrom))
+      return "Effective To must be ≥ Effective From.";
+  }
+  return null;
+};
+
+// ─────────────────────────────────────────────────────────────────
+// INLINE SUB-COMPONENTS
+// ─────────────────────────────────────────────────────────────────
+
+const StatusBadge = ({ active }) => (
+  <span className={`rcm-status-chip ${active ? "active" : "inactive"}`}>
+    {active ? <FaCheckCircle size={10} /> : <FaExclamationTriangle size={10} />}
+    {active ? "Configured" : "Not Configured"}
+  </span>
+);
+
+const FormInput = ({
+  label,
+  value,
+  onChange,
+  type = "number",
+  placeholder = "0",
+  disabled = false,
+  required = false,
+  prefix = "₹",
+}) => (
+  <div className="rcm-form-field">
+    <label className="rcm-field-label">
+      {label}
+      {required && <span className="rcm-field-required">*</span>}
+    </label>
+    <div className="rcm-field-input-box">
+      {prefix && <span className="rcm-field-prefix">{prefix}</span>}
+      <input
+        type={type}
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        disabled={disabled}
+        className={`rcm-input-element ${prefix ? "has-prefix" : ""}`}
+      />
+    </div>
+  </div>
+);
+
+const CheckboxToggle = ({ label, checked, onChange }) => (
+  <label className={`rcm-toggle-label ${checked ? "checked" : ""}`}>
+    <div onClick={onChange} className={`rcm-toggle-switch ${checked ? "checked" : ""}`}>
+      <div className="rcm-toggle-handle" />
+    </div>
+    <span className="rcm-toggle-text">{label}</span>
+  </label>
+);
+
+// ─────────────────────────────────────────────────────────────────
+// RATE FORM
+// ─────────────────────────────────────────────────────────────────
+
+const RateForm = ({ formData, onChange, onSave, onReset, onBack, saving, activeTab, onTabChange, courierName }) => {
+  const {
+    forwardRates,
+    codCharges,
+    rtoCharges,
+    additionalCharges,
+    zoneRates,
+    gst,
+    odaCharge,
+    handlingCharge,
+    effectiveFrom,
+    effectiveTo,
+    serviceability,
+  } = formData;
+
+  const field = (section, key, val) => onChange(section, key, val);
+
+  const preview = [
+    { label: "500gm",    value: forwardRates.rate500gm || 0 },
+    { label: "1kg",      value: forwardRates.rate1kg   || 0 },
+    { label: "2kg",      value: forwardRates.rate2kg   || 0 },
+    { label: "5kg",      value: forwardRates.rate5kg   || 0 },
+    { label: "Local",    value: zoneRates.local    || 0 },
+    { label: "Regional", value: zoneRates.regional || 0 },
+    { label: "National", value: zoneRates.national || 0 },
+  ];
+
+  return (
+    <>
+      {/* Top Controls Bar */}
+      <div className="rcm-form-top-bar">
+        <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+          <button onClick={onBack} className="rcm-back-btn">
+            <FaArrowLeft size={12} /> Back to Couriers
+          </button>
+          <span style={{ fontSize: "18px", color: "#0f172a", fontWeight: "800" }}>{courierName}</span>
+          <StatusBadge active={false} />
+        </div>
+
+        <div className="rcm-tab-switcher">
+          {["Surface", "Air"].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => onTabChange(tab)}
+              className={`rcm-tab-btn ${activeTab === tab ? "active" : "inactive"}`}
+            >
+              {tab === "Surface" ? <FaTruck size={14} /> : <FaPlane size={14} />}
+              {tab} Rates
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Two Column Grid */}
+      <div className="rcm-form-grid-layout">
+        {/* LEFT FIELDS (Dark Rate Cards) */}
+        <div>
+          {/* Basic Information */}
+          <div className="rcm-card">
+            <h3 className="rcm-card-title">
+              <span className="rcm-card-title-icon"><FaInfoCircle size={16} /></span> Basic Information
+            </h3>
+            <div className="rcm-inputs-grid-3">
+              <FormInput label="Service Type" value={activeTab} onChange={() => {}} disabled placeholder="" type="text" prefix="" />
+              <FormInput label="GST (%)" value={gst} onChange={(v) => onChange(null, "gst", v)} required prefix="%" />
+              <FormInput label="Effective From" value={effectiveFrom} onChange={(v) => onChange(null, "effectiveFrom", v)} type="date" placeholder="" required prefix="" />
+              <FormInput label="Effective To"   value={effectiveTo}   onChange={(v) => onChange(null, "effectiveTo",   v)} type="date" placeholder="" required prefix="" />
+            </div>
+          </div>
+
+          {/* Forward Rates */}
+          <div className="rcm-card">
+            <h3 className="rcm-card-title">
+              <span className="rcm-card-title-icon"><FaBoxes size={16} /></span> Forward Rates
+            </h3>
+            <div className="rcm-inputs-grid-3">
+              <FormInput label="500gm"        value={forwardRates.rate500gm}    onChange={(v) => field("forwardRates","rate500gm",v)}    required />
+              <FormInput label="1kg"          value={forwardRates.rate1kg}      onChange={(v) => field("forwardRates","rate1kg",v)} />
+              <FormInput label="2kg"          value={forwardRates.rate2kg}      onChange={(v) => field("forwardRates","rate2kg",v)} />
+              <FormInput label="5kg"          value={forwardRates.rate5kg}      onChange={(v) => field("forwardRates","rate5kg",v)} />
+              <FormInput label="Additional KG" value={forwardRates.additionalKg} onChange={(v) => field("forwardRates","additionalKg",v)} />
+            </div>
+          </div>
+
+          {/* Zone Rates */}
+          <div className="rcm-card">
+            <h3 className="rcm-card-title">
+              <span className="rcm-card-title-icon"><FaMapMarkerAlt size={16} /></span> Zone Rates
+            </h3>
+            <div className="rcm-inputs-grid-3">
+              <FormInput label="Local"    value={zoneRates.local}    onChange={(v) => field("zoneRates","local",v)} />
+              <FormInput label="Regional" value={zoneRates.regional} onChange={(v) => field("zoneRates","regional",v)} />
+              <FormInput label="National" value={zoneRates.national} onChange={(v) => field("zoneRates","national",v)} />
+            </div>
+          </div>
+
+          {/* Additional Charges */}
+          <div className="rcm-card">
+            <h3 className="rcm-card-title">
+              <span className="rcm-card-title-icon"><FaReceipt size={16} /></span> Additional Charges
+            </h3>
+            <div className="rcm-inputs-grid-3">
+              <FormInput label="COD Charge"      value={codCharges.codCharge}             onChange={(v) => field("codCharges","codCharge",v)} required />
+              <FormInput label="RTO Charge"      value={rtoCharges.rtoCharge}             onChange={(v) => field("rtoCharges","rtoCharge",v)} />
+              <FormInput label="Reverse Pickup"  value={additionalCharges.reversePickup}  onChange={(v) => field("additionalCharges","reversePickup",v)} />
+              <FormInput label="Fuel Charge"     value={additionalCharges.fuelCharge}     onChange={(v) => field("additionalCharges","fuelCharge",v)} />
+              <FormInput label="ODA Charge"      value={odaCharge}      onChange={(v) => onChange(null,"odaCharge",v)} />
+              <FormInput label="Handling Charge" value={handlingCharge} onChange={(v) => onChange(null,"handlingCharge",v)} />
+            </div>
+          </div>
+
+          {/* Serviceability */}
+          <div className="rcm-card">
+            <h3 className="rcm-card-title">
+              <span className="rcm-card-title-icon"><FaSlidersH size={16} /></span> Serviceability Options
+            </h3>
+            <div className="rcm-inputs-grid-2">
+              <CheckboxToggle label="COD Enabled"     checked={serviceability.codEnabled}     onChange={() => onChange("serviceability","codEnabled",    !serviceability.codEnabled)} />
+              <CheckboxToggle label="Prepaid Enabled" checked={serviceability.prepaidEnabled} onChange={() => onChange("serviceability","prepaidEnabled", !serviceability.prepaidEnabled)} />
+              <CheckboxToggle label="RTO Enabled"     checked={serviceability.rtoEnabled}     onChange={() => onChange("serviceability","rtoEnabled",    !serviceability.rtoEnabled)} />
+              <CheckboxToggle label="Reverse Pickup"  checked={serviceability.reversePickup}  onChange={() => onChange("serviceability","reversePickup", !serviceability.reversePickup)} />
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT SIDEBAR PREVIEW */}
+        <div>
+          {/* Live Preview Card */}
+          <div className="rcm-preview-card">
+            <div className="rcm-preview-header">
+              <h3 className="rcm-preview-title">
+                <FaEye size={16} color="#ea580c" /> Live Rate Preview
+              </h3>
+              <span className="rcm-preview-courier-tag">{courierName}</span>
+            </div>
+            <div className="rcm-preview-grid">
+              {preview.map(({ label, value }) => (
+                <div key={label} className="rcm-preview-item">
+                  <p className="rcm-preview-item-label">{label}</p>
+                  <p className="rcm-preview-item-val">₹{value || 0}</p>
+                </div>
+              ))}
+            </div>
+            <div className="rcm-preview-footer">
+              <span>Service: {activeTab}</span>
+              <span>GST: {gst}%</span>
+            </div>
+          </div>
+
+          {/* Summary Breakdown */}
+          <div className="rcm-card">
+            <h3 className="rcm-card-title">Summary Breakdown</h3>
+            {[
+              { label: "COD Charge",  value: codCharges.codCharge || 0 },
+              { label: "RTO Charge",  value: rtoCharges.rtoCharge || 0 },
+              { label: "Fuel Charge", value: additionalCharges.fuelCharge || 0 },
+              { label: "ODA Charge",  value: odaCharge || 0 },
+              { label: "Handling",    value: handlingCharge || 0 },
+            ].map(({ label, value }) => (
+              <div key={label} className="rcm-summary-item">
+                <span className="rcm-summary-label">{label}</span>
+                <span className="rcm-summary-val">₹{value}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Validity Period */}
+          <div className="rcm-card">
+            <h3 className="rcm-card-title">Validity Period</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {effectiveFrom ? (
+                <div className="rcm-summary-item">
+                  <span className="rcm-summary-label">From</span>
+                  <span className="rcm-summary-val">
+                    {new Date(effectiveFrom).toLocaleDateString("en-IN")}
+                  </span>
+                </div>
+              ) : null}
+              {effectiveTo ? (
+                <div className="rcm-summary-item">
+                  <span className="rcm-summary-label">To</span>
+                  <span className="rcm-summary-val">
+                    {new Date(effectiveTo).toLocaleDateString("en-IN")}
+                  </span>
+                </div>
+              ) : null}
+              {!effectiveFrom && !effectiveTo && (
+                <p style={{ fontSize: "13px", color: "#94a3b8", textAlign: "center", margin: "4px 0" }}>No dates configured yet</p>
+              )}
+            </div>
+          </div>
+
+          {/* Super Admin Note */}
+          <div className="rcm-note-card">
+            <p className="rcm-note-title">
+              <FaShieldAlt size={15} /> Super Admin Override
+            </p>
+            <p className="rcm-note-body">
+              You are setting merchant-specific rate card overrides. These rates will override standard courier default rates for this merchant account.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Floating Sticky Footer */}
+      <div className="rcm-sticky-footer">
+        <div style={{ fontSize: "14px", fontWeight: "800", color: "#ffffff" }}>
+          Configuring <span style={{ color: "#ea580c" }}>{activeTab} Rates</span> for {courierName}
+        </div>
+        <div className="rcm-footer-btn-group">
+          <button onClick={onReset} className="rcm-reset-btn">
+            <FaUndo size={12} /> Reset
+          </button>
+          <button onClick={onSave} disabled={saving} className="rcm-save-btn">
+            {saving ? (
+              <FaSpinner size={16} className="rcm-spinner" />
+            ) : (
+              <FaSave size={14} />
+            )}
+            {saving ? "Saving…" : `Save ${activeTab} Rate Card`}
+          </button>
+        </div>
+      </div>
+    </>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────
+// COURIER CARD (DARK SIDEBAR BACKGROUND #0f172a)
+// ─────────────────────────────────────────────────────────────────
+
+const CourierCard = ({ courier, surfaceCard, airCard, onSelect }) => {
+  const isConfigured = (card) =>
+    !!card &&
+    card.isActive !== false &&
+    card.enabled !== false &&
+    ((card.forwardRates?.rate500gm || 0) > 0 || (card.forwardRates?.rate1kg || 0) > 0);
+  const isSurface = isConfigured(surfaceCard);
+  const isAir     = isConfigured(airCard);
+
+  const cardStatusClass = isSurface && isAir ? "fully-configured" : isSurface || isAir ? "partially-configured" : "not-configured";
+
+  const ServiceBlock = ({ type, card, configured }) => (
+    <div className={`rcm-service-box ${configured ? "configured" : "unconfigured"}`}>
+      <div className="rcm-service-box-header">
+        <span className="rcm-service-title">
+          <span className="rcm-service-title-icon">
+            {type === "Surface" ? <FaTruck size={14} /> : <FaPlane size={14} />}
+          </span>
+          {type} Shipping
+        </span>
+        <StatusBadge active={configured} />
+      </div>
+
+      {configured ? (
+        <div className="rcm-service-metrics-grid">
+          {[
+            { l: "Min (500g)", v: `₹${card.forwardRates?.rate500gm ?? 0}` },
+            { l: "COD Charge", v: `₹${card.codCharge ?? 0}` },
+            { l: "GST",        v: `${card.gst !== undefined ? card.gst : 18}%` },
+            { l: "Valid From", v: card.effectiveFrom ? new Date(card.effectiveFrom).toLocaleDateString("en-IN") : "N/A" },
+          ].map(({ l, v }) => (
+            <div key={l} className="rcm-metric-item">
+              <p className="rcm-metric-label">{l}</p>
+              <p className="rcm-metric-value">{v}</p>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="rcm-unconfigured-hint">
+          <FaExclamationTriangle size={13} color="#f59e0b" />
+          <span>No active {type.toLowerCase()} rates set</span>
+        </div>
+      )}
+
+      <button
+        onClick={() => onSelect(courier, type)}
+        className={configured ? "rcm-btn-edit" : "rcm-btn-configure"}
+      >
+        {configured ? (
+          <>
+            <FaEdit size={12} /> Edit {type} Rates
+          </>
+        ) : (
+          <>
+            <FaPlusCircle size={12} /> Configure {type} Rates
+          </>
+        )}
+      </button>
+    </div>
+  );
+
+  return (
+    <div className={`rcm-courier-card ${cardStatusClass}`}>
+      {/* Courier Header */}
+      <div className="rcm-courier-header">
+        <div className="rcm-courier-identity">
+          <div className="rcm-courier-avatar-box">
+            <FaTruck size={22} />
+          </div>
+          <div>
+            <h3 className="rcm-courier-name">{courier.name}</h3>
+            <span className={`rcm-courier-badge-overall ${isSurface && isAir ? "full" : isSurface || isAir ? "partial" : "none"}`}>
+              {isSurface && isAir ? "Fully Configured" : isSurface || isAir ? "Partially Configured" : "Not Configured"}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Surface & Air Sub-Blocks */}
+      <div className="rcm-services-wrapper">
+        <ServiceBlock type="Surface" card={surfaceCard} configured={isSurface} />
+        <ServiceBlock type="Air" card={airCard} configured={isAir} />
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────
+// MAIN COMPONENT
+// ─────────────────────────────────────────────────────────────────
 
 const RateCardManagement = () => {
   const { merchantId } = useParams();
 
-  // ===================== STATE =====================
-  
-  // Merchant info state - Will come from API
+  // ── State ──
   const [merchantInfo, setMerchantInfo] = useState({
-    companyName: "",
-    merchantName: "",
-    email: "",
-    status: "",
-    phone: "",
-    gstNumber: "",
-    walletBalance: 0,
-    totalOrders: 0,
-    totalShipments: 0,
+    companyName: "", merchantName: "", email: "", status: "",
+    phone: "", gstNumber: "", walletBalance: 0, totalOrders: 0, totalShipments: 0,
   });
-
-  // Loading states
-  const [loading, setLoading] = useState({
-    merchant: true,
-    rates: true,
-    saving: false,
-  });
-
-  const [selectedCourier, setSelectedCourier] = useState(null);
-  const [couriers, setCouriers] = useState([]);
-
-  // Rate form state for selected courier
-  const [rates, setRates] = useState({
-    forwardRates: {
-      rate500gm: "",
-      rate1kg: "",
-      rate2kg: "",
-      rate5kg: "",
-      additionalKg: "",
-    },
-    codCharges: {
-      codCharge: "",
-    },
-    rtoCharges: {
-      rtoCharge: "",
-    },
-    additionalCharges: {
-      reversePickup: "",
-      fuelCharge: "",
-    },
-  });
-
-  // Zone Rates State
-  const [zoneRates, setZoneRates] = useState({
-    local: "",
-    regional: "",
-    national: "",
-  });
-
-  // Assigned Rates - Will come from API
+  const [loading, setLoading] = useState({ merchant: true, rates: false, saving: false });
+  const [couriers, setCouriers]         = useState([]);
   const [assignedRates, setAssignedRates] = useState([]);
+  const [selectedCourier, setSelectedCourier] = useState(null);
+  const [activeFormTab, setActiveFormTab] = useState("Surface");
+  const [formData, setFormData]   = useState({ ...EMPTY_FORM });
+  const [initialData, setInitialData] = useState({ ...EMPTY_FORM });
 
-  // Serviceability Settings
-  const [serviceability, setServiceability] = useState({
-    codEnabled: true,
-    prepaidEnabled: true,
-    rtoEnabled: true,
-    reversePickup: true,
-  });
+  // ── Search & Filter State ──
+  const [searchTerm, setSearchTerm]   = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
-  // ===================== API CALLS =====================
+  const isDirty = JSON.stringify(formData) !== JSON.stringify(initialData);
 
-  // 1. Fetch Merchant Info
-  const fetchMerchant = async () => {
+  // ── Unsaved changes: browser unload ──
+  useEffect(() => {
+    const handler = (e) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = "You have unsaved changes. Leave?";
+        return e.returnValue;
+      }
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isDirty]);
+
+  const confirmIfDirty = useCallback((proceed) => {
+    if (isDirty) {
+      if (window.confirm("You have unsaved changes. Discard them?")) proceed();
+    } else {
+      proceed();
+    }
+  }, [isDirty]);
+
+  // ── API: Fetch merchant ──
+  const fetchMerchant = useCallback(async () => {
     try {
-      setLoading(prev => ({ ...prev, merchant: true }));
-      const response = await api.get(`/admin/merchant/${merchantId}`);
-      
+      setLoading((p) => ({ ...p, merchant: true }));
+      const res = await api.get(`/admin/merchant/${merchantId}`);
+      const m = res.data.merchant || {};
       setMerchantInfo({
-        companyName: response.data.merchant?.companyName || "",
-        merchantName: response.data.merchant?.userId?.name || 
-                      response.data.merchant?.name || 
-                      "",
-        email: response.data.merchant?.email || "",
-        status: response.data.merchant?.isApproved ? "Approved" : "Pending",
-        phone: response.data.merchant?.phone || 
-               response.data.merchant?.mobile || 
-               "+91 98765 43210",
-        gstNumber: response.data.merchant?.gstNumber || 
-                   response.data.merchant?.gst || 
-                   "22AAAAA0000A1Z5",
-        walletBalance: response.data.walletBalance || 0,
-        totalOrders: response.data.totalOrders || 0,
-        totalShipments: response.data.totalShipments || 0,
-        isApproved: response.data.merchant?.isApproved,
-        kycStatus: response.data.merchant?.kycStatus,
-        isBlocked: response.data.merchant?.isBlocked,
+        companyName:    m.companyName || "",
+        merchantName:   m.userId?.name || m.name || "",
+        email:          m.email || "",
+        status:         m.isApproved ? "Approved" : "Pending",
+        phone:          m.phone || m.mobile || "",
+        gstNumber:      m.gstNumber || m.gst || "",
+        walletBalance:  res.data.walletBalance || 0,
+        totalOrders:    res.data.totalOrders || 0,
+        totalShipments: res.data.totalShipments || 0,
+        isApproved:     m.isApproved,
+        kycStatus:      m.kycStatus,
+        isBlocked:      m.isBlocked,
       });
-    } catch (error) {
-      console.error("Error fetching merchant:", error);
-      setMerchantInfo({
-        companyName: "ABC Traders",
-        merchantName: "Arjun Singh",
-        email: "merchant@gmail.com",
-        status: "Approved",
-        phone: "+91 98765 43210",
-        gstNumber: "22AAAAA0000A1Z5",
-        walletBalance: 12500,
-        totalOrders: 156,
-        totalShipments: 142,
-      });
+    } catch {
+      /* silently ignore */
     } finally {
-      setLoading(prev => ({ ...prev, merchant: false }));
+      setLoading((p) => ({ ...p, merchant: false }));
     }
-  };
+  }, [merchantId]);
 
-  // 2. Fetch Couriers
-  const fetchCouriers = async () => {
+  const fetchCouriers = useCallback(async () => {
     try {
-      const response = await api.get("/couriers/active/list");
-      setCouriers(response.data.couriers || []);
-    } catch (error) {
-      console.error("Error fetching couriers:", error);
+      const res = await api.get("/couriers/active/list");
+      setCouriers(res.data.couriers || []);
+    } catch {
+      toast.error("Failed to load couriers.");
     }
-  };
+  }, []);
 
-  // 3. Fetch All Assigned Rates - ✅ FIXED
-  const fetchAssignedRates = async () => {
+  const fetchAssignedRates = useCallback(async () => {
     try {
-      const response = await api.get(`/ratecards/merchant/${merchantId}`);
-      
-      // ✅ FIXED: Access rateCards array from response
-      setAssignedRates(response.data.rateCards || []);
-    } catch (error) {
-      console.error("Error fetching assigned rates:", error);
+      const res = await api.get(`/ratecards/merchant/${merchantId}`);
+      setAssignedRates(res.data.rateCards || []);
+    } catch {
       setAssignedRates([]);
     }
-  };
+  }, [merchantId]);
 
-  // 4. Load Rates for Selected Courier
-  const loadCourierRates = async () => {
+  const loadCourierRates = useCallback(async (courier, serviceType) => {
+    if (!courier) return;
     try {
-      setLoading(prev => ({ ...prev, rates: true }));
-      const response = await api.get(`/ratecards/merchant/${merchantId}/${selectedCourier._id}`);
-      
-      // Handle response properly
-      const data = response.data?.rateCard || response.data;
-      
+      setLoading((p) => ({ ...p, rates: true }));
+      const res = await api.get(`/ratecards/merchant/${merchantId}/${courier._id}?serviceType=${serviceType}`);
+      const data = res.data?.rateCard || res.data;
       if (data && data.forwardRates) {
-        setRates({
-          forwardRates: {
-            rate500gm: data.forwardRates?.rate500gm || "",
-            rate1kg: data.forwardRates?.rate1kg || "",
-            rate2kg: data.forwardRates?.rate2kg || "",
-            rate5kg: data.forwardRates?.rate5kg || "",
-            additionalKg: data.forwardRates?.additionalKg || "",
-          },
-          codCharges: {
-            codCharge: data.codCharge || "",
-          },
-          rtoCharges: {
-            rtoCharge: data.rtoCharge || "",
-          },
-          additionalCharges: {
-            reversePickup: data.reversePickup || "",
-            fuelCharge: data.fuelCharge || "",
-          },
-        });
-        
-        setZoneRates({
-          local: data.zoneRates?.local || "",
-          regional: data.zoneRates?.regional || "",
-          national: data.zoneRates?.national || "",
-        });
+        const normalized = normalizeFromBackend(data);
+        setFormData(normalized);
+        setInitialData(normalized);
       } else {
-        resetForm();
+        setFormData({ ...EMPTY_FORM });
+        setInitialData({ ...EMPTY_FORM });
       }
-    } catch (error) {
-      console.error("Error loading courier rates:", error);
-      resetForm();
+    } catch {
+      setFormData({ ...EMPTY_FORM });
+      setInitialData({ ...EMPTY_FORM });
     } finally {
-      setLoading(prev => ({ ...prev, rates: false }));
+      setLoading((p) => ({ ...p, rates: false }));
     }
-  };
+  }, [merchantId]);
 
-  // Reset form helper
-  const resetForm = () => {
-    setRates({
-      forwardRates: {
-        rate500gm: "",
-        rate1kg: "",
-        rate2kg: "",
-        rate5kg: "",
-        additionalKg: "",
-      },
-      codCharges: {
-        codCharge: "",
-      },
-      rtoCharges: {
-        rtoCharge: "",
-      },
-      additionalCharges: {
-        reversePickup: "",
-        fuelCharge: "",
-      },
-    });
-    setZoneRates({
-      local: "",
-      regional: "",
-      national: "",
-    });
-  };
-
-  // ===================== EFFECTS =====================
-
+  // ── Bootstrap ──
   useEffect(() => {
     fetchMerchant();
-    fetchAssignedRates();
     fetchCouriers();
+    fetchAssignedRates();
   }, [merchantId]);
 
   useEffect(() => {
     if (selectedCourier) {
-      loadCourierRates();
+      loadCourierRates(selectedCourier, activeFormTab);
     }
-  }, [selectedCourier]);
+  }, [selectedCourier?._id, activeFormTab]);
 
-  // ===================== HANDLERS =====================
-
-  const handleChange = (section, field, value) => {
-    setRates({
-      ...rates,
-      [section]: {
-        ...rates[section],
-        [field]: value,
-      },
+  // ── Handlers ──
+  const handleSelectCourier = (courier, type) => {
+    confirmIfDirty(() => {
+      setSelectedCourier(courier);
+      setActiveFormTab(type);
     });
   };
 
-  const handleServiceabilityChange = (field) => {
-    setServiceability({
-      ...serviceability,
-      [field]: !serviceability[field],
+  const handleTabChange = (newTab) => {
+    if (newTab === activeFormTab) return;
+    confirmIfDirty(() => setActiveFormTab(newTab));
+  };
+
+  const handleBack = () => {
+    confirmIfDirty(() => {
+      setSelectedCourier(null);
+      setFormData({ ...EMPTY_FORM });
+      setInitialData({ ...EMPTY_FORM });
     });
   };
 
-  // ===================== SAVE RATES =====================
-  const saveRates = async () => {
+  const handleChange = (section, key, value) => {
+    setFormData((prev) => {
+      if (section) return { ...prev, [section]: { ...prev[section], [key]: value } };
+      return { ...prev, [key]: value };
+    });
+  };
+
+  const handleReset = () => setFormData({ ...initialData });
+
+  // ── Save ──
+  const handleSave = async () => {
+    const errMsg = validateForm(formData);
+    if (errMsg) { toast.error(errMsg); return; }
+
     try {
-      setLoading(prev => ({ ...prev, saving: true }));
-      
+      setLoading((p) => ({ ...p, saving: true }));
+
       const payload = {
         merchantId,
-        courierId: selectedCourier._id,
-        courierPartner: selectedCourier.code || selectedCourier.name,
-        forwardRates: rates.forwardRates,
-        zoneRates,
-        codCharge: rates.codCharges.codCharge,
-        rtoCharge: rates.rtoCharges.rtoCharge,
-        reversePickup: rates.additionalCharges.reversePickup,
-        fuelCharge: rates.additionalCharges.fuelCharge,
-        enabled: true,
+        courierId:     selectedCourier._id,
+        courierPartner:selectedCourier.code || selectedCourier.name,
+        serviceType:   activeFormTab,
+        forwardRates: {
+          rate500gm:    Number(formData.forwardRates.rate500gm)    || 0,
+          rate1kg:      Number(formData.forwardRates.rate1kg)      || 0,
+          rate2kg:      Number(formData.forwardRates.rate2kg)      || 0,
+          rate5kg:      Number(formData.forwardRates.rate5kg)      || 0,
+          additionalKg: Number(formData.forwardRates.additionalKg) || 0,
+        },
+        zoneRates: {
+          local:    Number(formData.zoneRates.local)    || 0,
+          regional: Number(formData.zoneRates.regional) || 0,
+          national: Number(formData.zoneRates.national) || 0,
+        },
+        codCharge:     Number(formData.codCharges.codCharge)            || 0,
+        rtoCharge:     Number(formData.rtoCharges.rtoCharge)            || 0,
+        reversePickup: Number(formData.additionalCharges.reversePickup) || 0,
+        fuelCharge:    Number(formData.additionalCharges.fuelCharge)    || 0,
+        gst:           Number(formData.gst) || 18,
+        odaCharge:     Number(formData.odaCharge)      || 0,
+        handlingCharge:Number(formData.handlingCharge) || 0,
+        effectiveFrom: formData.effectiveFrom || undefined,
+        effectiveTo:   formData.effectiveTo   || undefined,
+        serviceability: formData.serviceability,
+        enabled:  true,
         isActive: true,
-        serviceability,
       };
-      
-      const response = await api.post("/ratecards/save", payload);
-      
-      if (response.status === 200 || response.status === 201) {
-        alert("Rate card saved successfully!");
+
+      const res = await api.post("/ratecards/save", payload);
+
+      if (res.data?.success) {
+        toast.success(`${activeFormTab} Rate Card saved successfully!`);
+        setInitialData({ ...formData });
         await fetchAssignedRates();
-        await loadCourierRates();
+        await loadCourierRates(selectedCourier, activeFormTab);
+      } else {
+        toast.error(res.data?.message || `Failed to save ${activeFormTab} rate card.`);
       }
-    } catch (error) {
-      console.error("Error saving rates:", error);
-      alert("Failed to save rate card. Please try again.");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to save rate card.");
     } finally {
-      setLoading(prev => ({ ...prev, saving: false }));
+      setLoading((p) => ({ ...p, saving: false }));
     }
   };
 
-  // ===================== CALCULATIONS =====================
+  // ── Derived ──
+  const getRateCard = (courierId, serviceType) =>
+    assignedRates.find(
+      (r) =>
+        String(r.courierId?._id || r.courierId) === String(courierId) &&
+        (r.serviceType || "Surface") === serviceType
+    );
 
-  const calculatePreview = () => {
-    return {
-      forward500gm: rates.forwardRates.rate500gm || 0,
-      forward1kg: rates.forwardRates.rate1kg || 0,
-      forward2kg: rates.forwardRates.rate2kg || 0,
-      forward5kg: rates.forwardRates.rate5kg || 0,
-      local: zoneRates.local || 0,
-      regional: zoneRates.regional || 0,
-      national: zoneRates.national || 0,
-    };
-  };
+  const configuredCount = assignedRates.filter((r) => r.isActive !== false).length;
 
-  const calculateMargin = () => {
-    const courierCost = Number(rates.forwardRates.rate500gm) || 45;
-    const merchantRate = Number(rates.forwardRates.rate1kg) || 60;
-    return {
-      courierCost,
-      merchantRate,
-      profit: merchantRate - courierCost,
-    };
-  };
+  // Search & Filter Logic
+  const filteredCouriers = couriers.filter((courier) => {
+    const matchesSearch = courier.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const surface = getRateCard(courier._id, "Surface");
+    const air     = getRateCard(courier._id, "Air");
+    const isSurface = surface && surface.isActive !== false;
+    const isAir     = air && air.isActive !== false;
 
-  // ===================== STYLES =====================
+    if (statusFilter === "full") return matchesSearch && isSurface && isAir;
+    if (statusFilter === "partial") return matchesSearch && (isSurface || isAir) && !(isSurface && isAir);
+    if (statusFilter === "none") return matchesSearch && !isSurface && !isAir;
+    return matchesSearch;
+  });
 
-  const summaryCard = {
-    background: "#fff",
-    border: "1px solid #e2e8f0",
-    borderRadius: "14px",
-    padding: "18px",
-    textAlign: "center",
-  };
-
-  const secondaryBtn = {
-    padding: "10px 24px",
-    background: "transparent",
-    color: "#64748b",
-    border: "1px solid #e2e8f0",
-    borderRadius: "10px",
-    cursor: "pointer",
-    fontWeight: "500",
-    fontSize: "14px",
-    transition: "all 0.2s",
-  };
-
-  const primaryBtn = {
-    padding: "10px 32px",
-    background: "#ea580c",
-    color: "#fff",
-    border: "none",
-    borderRadius: "10px",
-    cursor: "pointer",
-    fontWeight: "600",
-    fontSize: "14px",
-    transition: "background 0.2s",
-  };
-
-  // ===================== RENDER =====================
-
+  // ─────────────────────────────────────────────────────────────────
+  // RENDER
+  // ─────────────────────────────────────────────────────────────────
   if (loading.merchant) {
     return (
       <SuperAdminLayout>
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "400px" }}>
-          <p>Loading merchant details...</p>
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "60vh" }}>
+          <FaSpinner size={36} color="#ea580c" className="rcm-spinner" />
         </div>
       </SuperAdminLayout>
     );
@@ -354,1057 +740,180 @@ const RateCardManagement = () => {
 
   return (
     <SuperAdminLayout>
-      <div
-        style={{
-          maxWidth: "1200px",
-          margin: "0 auto",
-          padding: "24px",
-          paddingBottom: "100px",
-        }}
-      >
-        {/* ================= HEADER ================= */}
-        <h1
-          style={{
-            fontSize: "28px",
-            fontWeight: "700",
-            marginBottom: "24px",
-            color: "#0f172a",
-          }}
-        >
-          Rate Card Management
-        </h1>
-
-        {/* ================= MERCHANT INFORMATION CARD ================= */}
-        <div
-          style={{
-            background: "#fff",
-            border: "1px solid #e2e8f0",
-            borderRadius: "14px",
-            padding: "20px",
-            marginBottom: "20px",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-          }}
-        >
-          <h2
-            style={{
-              fontSize: "16px",
-              fontWeight: "600",
-              marginBottom: "16px",
-              color: "#0f172a",
-            }}
-          >
-            Merchant Information
-          </h2>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(7, 1fr)",
-              gap: "16px",
-            }}
-          >
-            <div>
-              <p style={{ fontSize: "13px", color: "#64748b", marginBottom: "4px" }}>
-                Company Name
-              </p>
-              <p style={{ fontSize: "15px", fontWeight: "500", color: "#0f172a" }}>
-                {merchantInfo.companyName || "-"}
-              </p>
-            </div>
-            <div>
-              <p style={{ fontSize: "13px", color: "#64748b", marginBottom: "4px" }}>
-                Merchant
-              </p>
-              <p style={{ fontSize: "15px", fontWeight: "500", color: "#0f172a" }}>
-                {merchantInfo.merchantName || "-"}
-              </p>
-            </div>
-            <div>
-              <p style={{ fontSize: "13px", color: "#64748b", marginBottom: "4px" }}>
-                Email
-              </p>
-              <p style={{ fontSize: "15px", fontWeight: "500", color: "#0f172a" }}>
-                {merchantInfo.email || "-"}
-              </p>
-            </div>
-            <div>
-              <p style={{ fontSize: "13px", color: "#64748b", marginBottom: "4px" }}>
-                Status
-              </p>
-              <span
-                style={{
-                  display: "inline-block",
-                  padding: "4px 12px",
-                  borderRadius: "20px",
-                  fontSize: "13px",
-                  fontWeight: "500",
-                  background: merchantInfo.status === "Approved" ? "#dcfce7" : "#fef3c7",
-                  color: merchantInfo.status === "Approved" ? "#166534" : "#92400e",
-                }}
-              >
-                {merchantInfo.status || "Pending"}
-              </span>
-            </div>
-            <div>
-              <p style={{ fontSize: "13px", color: "#64748b", marginBottom: "4px" }}>
-                Phone Number
-              </p>
-              <p style={{ fontWeight: "600", color: "#0f172a" }}>
-                {merchantInfo.phone || "-"}
-              </p>
-            </div>
-            <div>
-              <p style={{ fontSize: "13px", color: "#64748b", marginBottom: "4px" }}>
-                GST Number
-              </p>
-              <p style={{ fontWeight: "600", color: "#0f172a" }}>
-                {merchantInfo.gstNumber || "-"}
-              </p>
-            </div>
-            <div>
-              <p style={{ fontSize: "13px", color: "#64748b", marginBottom: "4px" }}>
-                Wallet Balance
-              </p>
-              <p
-                style={{
-                  fontWeight: "700",
-                  color: "#16a34a",
-                  fontSize: "15px",
-                }}
-              >
-                ₹ {merchantInfo.walletBalance || 0}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* ================= MERCHANT SUMMARY CARDS ================= */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            gap: "15px",
-            marginBottom: "20px",
-          }}
-        >
-          <div style={summaryCard}>
-            <h4 style={{ fontSize: "14px", color: "#64748b", marginBottom: "8px" }}>
-              Total Couriers
-            </h4>
-            <h2 style={{ fontSize: "28px", fontWeight: "700", color: "#0f172a" }}>
-              {couriers.length}
-            </h2>
-          </div>
-
-          <div style={summaryCard}>
-            <h4 style={{ fontSize: "14px", color: "#64748b", marginBottom: "8px" }}>
-              Configured
-            </h4>
-            <h2 style={{ fontSize: "28px", fontWeight: "700", color: "#16a34a" }}>
-              {assignedRates.filter(r => r.isActive !== false).length}
-            </h2>
-          </div>
-
-          <div style={summaryCard}>
-            <h4 style={{ fontSize: "14px", color: "#64748b", marginBottom: "8px" }}>
-              Total Orders
-            </h4>
-            <h2 style={{ fontSize: "28px", fontWeight: "700", color: "#0f172a" }}>
-              {merchantInfo.totalOrders || 0}
-            </h2>
-          </div>
-
-          <div style={summaryCard}>
-            <h4 style={{ fontSize: "14px", color: "#64748b", marginBottom: "8px" }}>
-              Total Shipments
-            </h4>
-            <h2 style={{ fontSize: "28px", fontWeight: "700", color: "#0f172a" }}>
-              {merchantInfo.totalShipments || 0}
-            </h2>
-          </div>
-        </div>
-
-        {/* Courier Cards with Rate Details */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-            gap: "16px",
-            marginBottom: "24px",
-          }}
-        >
-          {couriers.map((courier) => {
-            const rateCard = assignedRates.find(
-              (r) =>
-                String(r.courierId?._id || r.courierId) ===
-                String(courier._id)
-            );
-
-            const isConfigured = !!rateCard && rateCard.isActive !== false;
-            const forwardRate = rateCard?.forwardRates?.rate500gm || 0;
-            const codCharge = rateCard?.codCharge || 0;
-
-            return (
-              <div
-                key={courier._id}
-                style={{
-                  border: isConfigured ? "1px solid #dcfce7" : "1px solid #e2e8f0",
-                  borderRadius: "12px",
-                  padding: "20px",
-                  background: isConfigured ? "#fafffe" : "#ffffff",
-                  boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
-                  transition: "all 0.2s",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.08)";
-                  e.currentTarget.style.transform = "translateY(-2px)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.05)";
-                  e.currentTarget.style.transform = "translateY(0)";
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
-                  <FaTruck size={24} color="#ea580c" />
-                  <h3 style={{ fontSize: "16px", fontWeight: "600", margin: 0, color: "#0f172a" }}>
-                    {courier.name}
-                  </h3>
-                </div>
-
-                {isConfigured ? (
-                  <>
-                    <div style={{ 
-                      display: "flex", 
-                      justifyContent: "space-between", 
-                      alignItems: "center",
-                      marginBottom: "8px"
-                    }}>
-                      <span style={{ fontSize: "13px", color: "#16a34a", fontWeight: "500" }}>
-                        ✅ Configured
-                      </span>
-                      <span style={{ fontSize: "13px", color: "#94a3b8" }}>
-                        Active
-                      </span>
-                    </div>
-
-                    <div style={{
-                      display: "grid",
-                      gridTemplateColumns: "1fr 1fr",
-                      gap: "8px",
-                      marginBottom: "14px",
-                      padding: "10px",
-                      background: "#f8fafc",
-                      borderRadius: "8px",
-                    }}>
-                      <div>
-                        <p style={{ fontSize: "11px", color: "#94a3b8", margin: 0 }}>Forward Rate</p>
-                        <p style={{ fontSize: "15px", fontWeight: "600", color: "#0f172a", margin: "2px 0 0 0" }}>
-                          ₹{forwardRate}
-                        </p>
-                      </div>
-                      <div>
-                        <p style={{ fontSize: "11px", color: "#94a3b8", margin: 0 }}>COD Charge</p>
-                        <p style={{ fontSize: "15px", fontWeight: "600", color: "#0f172a", margin: "2px 0 0 0" }}>
-                          ₹{codCharge}
-                        </p>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => setSelectedCourier(courier)}
-                      style={{
-                        width: "100%",
-                        padding: "8px 16px",
-                        border: "1px solid #ea580c",
-                        borderRadius: "8px",
-                        background: "transparent",
-                        color: "#ea580c",
-                        cursor: "pointer",
-                        fontWeight: "500",
-                        fontSize: "13px",
-                        transition: "all 0.2s",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = "#ea580c";
-                        e.currentTarget.style.color = "#fff";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = "transparent";
-                        e.currentTarget.style.color = "#ea580c";
-                      }}
-                    >
-                      Edit Rates
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <p style={{ fontSize: "13px", color: "#94a3b8", marginBottom: "14px" }}>
-                      ⚠️ Not Configured
-                    </p>
-
-                    <button
-                      onClick={() => setSelectedCourier(courier)}
-                      style={{
-                        width: "100%",
-                        padding: "8px 16px",
-                        border: "none",
-                        borderRadius: "8px",
-                        background: "#ea580c",
-                        color: "#fff",
-                        cursor: "pointer",
-                        fontWeight: "500",
-                        fontSize: "13px",
-                        transition: "all 0.2s",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = "#c2410c";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = "#ea580c";
-                      }}
-                    >
-                      Configure Rates
-                    </button>
-                  </>
-                )}
+      <div className="rcm-container">
+        {/* Page Header */}
+        <div className="rcm-header">
+          <div className="rcm-header-left">
+            <h1 className="rcm-title">
+              <div className="rcm-title-icon-wrapper">
+                <FaReceipt size={20} />
               </div>
-            );
-          })}
+              Merchant Rate Management
+            </h1>
+            <p className="rcm-subtitle">
+              Configure and manage custom Surface & Air rate cards for courier partners
+            </p>
+          </div>
+          {isDirty && (
+            <div className="rcm-unsaved-badge">
+              <FaExclamationTriangle size={14} /> Unsaved Changes
+            </div>
+          )}
         </div>
 
-        {/* ================= FORM SECTION ================= */}
-        {selectedCourier && (
+        {/* Hero Merchant Card (Clean Light Styling) */}
+        <div className="rcm-merchant-card">
+          <div className="rcm-merchant-card-header">
+            <div className="rcm-merchant-title-group">
+              <div className="rcm-merchant-avatar">
+                {merchantInfo.companyName ? merchantInfo.companyName.charAt(0).toUpperCase() : <FaBuilding />}
+              </div>
+              <div>
+                <h2 className="rcm-merchant-name-title">{merchantInfo.companyName || "Merchant Details"}</h2>
+                <p className="rcm-merchant-company-sub">{merchantInfo.merchantName ? `Owner: ${merchantInfo.merchantName}` : "Merchant Account"}</p>
+              </div>
+            </div>
+            <span style={{
+              display: "inline-block", padding: "4px 14px", borderRadius: "20px",
+              fontSize: "12px", fontWeight: "800",
+              background: merchantInfo.status === "Approved" ? "#dcfce7" : "#fef3c7",
+              color: merchantInfo.status === "Approved" ? "#166534" : "#92400e",
+              border: `1px solid ${merchantInfo.status === "Approved" ? "#bbf7d0" : "#fde68a"}`,
+            }}>{merchantInfo.status || "—"}</span>
+          </div>
+
+          <div className="rcm-merchant-grid">
+            <div className="rcm-merchant-item">
+              <p className="rcm-merchant-item-label">Email</p>
+              <p className="rcm-merchant-item-value">{merchantInfo.email || "—"}</p>
+            </div>
+            <div className="rcm-merchant-item">
+              <p className="rcm-merchant-item-label">Phone</p>
+              <p className="rcm-merchant-item-value">{merchantInfo.phone || "—"}</p>
+            </div>
+            <div className="rcm-merchant-item">
+              <p className="rcm-merchant-item-label">GST No</p>
+              <p className="rcm-merchant-item-value">{merchantInfo.gstNumber || "—"}</p>
+            </div>
+            <div className="rcm-merchant-item">
+              <p className="rcm-merchant-item-label">KYC Status</p>
+              <p className="rcm-merchant-item-value">{merchantInfo.kycStatus || "Verified"}</p>
+            </div>
+            <div className="rcm-merchant-item">
+              <p className="rcm-merchant-item-label">Account State</p>
+              <p className="rcm-merchant-item-value" style={{ color: merchantInfo.isBlocked ? "#dc2626" : "#16a34a" }}>
+                {merchantInfo.isBlocked ? "Blocked" : "Active"}
+              </p>
+            </div>
+            <div className="rcm-merchant-item" style={{ background: "#f0fdf4", borderColor: "#bbf7d0" }}>
+              <p className="rcm-merchant-item-label" style={{ color: "#166534" }}>Wallet Balance</p>
+              <p className="rcm-merchant-item-value highlight-wallet">₹{merchantInfo.walletBalance || 0}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="rcm-stats-grid">
+          {[
+            { label: "Total Couriers",   value: couriers.length,                  icon: FaTruck,        iconBg: "#fff7ed", iconColor: "#ea580c" },
+            { label: "Configured Cards", value: configuredCount,                  icon: FaCheckCircle,  iconBg: "#f0fdf4", iconColor: "#16a34a" },
+            { label: "Total Orders",     value: merchantInfo.totalOrders || 0,    icon: FaBoxes,        iconBg: "#eff6ff", iconColor: "#2563eb" },
+            { label: "Total Shipments",  value: merchantInfo.totalShipments || 0, icon: FaPlane,        iconBg: "#faf5ff", iconColor: "#9333ea" },
+          ].map(({ label, value, icon: Icon, iconBg, iconColor }) => (
+            <div key={label} className="rcm-stat-card">
+              <div className="rcm-stat-icon-wrapper" style={{ background: iconBg, color: iconColor }}>
+                <Icon size={22} />
+              </div>
+              <div className="rcm-stat-info">
+                <p className="rcm-stat-label">{label}</p>
+                <p className="rcm-stat-value">{value}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Main Section */}
+        {!selectedCourier ? (
           <>
-            <div style={{ marginBottom: "16px" }}>
-              <button
-                onClick={() => setSelectedCourier(null)}
-                style={{
-                  padding: "6px 16px",
-                  border: "none",
-                  borderRadius: "6px",
-                  background: "#f1f5f9",
-                  color: "#64748b",
-                  cursor: "pointer",
-                  fontSize: "13px",
-                  fontWeight: "500",
-                }}
-                onMouseEnter={(e) => e.target.style.background = "#e2e8f0"}
-                onMouseLeave={(e) => e.target.style.background = "#f1f5f9"}
-              >
-                ← Back to Couriers
-              </button>
-              <span style={{ marginLeft: "12px", fontSize: "14px", color: "#0f172a", fontWeight: "500" }}>
-                Configuring: {selectedCourier.name}
-              </span>
+            {/* Filter & Search Toolbar */}
+            <div className="rcm-filter-toolbar">
+              <div className="rcm-search-box">
+                <FaSearch className="rcm-search-icon" />
+                <input
+                  type="text"
+                  placeholder="Search courier partner..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="rcm-search-input"
+                />
+              </div>
+
+              <div className="rcm-filter-pills">
+                {[
+                  { id: "all", label: "All Couriers" },
+                  { id: "full", label: "Fully Configured" },
+                  { id: "partial", label: "Partially Configured" },
+                  { id: "none", label: "Not Configured" },
+                ].map(({ id, label }) => (
+                  <button
+                    key={id}
+                    onClick={() => setStatusFilter(id)}
+                    className={`rcm-filter-btn ${statusFilter === id ? "active" : ""}`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {loading.rates && (
-              <div style={{ textAlign: "center", padding: "20px" }}>
-                <p>Loading rates for {selectedCourier?.name}...</p>
+            {/* Courier Grid (Cards have #0f172a Sidebar Dark BG) */}
+            {filteredCouriers.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "60px 20px", background: "#ffffff", borderRadius: "20px", border: "1px solid #e2e8f0" }}>
+                <FaTruck size={44} color="#cbd5e1" style={{ marginBottom: "14px" }} />
+                <p style={{ fontSize: "18px", fontWeight: "800", color: "#0f172a", margin: "0 0 6px" }}>No Couriers Found</p>
+                <p style={{ fontSize: "14px", color: "#64748b", margin: 0 }}>Try resetting search filters or checking courier status.</p>
+              </div>
+            ) : (
+              <div className="rcm-couriers-grid">
+                {filteredCouriers.map((courier) => (
+                  <CourierCard
+                    key={courier._id}
+                    courier={courier}
+                    surfaceCard={getRateCard(courier._id, "Surface")}
+                    airCard={getRateCard(courier._id, "Air")}
+                    onSelect={handleSelectCourier}
+                  />
+                ))}
               </div>
             )}
-
-            {!loading.rates && (
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "2fr 1fr",
-                  gap: "20px",
-                }}
-              >
-                {/* LEFT COLUMN */}
-                <div>
-                  {/* FORWARD RATES */}
-                  <div
-                    style={{
-                      background: "#fff",
-                      border: "1px solid #e2e8f0",
-                      borderRadius: "14px",
-                      padding: "20px",
-                      marginBottom: "16px",
-                      boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-                    }}
-                  >
-                    <h2
-                      style={{
-                        fontSize: "15px",
-                        fontWeight: "600",
-                        marginBottom: "16px",
-                        paddingBottom: "10px",
-                        borderBottom: "2px solid #f1f5f9",
-                        color: "#0f172a",
-                      }}
-                    >
-                      Forward Rates
-                    </h2>
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(3, 1fr)",
-                        gap: "12px",
-                      }}
-                    >
-                      <div>
-                        <label style={{ display: "block", fontSize: "13px", color: "#64748b", marginBottom: "4px" }}>
-                          500gm
-                        </label>
-                        <input
-                          type="number"
-                          placeholder="₹"
-                          value={rates.forwardRates.rate500gm}
-                          onChange={(e) =>
-                            handleChange("forwardRates", "rate500gm", e.target.value)
-                          }
-                          style={{
-                            width: "100%",
-                            padding: "10px 12px",
-                            borderRadius: "8px",
-                            border: "1px solid #e2e8f0",
-                            fontSize: "14px",
-                            outline: "none",
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <label style={{ display: "block", fontSize: "13px", color: "#64748b", marginBottom: "4px" }}>
-                          1kg
-                        </label>
-                        <input
-                          type="number"
-                          placeholder="₹"
-                          value={rates.forwardRates.rate1kg}
-                          onChange={(e) =>
-                            handleChange("forwardRates", "rate1kg", e.target.value)
-                          }
-                          style={{
-                            width: "100%",
-                            padding: "10px 12px",
-                            borderRadius: "8px",
-                            border: "1px solid #e2e8f0",
-                            fontSize: "14px",
-                            outline: "none",
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <label style={{ display: "block", fontSize: "13px", color: "#64748b", marginBottom: "4px" }}>
-                          2kg
-                        </label>
-                        <input
-                          type="number"
-                          placeholder="₹"
-                          value={rates.forwardRates.rate2kg}
-                          onChange={(e) =>
-                            handleChange("forwardRates", "rate2kg", e.target.value)
-                          }
-                          style={{
-                            width: "100%",
-                            padding: "10px 12px",
-                            borderRadius: "8px",
-                            border: "1px solid #e2e8f0",
-                            fontSize: "14px",
-                            outline: "none",
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <label style={{ display: "block", fontSize: "13px", color: "#64748b", marginBottom: "4px" }}>
-                          5kg
-                        </label>
-                        <input
-                          type="number"
-                          placeholder="₹"
-                          value={rates.forwardRates.rate5kg}
-                          onChange={(e) =>
-                            handleChange("forwardRates", "rate5kg", e.target.value)
-                          }
-                          style={{
-                            width: "100%",
-                            padding: "10px 12px",
-                            borderRadius: "8px",
-                            border: "1px solid #e2e8f0",
-                            fontSize: "14px",
-                            outline: "none",
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <label style={{ display: "block", fontSize: "13px", color: "#64748b", marginBottom: "4px" }}>
-                          Additional KG
-                        </label>
-                        <input
-                          type="number"
-                          placeholder="₹"
-                          value={rates.forwardRates.additionalKg}
-                          onChange={(e) =>
-                            handleChange("forwardRates", "additionalKg", e.target.value)
-                          }
-                          style={{
-                            width: "100%",
-                            padding: "10px 12px",
-                            borderRadius: "8px",
-                            border: "1px solid #e2e8f0",
-                            fontSize: "14px",
-                            outline: "none",
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* ZONE RATES */}
-                  <div
-                    style={{
-                      background: "#fff",
-                      border: "1px solid #e2e8f0",
-                      borderRadius: "14px",
-                      padding: "20px",
-                      marginBottom: "16px",
-                      boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-                    }}
-                  >
-                    <h2
-                      style={{
-                        fontSize: "15px",
-                        fontWeight: "600",
-                        marginBottom: "16px",
-                        paddingBottom: "10px",
-                        borderBottom: "2px solid #f1f5f9",
-                        color: "#0f172a",
-                      }}
-                    >
-                      Zone Rates
-                    </h2>
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(2, 1fr)",
-                        gap: "12px",
-                      }}
-                    >
-                      <div>
-                        <label style={{ display: "block", fontSize: "13px", color: "#64748b", marginBottom: "4px" }}>
-                          Local Rate
-                        </label>
-                        <input
-                          type="number"
-                          placeholder="₹"
-                          value={zoneRates.local}
-                          onChange={(e) =>
-                            setZoneRates({
-                              ...zoneRates,
-                              local: e.target.value,
-                            })
-                          }
-                          style={{
-                            width: "100%",
-                            padding: "10px 12px",
-                            borderRadius: "8px",
-                            border: "1px solid #e2e8f0",
-                            fontSize: "14px",
-                            outline: "none",
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <label style={{ display: "block", fontSize: "13px", color: "#64748b", marginBottom: "4px" }}>
-                          Regional Rate
-                        </label>
-                        <input
-                          type="number"
-                          placeholder="₹"
-                          value={zoneRates.regional}
-                          onChange={(e) =>
-                            setZoneRates({
-                              ...zoneRates,
-                              regional: e.target.value,
-                            })
-                          }
-                          style={{
-                            width: "100%",
-                            padding: "10px 12px",
-                            borderRadius: "8px",
-                            border: "1px solid #e2e8f0",
-                            fontSize: "14px",
-                            outline: "none",
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <label style={{ display: "block", fontSize: "13px", color: "#64748b", marginBottom: "4px" }}>
-                          National Rate
-                        </label>
-                        <input
-                          type="number"
-                          placeholder="₹"
-                          value={zoneRates.national}
-                          onChange={(e) =>
-                            setZoneRates({
-                              ...zoneRates,
-                              national: e.target.value,
-                            })
-                          }
-                          style={{
-                            width: "100%",
-                            padding: "10px 12px",
-                            borderRadius: "8px",
-                            border: "1px solid #e2e8f0",
-                            fontSize: "14px",
-                            outline: "none",
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* ADDITIONAL CHARGES */}
-                  <div
-                    style={{
-                      background: "#fff",
-                      border: "1px solid #e2e8f0",
-                      borderRadius: "14px",
-                      padding: "20px",
-                      marginBottom: "16px",
-                      boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-                    }}
-                  >
-                    <h2
-                      style={{
-                        fontSize: "15px",
-                        fontWeight: "600",
-                        marginBottom: "16px",
-                        paddingBottom: "10px",
-                        borderBottom: "2px solid #f1f5f9",
-                        color: "#0f172a",
-                      }}
-                    >
-                      Additional Charges
-                    </h2>
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(2, 1fr)",
-                        gap: "12px",
-                      }}
-                    >
-                      <div>
-                        <label style={{ display: "block", fontSize: "13px", color: "#64748b", marginBottom: "4px" }}>
-                          COD Charge
-                        </label>
-                        <input
-                          type="number"
-                          placeholder="₹"
-                          value={rates.codCharges.codCharge}
-                          onChange={(e) =>
-                            handleChange("codCharges", "codCharge", e.target.value)
-                          }
-                          style={{
-                            width: "100%",
-                            padding: "10px 12px",
-                            borderRadius: "8px",
-                            border: "1px solid #e2e8f0",
-                            fontSize: "14px",
-                            outline: "none",
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <label style={{ display: "block", fontSize: "13px", color: "#64748b", marginBottom: "4px" }}>
-                          RTO Charge
-                        </label>
-                        <input
-                          type="number"
-                          placeholder="₹"
-                          value={rates.rtoCharges.rtoCharge}
-                          onChange={(e) =>
-                            handleChange("rtoCharges", "rtoCharge", e.target.value)
-                          }
-                          style={{
-                            width: "100%",
-                            padding: "10px 12px",
-                            borderRadius: "8px",
-                            border: "1px solid #e2e8f0",
-                            fontSize: "14px",
-                            outline: "none",
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <label style={{ display: "block", fontSize: "13px", color: "#64748b", marginBottom: "4px" }}>
-                          Reverse Pickup
-                        </label>
-                        <input
-                          type="number"
-                          placeholder="₹"
-                          value={rates.additionalCharges.reversePickup}
-                          onChange={(e) =>
-                            handleChange("additionalCharges", "reversePickup", e.target.value)
-                          }
-                          style={{
-                            width: "100%",
-                            padding: "10px 12px",
-                            borderRadius: "8px",
-                            border: "1px solid #e2e8f0",
-                            fontSize: "14px",
-                            outline: "none",
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <label style={{ display: "block", fontSize: "13px", color: "#64748b", marginBottom: "4px" }}>
-                          Fuel Charge
-                        </label>
-                        <input
-                          type="number"
-                          placeholder="₹"
-                          value={rates.additionalCharges.fuelCharge}
-                          onChange={(e) =>
-                            handleChange("additionalCharges", "fuelCharge", e.target.value)
-                          }
-                          style={{
-                            width: "100%",
-                            padding: "10px 12px",
-                            borderRadius: "8px",
-                            border: "1px solid #e2e8f0",
-                            fontSize: "14px",
-                            outline: "none",
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* SERVICEABILITY */}
-                  <div
-                    style={{
-                      background: "#fff",
-                      border: "1px solid #e2e8f0",
-                      borderRadius: "14px",
-                      padding: "20px",
-                      marginBottom: "16px",
-                      boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-                    }}
-                  >
-                    <h2
-                      style={{
-                        fontSize: "15px",
-                        fontWeight: "600",
-                        marginBottom: "20px",
-                        paddingBottom: "10px",
-                        borderBottom: "2px solid #f1f5f9",
-                        color: "#0f172a",
-                      }}
-                    >
-                      Serviceability Settings
-                    </h2>
-
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(2, 1fr)",
-                        gap: "15px",
-                      }}
-                    >
-                      <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
-                        <input
-                          type="checkbox"
-                          checked={serviceability.codEnabled}
-                          onChange={() => handleServiceabilityChange("codEnabled")}
-                        />
-                        COD Enabled
-                      </label>
-
-                      <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
-                        <input
-                          type="checkbox"
-                          checked={serviceability.prepaidEnabled}
-                          onChange={() => handleServiceabilityChange("prepaidEnabled")}
-                        />
-                        Prepaid Enabled
-                      </label>
-
-                      <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
-                        <input
-                          type="checkbox"
-                          checked={serviceability.rtoEnabled}
-                          onChange={() => handleServiceabilityChange("rtoEnabled")}
-                        />
-                        RTO Enabled
-                      </label>
-
-                      <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
-                        <input
-                          type="checkbox"
-                          checked={serviceability.reversePickup}
-                          onChange={() => handleServiceabilityChange("reversePickup")}
-                        />
-                        Reverse Pickup
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                {/* RIGHT COLUMN */}
-                <div>
-                  {/* RATE PREVIEW */}
-                  <div
-                    style={{
-                      background: "#f8fafc",
-                      border: "1px solid #e2e8f0",
-                      borderRadius: "14px",
-                      padding: "20px",
-                      marginBottom: "16px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        marginBottom: "16px",
-                      }}
-                    >
-                      <h2
-                        style={{
-                          fontSize: "15px",
-                          fontWeight: "600",
-                          color: "#0f172a",
-                        }}
-                      >
-                        Rate Preview
-                      </h2>
-                      <p
-                        style={{
-                          fontSize: "16px",
-                          fontWeight: "700",
-                          color: "#ea580c",
-                        }}
-                      >
-                        {selectedCourier?.name}
-                      </p>
-                    </div>
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(2, 1fr)",
-                        gap: "12px",
-                        marginBottom: "16px",
-                      }}
-                    >
-                      <div>
-                        <p style={{ fontSize: "13px", color: "#64748b" }}>500gm</p>
-                        <p style={{ fontSize: "18px", fontWeight: "600", color: "#0f172a" }}>
-                          ₹{calculatePreview().forward500gm}
-                        </p>
-                      </div>
-                      <div>
-                        <p style={{ fontSize: "13px", color: "#64748b" }}>1kg</p>
-                        <p style={{ fontSize: "18px", fontWeight: "600", color: "#0f172a" }}>
-                          ₹{calculatePreview().forward1kg}
-                        </p>
-                      </div>
-                      <div>
-                        <p style={{ fontSize: "13px", color: "#64748b" }}>2kg</p>
-                        <p style={{ fontSize: "18px", fontWeight: "600", color: "#0f172a" }}>
-                          ₹{calculatePreview().forward2kg}
-                        </p>
-                      </div>
-                      <div>
-                        <p style={{ fontSize: "13px", color: "#64748b" }}>5kg</p>
-                        <p style={{ fontSize: "18px", fontWeight: "600", color: "#0f172a" }}>
-                          ₹{calculatePreview().forward5kg}
-                        </p>
-                      </div>
-                      <div>
-                        <p style={{ fontSize: "13px", color: "#64748b" }}>Local</p>
-                        <p style={{ fontSize: "18px", fontWeight: "600", color: "#0f172a" }}>
-                          ₹{calculatePreview().local}
-                        </p>
-                      </div>
-                      <div>
-                        <p style={{ fontSize: "13px", color: "#64748b" }}>Regional</p>
-                        <p style={{ fontSize: "18px", fontWeight: "600", color: "#0f172a" }}>
-                          ₹{calculatePreview().regional}
-                        </p>
-                      </div>
-                      <div>
-                        <p style={{ fontSize: "13px", color: "#64748b" }}>National</p>
-                        <p style={{ fontSize: "18px", fontWeight: "600", color: "#0f172a" }}>
-                          ₹{calculatePreview().national}
-                        </p>
-                      </div>
-                    </div>
-                    <div
-                      style={{
-                        borderTop: "1px solid #e2e8f0",
-                        paddingTop: "12px",
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                      }}
-                    >
-                      <span style={{ fontSize: "12px", fontWeight: "500", color: "#0f172a" }}>
-                        Per kg/per zone
-                      </span>
-                      <span style={{ fontSize: "12px", color: "#64748b" }}>
-                        {new Date().toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* MARGIN PREVIEW */}
-                  <div
-                    style={{
-                      background: "#ffffff",
-                      border: "1px solid #e2e8f0",
-                      borderRadius: "14px",
-                      padding: "20px",
-                      marginBottom: "16px",
-                      boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-                    }}
-                  >
-                    <h3
-                      style={{
-                        marginBottom: "15px",
-                        fontSize: "15px",
-                        fontWeight: "600",
-                        color: "#0f172a",
-                      }}
-                    >
-                      Margin Preview
-                    </h3>
-
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        marginBottom: "10px",
-                        padding: "8px 0",
-                      }}
-                    >
-                      <span style={{ color: "#64748b", fontSize: "14px" }}>Courier Cost</span>
-                      <strong style={{ color: "#0f172a" }}>₹{calculateMargin().courierCost}</strong>
-                    </div>
-
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        marginBottom: "10px",
-                        padding: "8px 0",
-                        borderTop: "1px solid #f1f5f9",
-                      }}
-                    >
-                      <span style={{ color: "#64748b", fontSize: "14px" }}>Merchant Rate</span>
-                      <strong style={{ color: "#0f172a" }}>₹{calculateMargin().merchantRate}</strong>
-                    </div>
-
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        color: calculateMargin().profit > 0 ? "#16a34a" : "#dc2626",
-                        fontWeight: "700",
-                        fontSize: "18px",
-                        padding: "8px 0",
-                        borderTop: "2px solid #e2e8f0",
-                        marginTop: "4px",
-                      }}
-                    >
-                      <span>Profit</span>
-                      <span>₹{calculateMargin().profit}</span>
-                    </div>
-                  </div>
-
-                  {/* AUDIT */}
-                  <div
-                    style={{
-                      background: "#fff",
-                      border: "1px solid #e2e8f0",
-                      borderRadius: "14px",
-                      padding: "16px",
-                      marginBottom: "16px",
-                    }}
-                  >
-                    <strong style={{ color: "#0f172a" }}>Last Updated By:</strong>{" "}
-                    <span style={{ color: "#475569" }}>Super Admin</span>
-                    <br />
-                    <strong style={{ color: "#0f172a" }}>Updated On:</strong>{" "}
-                    <span style={{ color: "#475569" }}>{new Date().toLocaleDateString()}</span>
-                  </div>
-                </div>
+          </>
+        ) : (
+          <>
+            {loading.rates ? (
+              <div style={{ textAlign: "center", padding: "60px" }}>
+                <FaSpinner size={36} color="#ea580c" className="rcm-spinner" />
+                <p style={{ color: "#64748b", marginTop: "14px", fontSize: "14px", fontWeight: "700" }}>
+                  Loading {activeFormTab} rates for {selectedCourier.name}…
+                </p>
               </div>
+            ) : (
+              <RateForm
+                formData={formData}
+                onChange={handleChange}
+                onSave={handleSave}
+                onReset={handleReset}
+                onBack={handleBack}
+                saving={loading.saving}
+                activeTab={activeFormTab}
+                onTabChange={handleTabChange}
+                courierName={selectedCourier.name}
+              />
             )}
-
-            {/* SAVE BUTTON */}
-            <div
-              style={{
-                position: "sticky",
-                bottom: "0",
-                background: "white",
-                borderTop: "1px solid #e2e8f0",
-                padding: "16px 24px",
-                boxShadow: "0 -4px 6px -1px rgba(0,0,0,0.05)",
-                display: "flex",
-                justifyContent: "flex-end",
-                gap: "12px",
-                marginTop: "20px",
-                borderRadius: "0 0 14px 14px",
-              }}
-            >
-              <button
-                onClick={resetForm}
-                style={{
-                  ...secondaryBtn,
-                  padding: "10px 24px",
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.background = "#f8fafc";
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.background = "transparent";
-                }}
-              >
-                Reset
-              </button>
-              <button
-                onClick={() => alert("Draft saved successfully!")}
-                style={{
-                  ...secondaryBtn,
-                  padding: "10px 24px",
-                  border: "1px solid #ea580c",
-                  color: "#ea580c",
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.background = "#fff7ed";
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.background = "transparent";
-                }}
-              >
-                Save Draft
-              </button>
-              <button
-                onClick={saveRates}
-                disabled={loading.saving}
-                style={{
-                  ...primaryBtn,
-                  padding: "10px 32px",
-                  background: loading.saving ? "#94a3b8" : "#ea580c",
-                  cursor: loading.saving ? "not-allowed" : "pointer",
-                }}
-                onMouseEnter={(e) => {
-                  if (!loading.saving) e.target.style.background = "#c2410c";
-                }}
-                onMouseLeave={(e) => {
-                  if (!loading.saving) e.target.style.background = "#ea580c";
-                }}
-              >
-                {loading.saving ? "Saving..." : "Save Rate Card"}
-              </button>
-            </div>
           </>
         )}
       </div>
+
+      <ToastContainer position="top-right" autoClose={3500} hideProgressBar={false} newestOnTop />
     </SuperAdminLayout>
   );
 };

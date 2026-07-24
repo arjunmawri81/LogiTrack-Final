@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import SuperAdminLayout from "./SuperAdminLayout";
-import api from "../../services/api"; // ✅ IMPORT ADDED
+import api from "../../services/api"; //
 
 const RateCardManagement = () => {
   const { merchantId } = useParams();
 
-  // ✅ UPDATED: Added all 5 couriers
+  // all 5 couriers
   const [rates, setRates] = useState({
     delhivery: {
       rate500gm: "",
@@ -48,14 +48,14 @@ const RateCardManagement = () => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // ✅ Fetch existing rate cards on load
+  // Fetch existing rate cards on load
   useEffect(() => {
     if (merchantId) {
       fetchRateCards();
     }
   }, [merchantId]);
 
-  // ✅ Fetch existing rate cards
+  //  Fetch existing rate cards
   const fetchRateCards = async () => {
     try {
       setLoading(true);
@@ -96,7 +96,7 @@ const RateCardManagement = () => {
     });
   };
 
-  // ✅ UPDATED: Save rates with API call
+  //  UPDATED: Save rates with API call
   const saveRates = async () => {
     try {
       setSaving(true);

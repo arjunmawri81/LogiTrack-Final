@@ -40,6 +40,8 @@ const updateProfile = async (req, res) => {
       gstNumber,
       panNumber,
       bankAccount,
+      ifscCode,
+      bankName,
       address,
     } = req.body;
 
@@ -62,7 +64,9 @@ const updateProfile = async (req, res) => {
           companyName: companyName?.trim() ?? undefined,
           gstNumber: gstNumber?.trim() ?? undefined,
           panNumber: panNumber?.trim() ?? undefined,
-          bankAccount: bankAccount ?? undefined,
+          bankAccount: bankAccount?.trim() ?? undefined,
+          ifscCode: ifscCode?.trim()?.toUpperCase() ?? undefined,
+          bankName: bankName?.trim() ?? undefined,
           address: address?.trim() ?? undefined,
         },
       },
@@ -85,6 +89,15 @@ const updateProfile = async (req, res) => {
     if (panNumber !== undefined) 
       userUpdateData.panNumber = panNumber?.trim();
     
+    if (bankAccount !== undefined)
+      userUpdateData.accountNumber = bankAccount?.trim();
+
+    if (ifscCode !== undefined)
+      userUpdateData.ifscCode = ifscCode?.trim()?.toUpperCase();
+
+    if (bankName !== undefined)
+      userUpdateData.bankName = bankName?.trim();
+
     if (address !== undefined) 
       userUpdateData.address = address?.trim();
 
@@ -221,8 +234,33 @@ const changePassword = async (req, res) => {
   }
 };
 
+// Upload KYC Document
+const uploadKYCDocument = async (req, res) => {
+  try {
+    const { docType } = req.body; // "gstCertificate" | "panCard" | "addressProof"
+    if (!["gstCertificate", "panCard", "addressProof"].includes(docType)) {
+      return res.status(400).json({ success: false, message: "Invalid document type" });
+    }
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No file uploaded" });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user.kycDocuments) {
+      user.kycDocuments = {};
+    }
+    user.kycDocuments[docType] = req.file.path;
+    await user.save();
+
+    res.status(200).json({ success: true, message: "Document uploaded", kycDocuments: user.kycDocuments });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   getProfile,
   updateProfile,
   changePassword,
-};
+  uploadKYCDocument,
+};

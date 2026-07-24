@@ -3,7 +3,7 @@
    ============================================ */
 
 /* ---------- CONTAINER & LAYOUT ---------- */
-.dashboard-container {
+.admin-dashboard-container {
   display: flex;
   min-height: 100vh;
   background-color: #f1f5f9;
@@ -335,7 +335,7 @@
 /* ---------- TABLET (768px) ---------- */
 @media (max-width: 768px) {
   .dashboard-main {
-    margin-left: 0;
+    margin-left: 70px;
     padding: 12px 15px;
   }
 

@@ -1,9 +1,12 @@
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, ".env") });
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
-const dotenv = require("dotenv");
+const rateLimit = require("express-rate-limit");
 
 const connectDB = require("./config/db");
+const morgan = require("morgan");
 
 // Routes
 const authRoutes = require("./routes/authRoutes");
@@ -22,32 +25,9 @@ const ndrRoutes = require("./routes/ndrRoutes");
 const rtoRoutes = require("./routes/rtoRoutes");
 const rateCardRoutes = require("./routes/rateCardRoutes");
 const ticketRoutes = require("./routes/ticketRoutes");
-const warehouseRoutes = require("./routes/warehouseRoutes"); 
-
-dotenv.config();
-connectDB().then(() => {
-  // Run startup database status migration
-  const runMigrations = async () => {
-    try {
-      const Order = require("./models/Order");
-      const Shipment = require("./models/Shipment");
-      
-      const orderRes = await Order.updateMany({ status: "PENDING" }, { status: "NEW" });
-      if (orderRes.modifiedCount > 0) {
-        console.log(`[Migration] Migrated ${orderRes.modifiedCount} orders from PENDING to NEW`);
-      }
-
-      const shipmentRes = await Shipment.updateMany({ status: "PENDING" }, { status: "PICKUP_PENDING" });
-      if (shipmentRes.modifiedCount > 0) {
-        console.log(`[Migration] Migrated ${shipmentRes.modifiedCount} shipments from PENDING to PICKUP_PENDING`);
-      }
-    } catch (error) {
-      console.error("[Migration] Error running startup status migrations:", error);
-    }
-  };
-  runMigrations();
-});
-
+const warehouseRoutes = require("./routes/warehouseRoutes");
+const remittanceRoutes = require("./routes/remittanceRoutes");
+const channelRoutes = require("./routes/channelRoutes");
 const app = express();
 
 // ====================================
@@ -55,23 +35,59 @@ const app = express();
 // ====================================
 app.use(
   cors({
-    origin: process.env.ALLOWED_ORIGINS
-      ? process.env.ALLOWED_ORIGINS.split(",")
-      : ["http://localhost:5173", "http://localhost:3000"],
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      const allowedOrigins = process.env.ALLOWED_ORIGINS
+        ? process.env.ALLOWED_ORIGINS.split(",")
+        : ["http://localhost:5173", "http://localhost:5174", "http://localhost:3000"];
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      if (process.env.NODE_ENV !== "production" && origin.startsWith("http://localhost:")) {
+        return callback(null, true);
+      }
+      return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   })
 );
 
 // ====================================
-// SECURITY HEADERS
+// SECURITY HEADERS & RATE LIMITING
 // ====================================
+app.set("trust proxy", 1);
 app.use(helmet());
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  limit: 200, // Limit each IP to 200 requests per `window`
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many requests from this IP, please try again later."
+  }
+});
+app.use("/api", apiLimiter);
 
 // ====================================
 // MIDDLEWARE
 // ====================================
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+if (process.env.NODE_ENV !== "production") {
+  console.warn("⚠️  WARNING: NODE_ENV is not 'production' — verify this is intentional.");
+}
+app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
+
+app.use(
+  "/api/couriers/webhook",
+  express.json({
+    verify: (req, res, buf) => {
+      req.rawBody = buf;
+    },
+  })
+);
+app.use(express.json({ limit: "2mb" }));
+app.use(express.urlencoded({ limit: "2mb", extended: true }));
 
 // ====================================
 // HEALTH CHECK
@@ -103,6 +119,8 @@ app.use("/api/rto", rtoRoutes);
 app.use("/api/ratecards", rateCardRoutes);
 app.use("/api/tickets", ticketRoutes);
 app.use("/api/warehouses", warehouseRoutes); 
+app.use("/api/remittance", remittanceRoutes);
+app.use("/api/channels", channelRoutes);
 
 // ====================================
 // 404 HANDLER
@@ -131,9 +149,34 @@ app.use((err, req, res, next) => {
 // ====================================
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(` Server Running On Port ${PORT}`);
-});
+const startServer = async () => {
+  try {
+    await connectDB();
+    const server = app.listen(PORT, () => {
+      console.log(` Server Running On Port ${PORT}`);
+    });
+
+    const mongoose = require("mongoose");
+    const gracefulShutdown = (signal) => {
+      console.log(`${signal} received. Shutting down gracefully...`);
+      server.close(() => {
+        mongoose.connection.close(false, () => {
+          console.log("MongoDB connection closed.");
+          process.exit(0);
+        });
+      });
+      setTimeout(() => process.exit(1), 10000);
+    };
+
+    process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+    process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+  } catch (err) {
+    console.error("Failed to start server:", err);
+    process.exit(1);
+  }
+};
+
+startServer();
 
 // ====================================
 // PROCESS CRASH GUARDS

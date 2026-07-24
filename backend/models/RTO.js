@@ -17,7 +17,7 @@ const rtoSchema = new mongoose.Schema(
       required: true,
     },
 
-    // ✅ STEP 1: Added orderId and ndrId
+
     orderId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Order",
@@ -31,7 +31,7 @@ const rtoSchema = new mongoose.Schema(
     // ======================
     // SHIPMENT INFO
     // ======================
-    // ✅ STEP 2: Added awb and courier
+
     awb: {
       type: String,
       default: "",
@@ -50,7 +50,7 @@ const rtoSchema = new mongoose.Schema(
       required: true,
     },
 
-    // ✅ STEP 4: Added rtoReason (more specific)
+
     rtoReason: {
       type: String,
       default: "",
@@ -59,7 +59,7 @@ const rtoSchema = new mongoose.Schema(
     // ======================
     // CUSTOMER INFO
     // ======================
-    // ✅ STEP 3: Added customer details
+
     customerName: {
       type: String,
       default: "",
@@ -106,7 +106,7 @@ const rtoSchema = new mongoose.Schema(
       default: "",
     },
 
-    // ✅ STEP 4: Added courierRemarks
+
     courierRemarks: {
       type: String,
       default: "",
@@ -140,7 +140,7 @@ const rtoSchema = new mongoose.Schema(
       default: null,
     },
 
-    // ✅ STEP 5: Added RTO approval timestamps
+
     rtoRequestedAt: {
       type: Date,
       default: null,
@@ -200,6 +200,23 @@ const rtoSchema = new mongoose.Schema(
       type: String,
       enum: ["manual", "ndr_rto_approval", "api", "bulk"],
       default: "manual",
+    },
+
+    rtoFee: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    rtoFeeCharged: {
+      type: Boolean,
+      default: false,
+    },
+
+    rtoChargeStatus: {
+      type: String,
+      enum: ["PAID", "PENDING"],
+      default: "PENDING",
     },
 
     lastUpdatedBy: {

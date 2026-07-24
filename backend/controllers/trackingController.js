@@ -35,14 +35,11 @@ const getTracking = async (req, res) => {
 };
 
 // Update Shipment Status
-// ✅ FIXED: Uses addTrackingEvent() (pushes to `tracking` array, not `trackingEvents`)
-// ✅ FIXED: Validates status against SHIPMENT_STATUSES enum
-// ✅ FIXED: Syncs Order status via ORDER_STATUS_MAP
 const updateShipmentStatus = async (req, res) => {
   try {
     const { status, location, remarks } = req.body;
 
-    // ✅ Validate status against the enum
+    // Validate status against the enum
     if (!status || !SHIPMENT_STATUSES.includes(status)) {
       return res.status(400).json({
         success: false,
@@ -50,7 +47,12 @@ const updateShipmentStatus = async (req, res) => {
       });
     }
 
-    const shipment = await Shipment.findById(req.params.id);
+    const query = { _id: req.params.id };
+    if (req.user.role === "MERCHANT") {
+      query.merchantId = req.user.id;
+    }
+
+    const shipment = await Shipment.findOne(query);
 
     if (!shipment) {
       return res.status(404).json({
@@ -59,7 +61,7 @@ const updateShipmentStatus = async (req, res) => {
       });
     }
 
-    // ✅ Prevent modification of terminal-state shipments
+    // Prevent modification of terminal-state shipments
     if (shipment.status === "DELIVERED" || shipment.status === "CANCELLED") {
       return res.status(400).json({
         success: false,
@@ -67,14 +69,14 @@ const updateShipmentStatus = async (req, res) => {
       });
     }
 
-    // ✅ Use the model's addTrackingEvent method (pushes to `tracking`, sets status, calls save)
+    // Use the model's addTrackingEvent method (pushes to `tracking`, sets status, calls save)
     await shipment.addTrackingEvent(
       status,
       location || "System Update",
       remarks || `Shipment status changed to ${status}`
     );
 
-    // ✅ Sync Order status
+    // Sync Order status
     const order = await Order.findById(shipment.orderId);
     if (order) {
       const mappedStatus = ORDER_STATUS_MAP[status];

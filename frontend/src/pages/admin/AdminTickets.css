@@ -843,7 +843,7 @@
 /* ---------- TABLET (768px) ---------- */
 @media (max-width: 768px) {
   .tickets-main {
-    margin-left: 0;
+    margin-left: 70px;
     padding: 12px 15px;
   }
 

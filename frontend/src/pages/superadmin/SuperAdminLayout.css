@@ -1,0 +1,37 @@
+.superadmin-layout {
+  display: flex;
+  min-height: 100vh;
+  background: #f1f5f9;
+}
+
+.superadmin-main {
+  margin-left: 280px;
+  width: calc(100% - 280px);
+  padding: 32px 24px;
+  background: #f8fafc;
+  min-height: 100vh;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  transition: margin-left 0.3s ease, width 0.3s ease;
+}
+
+.superadmin-inner {
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+@media (max-width: 1024px) {
+  .superadmin-main {
+    margin-left: 280px;
+    width: calc(100% - 280px);
+    padding: 24px 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .superadmin-main {
+    margin-left: 72px;
+    width: calc(100% - 72px);
+    padding: 16px 10px;
+  }
+}

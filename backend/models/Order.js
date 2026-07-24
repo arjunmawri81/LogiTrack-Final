@@ -39,7 +39,7 @@ const orderSchema = new mongoose.Schema(
       required: true,
     },
 
-    // ✅ Production fields (used by shipment controller)
+    // Production fields (used by shipment controller)
     customerCity: {
       type: String,
       required: true,
@@ -56,7 +56,7 @@ const orderSchema = new mongoose.Schema(
     },
 
     // ===== ORDER ITEMS =====
-    // ✅ Primary items array (future standard)
+    // Primary items array (future standard)
     items: {
       type: [
         {
@@ -70,7 +70,7 @@ const orderSchema = new mongoose.Schema(
       default: [],
     },
 
-    // ⚠️ Legacy fields (backward compatibility - will be removed in v3)
+    // Legacy fields (backward compatibility - will be removed in v3)
     productName: {
       type: String,
       default: "",
@@ -88,7 +88,7 @@ const orderSchema = new mongoose.Schema(
     },
 
     // ===== SHIPMENT DIMENSIONS =====
-    // ✅ Primary dimensions object (future standard)
+    // Primary dimensions object (future standard)
     dimensions: {
       type: {
         length: { type: Number, default: 0 },
@@ -98,7 +98,7 @@ const orderSchema = new mongoose.Schema(
       default: () => ({}),
     },
 
-    // ⚠️ Legacy fields (backward compatibility - will be removed in v3)
+    // Legacy fields (backward compatibility - will be removed in v3)
     length: {
       type: Number,
       default: 0,
@@ -117,6 +117,12 @@ const orderSchema = new mongoose.Schema(
     weight: {
       type: Number,
       default: 0,
+    },
+
+    serviceType: {
+      type: String,
+      enum: ["Surface", "Air"],
+      default: "Surface",
     },
 
     // ===== PAYMENT =====
@@ -204,35 +210,35 @@ const orderSchema = new mongoose.Schema(
 // INDEXES (Performance)
 // ===============================
 
-// ✅ Merchant + Status (Admin dashboard filters)
+// Merchant + Status (Admin dashboard filters)
 orderSchema.index({ merchantId: 1, status: 1 });
 
-// ✅ Merchant + CreatedAt (Recent orders)
+// Merchant + CreatedAt (Recent orders)
 orderSchema.index({ merchantId: 1, createdAt: -1 });
 
-// ✅ AWB (Tracking lookup)
+// AWB (Tracking lookup)
 orderSchema.index({ awb: 1 });
 
-// ✅ Shipment ID (Join lookups)
+// Shipment ID (Join lookups)
 orderSchema.index({ shipmentId: 1 });
 
 
 
-// ✅ Status alone (Bulk operations)
+// Status alone (Bulk operations)
 orderSchema.index({ status: 1 });
 
 // ===============================
 // PRE-SAVE HOOKS
 // ===============================
 
-// ✅ Generate unique order number
+// Generate unique order number
 orderSchema.pre("save", function () {
   if (!this.orderNumber) {
     this.orderNumber = "ORD" + Date.now() + Math.floor(1000 + Math.random() * 9000);
   }
 });
 
-// ✅ Auto-add first timeline entry on creation
+// Auto-add first timeline entry on creation
 orderSchema.pre("save", function () {
   if (this.isNew && this.timeline.length === 0) {
     this.timeline.push({
@@ -247,7 +253,7 @@ orderSchema.pre("save", function () {
 // INSTANCE METHODS
 // ===============================
 
-// ✅ Add status change to timeline
+// Add status change to timeline
 orderSchema.methods.addTimelineEvent = function (status, message, userId = null) {
   this.timeline.push({
     status,
@@ -259,28 +265,27 @@ orderSchema.methods.addTimelineEvent = function (status, message, userId = null)
   return this.save();
 };
 
-// ✅ Check if shipment can be created (ONLY for NEW orders)
+// Check if shipment can be created (ONLY for NEW orders)
 orderSchema.methods.isShippable = function () {
-  // ✅ FIX: Only NEW orders can create shipment
   return this.status === "NEW";
 };
 
-// ✅ Check if order is delivered
+// Check if order is delivered
 orderSchema.methods.isDelivered = function () {
   return this.status === "DELIVERED";
 };
 
-// ✅ Check if order is cancelled
+// Check if order is cancelled
 orderSchema.methods.isCancelled = function () {
   return this.status === "CANCELLED";
 };
 
-// ✅ Check if order has shipment created
+// Check if order has shipment created
 orderSchema.methods.hasShipment = function () {
   return !!this.shipmentId;
 };
 
-// ✅ Get primary item (for backward compatibility)
+// Get primary item (for backward compatibility)
 orderSchema.methods.getPrimaryItem = function () {
   if (this.items && this.items.length > 0) {
     return this.items[0];
@@ -298,7 +303,7 @@ orderSchema.methods.getPrimaryItem = function () {
 // STATIC METHODS
 // ===============================
 
-// ✅ Get orders by merchant with filters
+// Get orders by merchant with filters
 orderSchema.statics.getMerchantOrders = function (merchantId, filters = {}) {
   const query = { merchantId: new mongoose.Types.ObjectId(merchantId) };
   
@@ -319,9 +324,8 @@ orderSchema.statics.getMerchantOrders = function (merchantId, filters = {}) {
   return this.find(query).sort({ createdAt: -1 });
 };
 
-// ✅ Get pending shipments count (ONLY NEW orders without shipment)
+// Get pending shipments count (ONLY NEW orders without shipment)
 orderSchema.statics.getPendingShipmentsCount = function (merchantId) {
-  // ✅ FIX: Only NEW orders that don't have shipment yet
   return this.countDocuments({
     merchantId: new mongoose.Types.ObjectId(merchantId),
     status: "NEW",
@@ -329,7 +333,7 @@ orderSchema.statics.getPendingShipmentsCount = function (merchantId) {
   });
 };
 
-// ✅ Get delivery stats with ObjectId fix
+// Get delivery stats with ObjectId fix
 orderSchema.statics.getDeliveryStats = function (merchantId) {
   return this.aggregate([
     { 
@@ -350,7 +354,7 @@ orderSchema.statics.getDeliveryStats = function (merchantId) {
   ]);
 };
 
-// ✅ Get orders by status (bulk operations)
+// Get orders by status (bulk operations)
 orderSchema.statics.getByStatus = function (merchantId, status) {
   return this.find({
     merchantId: new mongoose.Types.ObjectId(merchantId),
@@ -358,7 +362,7 @@ orderSchema.statics.getByStatus = function (merchantId, status) {
   });
 };
 
-// ✅ Get orders without shipment
+// Get orders without shipment
 orderSchema.statics.getOrdersWithoutShipment = function (merchantId) {
   return this.find({
     merchantId: new mongoose.Types.ObjectId(merchantId),
@@ -371,7 +375,7 @@ orderSchema.statics.getOrdersWithoutShipment = function (merchantId) {
 // VIRTUAL PROPERTIES
 // ===============================
 
-// ✅ Total items count
+// Total items count
 orderSchema.virtual("totalItems").get(function () {
   if (this.items && this.items.length > 0) {
     return this.items.reduce((sum, item) => sum + (item.quantity || 0), 0);
@@ -379,7 +383,7 @@ orderSchema.virtual("totalItems").get(function () {
   return this.quantity || 1;
 });
 
-// ✅ Total weight
+// Total weight
 orderSchema.virtual("totalWeight").get(function () {
   if (this.items && this.items.length > 0) {
     return this.items.reduce((sum, item) => sum + (item.weight || 0) * (item.quantity || 1), 0);
@@ -387,27 +391,27 @@ orderSchema.virtual("totalWeight").get(function () {
   return this.weight || 0;
 });
 
-// ✅ Display name
+// Display name
 orderSchema.virtual("displayName").get(function () {
   return this.orderNumber || `ORD-${this._id.toString().slice(-6)}`;
 });
 
-// ✅ Is COD
+// Is COD
 orderSchema.virtual("isCOD").get(function () {
   return this.paymentMode === "COD";
 });
 
-// ✅ Is Prepaid
+// Is Prepaid
 orderSchema.virtual("isPrepaid").get(function () {
   return this.paymentMode === "PREPAID";
 });
 
-// ✅ Full customer address (for display)
+// Full customer address (for display)
 orderSchema.virtual("fullAddress").get(function () {
   return `${this.customerAddress}, ${this.customerCity}, ${this.customerState} - ${this.customerPincode}`;
 });
 
-// ✅ Can be cancelled?
+// Can be cancelled?
 orderSchema.virtual("canCancel").get(function () {
   return ["NEW", "READY_FOR_PICKUP"].includes(this.status);
 });

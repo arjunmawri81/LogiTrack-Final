@@ -370,7 +370,7 @@
 /* ---------- TABLET (768px) ---------- */
 @media (max-width: 768px) {
   .reports-content {
-    margin-left: 0;
+    margin-left: 70px;
     padding: 12px 15px;
   }
 

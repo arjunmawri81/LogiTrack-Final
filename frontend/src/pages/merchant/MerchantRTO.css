@@ -160,7 +160,7 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-.rto-stat-total { border-top: 3px solid #f97316; }
+.rto-stat-total { border-top: 3px solid #2563eb; }
 .rto-stat-initiated { border-top: 3px solid #d97706; }
 .rto-stat-transit { border-top: 3px solid #2563eb; }
 .rto-stat-returned { border-top: 3px solid #8b5cf6; }
@@ -171,7 +171,7 @@
   margin-bottom: 6px;
 }
 
-.rto-stat-icon-total { color: #f97316; }
+.rto-stat-icon-total { color: #2563eb; }
 .rto-stat-icon-initiated { color: #d97706; }
 .rto-stat-icon-transit { color: #2563eb; }
 .rto-stat-icon-returned { color: #8b5cf6; }
@@ -209,8 +209,8 @@
 }
 
 .rto-search-wrapper:focus-within {
-  border-color: #f97316;
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .rto-search-icon {
@@ -259,9 +259,10 @@
 }
 
 .rto-filter-select:focus {
-  border-color: #f97316;
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
+
 
 /* ============================================ */
 /* TABLE CARD */

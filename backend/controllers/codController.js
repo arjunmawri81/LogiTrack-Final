@@ -4,8 +4,11 @@ const COD = require("../models/COD");
 const createCOD = async (req, res) => {
 try {
 const cod = await COD.create({
-...req.body,
-merchantId: req.user.id,
+  orderId: req.body.orderId,
+  shipmentId: req.body.shipmentId,
+  amount: req.body.amount,
+  merchantId: req.user.id,
+  status: "PENDING",
 });
 
 
@@ -66,6 +69,11 @@ if (!cod) {
     success: false,
     message: "COD entry not found",
   });
+}
+
+const allowedStatuses = ["PENDING", "SETTLED", "DISPUTED"];
+if (!allowedStatuses.includes(status)) {
+  return res.status(400).json({ success: false, message: "Invalid status value" });
 }
 
 cod.status = status;

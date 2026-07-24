@@ -6,8 +6,7 @@
 const express = require("express");
 const router = express.Router();
 
-const { authMiddleware } = require("../middleware/authMiddleware");
-
+const { authMiddleware, authorizeRoles } = require("../middleware/authMiddleware");
 
 const {
   createInvoice,
@@ -18,18 +17,21 @@ const {
 router.post(
   "/create",
   authMiddleware,
+  authorizeRoles("MERCHANT"),
   createInvoice
 );
 
 router.get(
   "/",
   authMiddleware,
+  authorizeRoles("MERCHANT"),
   getInvoices
 );
 
 router.get(
   "/summary",
   authMiddleware,
+  authorizeRoles("MERCHANT"),
   getBillingSummary
 );
 

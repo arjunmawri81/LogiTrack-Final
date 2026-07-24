@@ -30,7 +30,7 @@ const Billing = () => {
       setLoading(true);
       await Promise.all([fetchInvoices(), fetchSummary(), fetchWallet()]);
     } catch (error) {
-      console.log("FETCH ERROR =>", error);
+      console.error("Error fetching billing data:", error);
     } finally {
       setLoading(false);
     }
@@ -41,7 +41,7 @@ const Billing = () => {
       const res = await api.get("/invoices");
       setInvoices(res.data.invoices || []);
     } catch (error) {
-      console.log("INVOICE ERROR =>", error);
+      console.error("Error fetching invoices:", error);
     }
   };
 
@@ -55,7 +55,7 @@ const Billing = () => {
         totalRevenue: res.data.totalRevenue || 0,
       });
     } catch (error) {
-      console.log("SUMMARY ERROR =>", error);
+      console.error("Error fetching billing summary:", error);
     }
   };
 
@@ -64,7 +64,7 @@ const Billing = () => {
       const res = await api.get("/wallet");
       setWalletBalance(res.data.wallet?.balance || 0);
     } catch (error) {
-      console.log("WALLET ERROR =>", error);
+      console.error("Error fetching wallet:", error);
       setWalletBalance(0);
     }
   };
@@ -131,7 +131,7 @@ const Billing = () => {
       setDownloading(id);
       
       const token = localStorage.getItem("token");
-      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+      const baseUrl = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : "/api";
 
       const response = await fetch(
         `${baseUrl}/invoices/${id}/download`,
@@ -156,7 +156,7 @@ const Billing = () => {
       link.remove();
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.log("DOWNLOAD ERROR =>", error);
+      console.error("Error downloading invoice:", error);
       alert("Failed to download invoice. Please try again.");
     } finally {
       setDownloading(null);

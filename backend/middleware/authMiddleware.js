@@ -99,6 +99,27 @@ const isApprovedMerchant = async (req, res, next) => {
   }
 };
 
+const requireActiveUser = async (req, res, next) => {
+  try {
+    const User = require("../models/User");
+    const user = await User.findById(req.user.id);
+    
+    if (!user || user.isBlocked || user.isActive === false || user.isDeleted === true) {
+      return res.status(401).json({
+        success: false,
+        message: "Account inactive or blocked. Please login again.",
+      });
+    }
+    
+    next();
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
 // ====================================
 // MONGO ID VALIDATION MIDDLEWARE
 // ====================================
@@ -136,16 +157,15 @@ const validateSignature = (req, res, next) => {
     });
   }
 
-  if (!signature) {
+  if (!signature || !req.rawBody) {
     return res.status(401).json({
       success: false,
-      message: "Missing signature header x-courier-signature.",
+      message: "Missing signature header or raw body.",
     });
   }
 
   const hmac = crypto.createHmac("sha256", secret);
-  const payload = JSON.stringify(req.body);
-  const calculatedSignature = hmac.update(payload).digest("hex");
+  const calculatedSignature = hmac.update(req.rawBody).digest("hex");
 
   if (signature !== calculatedSignature) {
     return res.status(401).json({
@@ -157,12 +177,12 @@ const validateSignature = (req, res, next) => {
   next();
 };
 
-// ✅ Final export with both authMiddleware and verifyToken alias
 module.exports = {
   verifyToken: authMiddleware,
   authMiddleware,
   authorizeRoles,
   isApprovedMerchant,
+  requireActiveUser,
   validateMongoId,
   validateSignature,
 };

@@ -91,15 +91,7 @@ const registerUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Role Management
-    const allowedRoles = [
-      "SUPER_ADMIN",
-      "ADMIN",
-      "MERCHANT",
-      "STAFF",
-      "COURIER",
-      "WAREHOUSE"
-    ];
-    const userRole = allowedRoles.includes(role) ? role : "MERCHANT";
+    const userRole = "MERCHANT";
 
     // Company name validation for merchants
     if (userRole === "MERCHANT" && !companyName) {
@@ -110,9 +102,7 @@ const registerUser = async (req, res) => {
     }
 
     // KYC Status Management
-    const userKycStatus = ["PENDING", "APPROVED", "REJECTED"].includes(kycStatus) 
-      ? kycStatus 
-      : "PENDING";
+    const userKycStatus = "PENDING";
 
     // Create User
     const user = await User.create({
@@ -140,7 +130,7 @@ const registerUser = async (req, res) => {
       upiId: upiId || "",
       role: userRole,
       kycStatus: userKycStatus,
-      isApproved: true,
+      isApproved: false,
       isBlocked: false,
       isActive: true,
       walletBalance: 0,
@@ -163,7 +153,7 @@ const registerUser = async (req, res) => {
     res.status(201).json({
       success: true,
       message: userRole === "MERCHANT" 
-        ? "Registration successful! Your account is approved." 
+        ? "Registration successful! Your account is pending admin approval." 
         : `${userRole} Registered Successfully`,
       user: userResponse
     });

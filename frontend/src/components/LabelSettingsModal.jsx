@@ -7,12 +7,12 @@ import {
   FaTrash,
 } from "react-icons/fa";
 
-// ✅ FIX 2: Default settings object with logoFile
+// Default settings object
 const defaultSettings = {
   format: "A6",
   useMerchantLogo: true,
   uploadedLogo: null,
-  logoFile: null, // ✅ Added logoFile for actual File object
+  logoFile: null,
   barcodeType: "AWB",
   logo: true,
   customerPhone: true,
@@ -33,7 +33,7 @@ const LabelSettingsModal = ({
   isBulk = false,
   selectedCount = 0,
 }) => {
-  // ✅ FIX 1: Use spread operator for fresh copy
+
   const [settings, setSettings] = useState({
     ...defaultSettings,
   });
@@ -42,7 +42,7 @@ const LabelSettingsModal = ({
   // Reset all settings when modal opens
   useEffect(() => {
     if (open) {
-      // ✅ FIX 1: Use spread operator for fresh copy
+
       setSettings({
         ...defaultSettings,
       });
@@ -79,8 +79,8 @@ const LabelSettingsModal = ({
     reader.onload = (event) => {
       setSettings(prev => ({
         ...prev,
-        uploadedLogo: event.target.result, // ✅ Preview for UI
-        logoFile: file,                    // ✅ Actual File object for backend
+        uploadedLogo: event.target.result,
+        logoFile: file,
         useMerchantLogo: false,
       }));
     };
@@ -95,7 +95,7 @@ const LabelSettingsModal = ({
     setSettings(prev => ({
       ...prev,
       uploadedLogo: null,
-      logoFile: null, // ✅ Clear logoFile as well
+      logoFile: null,
       useMerchantLogo: true,
     }));
   };
@@ -106,7 +106,7 @@ const LabelSettingsModal = ({
 
     setIsDownloading(true);
     try {
-      // ✅ FIX 2: Check if onDownload exists before calling
+
       if (onDownload) {
         await onDownload(settings);
       } else {
@@ -116,7 +116,7 @@ const LabelSettingsModal = ({
         return;
       }
       
-      // ✅ FIX 4: Safely call onClose only if it's a function
+
       if (typeof onClose === "function") {
         onClose();
       }
@@ -217,7 +217,7 @@ const LabelSettingsModal = ({
                   Choose Image
                   <input
                     type="file"
-                    accept=".png,.jpg,.jpeg" // ✅ FIX 5: Restrict to PNG, JPG, JPEG only
+                    accept=".png,.jpg,.jpeg"
                     hidden
                     onChange={handleLogoUpload}
                     disabled={isDownloading}

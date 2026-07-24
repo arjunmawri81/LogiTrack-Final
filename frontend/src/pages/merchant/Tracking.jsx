@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { useParams } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import api from "../../services/api";
 import { FaTruck, FaBox, FaCalendarAlt, FaPhoneAlt, FaUser, FaCheckCircle, FaClock, FaMapMarkerAlt } from "react-icons/fa";
 import "./Tracking.css"; 
 
 const Tracking = () => {
-  const [awb, setAwb] = useState("");
+  const { awb: urlAwb } = useParams();
+  const [awb, setAwb] = useState(urlAwb || "");
   const [shipment, setShipment] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -31,16 +33,28 @@ const Tracking = () => {
     }
   };
 
-  const handleTrack = async () => {
-    if (!awb) { alert("Please enter AWB number"); return; }
+  const fetchTracking = useCallback(async (targetAwb) => {
+    const searchAwb = targetAwb || awb;
+    if (!searchAwb) { alert("Please enter AWB number"); return; }
     try {
       setLoading(true);
-      const res = await api.get(`/shipments/track/${awb}`);
+      const res = await api.get(`/shipments/track/${searchAwb}`);
       setShipment(res.data.shipment);
     } catch (error) {
       setShipment(null);
       alert(error?.response?.data?.message || "Shipment Not Found");
     } finally { setLoading(false); }
+  }, [awb]);
+
+  useEffect(() => {
+    if (urlAwb) {
+      setAwb(urlAwb);
+      fetchTracking(urlAwb);
+    }
+  }, [urlAwb]);
+
+  const handleTrack = () => {
+    fetchTracking(awb);
   };
 
   const getProgressWidth = (status) => {

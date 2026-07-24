@@ -1,18 +1,14 @@
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-
-// Create uploads folder automatically
-if (!fs.existsSync("uploads")) {
-  fs.mkdirSync("uploads");
-}
+const os = require("os");
 
 // ===============================
 // STORAGE
 // ===============================
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/");
+    cb(null, os.tmpdir());
   },
 
   filename: (req, file, cb) => {
@@ -30,25 +26,19 @@ const storage = multer.diskStorage({
 // FILE FILTER
 // ===============================
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = [
-    ".csv",
-    ".xlsx",
-    ".xls",
+  const allowedExts = [".csv", ".xlsx", ".xls"];
+  const allowedMimes = [
+    "text/csv",
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   ];
 
-  const ext = path
-    .extname(file.originalname)
-    .toLowerCase();
+  const ext = path.extname(file.originalname).toLowerCase();
 
-  if (allowedTypes.includes(ext)) {
+  if (allowedExts.includes(ext) && allowedMimes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(
-      new Error(
-        "Only CSV and Excel files are allowed"
-      ),
-      false
-    );
+    cb(new Error("Only CSV and Excel files are allowed"), false);
   }
 };
 

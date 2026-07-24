@@ -1,4 +1,5 @@
 import SuperAdminLayout from "./SuperAdminLayout";
+import "./OrderManagement.css";
 
 const OrderManagement = () => {
   const orders = [
@@ -12,29 +13,38 @@ const OrderManagement = () => {
 
   return (
     <SuperAdminLayout>
-      <h1>Order Management 📦</h1>
+      <div className="order-mgmt-container">
+        <div className="page-header">
+          <h1 className="page-title">Order Management 📦</h1>
+          <p className="page-subtitle">Platform order tracking and management</p>
+        </div>
 
-      <table className="table">
-        <thead>
-          <tr>
-            <th>Order ID</th>
-            <th>Merchant</th>
-            <th>Amount</th>
-            <th>Status</th>
-          </tr>
-        </thead>
+        <div className="table-card">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Merchant</th>
+                <th>Amount</th>
+                <th>Status</th>
+              </tr>
+            </thead>
 
-        <tbody>
-          {orders.map((order, index) => (
-            <tr key={index}>
-              <td>{order.id}</td>
-              <td>{order.merchant}</td>
-              <td>₹{order.amount}</td>
-              <td>{order.status}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+            <tbody>
+              {orders.map((order, index) => (
+                <tr key={index}>
+                  <td style={{ fontWeight: "600", color: "#0f172a" }}>{order.id}</td>
+                  <td>{order.merchant}</td>
+                  <td style={{ fontWeight: "600" }}>₹{order.amount}</td>
+                  <td>
+                    <span className="status-badge">{order.status}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </SuperAdminLayout>
   );
 };

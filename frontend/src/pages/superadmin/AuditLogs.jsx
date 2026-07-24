@@ -1,119 +1,357 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import api from "../../services/api";
 import SuperAdminLayout from "./SuperAdminLayout";
-// import api from "../../services/api"; // Commented out to avoid build warnings
+import {
+  FaClipboardList,
+  FaSearch,
+  FaSync,
+  FaDownload,
+  FaUserShield,
+  FaLock,
+  FaCheckCircle,
+  FaExclamationCircle,
+  FaChevronLeft,
+  FaChevronRight,
+} from "react-icons/fa";
+import "./AuditLogs.css";
 
 const AuditLogs = () => {
-  const [logs, setLogs] = useState([
-    { user: "Super Admin", action: "Created Admin", date: "Today" },
-    { user: "Admin", action: "Deleted Order", date: "Yesterday" },
-    { user: "Admin", action: "Approved Merchant", date: "2 Days Ago" },
-    { user: "Super Admin", action: "Updated Commission", date: "3 Days Ago" },
-  ]);
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [error, setError] = useState("");
+
+  const [stats, setStats] = useState({
+    totalActivities: 0,
+    adminActionsCount: 0,
+    systemEventsCount: 0,
+  });
+
+  // Filter & Pagination States
+  const [searchQuery, setSearchQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState("ALL");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
 
   useEffect(() => {
-    // fetchLogs(); // Uncomment this when backend is ready
-  }, []);
+    fetchLogs();
+  }, [roleFilter]);
 
-  /* const fetchLogs = async () => {
+  const fetchLogs = async (showRefresh = false) => {
+    if (showRefresh) setIsRefreshing(true);
+    else setLoading(true);
+    setError("");
+
     try {
-      const res = await api.get("/superadmin/audit-logs");
-      setLogs(res.data.logs || []);
-    } catch (error) {
-      console.log("Error fetching audit logs:", error);
+      const res = await api.get(`/admin/audit-logs?role=${roleFilter}`);
+      if (res.data && res.data.success) {
+        setLogs(res.data.logs || []);
+        setStats({
+          totalActivities: res.data.totalActivities || 0,
+          adminActionsCount: res.data.adminActionsCount || 0,
+          systemEventsCount: res.data.systemEventsCount || 0,
+        });
+      } else {
+        setError("Failed to fetch audit logs.");
+      }
+    } catch (err) {
+      console.error("Error fetching audit logs:", err);
+      setError("Error connecting to server.");
+    } finally {
+      setLoading(false);
+      setIsRefreshing(false);
     }
   };
-  */
 
-  const getActionBadgeStyle = (action) => {
+  // Filtered Logs
+  const filteredLogs = useMemo(() => {
+    return logs.filter((log) => {
+      const query = searchQuery.toLowerCase();
+      const userMatch = (log.user || "").toLowerCase().includes(query);
+      const actionMatch = (log.action || "").toLowerCase().includes(query);
+      const moduleMatch = (log.module || "").toLowerCase().includes(query);
+
+      return userMatch || actionMatch || moduleMatch;
+    });
+  }, [logs, searchQuery]);
+
+  // Paginated Logs
+  const paginatedLogs = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredLogs.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredLogs, currentPage]);
+
+  const totalPages = Math.ceil(filteredLogs.length / itemsPerPage) || 1;
+
+  // Export to CSV
+  const exportLogsCSV = () => {
+    if (filteredLogs.length === 0) return;
+
+    const headers = ["User", "Role", "Module", "Action Details", "IP Address", "Status", "Date & Time"];
+    const rows = filteredLogs.map((l) => [
+      `"${l.user || "-"}"`,
+      `"${l.role || "-"}"`,
+      `"${l.module || "-"}"`,
+      `"${l.action || "-"}"`,
+      `"${l.ipAddress || "127.0.0.1"}"`,
+      `"${l.status || "SUCCESS"}"`,
+      `"${l.createdAt ? new Date(l.createdAt).toLocaleString() : "-"}"`,
+    ]);
+
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `Audit_Logs_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Badge Styling according to Action
+  const getActionBadgeStyle = (action = "") => {
     const act = action.toLowerCase();
-    if (act.includes("delete") || act.includes("remove")) {
+    if (act.includes("delete") || act.includes("reject") || act.includes("block")) {
       return { bg: "#fee2e2", text: "#991b1b" };
     }
-    if (act.includes("create") || act.includes("approve")) {
+    if (act.includes("create") || act.includes("approve") || act.includes("generate")) {
       return { bg: "#dcfce7", text: "#166534" };
+    }
+    if (act.includes("update") || act.includes("change")) {
+      return { bg: "#e0f2fe", text: "#0369a1" };
     }
     return { bg: "#f1f5f9", text: "#334155" };
   };
 
-  const fontStyle = {
-    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-  };
+  if (loading) {
+    return (
+      <SuperAdminLayout>
+        <div className="audit-loading">
+          <div className="audit-spinner"></div>
+          <p>Retrieving Security & System Audit Trail...</p>
+        </div>
+      </SuperAdminLayout>
+    );
+  }
 
   return (
     <SuperAdminLayout>
-      <div style={{ ...fontStyle, maxWidth: "1400px", margin: "0 auto", padding: "10px" }}>
-        
-        <div style={{ borderBottom: "1px solid #f1f5f9", paddingBottom: "20px", marginBottom: "30px" }}>
-          <h1 style={{ fontSize: "32px", fontWeight: "800", color: "#0f172a", margin: "0 0 6px 0", letterSpacing: "-0.025em" }}>
-            Audit Logs
-          </h1>
-          <p style={{ color: "#64748b", fontSize: "14px", margin: 0, fontWeight: "500" }}>
-            Monitor platform activities and administrator actions
-          </p>
+      <div className="audit-logs-container">
+
+        {/* HEADER SECTION */}
+        <div className="page-header">
+          <div>
+            <h1 className="page-title">
+              <FaClipboardList className="header-icon" /> Platform Audit Trail & System Logs
+            </h1>
+            <p className="page-subtitle">
+              Comprehensive audit trail of administrator activities, merchant changes, and system operations
+            </p>
+          </div>
+
+          <div className="header-actions">
+            <button
+              onClick={() => fetchLogs(true)}
+              className="refresh-btn"
+              disabled={isRefreshing}
+            >
+              <FaSync className={isRefreshing ? "spin-icon" : ""} />
+              {isRefreshing ? "Refreshing..." : "Refresh Audit Trail"}
+            </button>
+
+            <button onClick={exportLogsCSV} className="export-btn">
+              <FaDownload />
+              Export CSV
+            </button>
+          </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "20px", marginBottom: "35px" }}>
-          <div style={cardBlue}>
-            <div style={{ ...cardLabel, color: "#93c5fd" }}>Total Activities</div>
-            <div style={cardValue}>{logs.length}</div>
+        {error && <div className="error-banner">{error}</div>}
+
+        {/* KPI SUMMARY CARDS */}
+        <div className="kpi-grid">
+          
+          <div className="kpi-card card-blue">
+            <div className="kpi-icon"><FaClipboardList /></div>
+            <div className="kpi-info">
+              <span className="kpi-label">Total Audit Events</span>
+              <h3 className="kpi-value">{stats.totalActivities}</h3>
+              <span className="kpi-sub blue-sub">Recorded log entries</span>
+            </div>
           </div>
-          <div style={cardGreen}>
-            <div style={{ ...cardLabel, color: "#a7f3d0" }}>Admin Actions</div>
-            <div style={cardValue}>{logs.filter(l => l.user === "Admin").length}</div>
+
+          <div className="kpi-card card-emerald">
+            <div className="kpi-icon"><FaUserShield /></div>
+            <div className="kpi-info">
+              <span className="kpi-label">Admin & SuperAdmin Actions</span>
+              <h3 className="kpi-value">{stats.adminActionsCount}</h3>
+              <span className="kpi-sub emerald-sub">Administrative Operations</span>
+            </div>
           </div>
-          <div style={cardOrange}>
-            <div style={{ ...cardLabel, color: "#ffedd5" }}>Recent Logs</div>
-            <div style={cardValue}>{logs.length}</div>
+
+          <div className="kpi-card card-purple">
+            <div className="kpi-icon"><FaLock /></div>
+            <div className="kpi-info">
+              <span className="kpi-label">System & Security Events</span>
+              <h3 className="kpi-value">{stats.systemEventsCount}</h3>
+              <span className="kpi-sub purple-sub">Automated Log Trail</span>
+            </div>
           </div>
+
         </div>
 
-        <div style={{ marginBottom: "24px" }}>
-          <input
-            type="text"
-            placeholder="Search activity logs by user or operation..."
-            style={{ width: "100%", boxSizing: "border-box", padding: "14px 18px", borderRadius: "12px", border: "1px solid #cbd5e1", outline: "none", fontSize: "14px", fontWeight: "500", color: "#1e293b", background: "#ffffff" }}
-          />
-        </div>
+        {/* TABLE CARD & CONTROLS */}
+        <div className="table-card">
+          <div className="table-header-flex">
+            <h2 className="table-title">Audit Activity Log</h2>
 
-        <div style={{ background: "#ffffff", borderRadius: "16px", padding: "24px", overflowX: "auto", border: "1px solid #f1f5f9", boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05)" }}>
-          <h2 style={{ color: "#0f172a", margin: "0 0 20px 0", fontSize: "18px", fontWeight: "700" }}>Activity Logs</h2>
-          <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: "0", background: "#ffffff", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
-            <thead>
-              <tr>
-                <th style={thStyle}>User</th>
-                <th style={thStyle}>Action</th>
-                <th style={thStyle}>Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {logs.map((log, index) => {
-                const badgeStyle = getActionBadgeStyle(log.action);
-                return (
-                  <tr key={index}>
-                    <td style={{ ...tdStyle, fontWeight: "600", color: "#0f172a" }}>{log.user}</td>
-                    <td style={tdStyle}>
-                      <span style={{ background: badgeStyle.bg, color: badgeStyle.text, padding: "6px 14px", borderRadius: "999px", fontSize: "12px", fontWeight: "600" }}>
-                        {log.action}
-                      </span>
+            <div className="table-filters">
+              {/* Search Bar */}
+              <div className="search-box">
+                <FaSearch className="search-icon" />
+                <input
+                  type="text"
+                  placeholder="Search user, action, module..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="search-input"
+                />
+              </div>
+
+              {/* Role Filter */}
+              <select
+                value={roleFilter}
+                onChange={(e) => {
+                  setRoleFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="role-select"
+              >
+                <option value="ALL">All User Roles</option>
+                <option value="SUPER_ADMIN">Super Admin Only</option>
+                <option value="ADMIN">Admin Only</option>
+                <option value="MERCHANT">Merchant Only</option>
+              </select>
+            </div>
+          </div>
+
+          {/* DATAGRID */}
+          <div className="table-responsive">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>User & Initiator</th>
+                  <th>Role</th>
+                  <th>Module</th>
+                  <th>Operation / Action</th>
+                  <th>IP Address</th>
+                  <th className="text-center">Status</th>
+                  <th className="text-right">Timestamp</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedLogs.length > 0 ? (
+                  paginatedLogs.map((log, index) => {
+                    const badgeStyle = getActionBadgeStyle(log.action);
+                    return (
+                      <tr key={log._id || index}>
+                        <td className="font-semibold text-slate-800">
+                          {log.user || "System"}
+                        </td>
+                        <td>
+                          <span className="role-tag">{log.role || "ADMIN"}</span>
+                        </td>
+                        <td>
+                          <span className="module-tag">{log.module || "SYSTEM"}</span>
+                        </td>
+                        <td>
+                          <span
+                            className="action-pill"
+                            style={{
+                              background: badgeStyle.bg,
+                              color: badgeStyle.text,
+                            }}
+                          >
+                            {log.action}
+                          </span>
+                        </td>
+                        <td className="text-slate-500 font-mono text-xs">
+                          {log.ipAddress || "127.0.0.1"}
+                        </td>
+                        <td className="text-center">
+                          <span
+                            className={`status-pill ${
+                              log.status === "SUCCESS"
+                                ? "pill-success"
+                                : log.status === "FAILED"
+                                ? "pill-failed"
+                                : "pill-warning"
+                            }`}
+                          >
+                            {log.status === "SUCCESS" ? (
+                              <FaCheckCircle size={10} />
+                            ) : (
+                              <FaExclamationCircle size={10} />
+                            )}
+                            {log.status || "SUCCESS"}
+                          </span>
+                        </td>
+                        <td className="text-right text-slate-500 text-xs">
+                          {log.createdAt ? new Date(log.createdAt).toLocaleString() : "-"}
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan="7" className="table-empty">
+                      No audit activities match your search criteria.
                     </td>
-                    <td style={{ ...tdStyle, color: "#64748b", fontWeight: "500" }}>{log.date}</td>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          {filteredLogs.length > itemsPerPage && (
+            <div className="pagination-wrapper">
+              <span className="pagination-info">
+                Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredLogs.length)} of {filteredLogs.length} audit logs
+              </span>
+
+              <div className="pagination-actions">
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((p) => p - 1)}
+                  className="page-btn"
+                >
+                  <FaChevronLeft size={12} /> Prev
+                </button>
+                <span className="page-current">
+                  {currentPage} / {totalPages}
+                </span>
+                <button
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((p) => p + 1)}
+                  className="page-btn"
+                >
+                  Next <FaChevronRight size={12} />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
+
       </div>
     </SuperAdminLayout>
   );
 };
-
-const cardLabel = { fontSize: "12px", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "12px" };
-const cardValue = { fontSize: "38px", fontWeight: "800", lineHeight: "1", letterSpacing: "-0.03em" };
-const cardBlue = { background: "linear-gradient(135deg, #1e40af, #1d4ed8)", borderRadius: "16px", padding: "24px", color: "#ffffff", boxShadow: "0 10px 25px -5px rgba(29, 78, 216, 0.15)" };
-const cardGreen = { background: "linear-gradient(135deg, #065f46, #10b981)", borderRadius: "16px", padding: "24px", color: "#ffffff", boxShadow: "0 10px 25px -5px rgba(16, 185, 129, 0.15)" };
-const cardOrange = { background: "linear-gradient(135deg, #c2410c, #ea580c)", borderRadius: "16px", padding: "24px", color: "#ffffff", boxShadow: "0 10px 25px -5px rgba(234, 88, 12, 0.15)" };
-const thStyle = { padding: "16px 24px", textAlign: "left", color: "#475569", fontWeight: "600", fontSize: "13px", textTransform: "uppercase", background: "#f8fafc", borderBottom: "1px solid #e2e8f0" };
-const tdStyle = { padding: "18px 24px", color: "#334155", fontSize: "14px", fontWeight: "500", borderBottom: "1px solid #f1f5f9" };
 
 export default AuditLogs;

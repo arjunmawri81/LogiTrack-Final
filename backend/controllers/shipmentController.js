@@ -15,6 +15,7 @@ const fs = require("fs");
 const path = require("path");
 const mongoose = require("mongoose");
 const Warehouse = require("../models/Warehouse"); // Added Warehouse import
+const { determineZone, calculateShippingRates } = require("./rateCardController");
 
 // ===============================
 // LOGGER (Simple Structured Logger)
@@ -1191,9 +1192,12 @@ const createShipment = async (req, res) => {
       });
     }
 
+    const selectedServiceType = req.body.serviceType || order.serviceType || "Surface";
+
     let rateCard = await RateCard.findOne({
       merchantId: req.user.id,
       courierId,
+      serviceType: selectedServiceType,
       isActive: true,
     }).session(session);
 
@@ -1201,52 +1205,46 @@ const createShipment = async (req, res) => {
       rateCard = await RateCard.findOne({
         merchantId: null,
         courierId,
+        serviceType: selectedServiceType,
         isActive: true,
       }).session(session);
     }
 
-    if (!rateCard) {
+    if (!rateCard || rateCard.enabled === false || rateCard.isActive === false) {
       if (session) await session.abortTransaction();
-      logger.warn("No rate card found", { merchantId: req.user.id, courierId });
-      return res.status(404).json({
+      return res.status(400).json({
         success: false,
-        message: "No pricing available for this courier. Please contact administrator.",
+        message: `No active rate card configured for courier '${courier.name}' with ${selectedServiceType} service mode. Please contact administrator to configure ${selectedServiceType} rates.`,
       });
     }
 
     const weight = Number(order.weight || 0);
+    const pickup = warehouse.pincode;
+    const destination = order.customerPincode;
+    const zone = determineZone(pickup, destination);
 
-    let SHIPPING_CHARGE = 0;
+    const calculated = calculateShippingRates(rateCard, {
+      weight,
+      length: Number(order.dimensions?.length || order.length || 0),
+      breadth: Number(order.dimensions?.breadth || order.breadth || 0),
+      height: Number(order.dimensions?.height || order.height || 0),
+      zone,
+      paymentMode: order.paymentMode,
+      insuranceEnabled,
+      amount: order.amount,
+    });
 
-    if (weight <= 0.5) {
-      SHIPPING_CHARGE = rateCard.forwardRates?.rate500gm || 0;
-    } else if (weight <= 1) {
-      SHIPPING_CHARGE = rateCard.forwardRates?.rate1kg || 0;
-    } else if (weight <= 2) {
-      SHIPPING_CHARGE = rateCard.forwardRates?.rate2kg || 0;
-    } else if (weight <= 5) {
-      SHIPPING_CHARGE = rateCard.forwardRates?.rate5kg || 0;
-    } else {
-      SHIPPING_CHARGE = 
-        (rateCard.forwardRates?.rate5kg || 0) +
-        (Math.ceil(weight - 5) * (rateCard.forwardRates?.additionalKg || 0));
-    }
-
-    if (order.paymentMode === "COD") {
-      SHIPPING_CHARGE += rateCard.codCharge || 0;
-    }
-
-    const insurancePercentage = Number(process.env.INSURANCE_PERCENTAGE || 2);
-    let insurancePremium = 0;
-
-    if (insuranceEnabled) {
-      insurancePremium = Math.ceil(
-        (order.amount || 0) * (insurancePercentage / 100)
-      );
-      SHIPPING_CHARGE += insurancePremium;
-    }
+    const sellRate = calculated.sellRate || calculated.finalCharge; // Inclusive of GST
+    const buyRate = calculated.buyRate || Math.round(sellRate * ((rateCard.internalCostPercent || 70) / 100));
+    const marginEarned = calculated.marginEarned !== undefined ? calculated.marginEarned : Math.round((sellRate - buyRate) * 100) / 100;
+    const SHIPPING_CHARGE = sellRate;
+    const subtotal = calculated.subtotal;
+    const taxAmount = calculated.gstAmount;
+    const insurancePremium = calculated.insuranceCharge;
+    const estimatedCourierCost = buyRate;
 
     order.shippingCharge = SHIPPING_CHARGE;
+    order.serviceType = selectedServiceType;
     await order.save({ session });
 
     let wallet = await Wallet.findOne({
@@ -1325,9 +1323,18 @@ const createShipment = async (req, res) => {
       },
       isCOD: order.paymentMode === "COD", // Added isCOD
       codAmount: order.paymentMode === "COD" ? order.amount : 0, // Added codAmount
-      shippingCharge: SHIPPING_CHARGE, // Added shippingCharge
-      codCharge: order.paymentMode === "COD" ? rateCard.codCharge || 0 : 0, // Added codCharge
-      fuelCharge: rateCard.fuelCharge || 0, // Added fuelCharge
+      shippingCharge: SHIPPING_CHARGE, // Added shippingCharge (Inclusive of GST)
+      courierCost: buyRate, // Internal courier cost
+      buyRate: buyRate, // Courier Buy Rate
+      sellRate: sellRate, // Merchant Sell Rate
+      marginEarned: marginEarned, // Net Freight Profit Margin
+      codCharge: calculated.codCharge || 0, // Added codCharge
+      codBuyCharge: calculated.codBuyCharge || 0,
+      codMarginEarned: calculated.codMarginEarned || 0,
+      rtoBuyCharge: calculated.rtoBuyCharge || 0,
+      totalNetProfit: (marginEarned || 0) + (calculated.codMarginEarned || 0),
+      fuelCharge: calculated.fuelCharge, // Added fuelCharge
+      serviceType: selectedServiceType, // Added serviceType
       tracking: [
         {
           status: "PICKUP_PENDING",
@@ -1340,7 +1347,7 @@ const createShipment = async (req, res) => {
 
     const createdShipment = shipment[0];
 
-    wallet.balance -= SHIPPING_CHARGE;
+    wallet.balance = Math.max(0, Math.round((wallet.balance - SHIPPING_CHARGE) * 100) / 100);
     wallet.transactions.push({
       amount: SHIPPING_CHARGE,
       type: "DEBIT",
@@ -1349,9 +1356,6 @@ const createShipment = async (req, res) => {
     });
     await wallet.save({ session });
 
-    const taxPercentage = Number(process.env.GST_PERCENTAGE || 18);
-    const taxAmount = Math.ceil((SHIPPING_CHARGE) * (taxPercentage / 100));
-
     const invoice = await Invoice.create([{
       invoiceNumber: generateInvoiceNumber(),
       merchantId: req.user.id,
@@ -1359,7 +1363,7 @@ const createShipment = async (req, res) => {
       shipmentId: createdShipment._id,
       amount: order.amount || 0,
       taxAmount: taxAmount,
-      shippingCharge: SHIPPING_CHARGE,
+      shippingCharge: subtotal,
       insuranceCharge: insurancePremium,
       paymentMethod: order.paymentMode || "COD",
       status: "PAID",
@@ -1498,26 +1502,44 @@ const createBulkShipments = async (req, res) => {
       });
     }
 
-    let rateCard = await RateCard.findOne({
+    // Fetch Surface Rate Card
+    let surfaceRateCard = await RateCard.findOne({
       merchantId: req.user.id,
       courierId,
+      serviceType: "Surface",
       isActive: true,
     }).session(session);
-
-    if (!rateCard) {
-      rateCard = await RateCard.findOne({
+    if (!surfaceRateCard) {
+      surfaceRateCard = await RateCard.findOne({
         merchantId: null,
         courierId,
+        serviceType: "Surface",
         isActive: true,
       }).session(session);
     }
 
-    if (!rateCard) {
-      if (session) await session.abortTransaction();
-      return res.status(404).json({
-        success: false,
-        message: "No pricing available for this courier. Please contact administrator.",
-      });
+    // Fetch Air Rate Card
+    let airRateCard = await RateCard.findOne({
+      merchantId: req.user.id,
+      courierId,
+      serviceType: "Air",
+      isActive: true,
+    }).session(session);
+    if (!airRateCard) {
+      airRateCard = await RateCard.findOne({
+        merchantId: null,
+        courierId,
+        serviceType: "Air",
+        isActive: true,
+      }).session(session);
+    }
+
+    // Ensure fallback is null if no rate card is configured
+    if (surfaceRateCard && (surfaceRateCard.enabled === false || surfaceRateCard.isActive === false)) {
+      surfaceRateCard = null;
+    }
+    if (airRateCard && (airRateCard.enabled === false || airRateCard.isActive === false)) {
+      airRateCard = null;
     }
 
     let wallet = await Wallet.findOne({
@@ -1563,26 +1585,36 @@ const createBulkShipments = async (req, res) => {
           continue;
         }
 
+        const selectedServiceType = req.body.serviceType || order.serviceType || "Surface";
+        const rateCard = selectedServiceType === "Air" ? airRateCard : surfaceRateCard;
+
+        if (!rateCard) {
+          failedOrders.push({ 
+            orderId, 
+            reason: `No rate card configured for service type: ${selectedServiceType}` 
+          });
+          continue;
+        }
+
         const weight = Number(order.weight || 0);
-        let shippingCharge = 0;
+        const pickup = warehouse.pincode;
+        const destination = order.customerPincode;
+        const zone = determineZone(pickup, destination);
 
-        if (weight <= 0.5) {
-          shippingCharge = rateCard.forwardRates?.rate500gm || 0;
-        } else if (weight <= 1) {
-          shippingCharge = rateCard.forwardRates?.rate1kg || 0;
-        } else if (weight <= 2) {
-          shippingCharge = rateCard.forwardRates?.rate2kg || 0;
-        } else if (weight <= 5) {
-          shippingCharge = rateCard.forwardRates?.rate5kg || 0;
-        } else {
-          shippingCharge = 
-            (rateCard.forwardRates?.rate5kg || 0) +
-            (Math.ceil(weight - 5) * (rateCard.forwardRates?.additionalKg || 0));
-        }
+        const calculated = calculateShippingRates(rateCard, {
+          weight,
+          length: Number(order.dimensions?.length || order.length || 0),
+          breadth: Number(order.dimensions?.breadth || order.breadth || 0),
+          height: Number(order.dimensions?.height || order.height || 0),
+          zone,
+          paymentMode: order.paymentMode,
+          insuranceEnabled: false,
+          amount: Number(order.amount || 0),
+        });
 
-        if (order.paymentMode === "COD") {
-          shippingCharge += rateCard.codCharge || 0;
-        }
+        const shippingCharge = calculated.finalCharge; // Inclusive of GST
+        const subtotal = calculated.subtotal;
+        const taxAmount = calculated.gstAmount;
 
         if (wallet.balance < shippingCharge) {
           failedOrders.push({ 
@@ -1639,9 +1671,17 @@ const createBulkShipments = async (req, res) => {
           },
           isCOD: order.paymentMode === "COD", // Added isCOD
           codAmount: order.paymentMode === "COD" ? order.amount : 0, // Added codAmount
-          shippingCharge: shippingCharge, // Added shippingCharge
-          codCharge: order.paymentMode === "COD" ? rateCard.codCharge || 0 : 0, // Added codCharge
-          fuelCharge: rateCard.fuelCharge || 0, // Added fuelCharge
+          shippingCharge: shippingCharge, // Added shippingCharge (Inclusive of GST)
+          buyRate: buyRate,
+          sellRate: sellRate,
+          marginEarned: marginEarned,
+          codCharge: calculated.codCharge || 0, // Added codCharge
+          codBuyCharge: calculated.codBuyCharge || 0,
+          codMarginEarned: calculated.codMarginEarned || 0,
+          rtoBuyCharge: calculated.rtoBuyCharge || 0,
+          totalNetProfit: (marginEarned || 0) + (calculated.codMarginEarned || 0),
+          fuelCharge: calculated.fuelCharge, // Added fuelCharge
+          serviceType: selectedServiceType, // Added serviceType
           tracking: [
             {
               status: "PICKUP_PENDING",
@@ -1655,9 +1695,6 @@ const createBulkShipments = async (req, res) => {
         const createdShipment = shipment[0];
         createdShipmentIds.push(createdShipment._id);
 
-        const taxPercentage = Number(process.env.GST_PERCENTAGE || 18);
-        const taxAmount = Math.ceil((shippingCharge) * (taxPercentage / 100));
-
         const invoice = await Invoice.create([{
           invoiceNumber: generateInvoiceNumber(),
           merchantId: req.user.id,
@@ -1665,7 +1702,7 @@ const createBulkShipments = async (req, res) => {
           shipmentId: createdShipment._id,
           amount: order.amount || 0,
           taxAmount: taxAmount,
-          shippingCharge: shippingCharge,
+          shippingCharge: subtotal,
           insuranceCharge: 0,
           paymentMethod: order.paymentMode || "COD",
           status: "PAID",
@@ -1686,11 +1723,12 @@ const createBulkShipments = async (req, res) => {
         
         order.status = ORDER_STATUS_MAP[createdShipment.status] || "READY_FOR_PICKUP";
         order.shippingCharge = shippingCharge;
+        order.serviceType = selectedServiceType;
         await order.save({ session });
 
         shipments.push(createdShipment);
 
-        wallet.balance -= shippingCharge;
+        wallet.balance = Math.max(0, Math.round((wallet.balance - shippingCharge) * 100) / 100);
         totalCharges += shippingCharge;
         wallet.transactions.push({
           amount: shippingCharge,
@@ -1903,7 +1941,12 @@ const updateShipmentStatus = async (req, res) => {
       });
     }
 
-    const shipment = await Shipment.findById(id);
+    const query = { _id: id };
+    if (req.user.role === "MERCHANT") {
+      query.merchantId = req.user.id;
+    }
+
+    const shipment = await Shipment.findOne(query);
 
     if (!shipment) {
       return res.status(404).json({
@@ -2004,6 +2047,21 @@ const updateShipmentStatus = async (req, res) => {
             error: err.message,
           });
         }
+      }
+    }
+
+    if (status === "DELIVERED" && order && order.paymentMode === "COD") {
+      const Remittance = require("../models/Remittance");
+      try {
+        await Remittance.create({
+          merchantId: shipment.merchantId,
+          shipmentId: shipment._id,
+          awb: shipment.awb,
+          codAmount: order.amount,
+        });
+        logger.info("Remittance record created for COD delivery", { awb: shipment.awb });
+      } catch (err) {
+        logger.error("Remittance creation error", { error: err.message });
       }
     }
 
@@ -2237,6 +2295,15 @@ const generateLabel = async (req, res) => {
       success: false,
       message: error.message,
     });
+  } finally {
+    if (req.file && req.file.path) {
+      try {
+        const fs = require("fs");
+        if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+      } catch (err) {
+        logger.error("Temp logo cleanup failed", { error: err.message });
+      }
+    }
   }
 };
 
@@ -2383,6 +2450,15 @@ const bulkLabels = async (req, res) => {
       success: false,
       message: error.message,
     });
+  } finally {
+    if (req.file && req.file.path) {
+      try {
+        const fs = require("fs");
+        if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+      } catch (err) {
+        logger.error("Temp logo cleanup failed", { error: err.message });
+      }
+    }
   }
 };
 
@@ -2400,7 +2476,7 @@ const cancelShipment = async (req, res) => {
       });
     }
 
-    // ✅ Ownership check: MERCHANT must own their shipment, ADMIN/SUPER_ADMIN is allowed.
+    // Ownership check: MERCHANT must own their shipment, ADMIN/SUPER_ADMIN is allowed.
     if (req.user.role === "MERCHANT" && shipment.merchantId.toString() !== req.user.id) {
       return res.status(403).json({
         success: false,
@@ -2408,23 +2484,34 @@ const cancelShipment = async (req, res) => {
       });
     }
 
+    if (shipment.status === "CANCELLED") {
+      return res.status(200).json({
+        success: true,
+        message: "Shipment is already cancelled",
+        shipment,
+      });
+    }
+
     const courier = await Courier.findById(shipment.courierId);
     await CourierService.cancelShipment(courier, shipment._id);
 
-    // ✅ Refund merchant wallet
+    // Refund merchant wallet (Atomic)
     const refundAmount = shipment.shippingCharge || 0;
     if (refundAmount > 0) {
-      const wallet = await Wallet.findOne({ merchantId: shipment.merchantId });
-      if (wallet) {
-        wallet.balance += refundAmount;
-        wallet.transactions.push({
-          amount: refundAmount,
-          type: "CREDIT",
-          description: `Refund for Cancelled Shipment AWB #${shipment.awb}`,
-          createdAt: new Date(),
-        });
-        await wallet.save();
-      }
+      await Wallet.findOneAndUpdate(
+        { merchantId: shipment.merchantId },
+        {
+          $inc: { balance: refundAmount },
+          $push: {
+            transactions: {
+              amount: refundAmount,
+              type: "CREDIT",
+              description: `Refund for Cancelled Shipment AWB #${shipment.awb}`,
+              createdAt: new Date(),
+            },
+          },
+        }
+      );
     }
 
     shipment.status = "CANCELLED";

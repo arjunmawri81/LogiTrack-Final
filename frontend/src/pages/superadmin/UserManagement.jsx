@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import SuperAdminLayout from "./SuperAdminLayout";
+import "./UserManagement.css";
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -35,53 +36,24 @@ const UserManagement = () => {
 
   return (
     <SuperAdminLayout>
-      <div
-        style={{
-          maxWidth: "1400px",
-          margin: "0 auto",
-          padding: "10px",
-        }}
-      >
-        <h1
-          style={{
-            fontSize: "32px",
-            fontWeight: "800",
-            marginBottom: "10px",
-          }}
-        >
+      <div className="user-mgmt-container">
+        <h1 className="page-title">
           User Management 👥
         </h1>
 
-        <p
-          style={{
-            color: "#64748b",
-            marginBottom: "30px",
-          }}
-        >
+        <p className="page-subtitle">
           Manage all platform users
         </p>
 
-        <div
-          style={{
-            background: "#fff",
-            borderRadius: "16px",
-            padding: "24px",
-            overflowX: "auto",
-          }}
-        >
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-            }}
-          >
+        <div className="table-card">
+          <table className="data-table">
             <thead>
               <tr>
-                <th style={thStyle}>Name</th>
-                <th style={thStyle}>Email</th>
-                <th style={thStyle}>Role</th>
-                <th style={thStyle}>Status</th>
-                <th style={thStyle}>Action</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Action</th>
               </tr>
             </thead>
 
@@ -89,67 +61,34 @@ const UserManagement = () => {
               {users.length > 0 ? (
                 users.map((user) => (
                   <tr key={user._id}>
-                    <td style={tdStyle}>
+                    <td>
                       {user.name}
                     </td>
 
-                    <td style={tdStyle}>
+                    <td>
                       {user.email}
                     </td>
 
-                    <td style={tdStyle}>
+                    <td>
                       {user.role}
                     </td>
 
-                    <td style={tdStyle}>
-                      <span
-                        style={{
-                          background:
-                            user.isBlocked
-                              ? "#fee2e2"
-                              : "#dcfce7",
-
-                          color:
-                            user.isBlocked
-                              ? "#dc2626"
-                              : "#15803d",
-
-                          padding:
-                            "6px 12px",
-
-                          borderRadius:
-                            "999px",
-
-                          fontSize: "12px",
-
-                          fontWeight: "600",
-                        }}
-                      >
+                    <td>
+                      <span className={`status-badge ${user.isBlocked ? "blocked" : "active"}`}>
                         {user.isBlocked
                           ? "Blocked"
                           : "Active"}
                       </span>
                     </td>
 
-                    <td style={tdStyle}>
+                    <td>
                       <button
                         onClick={() =>
                           deleteUser(
                             user._id
                           )
                         }
-                        style={{
-                          padding:
-                            "8px 14px",
-                          border: "none",
-                          borderRadius:
-                            "8px",
-                          background:
-                            "#dc2626",
-                          color: "#fff",
-                          cursor:
-                            "pointer",
-                        }}
+                        className="delete-btn"
                       >
                         Delete
                       </button>
@@ -177,18 +116,6 @@ const UserManagement = () => {
       </div>
     </SuperAdminLayout>
   );
-};
-
-const thStyle = {
-  textAlign: "left",
-  padding: "14px",
-  background: "#f8fafc",
-  borderBottom: "1px solid #e5e7eb",
-};
-
-const tdStyle = {
-  padding: "14px",
-  borderBottom: "1px solid #f1f5f9",
 };
 
 export default UserManagement;

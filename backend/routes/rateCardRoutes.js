@@ -10,19 +10,40 @@ const {
 const {
   saveRateCard,
   getMerchantRateCards,
+  getMyRateCards,
   getCourierRateCard,
   deleteRateCard,
+  reactivateRateCard,
   getRecommendedCouriers,
   calculatePricing,
+  checkServiceability,
 } = require("../controllers/rateCardController");
 
 // ====================================
-// SAVE OR UPDATE RATE CARD
+// SERVICEABILITY CHECK
+// ====================================
+router.get(
+  "/serviceability/:pincode",
+  authMiddleware,
+  checkServiceability
+);
+
+// ====================================
+// GET LOGGED-IN MERCHANT'S RATE CARDS
+// ====================================
+router.get(
+  "/my-ratecards",
+  authMiddleware,
+  getMyRateCards
+);
+
+// ====================================
+// SAVE OR UPDATE RATE CARD (SUPER_ADMIN ONLY)
 // ====================================
 router.post(
   "/save",
   authMiddleware,
-  authorizeRoles("SUPER_ADMIN"), // ✅ ONLY SUPER_ADMIN
+  authorizeRoles("SUPER_ADMIN"),
   saveRateCard
 );
 
@@ -32,7 +53,7 @@ router.post(
 router.get(
   "/merchant/:merchantId",
   authMiddleware,
-  authorizeRoles("ADMIN", "SUPER_ADMIN"), // ✅ CHANGED: Added ADMIN
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
   getMerchantRateCards
 );
 
@@ -42,7 +63,7 @@ router.get(
 router.get(
   "/merchant/:merchantId/:courierId",
   authMiddleware,
-  authorizeRoles("ADMIN", "SUPER_ADMIN"), // ✅ CHANGED: Added ADMIN
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
   getCourierRateCard
 );
 
@@ -65,13 +86,23 @@ router.post(
 );
 
 // ====================================
-// DELETE RATE CARD
+// DELETE RATE CARD (SUPER_ADMIN ONLY)
 // ====================================
 router.delete(
   "/delete/:id",
   authMiddleware,
-  authorizeRoles("SUPER_ADMIN"), // ✅ ONLY SUPER_ADMIN
+  authorizeRoles("SUPER_ADMIN"),
   deleteRateCard
 );
 
-module.exports = router;
+// ====================================
+// REACTIVATE RATE CARD (SUPER_ADMIN ONLY)
+// ====================================
+router.patch(
+  "/delete/:id/reactivate",
+  authMiddleware,
+  authorizeRoles("SUPER_ADMIN"),
+  reactivateRateCard
+);
+
+module.exports = router;

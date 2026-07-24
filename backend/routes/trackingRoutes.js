@@ -11,7 +11,7 @@
 const express = require("express");
 const router = express.Router();
 
-const { authMiddleware } = require("../middleware/authMiddleware");
+const { authMiddleware, authorizeRoles } = require("../middleware/authMiddleware");
 
 const {
   getTracking,
@@ -27,6 +27,7 @@ router.get(
 router.put(
   "/:id/status",
   authMiddleware,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
   updateShipmentStatus
 );
 

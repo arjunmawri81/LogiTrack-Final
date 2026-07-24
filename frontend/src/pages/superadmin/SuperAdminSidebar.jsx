@@ -10,7 +10,7 @@ import {
   FaCog,
   FaClipboardList,
   FaSignOutAlt,
-  FaTruck, // ✅ ADDED: FaTruck import
+  FaTruck,
 } from "react-icons/fa";
 
 const SuperAdminSidebar = () => {
@@ -22,6 +22,7 @@ const SuperAdminSidebar = () => {
   };
 
   return (
+    <div className="superadmin-scope">
     <div className="sidebar">
       {/* BRAND HEADER CONTAINER */}
       <div className="sidebar-header">
@@ -61,7 +62,7 @@ const SuperAdminSidebar = () => {
           </NavLink>
         </li>
 
-        {/* ✅ NEW: Couriers Menu Item */}
+        {/* Couriers Menu Item */}
         <li>
           <NavLink to="/superadmin/couriers" className={({ isActive }) => isActive ? "active" : ""}>
             <FaTruck style={{ fontSize: "20px" }} />
@@ -110,6 +111,7 @@ const SuperAdminSidebar = () => {
         <FaSignOutAlt style={{ fontSize: "18px" }} />
         <span>Logout</span>
       </div>
+    </div>
     </div>
   );
 };

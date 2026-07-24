@@ -1,3 +1,4 @@
+.superadmin-scope {
 /* BASE SYSTEM ROOT STYLING */
 .sidebar {
   width: 280px;
@@ -123,7 +124,7 @@
   color: #ffffff !important;
 }
 
-/* ✅ COURIERS - Specific Active State (Optional - can have its own color or keep consistent) */
+/* COURIERS - Specific Active State (Optional - can have its own color or keep consistent) */
 .sidebar-menu a[href="/superadmin/couriers"].active {
   background: linear-gradient(90deg, #ff6b00, #ff8c3a) !important;
   box-shadow: 0 4px 15px rgba(255, 107, 0, 0.25);
@@ -134,7 +135,7 @@
   color: #ffffff;
 }
 
-/* ✅ COMMISSION - Specific Active State (Green Theme) */
+/* COMMISSION - Specific Active State (Green Theme) */
 .sidebar-menu a[href="/superadmin/commission"].active {
   background: linear-gradient(90deg, #10b981, #059669) !important;
   box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25);
@@ -145,7 +146,7 @@
   color: #34d399;
 }
 
-/* ✅ API MONITORING - Specific Active State (Purple Theme) */
+/* API MONITORING - Specific Active State (Purple Theme) */
 .sidebar-menu a[href="/superadmin/api-monitoring"].active {
   background: linear-gradient(90deg, #8b5cf6, #7c3aed) !important;
   box-shadow: 0 4px 15px rgba(139, 92, 246, 0.25);
@@ -156,7 +157,7 @@
   color: #a78bfa;
 }
 
-/* ✅ AUDIT LOGS - Specific Active State (Cyan Theme) */
+/* AUDIT LOGS - Specific Active State (Cyan Theme) */
 .sidebar-menu a[href="/superadmin/audit-logs"].active {
   background: linear-gradient(90deg, #06b6d4, #0891b2) !important;
   box-shadow: 0 4px 15px rgba(6, 182, 212, 0.25);
@@ -167,7 +168,7 @@
   color: #22d3ee;
 }
 
-/* ✅ REVENUE - Specific Active State (Amber Theme) */
+/* REVENUE - Specific Active State (Amber Theme) */
 .sidebar-menu a[href="/superadmin/revenue"].active {
   background: linear-gradient(90deg, #f59e0b, #d97706) !important;
   box-shadow: 0 4px 15px rgba(245, 158, 11, 0.25);
@@ -178,7 +179,7 @@
   color: #fbbf24;
 }
 
-/* ✅ ADMINS - Specific Active State (Blue Theme) */
+/* ADMINS - Specific Active State (Blue Theme) */
 .sidebar-menu a[href="/superadmin/admins"].active {
   background: linear-gradient(90deg, #3b82f6, #2563eb) !important;
   box-shadow: 0 4px 15px rgba(59, 130, 246, 0.25);
@@ -189,7 +190,7 @@
   color: #60a5fa;
 }
 
-/* ✅ MERCHANTS - Specific Active State (Teal Theme) */
+/* MERCHANTS - Specific Active State (Teal Theme) */
 .sidebar-menu a[href="/superadmin/merchants"].active {
   background: linear-gradient(90deg, #14b8a6, #0d9488) !important;
   box-shadow: 0 4px 15px rgba(20, 184, 166, 0.25);
@@ -200,7 +201,7 @@
   color: #2dd4bf;
 }
 
-/* ✅ DASHBOARD - Specific Active State (Orange Theme) */
+/* DASHBOARD - Specific Active State (Orange Theme) */
 .sidebar-menu a[href="/superadmin/dashboard"].active {
   background: linear-gradient(90deg, #ff6b00, #ff8c3a) !important;
   box-shadow: 0 4px 15px rgba(255, 107, 0, 0.25);
@@ -211,7 +212,7 @@
   color: #ff8c3a;
 }
 
-/* ✅ SETTINGS - Specific Active State (Slate Theme) */
+/* SETTINGS - Specific Active State (Slate Theme) */
 .sidebar-menu a[href="/superadmin/settings"].active {
   background: linear-gradient(90deg, #64748b, #475569) !important;
   box-shadow: 0 4px 15px rgba(100, 116, 139, 0.25);
@@ -230,7 +231,7 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  color: #fca5a5; /* Soft Coral Red */
+  color: #fca5a5; 
   font-size: 15px;
   font-weight: 600;
   border-radius: 10px;
@@ -303,4 +304,5 @@
 /* ADDITIONAL: Smooth Transitions for All Links */
 .sidebar-menu a {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
 }

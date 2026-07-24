@@ -230,7 +230,7 @@
 
 @media (max-width: 768px) {
   .admin-content {
-    margin-left: 0 !important;
+    margin-left: 70px;
     padding: 16px;
   }
 

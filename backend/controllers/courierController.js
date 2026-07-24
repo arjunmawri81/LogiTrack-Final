@@ -1,6 +1,7 @@
 const Courier = require("../models/Courier");
 const Shipment = require("../models/Shipment");
 const Order = require("../models/Order");
+const WebhookEvent = require("../models/WebhookEvent");
 const { ORDER_STATUS_MAP } = require("../constants/statusConstants");
 
 // ==============================
@@ -217,6 +218,13 @@ const handleWebhook = async (req, res) => {
         message: "Missing required webhook payload fields: awb, status, trackingUrl",
       });
     }
+
+    const eventId = req.body.eventId || `${awb}_${status}_${req.body.timestamp || Date.now()}`;
+    const alreadyProcessed = await WebhookEvent.findOne({ eventId });
+    if (alreadyProcessed) {
+      return res.status(200).json({ success: true, message: "Already processed" }); // ack without reprocessing
+    }
+    await WebhookEvent.create({ eventId });
 
     const shipment = await Shipment.findOne({ awb });
 

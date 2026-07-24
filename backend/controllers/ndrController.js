@@ -1,31 +1,52 @@
+const mongoose = require("mongoose");
 const NDR = require("../models/NDR");
 const RTO = require("../models/RTO");
 const Shipment = require("../models/Shipment");
 const Order = require("../models/Order");
 
+// Helper to check replica set for Mongoose transactions
+const checkReplicaSet = async () => {
+  try {
+    if (!mongoose.connection || !mongoose.connection.db) return false;
+    const hello = await mongoose.connection.db.admin().command({ hello: 1 });
+    return !!hello.setName;
+  } catch (err) {
+    return false;
+  }
+};
+
 // =================================
 // CREATE NDR
 // =================================
 const createNDR = async (req, res) => {
+  let session = null;
   try {
+    const isReplSet = await checkReplicaSet();
+    if (isReplSet) {
+      session = await mongoose.startSession();
+      session.startTransaction();
+    }
+
     const {
-      orderId, shipmentId, awb, reason, status, remarks, actionNote,
+      orderId, shipmentId, awb, reason, remarks, actionNote,
       customerName, customerPhone, address, pincode, expectedDeliveryDate
     } = req.body;
     
     if (!orderId || !shipmentId || !awb || !reason) {
+      if (session) await session.abortTransaction();
       return res.status(400).json({
         success: false,
         message: "Missing required fields: orderId, shipmentId, awb, reason",
       });
     }
 
-    const ndr = await NDR.create({
+    // Force default status "PENDING"
+    const ndr = await NDR.create([{
       orderId,
       shipmentId,
       awb,
       reason,
-      status,
+      status: "PENDING",
       remarks,
       actionNote,
       customerName,
@@ -34,17 +55,46 @@ const createNDR = async (req, res) => {
       pincode,
       expectedDeliveryDate,
       merchantId: req.user.id,
-    });
+    }], session ? { session } : {});
+
+    const createdNdr = ndr[0];
+
+    // Update Shipment Status and Timeline via Mongoose updateNDR method
+    const shipment = await Shipment.findOne({ _id: shipmentId, merchantId: req.user.id }).session(session);
+    if (!shipment) {
+      if (session) await session.abortTransaction();
+      return res.status(404).json({
+        success: false,
+        message: "Associated shipment not found",
+      });
+    }
+    await shipment.updateNDR("PENDING", { reason });
+
+    // Update Order Status
+    const order = await Order.findById(orderId).session(session);
+    if (order) {
+      order.status = "NDR";
+      await order.save({ session });
+    }
+
+    if (session) await session.commitTransaction();
 
     res.status(201).json({
       success: true,
-      ndr,
+      ndr: createdNdr,
     });
   } catch (error) {
+    if (session) {
+      try {
+        await session.abortTransaction();
+      } catch (err) {}
+    }
     res.status(500).json({
       success: false,
       message: error.message,
     });
+  } finally {
+    if (session) await session.endSession();
   }
 };
 
@@ -77,13 +127,21 @@ const getNDRs = async (req, res) => {
 // RESOLVE NDR
 // =================================
 const resolveNDR = async (req, res) => {
+  let session = null;
   try {
+    const isReplSet = await checkReplicaSet();
+    if (isReplSet) {
+      session = await mongoose.startSession();
+      session.startTransaction();
+    }
+
     const ndr = await NDR.findOne({
       _id: req.params.id,
       merchantId: req.user.id,
-    });
+    }).session(session);
 
     if (!ndr) {
+      if (session) await session.abortTransaction();
       return res.status(404).json({
         success: false,
         message: "NDR not found",
@@ -92,8 +150,22 @@ const resolveNDR = async (req, res) => {
 
     ndr.status = "RESOLVED";
     ndr.actionTaken = "RESOLVED";
+    await ndr.save({ session });
 
-    await ndr.save();
+    // Update Shipment
+    const shipment = await Shipment.findById(ndr.shipmentId).session(session);
+    if (shipment) {
+      await shipment.updateNDR("RESOLVED");
+    }
+
+    // Update Order status based on Shipment mapping
+    const order = await Order.findById(ndr.orderId).session(session);
+    if (order && shipment) {
+      order.status = "SHIPPED"; // Map to business status
+      await order.save({ session });
+    }
+
+    if (session) await session.commitTransaction();
 
     res.status(200).json({
       success: true,
@@ -101,10 +173,17 @@ const resolveNDR = async (req, res) => {
       ndr,
     });
   } catch (error) {
+    if (session) {
+      try {
+        await session.abortTransaction();
+      } catch (err) {}
+    }
     res.status(500).json({
       success: false,
       message: error.message,
     });
+  } finally {
+    if (session) await session.endSession();
   }
 };
 
@@ -125,7 +204,7 @@ const reattemptNDR = async (req, res) => {
       });
     }
 
-    // ✅ Check if NDR is in PENDING status
+    // Check if NDR is in PENDING status
     if (ndr.status !== "PENDING") {
       return res.status(400).json({
         success: false,
@@ -133,16 +212,24 @@ const reattemptNDR = async (req, res) => {
       });
     }
 
-    // ✅ Update status to REATTEMPT_REQUESTED
+    // Check max attempts
+    if (ndr.deliveryAttempts >= (ndr.maxAttempts || 3)) {
+      return res.status(400).json({
+        success: false,
+        message: `Maximum delivery attempts (${ndr.maxAttempts || 3}) reached. Cannot request further reattempts.`,
+      });
+    }
+
+    // Update status to REATTEMPT_REQUESTED
     ndr.status = "REATTEMPT_REQUESTED";
     ndr.actionTaken = "REATTEMPT_REQUESTED";
     
-    // ✅ Save merchant's note
+    // Save merchant's note
     if (req.body.note) {
       ndr.actionNote = req.body.note;
     }
 
-    //  Save new address, phone, and p
+    // Save new address, phone, and pincode
     if (req.body.address) ndr.address = req.body.address;
     if (req.body.customerPhone) ndr.customerPhone = req.body.customerPhone;
     if (req.body.pincode) ndr.pincode = req.body.pincode;
@@ -179,7 +266,7 @@ const convertToRTO = async (req, res) => {
       });
     }
 
-    //  Check if NDR is in PENDING status
+    // Check if NDR is in PENDING status
     if (ndr.status !== "PENDING") {
       return res.status(400).json({
         success: false,
@@ -191,7 +278,7 @@ const convertToRTO = async (req, res) => {
     ndr.status = "RTO_REQUESTED";
     ndr.actionTaken = "RTO_REQUESTED";
     
-    //  Save merchant's note
+    // Save merchant's note
     if (req.body.note) {
       ndr.actionNote = req.body.note;
     }
@@ -215,58 +302,94 @@ const convertToRTO = async (req, res) => {
 // ADMIN: APPROVE REATTEMPT
 // =================================
 const approveReattempt = async (req, res) => {
+  let session = null;
   try {
+    const isReplSet = await checkReplicaSet();
+    if (isReplSet) {
+      session = await mongoose.startSession();
+      session.startTransaction();
+    }
+
     const ndr = await NDR.findOne({
       _id: req.params.id,
-    });
+    }).session(session);
 
     if (!ndr) {
+      if (session) await session.abortTransaction();
       return res.status(404).json({
         success: false,
         message: "NDR not found",
       });
     }
 
-    // ✅ Check if NDR is in REATTEMPT_REQUESTED status
+    // Check if NDR is in REATTEMPT_REQUESTED status
     if (ndr.status !== "REATTEMPT_REQUESTED") {
+      if (session) await session.abortTransaction();
       return res.status(400).json({
         success: false,
         message: `NDR is not in REATTEMPT_REQUESTED status. Current: ${ndr.status}`,
       });
     }
 
-    // Update status to REATTEMPT
+    ndr.deliveryAttempts += 1;
+
+    // Auto-convert to RTO if max attempts reached
+    if (ndr.deliveryAttempts >= (ndr.maxAttempts || 3)) {
+      ndr.status = "RTO_REQUESTED";
+      ndr.actionTaken = "AUTO_RTO_MAX_ATTEMPTS";
+      ndr.adminNote = "Max reattempts reached — auto-converted to RTO";
+      await ndr.save({ session });
+
+      const shipmentForRTO = await Shipment.findById(ndr.shipmentId).session(session);
+      await RTO.create([{
+        shipmentId: ndr.shipmentId,
+        merchantId: ndr.merchantId,
+        orderId: ndr.orderId,
+        ndrId: ndr._id,
+        awb: ndr.awb,
+        courier: shipmentForRTO?.courier || ndr.courier || "Courier",
+        reason: "Max delivery attempts exceeded",
+        rtoReason: "Max delivery attempts exceeded",
+        status: "INITIATED",
+        source: "auto_max_attempts",
+      }], session ? { session } : {});
+
+      if (shipmentForRTO) {
+        shipmentForRTO.rtoStatus = "INITIATED";
+        await shipmentForRTO.save({ session });
+      }
+
+      if (session) await session.commitTransaction();
+      return res.status(200).json({
+        success: true,
+        message: "Max reattempts reached. Shipment auto-converted to RTO.",
+        ndr,
+      });
+    }
+
     ndr.status = "REATTEMPT";
     ndr.actionTaken = "REATTEMPT";
-    
-    //  Save admin's note
     if (req.body.adminNote) {
       ndr.adminNote = req.body.adminNote;
     }
 
-    //  Increment attempt count
-    ndr.deliveryAttempts += 1;
-    
-    // Set next attempt date (e.g., 2 days from now)
     const nextDate = new Date();
     nextDate.setDate(nextDate.getDate() + 2);
     ndr.nextAttemptDate = nextDate;
 
-    await ndr.save();
+    await ndr.save({ session });
 
-    //  Sync details to Order, update Order and Shipment status, and update timeline
-    const order = await Order.findById(ndr.orderId);
+    const order = await Order.findById(ndr.orderId).session(session);
     if (order) {
       if (ndr.address) order.customerAddress = ndr.address;
       if (ndr.customerPhone) order.customerPhone = ndr.customerPhone;
       if (ndr.pincode) order.customerPincode = ndr.pincode;
-      order.status = "SHIPPED"; // Map to business status
-      await order.save();
+      order.status = "SHIPPED";
+      await order.save({ session });
     }
 
-    const shipment = await Shipment.findById(ndr.shipmentId);
+    const shipment = await Shipment.findById(ndr.shipmentId).session(session);
     if (shipment) {
-      // Use addTrackingEvent to properly sync status and tracking timeline
       await shipment.addTrackingEvent(
         "IN_TRANSIT",
         "Sorting Hub",
@@ -274,16 +397,25 @@ const approveReattempt = async (req, res) => {
       );
     }
 
+    if (session) await session.commitTransaction();
+
     res.status(200).json({
       success: true,
       message: "Reattempt approved successfully",
       ndr,
     });
   } catch (error) {
+    if (session) {
+      try {
+        await session.abortTransaction();
+      } catch (err) {}
+    }
     res.status(500).json({
       success: false,
       message: error.message,
     });
+  } finally {
+    if (session) await session.endSession();
   }
 };
 
@@ -311,11 +443,9 @@ const rejectReattempt = async (req, res) => {
       });
     }
 
-    //  Revert back to PENDING
+    // Revert back to PENDING
     ndr.status = "PENDING";
     ndr.actionTaken = "NONE";
-    
-    //  Save admin's note
     if (req.body.adminNote) {
       ndr.adminNote = req.body.adminNote;
     }
@@ -339,56 +469,65 @@ const rejectReattempt = async (req, res) => {
 // ADMIN: APPROVE RTO
 // =================================
 const approveRTO = async (req, res) => {
+  let session = null;
   try {
+    const isReplSet = await checkReplicaSet();
+    if (isReplSet) {
+      session = await mongoose.startSession();
+      session.startTransaction();
+    }
+
     const ndr = await NDR.findOne({
       _id: req.params.id,
-    });
+    }).session(session);
 
     if (!ndr) {
+      if (session) await session.abortTransaction();
       return res.status(404).json({
         success: false,
         message: "NDR not found",
       });
     }
 
-    //  Check if NDR is in RTO_REQUESTED status
+    // Check if NDR is in RTO_REQUESTED status
     if (ndr.status !== "RTO_REQUESTED") {
+      if (session) await session.abortTransaction();
       return res.status(400).json({
         success: false,
         message: `NDR is not in RTO_REQUESTED status. Current: ${ndr.status}`,
       });
     }
 
-    //  Update status to RTO
     ndr.status = "RTO";
     ndr.actionTaken = "RTO";
-    
-    //  Save admin's note
     if (req.body.adminNote) {
       ndr.adminNote = req.body.adminNote;
     }
+    await ndr.save({ session });
 
-    await ndr.save();
-
-    //  Update Order and Shipment statuses, and push tracking timeline
-    const order = await Order.findById(ndr.orderId);
+    const order = await Order.findById(ndr.orderId).session(session);
     if (order) {
       order.status = "RTO";
-      await order.save();
+      await order.save({ session });
     }
 
-    const shipment = await Shipment.findById(ndr.shipmentId);
+    const shipment = await Shipment.findById(ndr.shipmentId).session(session);
     if (shipment) {
-      // Use addTrackingEvent to properly sync status and tracking timeline
       await shipment.addTrackingEvent(
         "RTO_INITIATED",
         "Sorting Hub",
         `RTO approved by admin. Package is returning to origin. Remarks: ${ndr.adminNote || ndr.actionNote || ""}`
       );
+      shipment.rtoStatus = "INITIATED";
+      shipment.rtoDetails = {
+        reason: ndr.reason || "Marked RTO from NDR",
+        initiatedDate: new Date()
+      };
+      await shipment.save({ session });
     }
 
-    //  Create RTO record in RTO collection
-    await RTO.create({
+    // Create RTO record in RTO collection
+    await RTO.create([{
       shipmentId: ndr.shipmentId,
       merchantId: ndr.merchantId,
       orderId: ndr.orderId,
@@ -409,7 +548,9 @@ const approveRTO = async (req, res) => {
       rtoApprovedBy: req.user?.id || null,
       source: "ndr_rto_approval",
       createdBy: "merchant",
-    });
+    }], { session });
+
+    if (session) await session.commitTransaction();
 
     res.status(200).json({
       success: true,
@@ -417,10 +558,17 @@ const approveRTO = async (req, res) => {
       ndr,
     });
   } catch (error) {
+    if (session) {
+      try {
+        await session.abortTransaction();
+      } catch (err) {}
+    }
     res.status(500).json({
       success: false,
       message: error.message,
     });
+  } finally {
+    if (session) await session.endSession();
   }
 };
 
@@ -440,7 +588,7 @@ const rejectRTO = async (req, res) => {
       });
     }
 
-    //  Check if NDR is in RTO_REQUESTED status
+    // Check if NDR is in RTO_REQUESTED status
     if (ndr.status !== "RTO_REQUESTED") {
       return res.status(400).json({
         success: false,
@@ -448,11 +596,9 @@ const rejectRTO = async (req, res) => {
       });
     }
 
-    //  Revert back to PENDING
+    // Revert back to PENDING
     ndr.status = "PENDING";
     ndr.actionTaken = "NONE";
-    
-    //  Save admin's note
     if (req.body.adminNote) {
       ndr.adminNote = req.body.adminNote;
     }

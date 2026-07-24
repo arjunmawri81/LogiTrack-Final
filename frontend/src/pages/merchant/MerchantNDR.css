@@ -121,12 +121,12 @@
 }
 
 .ndr-btn-reattempt {
-  background: #f97316;
+  background: #2563eb;
   padding: 6px 12px;
   font-size: 11px;
 }
 .ndr-btn-reattempt:hover:not(:disabled) {
-  background: #ea580c;
+  background: #1d4ed8;
 }
 
 .ndr-btn-rto {
@@ -169,7 +169,7 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-.ndr-stat-total { border-top: 3px solid #f97316; }
+.ndr-stat-total { border-top: 3px solid #2563eb; }
 .ndr-stat-pending { border-top: 3px solid #d97706; }
 .ndr-stat-reattempt { border-top: 3px solid #8b5cf6; }
 .ndr-stat-resolved { border-top: 3px solid #16a34a; }
@@ -180,7 +180,7 @@
   margin-bottom: 6px;
 }
 
-.ndr-stat-icon-total { color: #f97316; }
+.ndr-stat-icon-total { color: #2563eb; }
 .ndr-stat-icon-pending { color: #d97706; }
 .ndr-stat-icon-reattempt { color: #8b5cf6; }
 .ndr-stat-icon-resolved { color: #16a34a; }
@@ -218,8 +218,8 @@
 }
 
 .ndr-search-wrapper:focus-within {
-  border-color: #f97316;
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .ndr-search-icon {
@@ -268,9 +268,10 @@
 }
 
 .ndr-filter-select:focus {
-  border-color: #f97316;
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
+
 
 /* ============================================ */
 /* TABLE CARD */

@@ -3,6 +3,7 @@ const router = express.Router();
 
 const {
   authMiddleware,
+  authorizeRoles,
 } = require("../middleware/authMiddleware");
 
 const upload = require("../middleware/uploadMiddleware");
@@ -110,6 +111,7 @@ router.delete(
 router.patch(
   "/:id/status",
   authMiddleware,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
   updateOrderStatus
 );
 

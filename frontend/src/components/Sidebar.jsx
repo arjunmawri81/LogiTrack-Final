@@ -17,6 +17,8 @@ import {
   FaUndoAlt,
   FaBars,
   FaTimes,
+  FaPlug,
+  FaTags,
 } from "react-icons/fa";
 import "./Sidebar.css";
 
@@ -52,7 +54,7 @@ const Sidebar = () => {
   const userInitial = userName.charAt(0).toUpperCase();
 
   return (
-    <>
+    <div className="merchant-scope">
       {/* ===== HAMBURGER BUTTON ===== */}
       <button className="hamburger-btn" onClick={toggleSidebar} aria-label="Toggle Menu">
         {isOpen ? <FaTimes /> : <FaBars />}
@@ -161,7 +163,7 @@ const Sidebar = () => {
                   <FaBox /> <span>Create Shipment</span>
                 </NavLink>
               </li>
-              {/* ✅ Warehouse Menu Item - Added after Create Shipment */}
+              {/* Warehouse Menu Item - Added after Create Shipment */}
               <li>
                 <NavLink
                   to="/merchant/warehouses"
@@ -170,6 +172,11 @@ const Sidebar = () => {
                 >
                   <FaWarehouse />
                   <span>Warehouses</span>
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/merchant/integrations" className={({ isActive }) => isActive ? "active" : ""} onClick={closeSidebar}>
+                  <FaPlug /> <span>Integrations</span>
                 </NavLink>
               </li>
               <li>
@@ -218,6 +225,11 @@ const Sidebar = () => {
                 </NavLink>
               </li>
               <li>
+                <NavLink to="/merchant/rate-card" className={({ isActive }) => isActive ? "active" : ""} onClick={closeSidebar}>
+                  <FaTags /> <span>My Rate Card</span>
+                </NavLink>
+              </li>
+              <li>
                 <NavLink to="/merchant/reports" className={({ isActive }) => isActive ? "active" : ""} onClick={closeSidebar}>
                   <FaChartBar /> <span>Reports</span>
                 </NavLink>
@@ -248,7 +260,7 @@ const Sidebar = () => {
           </a>
         </div>
       </aside>
-    </>
+    </div>
   );
 };
 

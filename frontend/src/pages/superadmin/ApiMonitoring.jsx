@@ -1,90 +1,331 @@
+import { useState, useEffect } from "react";
+import api from "../../services/api";
 import SuperAdminLayout from "./SuperAdminLayout";
+import {
+  FaServer,
+  FaCheckCircle,
+  FaExclamationTriangle,
+  FaClock,
+  FaSync,
+  FaBolt,
+  FaDatabase,
+  FaGlobe,
+} from "react-icons/fa";
+import "./ApiMonitoring.css";
 
 const ApiMonitoring = () => {
-  const apis = [
-    { name: "Login API", status: "Active", response: "120ms" },
-    { name: "Orders API", status: "Active", response: "95ms" },
-    { name: "Tracking API", status: "Failed", response: "Timeout" },
-  ];
+  const [data, setData] = useState({
+    systemStatus: "Operational",
+    databaseStatus: "Connected",
+    totalApis: 0,
+    healthyApis: 0,
+    failedApis: 0,
+    warningApis: 0,
+    avgLatency: "112ms",
+    uptimePercentage: "99.92%",
+    apis: [],
+    recentRequests: [],
+  });
 
-  // Dynamic Metrics Calculation
-  const totalApis = apis.length;
-  const healthyApis = apis.filter((api) => api.status === "Active").length;
-  const failedApis = apis.filter((api) => api.status === "Failed").length;
+  const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [pingingId, setPingingId] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState("ALL");
+  const [error, setError] = useState("");
 
-  const fontStyle = {
-    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+  useEffect(() => {
+    fetchApiStatus();
+  }, []);
+
+  const fetchApiStatus = async (showRefresh = false) => {
+    if (showRefresh) setIsRefreshing(true);
+    else setLoading(true);
+    setError("");
+
+    try {
+      const res = await api.get("/admin/api-monitoring");
+      if (res.data && res.data.success) {
+        setData({
+          systemStatus: res.data.systemStatus || "Operational",
+          databaseStatus: res.data.databaseStatus || "Connected",
+          totalApis: res.data.totalApis || 0,
+          healthyApis: res.data.healthyApis || 0,
+          failedApis: res.data.failedApis || 0,
+          warningApis: res.data.warningApis || 0,
+          avgLatency: res.data.avgLatency || "112ms",
+          uptimePercentage: res.data.uptimePercentage || "99.92%",
+          apis: res.data.apis || [],
+          recentRequests: res.data.recentRequests || [],
+        });
+      } else {
+        setError("Failed to fetch API status.");
+      }
+    } catch (err) {
+      console.error("Error fetching API monitoring:", err);
+      setError("Error connecting to server.");
+    } finally {
+      setLoading(false);
+      setIsRefreshing(false);
+    }
   };
+
+  // Test Ping a specific API Endpoint
+  const handlePingApi = async (apiItem) => {
+    setPingingId(apiItem.id);
+    try {
+      const res = await api.post("/admin/api-monitoring/ping", {
+        apiId: apiItem.id,
+        name: apiItem.name,
+      });
+
+      if (res.data && res.data.success) {
+        setData((prev) => ({
+          ...prev,
+          apis: prev.apis.map((a) =>
+            a.id === apiItem.id
+              ? {
+                  ...a,
+                  response: res.data.responseTime,
+                  status: res.data.status,
+                  lastCheck: new Date(),
+                }
+              : a
+          ),
+        }));
+      }
+    } catch (err) {
+      console.error("Ping failed:", err);
+    } finally {
+      setPingingId(null);
+    }
+  };
+
+  // Filtered APIs by Category
+  const filteredApis = data.apis.filter((a) => {
+    if (selectedCategory === "ALL") return true;
+    return (a.category || "").toUpperCase().includes(selectedCategory);
+  });
+
+  if (loading) {
+    return (
+      <SuperAdminLayout>
+        <div className="api-monitoring-loading">
+          <div className="monitoring-spinner"></div>
+          <p>Probing Infrastructure API Health...</p>
+        </div>
+      </SuperAdminLayout>
+    );
+  }
 
   return (
     <SuperAdminLayout>
-      <div style={{ ...fontStyle, maxWidth: "1400px", margin: "0 auto", padding: "10px" }}>
-        
+      <div className="api-monitoring-container">
+
         {/* HEADER SECTION */}
-        <div style={{ borderBottom: "1px solid #f1f5f9", paddingBottom: "20px", marginBottom: "30px" }}>
-          <h1 style={{ fontSize: "32px", fontWeight: "800", color: "#0f172a", margin: "0 0 6px 0", letterSpacing: "-0.025em" }}>
-            API Monitoring
-          </h1>
-          <p style={{ color: "#64748b", fontSize: "14px", margin: 0, fontWeight: "500" }}>
-            Monitor API health, response time and failures
-          </p>
-        </div>
+        <div className="page-header">
+          <div>
+            <h1 className="page-title">
+              <FaServer className="header-icon" /> API Monitoring & Health
+            </h1>
+            <p className="page-subtitle">
+              Monitor real-time system endpoints, courier gateways, latency, and service availability
+            </p>
+          </div>
 
-        {/* METRICS & PERFORMANCE KPI CARDS */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "20px", marginBottom: "35px" }}>
-          <div style={cardBlue}>
-            <div style={{ ...cardLabel, color: "#93c5fd" }}>Total APIs</div>
-            <div style={cardValue}>{totalApis}</div>
-          </div>
-          <div style={cardGreen}>
-            <div style={{ ...cardLabel, color: "#a7f3d0" }}>Healthy APIs</div>
-            <div style={cardValue}>{healthyApis}</div>
-          </div>
-          <div style={cardRed}>
-            <div style={{ ...cardLabel, color: "#fca5a5" }}>Failed APIs</div>
-            <div style={cardValue}>{failedApis}</div>
+          <div className="header-actions">
+            <button
+              onClick={() => fetchApiStatus(true)}
+              className="refresh-btn"
+              disabled={isRefreshing}
+            >
+              <FaSync className={isRefreshing ? "spin-icon" : ""} />
+              {isRefreshing ? "Checking Health..." : "Refresh Status"}
+            </button>
           </div>
         </div>
 
-        {/* LIVE INFRASTRUCTURE STATUS DATAGRID */}
-        <div style={{ background: "#ffffff", borderRadius: "16px", padding: "24px", overflowX: "auto", border: "1px solid #f1f5f9", boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05)" }}>
-          <h2 style={{ color: "#0f172a", margin: "0 0 20px 0", fontSize: "18px", fontWeight: "700" }}>API Status Report</h2>
-          <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: "0", background: "#ffffff", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
-            <thead>
-              <tr>
-                <th style={thStyle}>API Name</th>
-                <th style={thStyle}>Status</th>
-                <th style={thStyle}>Response Time</th>
-              </tr>
-            </thead>
-            <tbody>
-              {apis.map((api, index) => (
-                <tr key={index} style={{ background: "#ffffff" }}>
-                  <td style={{ ...tdStyle, fontWeight: "600", color: "#0f172a" }}>{api.name}</td>
-                  <td style={tdStyle}>
-                    <span style={{ background: api.status === "Active" ? "#dcfce7" : "#fee2e2", color: api.status === "Active" ? "#166534" : "#991b1b", padding: "6px 14px", borderRadius: "999px", fontSize: "12px", fontWeight: "600" }}>
-                      {api.status}
-                    </span>
-                  </td>
-                  <td style={{ ...tdStyle, fontFamily: "monospace", fontSize: "14px", fontWeight: "600", color: api.response === "Timeout" ? "#b91c1c" : "#475569" }}>
-                    {api.response}
-                  </td>
+        {error && <div className="error-banner">{error}</div>}
+
+        {/* SYSTEM HEALTH OVERVIEW KPI CARDS */}
+        <div className="kpi-grid">
+          
+          <div className="kpi-card card-green">
+            <div className="kpi-icon"><FaDatabase /></div>
+            <div className="kpi-info">
+              <span className="kpi-label">Database Connection</span>
+              <h3 className="kpi-value">{data.databaseStatus}</h3>
+              <span className="kpi-sub green-sub">MongoDB Engine Operational</span>
+            </div>
+          </div>
+
+          <div className="kpi-card card-blue">
+            <div className="kpi-icon"><FaGlobe /></div>
+            <div className="kpi-info">
+              <span className="kpi-label">Monitored Endpoints</span>
+              <h3 className="kpi-value">{data.totalApis} APIs</h3>
+              <span className="kpi-sub blue-sub">{data.healthyApis} Active Services</span>
+            </div>
+          </div>
+
+          <div className="kpi-card card-purple">
+            <div className="kpi-icon"><FaClock /></div>
+            <div className="kpi-info">
+              <span className="kpi-label">Avg System Latency</span>
+              <h3 className="kpi-value">{data.avgLatency}</h3>
+              <span className="kpi-sub purple-sub">Global Average Response</span>
+            </div>
+          </div>
+
+          <div className="kpi-card card-emerald">
+            <div className="kpi-icon"><FaCheckCircle /></div>
+            <div className="kpi-info">
+              <span className="kpi-label">Platform Uptime</span>
+              <h3 className="kpi-value">{data.uptimePercentage}</h3>
+              <span className="kpi-sub emerald-sub">99.9% SLA Guarantee</span>
+            </div>
+          </div>
+
+        </div>
+
+        {/* CATEGORY FILTER TABS & DATAGRID */}
+        <div className="table-card">
+          <div className="table-header-flex">
+            <div>
+              <h2 className="table-title">Live API Service Status</h2>
+              <p className="table-sub">Individual endpoints latency, SLA uptime and operational state</p>
+            </div>
+
+            <div className="category-tabs">
+              <button
+                className={`tab-btn ${selectedCategory === "ALL" ? "active" : ""}`}
+                onClick={() => setSelectedCategory("ALL")}
+              >
+                All Endpoints
+              </button>
+              <button
+                className={`tab-btn ${selectedCategory === "COURIER" ? "active" : ""}`}
+                onClick={() => setSelectedCategory("COURIER")}
+              >
+                Courier Gateways
+              </button>
+              <button
+                className={`tab-btn ${selectedCategory === "AUTH" || selectedCategory === "ORDERS" ? "active" : ""}`}
+                onClick={() => setSelectedCategory("ORDERS")}
+              >
+                Core APIs
+              </button>
+            </div>
+          </div>
+
+          <div className="table-responsive">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Service / API Name</th>
+                  <th>Category</th>
+                  <th>Response Time</th>
+                  <th>Uptime SLA</th>
+                  <th className="text-center">Health Status</th>
+                  <th className="text-right">Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filteredApis.map((apiItem) => (
+                  <tr key={apiItem.id}>
+                    <td>
+                      <div className="api-name-box">
+                        <span className="api-name">{apiItem.name}</span>
+                        <span className="api-endpoint">{apiItem.endpoint}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span className="category-tag">{apiItem.category || "General"}</span>
+                    </td>
+                    <td>
+                      <span className="latency-badge">
+                        <FaClock size={11} /> {apiItem.response}
+                      </span>
+                    </td>
+                    <td className="font-semibold text-slate-700">
+                      {apiItem.uptime || "99.9%"}
+                    </td>
+                    <td className="text-center">
+                      <span
+                        className={`status-pill ${
+                          apiItem.status === "Active"
+                            ? "pill-active"
+                            : apiItem.status === "Warning"
+                            ? "pill-warning"
+                            : "pill-failed"
+                        }`}
+                      >
+                        <span className="pulse-dot"></span>
+                        {apiItem.status}
+                      </span>
+                    </td>
+                    <td className="text-right">
+                      <button
+                        onClick={() => handlePingApi(apiItem)}
+                        className="ping-btn"
+                        disabled={pingingId === apiItem.id}
+                      >
+                        <FaBolt className={pingingId === apiItem.id ? "spin-icon" : ""} />
+                        {pingingId === apiItem.id ? "Pinging..." : "Ping Service"}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
+
+        {/* RECENT REQUESTS STREAM */}
+        <div className="table-card" style={{ marginTop: "24px" }}>
+          <h2 className="table-title">Live Traffic Stream</h2>
+          <p className="table-sub">Recent API requests processed by gateway router</p>
+
+          <div className="table-responsive">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Method</th>
+                  <th>Request Path</th>
+                  <th>Status Code</th>
+                  <th>Latency</th>
+                  <th>IP Address</th>
+                  <th>Timestamp</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.recentRequests.map((req) => (
+                  <tr key={req.id}>
+                    <td>
+                      <span className={`method-badge method-${req.method}`}>
+                        {req.method}
+                      </span>
+                    </td>
+                    <td className="font-mono text-slate-800">{req.path}</td>
+                    <td>
+                      <span className={`code-badge ${req.status < 300 ? "code-200" : "code-500"}`}>
+                        {req.status} OK
+                      </span>
+                    </td>
+                    <td className="text-slate-600">{req.latency}</td>
+                    <td className="text-slate-500">{req.ip}</td>
+                    <td className="text-slate-400 text-xs">
+                      {req.timestamp ? new Date(req.timestamp).toLocaleTimeString() : "-"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
     </SuperAdminLayout>
   );
 };
-
-const cardLabel = { fontSize: "12px", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "12px" };
-const cardValue = { fontSize: "38px", fontWeight: "800", lineHeight: "1", letterSpacing: "-0.03em" };
-const cardBlue = { background: "linear-gradient(135deg, #1e40af, #1d4ed8)", borderRadius: "16px", padding: "24px", color: "#ffffff", boxShadow: "0 10px 25px -5px rgba(29, 78, 216, 0.15)" };
-const cardGreen = { background: "linear-gradient(135deg, #065f46, #10b981)", borderRadius: "16px", padding: "24px", color: "#ffffff", boxShadow: "0 10px 25px -5px rgba(16, 185, 129, 0.15)" };
-const cardRed = { background: "linear-gradient(135deg, #991b1b, #ef4444)", borderRadius: "16px", padding: "24px", color: "#ffffff", boxShadow: "0 10px 25px -5px rgba(239, 68, 68, 0.15)" };
-const thStyle = { padding: "16px 24px", textAlign: "left", color: "#475569", fontWeight: "600", fontSize: "13px", textTransform: "uppercase", background: "#f8fafc", borderBottom: "1px solid #e2e8f0" };
-const tdStyle = { padding: "18px 24px", color: "#334155", fontSize: "14px", fontWeight: "500", borderBottom: "1px solid #f1f5f9" };
 
 export default ApiMonitoring;

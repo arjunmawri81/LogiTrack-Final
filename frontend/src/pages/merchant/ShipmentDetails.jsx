@@ -560,7 +560,7 @@ const detailValue = {
   wordBreak: "break-word",
 };
 
-// ✅ ORANGE STAT CARDS - Matching button style
+// ORANGE STAT CARDS - Matching button style
 const statCardOrange = {
   background: "#f97316",
   borderRadius: "12px",

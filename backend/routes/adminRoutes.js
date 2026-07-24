@@ -32,7 +32,7 @@ const {
 
   getOrders,
   getOrderByIdAdmin,
-  cancelOrderAdmin, // ✅ Only cancel remains
+  cancelOrderAdmin,
   getShipments,
   getShipmentByIdAdmin,
   getCommission,
@@ -47,6 +47,11 @@ const {
   // RTO Management (Admin)
   getAdminRTO,
 
+  // API Monitoring & Audit Logs
+  getApiMonitoring,
+  pingApiEndpoint,
+  getAuditLogs,
+  createAuditLog,
 } = require("../controllers/adminController");
 
 // ================================
@@ -103,7 +108,7 @@ router.get(
 router.get(
   "/merchant/:id",
   authMiddleware,
-  authorizeRoles("ADMIN", "SUPER_ADMIN"),  // ✅ UPDATED: Now accessible to ADMIN as well
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
   getMerchantDetails
 );
 
@@ -236,19 +241,19 @@ router.get(
 );
 
 // ================================
-// REVENUE & COMMISSION
+// REVENUE & COMMISSION (SUPER_ADMIN ONLY)
 // ================================
 router.get(
   "/commission",
   authMiddleware,
-  authorizeRoles("ADMIN", "SUPER_ADMIN"),
+  authorizeRoles("SUPER_ADMIN"),
   getCommission
 );
 
 router.get(
   "/revenue",
   authMiddleware,
-  authorizeRoles("ADMIN", "SUPER_ADMIN"),
+  authorizeRoles("SUPER_ADMIN"),
   getRevenue
 );
 
@@ -298,6 +303,40 @@ router.get(
   authMiddleware,
   authorizeRoles("ADMIN", "SUPER_ADMIN"),
   getAdminRTO
+);
+
+// ================================
+// API MONITORING & HEALTH CHECKS (SUPER_ADMIN ONLY)
+// ================================
+router.get(
+  "/api-monitoring",
+  authMiddleware,
+  authorizeRoles("SUPER_ADMIN"),
+  getApiMonitoring
+);
+
+router.post(
+  "/api-monitoring/ping",
+  authMiddleware,
+  authorizeRoles("SUPER_ADMIN"),
+  pingApiEndpoint
+);
+
+// ================================
+// AUDIT LOGS (SUPER_ADMIN ONLY)
+// ================================
+router.get(
+  "/audit-logs",
+  authMiddleware,
+  authorizeRoles("SUPER_ADMIN"),
+  getAuditLogs
+);
+
+router.post(
+  "/audit-logs",
+  authMiddleware,
+  authorizeRoles("SUPER_ADMIN"),
+  createAuditLog
 );
 
 module.exports = router;

@@ -1,264 +1,260 @@
-/* ===== ADMIN SIDEBAR ===== */
+.admin-scope {
+  /* ===== ADMIN SIDEBAR ===== */
 
-.sidebar {
-  width: 280px;
-  height: 100vh;
-  position: fixed;
-  top: 0;
-  left: 0;
-  background-color: #0f172a;
-  color: #f8fafc;
-  display: flex;
-  flex-direction: column;
-  border-right: 1px solid #1e293b;
-  font-family: "Inter", sans-serif;
-  z-index: 100;
-}
-
-/* Header */
-.sidebar-header {
-  padding: 32px 24px 24px;
-  border-bottom: 1px solid #1e293b;
-}
-
-.logo {
-  margin: 0;
-  font-size: 24px;
-  font-weight: 800;
-  color: #ffffff;
-  letter-spacing: -0.5px;
-}
-
-.logo-subtitle {
-  display: block;
-  margin-top: 6px;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #f97316;
-}
-
-/* Profile */
-.sidebar-profile {
-  padding: 20px;
-  margin: 16px 20px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  background: #1e293b;
-  border-radius: 14px;
-}
-
-.avatar {
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #f97316, #ea580c);
-  color: white;
-  font-size: 16px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.profile-info h4 {
-  margin: 0;
-  color: white;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.profile-info span {
-  display: block;
-  margin-top: 2px;
-  font-size: 11px;
-  color: #94a3b8;
-}
-
-/* Menu */
-.sidebar-menu {
-  list-style: none;
-  padding: 0 16px;
-  margin: 0;
-  flex: 1;
-}
-
-.sidebar-menu li {
-  margin-bottom: 4px;
-}
-
-.sidebar-menu a {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 12px 16px;
-  text-decoration: none;
-  color: #94a3b8;
-  font-size: 14px;
-  font-weight: 500;
-  border-radius: 10px;
-  transition: all 0.2s ease;
-}
-
-.sidebar-menu a svg {
-  font-size: 18px;
-  min-width: 20px;
-}
-
-.sidebar-menu a:hover {
-  background: rgba(249, 115, 22, 0.1);
-  color: #f97316;
-}
-
-/* Active Link - General */
-.sidebar-menu a.active {
-  background: linear-gradient(90deg, #f97316, #ea580c);
-  color: white !important;
-  font-weight: 600;
-  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
-}
-
-.sidebar-menu a.active svg {
-  color: white;
-}
-
-/* Support Tickets - Specific Active State */
-.sidebar-menu a[href="/admin/tickets"].active {
-  background: linear-gradient(90deg, #8b5cf6, #7c3aed);
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
-}
-
-.sidebar-menu a[href="/admin/tickets"]:hover {
-  background: rgba(139, 92, 246, 0.1);
-  color: #a78bfa;
-}
-
-/* NDR - Specific Active State */
-.sidebar-menu a[href="/admin/ndr"].active {
-  background: linear-gradient(90deg, #ef4444, #dc2626);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-}
-
-.sidebar-menu a[href="/admin/ndr"]:hover {
-  background: rgba(239, 68, 68, 0.1);
-  color: #fca5a5;
-}
-
-/* RTO - Specific Active State */
-.sidebar-menu a[href="/admin/rto"].active {
-  background: linear-gradient(90deg, #f59e0b, #d97706);
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-}
-
-.sidebar-menu a[href="/admin/rto"]:hover {
-  background: rgba(245, 158, 11, 0.1);
-  color: #fbbf24;
-}
-
-/* Logout */
-.logout-section {
-  margin: 16px 20px 24px;
-  padding: 12px 16px;
-  border-top: 1px solid #1e293b;
-  border-radius: 10px;
-  transition: all 0.2s ease;
-}
-
-.logout-section a {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  text-decoration: none;
-  color: #fca5a5;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.logout-section:hover {
-  background: rgba(239, 68, 68, 0.1);
-}
-
-.logout-section:hover a {
-  color: #ef4444;
-}
-
-/* Scrollbar */
-.sidebar-menu {
-  overflow-y: auto;
-}
-
-.sidebar-menu::-webkit-scrollbar {
-  width: 4px;
-}
-
-.sidebar-menu::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 20px;
-}
-
-.sidebar-menu::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-/* Mobile */
-@media (max-width: 768px) {
   .sidebar {
-    width: 70px;
+    width: 280px;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #0f172a;
+    color: #f8fafc;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #1e293b;
+    font-family: "Inter", sans-serif;
+    z-index: 100;
   }
 
-  .logo,
-  .logo-subtitle,
-  .profile-info,
-  .sidebar-menu a span,
-  .logout-section a span {
-    display: none;
+  /* Header */
+  .sidebar-header {
+    padding: 32px 24px 24px;
+    border-bottom: 1px solid #1e293b;
   }
 
+  .logo {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.5px;
+  }
+
+  .logo-subtitle {
+    display: block;
+    margin-top: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #f97316;
+  }
+
+  /* Profile */
   .sidebar-profile {
+    padding: 20px;
+    margin: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #1e293b;
+    border-radius: 14px;
+  }
+
+  .avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f97316, #ea580c);
+    color: white;
+    font-size: 16px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
     justify-content: center;
-    margin: 16px 12px;
-    padding: 12px;
+  }
+
+  .profile-info h4 {
+    margin: 0;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .profile-info span {
+    display: block;
+    margin-top: 2px;
+    font-size: 11px;
+    color: #94a3b8;
+  }
+
+  /* Menu */
+  .sidebar-menu {
+    list-style: none;
+    padding: 0 16px;
+    margin: 0;
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .sidebar-menu li {
+    margin-bottom: 4px;
   }
 
   .sidebar-menu a {
-    justify-content: center;
-    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    text-decoration: none;
+    color: #94a3b8;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 10px;
+    transition: all 0.2s ease;
   }
 
   .sidebar-menu a svg {
-    margin: 0;
+    font-size: 18px;
+    min-width: 20px;
   }
 
+  .sidebar-menu a:hover {
+    background: rgba(249, 115, 22, 0.1);
+    color: #f97316;
+  }
+
+  /* Active Link - General */
+  .sidebar-menu a.active {
+    background: linear-gradient(90deg, #f97316, #ea580c);
+    color: white !important;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+  }
+
+  .sidebar-menu a.active svg {
+    color: white;
+  }
+
+  /* Support Tickets - Specific Active State */
+  .sidebar-menu a[href="/admin/tickets"].active {
+    background: linear-gradient(90deg, #8b5cf6, #7c3aed);
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+  }
+
+  .sidebar-menu a[href="/admin/tickets"]:hover {
+    background: rgba(139, 92, 246, 0.1);
+    color: #a78bfa;
+  }
+
+  /* NDR - Specific Active State */
+  .sidebar-menu a[href="/admin/ndr"].active {
+    background: linear-gradient(90deg, #ef4444, #dc2626);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  }
+
+  .sidebar-menu a[href="/admin/ndr"]:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #fca5a5;
+  }
+
+  /* RTO - Specific Active State */
+  .sidebar-menu a[href="/admin/rto"].active {
+    background: linear-gradient(90deg, #f59e0b, #d97706);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+  }
+
+  .sidebar-menu a[href="/admin/rto"]:hover {
+    background: rgba(245, 158, 11, 0.1);
+    color: #fbbf24;
+  }
+
+  /* Logout */
   .logout-section {
-    margin: 16px 12px;
-    padding: 12px;
+    margin: 16px 20px 24px;
+    padding: 12px 16px;
+    border-top: 1px solid #1e293b;
+    border-radius: 10px;
+    transition: all 0.2s ease;
   }
 
   .logout-section a {
-    justify-content: center;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    text-decoration: none;
+    color: #fca5a5;
+    font-size: 14px;
+    font-weight: 500;
   }
-}
 
-/* Optional: Support Tickets Badge (if you want to show count) */
-.sidebar-menu a[href="/admin/tickets"] {
-  position: relative;
-}
+  .logout-section:hover {
+    background: rgba(239, 68, 68, 0.1);
+  }
 
-/* Optional: Add a small indicator for new tickets */
-.sidebar-menu a[href="/admin/tickets"]::after {
-  content: "";
-  display: none; /* Hidden by default, can be enabled with JS */
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 8px;
-  height: 8px;
-  background: #ef4444;
-  border-radius: 50%;
-  animation: pulse-dot 2s infinite;
+  .logout-section:hover a {
+    color: #ef4444;
+  }
+
+  .sidebar-menu::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .sidebar-menu::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 20px;
+  }
+
+  .sidebar-menu::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  /* Mobile */
+  @media (max-width: 768px) {
+    .sidebar {
+      width: 70px;
+    }
+
+    .logo,
+    .logo-subtitle,
+    .profile-info,
+    .sidebar-menu a span,
+    .logout-section a span {
+      display: none;
+    }
+
+    .sidebar-profile {
+      justify-content: center;
+      margin: 16px 12px;
+      padding: 12px;
+    }
+
+    .sidebar-menu a {
+      justify-content: center;
+      padding: 12px;
+    }
+
+    .sidebar-menu a svg {
+      margin: 0;
+    }
+
+    .logout-section {
+      margin: 16px 12px;
+      padding: 12px;
+    }
+
+    .logout-section a {
+      justify-content: center;
+    }
+  }
+
+  .sidebar-menu a[href="/admin/tickets"] {
+    position: relative;
+  }
+
+  .sidebar-menu a[href="/admin/tickets"]::after {
+    content: "";
+    display: none;
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    background: #ef4444;
+    border-radius: 50%;
+    animation: pulse-dot 2s infinite;
+  }
 }
 
 @keyframes pulse-dot {

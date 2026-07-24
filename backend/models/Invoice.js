@@ -89,12 +89,12 @@ const invoiceSchema = new mongoose.Schema(
 // AUTO GENERATE INVOICE NUMBER + CALCULATE TOTAL
 // ================================
 invoiceSchema.pre("save", function () {
-  // ✅ Auto-generate invoiceNumber if not provided
+  // Auto-generate invoiceNumber if not provided
   if (!this.invoiceNumber) {
     this.invoiceNumber = "INV" + Date.now() + Math.floor(1000 + Math.random() * 9000);
   }
 
-  // ✅ Auto-calculate totalAmount (shipping charge + tax)
+  // Auto-calculate totalAmount (shipping charge + tax)
   this.totalAmount =
     Number(this.shippingCharge || 0) +
     Number(this.taxAmount || 0);

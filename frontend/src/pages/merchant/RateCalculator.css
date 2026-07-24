@@ -514,7 +514,7 @@
 }
 
 /* ============================================ */
-/* ✅ RESPONSIVE - LAPTOP (1025px+) */
+/* RESPONSIVE - LAPTOP (1025px+) */
 /* ============================================ */
 
 @media (min-width: 1025px) {
@@ -539,7 +539,7 @@
 }
 
 /* ============================================ */
-/* ✅ RESPONSIVE - TABLET (769px - 1024px) */
+/* RESPONSIVE - TABLET (769px - 1024px) */
 /* ============================================ */
 
 @media (max-width: 1024px) and (min-width: 769px) {
@@ -577,7 +577,7 @@
 }
 
 /* ============================================ */
-/* ✅ RESPONSIVE - MOBILE (768px and below) */
+/* RESPONSIVE - MOBILE (768px and below) */
 /* ============================================ */
 
 @media (max-width: 768px) {
@@ -676,7 +676,7 @@
 }
 
 /* ============================================ */
-/* ✅ RESPONSIVE - SMALL MOBILE (480px and below) */
+/* RESPONSIVE - SMALL MOBILE (480px and below) */
 /* ============================================ */
 
 @media (max-width: 480px) {
@@ -764,7 +764,7 @@
 }
 
 /* ============================================ */
-/* ✅ RESPONSIVE - VERY SMALL (360px and below) */
+/* RESPONSIVE - VERY SMALL (360px and below) */
 /* ============================================ */
 
 @media (max-width: 360px) {

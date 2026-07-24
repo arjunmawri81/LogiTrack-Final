@@ -1,40 +1,15 @@
 import SuperAdminSidebar from "./SuperAdminSidebar";
+import "./SuperAdminLayout.css";
 
 const SuperAdminLayout = ({ children }) => {
   return (
-    <div
-      style={{
-        display: "flex",
-        minHeight: "100vh",
-        background: "#f1f5f9",
-      }}
-    >
+    <div className="superadmin-layout">
       {/* Sidebar */}
       <SuperAdminSidebar />
 
       {/* Main Content */}
-      <main
-        style={{
-          marginLeft: "260px",
-          width: "calc(100% - 260px)",
-
-          padding: "40px",
-
-          background: "#f8fafc",
-
-          minHeight: "100vh",
-
-          boxSizing: "border-box",
-
-          overflowX: "hidden",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: "1600px",
-            margin: "0 auto",
-          }}
-        >
+      <main className="superadmin-main">
+        <div className="superadmin-inner">
           {children}
         </div>
       </main>

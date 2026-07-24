@@ -234,6 +234,12 @@ const shipmentSchema = new mongoose.Schema(
       min: 0,
     },
 
+    serviceType: {
+      type: String,
+      enum: ["Surface", "Air"],
+      default: "Surface",
+    },
+
     dimensions: {
       length: { type: Number, default: 0, min: 0 },
       breadth: { type: Number, default: 0, min: 0 },
@@ -259,6 +265,74 @@ const shipmentSchema = new mongoose.Schema(
     },
 
     shippingCharge: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    courierCost: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    buyRate: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    sellRate: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    marginEarned: {
+      type: Number,
+      default: 0,
+    },
+
+    codBuyCharge: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    codMarginEarned: {
+      type: Number,
+      default: 0,
+    },
+
+    rtoFeeDeducted: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    rtoBuyCharge: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    rtoMarginEarned: {
+      type: Number,
+      default: 0,
+    },
+
+    totalNetProfit: {
+      type: Number,
+      default: 0,
+    },
+
+    rtoChargeStatus: {
+      type: String,
+      enum: ["NOT_APPLICABLE", "PAID", "PENDING"],
+      default: "NOT_APPLICABLE",
+    },
+
+    rtoChargePending: {
       type: Number,
       default: 0,
       min: 0,
@@ -378,6 +452,7 @@ shipmentSchema.methods.updateNDR = function(ndrStatus, ndrDetails) {
   } else if (ndrStatus === "RESOLVED") {
     const resumeStatus = this.statusBeforeNDR || "IN_TRANSIT";
     this.statusBeforeNDR = null;
+    this.ndrStatus = "NONE";
     return this.addTrackingEvent(resumeStatus, "NDR Resolved", "NDR issue resolved");
   } else if (ndrStatus === "FAILED") {
     return this.updateRTO("INITIATED", { 

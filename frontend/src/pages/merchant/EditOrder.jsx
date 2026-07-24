@@ -169,7 +169,7 @@ const EditOrder = () => {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
               <button
-                onClick={() => navigate(-1)} // ✅ Changed: Now goes back to previous page
+                onClick={() => navigate(-1)}
                 style={{
                   background: "transparent",
                   border: "none",
@@ -560,7 +560,7 @@ const EditOrder = () => {
             }}>
               <button
                 type="button"
-                onClick={() => navigate(-1)} // ✅ Changed: Now goes back to previous page
+                onClick={() => navigate(-1)}
                 style={{
                   padding: "12px 24px",
                   borderRadius: "10px",

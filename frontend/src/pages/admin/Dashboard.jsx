@@ -83,7 +83,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="dashboard-container">
+    <div className="admin-dashboard-container">
       <AdminSidebar />
       <div className="dashboard-main">
         <AdminTopbar />

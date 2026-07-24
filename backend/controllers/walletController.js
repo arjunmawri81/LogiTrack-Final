@@ -43,26 +43,25 @@ const rechargeWallet = async (req, res) => {
       });
     }
 
-    let wallet = await Wallet.findOne({
-      merchantId: req.user.id,
-    });
+    // Verify with your actual gateway (Razorpay/Cashfree/etc.)
+    // const isValid = await verifyPaymentWithGateway(paymentGatewayOrderId, paymentGatewaySignature, amount);
+    // if (!isValid) return res.status(400).json({ success: false, message: "Payment verification failed" });
 
-    if (!wallet) {
-      wallet = await Wallet.create({
-        merchantId: req.user.id,
-      });
-    }
-
-    wallet.balance += rechargeAmount;
-
-    wallet.transactions.push({
-      amount: rechargeAmount,
-      type: "CREDIT",
-      description: "Wallet Recharge",
-      createdAt: new Date(), // Ensure timestamp is recorded
-    });
-
-    await wallet.save();
+    const wallet = await Wallet.findOneAndUpdate(
+      { merchantId: req.user.id },
+      {
+        $inc: { balance: rechargeAmount },
+        $push: {
+          transactions: {
+            amount: rechargeAmount,
+            type: "CREDIT",
+            description: "Wallet Recharge",
+            createdAt: new Date(),
+          },
+        },
+      },
+      { new: true, upsert: true }
+    );
 
     res.status(200).json({
       success: true,
@@ -91,39 +90,28 @@ const debitWallet = async (req, res) => {
       });
     }
 
-    let wallet = await Wallet.findOne({
-      merchantId: req.user.id,
-    });
+    const wallet = await Wallet.findOneAndUpdate(
+      { merchantId: req.user.id, balance: { $gte: Number(amount) } },
+      {
+        $inc: { balance: -Number(amount) },
+        $push: {
+          transactions: {
+            amount: Number(amount),
+            type: "DEBIT",
+            description: description || "Wallet Debit",
+            createdAt: new Date(),
+          },
+        },
+      },
+      { new: true }
+    );
 
     if (!wallet) {
-      const newWallet = await Wallet.create({
-        merchantId: req.user.id,
-      });
-
-      return res.status(400).json({
-        success: false,
-        message: "Insufficient wallet balance",
-        wallet: newWallet,
-      });
-    }
-
-    if (wallet.balance < Number(amount)) {
       return res.status(400).json({
         success: false,
         message: "Insufficient wallet balance",
       });
     }
-
-    wallet.balance -= Number(amount);
-
-    wallet.transactions.push({
-      amount: Number(amount),
-      type: "DEBIT",
-      description: description || "Wallet Debit",
-      createdAt: new Date(),
-    });
-
-    await wallet.save();
 
     res.status(200).json({
       success: true,

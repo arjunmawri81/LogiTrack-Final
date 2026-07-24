@@ -1,22 +1,43 @@
 import { useState } from "react";
 import Sidebar from "../../components/Sidebar";
-import "./Serviceability.css"; 
+import api from "../../services/api";
+import "./Serviceability.css";
 
 const Serviceability = () => {
   const [pickup, setPickup] = useState("");
   const [delivery, setDelivery] = useState("");
   const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const checkServiceability = () => {
-    if (!pickup || !delivery) { 
-      alert("Please enter both pincodes"); 
-      return; 
+  const checkServiceability = async () => {
+    if (!pickup || !delivery) {
+      alert("Please enter both pincodes");
+      return;
     }
-    setResult({
-      serviceable: true,
-      estimatedDays: 3,
-      couriers: ["Delhivery", "DTDC", "XpressBees"],
-    });
+    if (!/^\d{6}$/.test(pickup) || !/^\d{6}$/.test(delivery)) {
+      alert("Please enter valid 6-digit pincodes");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+    setResult(null);
+
+    try {
+      const res = await api.get(`/ratecards/serviceability/${delivery}`);
+      setResult({
+        serviceable: res.data.couriers.length > 0,
+        estimatedDays: res.data.couriers[0]?.estimatedDays || 3,
+        couriers: res.data.couriers.map((c) => c.courierName),
+      });
+    } catch (err) {
+      setError(
+        err?.response?.data?.message || "Failed to check serviceability. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -29,24 +50,34 @@ const Serviceability = () => {
         <h1 className="serviceability-title">📍 Serviceability Checker</h1>
 
         <div className="serviceability-card">
-          <input 
-            type="text" 
-            placeholder="Pickup Pincode" 
-            value={pickup} 
-            onChange={(e) => setPickup(e.target.value)} 
-            className="serviceability-input" 
+          <input
+            type="text"
+            placeholder="Pickup Pincode"
+            value={pickup}
+            onChange={(e) => setPickup(e.target.value)}
+            className="serviceability-input"
           />
-          <input 
-            type="text" 
-            placeholder="Delivery Pincode" 
-            value={delivery} 
-            onChange={(e) => setDelivery(e.target.value)} 
-            className="serviceability-input" 
+          <input
+            type="text"
+            placeholder="Delivery Pincode"
+            value={delivery}
+            onChange={(e) => setDelivery(e.target.value)}
+            className="serviceability-input"
           />
-          <button onClick={checkServiceability} className="serviceability-btn">
-            Check Availability
+          <button
+            onClick={checkServiceability}
+            className="serviceability-btn"
+            disabled={loading}
+          >
+            {loading ? "Checking..." : "Check Availability"}
           </button>
         </div>
+
+        {error && (
+          <div className="serviceability-result">
+            <p style={{ color: "#dc2626", fontWeight: 600 }}>⚠️ {error}</p>
+          </div>
+        )}
 
         {result && (
           <div className="serviceability-result">

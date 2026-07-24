@@ -32,8 +32,11 @@ const CreateShipment = () => {
   });
 
   // States for recommendations
-  const [recommended, setRecommended] = useState(null);
-  const [courierRates, setCourierRates] = useState([]);
+  const [surfaceRates, setSurfaceRates] = useState([]);
+  const [airRates, setAirRates] = useState([]);
+  const [recommendedSurface, setRecommendedSurface] = useState(null);
+  const [recommendedAir, setRecommendedAir] = useState(null);
+  const [activeTab, setActiveTab] = useState("Surface"); // Surface or Air
   const [recommendationLoading, setRecommendationLoading] = useState(false);
 
   // Insurance toggle state
@@ -49,7 +52,7 @@ const CreateShipment = () => {
       const user = JSON.parse(localStorage.getItem("user") || "{}");
       return user?.id || user?.merchantId || null;
     } catch (error) {
-      console.log("Error getting merchantId:", error);
+      console.error("Error getting merchantId:", error);
       return null;
     }
   };
@@ -57,7 +60,8 @@ const CreateShipment = () => {
   useEffect(() => {
     fetchOrders();
     fetchWallet();
-    fetchWarehouses(); // Added warehouse fetch
+    fetchWarehouses();
+    fetchActiveCouriers();
   }, []);
 
   // Bulk order auto-select effect
@@ -74,17 +78,16 @@ const CreateShipment = () => {
     if (formData.orderId && formData.courier) {
       calculatePricing();
     }
-  }, [formData.orderId, formData.courier]);
+  }, [formData.orderId, formData.courier, activeTab]);
 
-  // Fetch recommendations when order is selected
+  // Fetch recommendations when order or warehouse is selected
   useEffect(() => {
     if (formData.orderId) {
       fetchRecommendations();
     } else {
-      setRecommended(null);
-      setCourierRates([]);
+      fetchActiveCouriers();
     }
-  }, [formData.orderId]);
+  }, [formData.orderId, formData.warehouseId]);
 
   // Update insurance amount when order changes
   useEffect(() => {
@@ -96,23 +99,44 @@ const CreateShipment = () => {
     }
   }, [formData.orderId]);
 
+  const fetchActiveCouriers = async () => {
+    try {
+      const res = await api.get("/couriers/active/list");
+      if (res.data.success && res.data.couriers && res.data.couriers.length > 0) {
+        const mapped = res.data.couriers.map((c) => ({
+          courierId: c._id,
+          courierName: c.name,
+          total: 45,
+          forwardRate: 45,
+          codCharge: 0,
+          estimatedDays: c.estimatedDays || 3,
+        }));
+        setSurfaceRates((prev) => (prev.length === 0 ? mapped : prev));
+        setAirRates((prev) => (prev.length === 0 ? mapped : prev));
+      }
+    } catch (err) {
+      // Fallback silent handle
+    }
+  };
+
   const fetchOrders = async () => {
     try {
       const res = await api.get("/orders");
       setOrders(res.data.orders || []);
     } catch (error) {
-      console.log(error);
+      console.error("Error fetching orders:", error);
     }
   };
 
-  const fetchWarehouses = async () => { // Added fetchWarehouses function
+  const fetchWarehouses = async () => {
     try {
       const res = await api.get("/warehouses");
-      setWarehouses(
-        (res.data.warehouses || []).filter((w) => w.isActive)
-      );
+      const activeW = (res.data.warehouses || []).filter((w) => w.isActive);
+      setWarehouses(activeW);
+      if (activeW.length > 0) {
+        setFormData((prev) => (prev.warehouseId ? prev : { ...prev, warehouseId: activeW[0]._id }));
+      }
     } catch (err) {
-      console.log("Warehouse fetch failed:", err);
       setWarehouses([]);
     }
   };
@@ -120,10 +144,8 @@ const CreateShipment = () => {
   const fetchWallet = async () => {
     try {
       const res = await api.get("/wallet");
-      console.log("WALLET =>", res.data);
       setWalletBalance(res.data.wallet?.balance || 0);
     } catch (error) {
-      console.log("Wallet fetch failed, using default");
       setWalletBalance(0);
     }
   };
@@ -133,6 +155,7 @@ const CreateShipment = () => {
       const res = await api.post("/ratecards/calculate", {
         orderId: formData.orderId,
         courierId: formData.courier,
+        serviceType: activeTab,
       });
       
       if (res.data.success) {
@@ -146,7 +169,6 @@ const CreateShipment = () => {
         useStaticPricing();
       }
     } catch (error) {
-      console.log("Pricing API failed, using fallback:", error);
       useStaticPricing();
     }
   };
@@ -165,7 +187,7 @@ const CreateShipment = () => {
     });
   };
 
-  // Fetch Recommendations
+  // Fetch Recommendations for both Surface and Air concurrently
   const fetchRecommendations = async () => {
     try {
       setRecommendationLoading(true);
@@ -180,37 +202,84 @@ const CreateShipment = () => {
       const merchantId = getMerchantId();
 
       if (!merchantId) {
-        console.log("Merchant ID not found");
         setRecommendationLoading(false);
         return;
       }
 
       const weight = currentOrder.weight || 0.5;
-      
-      const res = await api.get(
-        `/ratecards/recommendation?merchantId=${merchantId}&weight=${weight}`
-      );
+      const selectedWarehouse = warehouses.find(w => w._id === formData.warehouseId);
+      const pickup = selectedWarehouse ? selectedWarehouse.pincode : "";
+      const destination = currentOrder.customerPincode || "";
 
-      console.log("RECOMMENDATIONS =>", res.data);
-      console.log("COURIERS ARRAY =>", res.data.couriers);
-      console.log("TOTAL =>", res.data.couriers?.length);
+      let surfaceUrl = `/ratecards/recommendation?merchantId=${merchantId}&weight=${weight}&serviceType=Surface`;
+      if (pickup) surfaceUrl += `&pickup=${pickup}`;
+      if (destination) surfaceUrl += `&destination=${destination}`;
 
-      if (res.data.success) {
-        setRecommended(res.data.recommended);
-        setCourierRates(res.data.couriers || []);
+      let airUrl = `/ratecards/recommendation?merchantId=${merchantId}&weight=${weight}&serviceType=Air`;
+      if (pickup) airUrl += `&pickup=${pickup}`;
+      if (destination) airUrl += `&destination=${destination}`;
 
-        // ✅ Auto-select recommended courier using courierId
-        if (res.data.recommended?.courierId) {
-          setFormData((prev) => ({
-            ...prev,
-            courier: res.data.recommended.courierId,
-          }));
+      const [surfaceRes, airRes] = await Promise.allSettled([
+        api.get(surfaceUrl),
+        api.get(airUrl)
+      ]);
+
+      let surfaceRatesList = [];
+      let airRatesList = [];
+      let recSurface = null;
+      let recAir = null;
+
+      if (surfaceRes.status === "fulfilled" && surfaceRes.value.data.success) {
+        surfaceRatesList = surfaceRes.value.data.couriers || [];
+        recSurface = surfaceRes.value.data.recommended || null;
+      }
+
+      if (airRes.status === "fulfilled" && airRes.value.data.success) {
+        airRatesList = airRes.value.data.couriers || [];
+        recAir = airRes.value.data.recommended || null;
+      }
+
+      setSurfaceRates(surfaceRatesList);
+      setAirRates(airRatesList);
+      setRecommendedSurface(recSurface);
+      setRecommendedAir(recAir);
+
+      // Auto-select preferred service type or fallback to available
+      const preferredServiceType = currentOrder.serviceType || "Surface";
+      const targetRatesList = preferredServiceType === "Air" ? airRatesList : surfaceRatesList;
+      const targetRecommended = preferredServiceType === "Air" ? recAir : recSurface;
+
+      if (targetRatesList.length > 0) {
+        setActiveTab(preferredServiceType);
+        if (targetRecommended?.courierId) {
+          setFormData((prev) => ({ ...prev, courier: targetRecommended.courierId }));
+        } else {
+          setFormData((prev) => ({ ...prev, courier: targetRatesList[0].courierId }));
+        }
+      } else {
+        const otherRatesList = preferredServiceType === "Air" ? surfaceRatesList : airRatesList;
+        const otherRecommended = preferredServiceType === "Air" ? recSurface : recAir;
+        const otherType = preferredServiceType === "Air" ? "Surface" : "Air";
+
+        if (otherRatesList.length > 0) {
+          setActiveTab(otherType);
+          if (otherRecommended?.courierId) {
+            setFormData((prev) => ({ ...prev, courier: otherRecommended.courierId }));
+          } else {
+            setFormData((prev) => ({ ...prev, courier: otherRatesList[0].courierId }));
+          }
+        } else {
+          setActiveTab(preferredServiceType);
+          setFormData((prev) => ({ ...prev, courier: "" }));
         }
       }
+
     } catch (error) {
-      console.log("Recommendation failed:", error);
-      setRecommended(null);
-      setCourierRates([]);
+      console.error("Recommendation failed:", error);
+      setSurfaceRates([]);
+      setAirRates([]);
+      setRecommendedSurface(null);
+      setRecommendedAir(null);
     } finally {
       setRecommendationLoading(false);
     }
@@ -243,12 +312,13 @@ const CreateShipment = () => {
 
     setLoading(true);
     try {
-      // ✅ Bulk shipment: Submit multiple orders
+      // Bulk shipment: Submit multiple orders
       if (isBulk && bulkOrderIds.length > 0) {
         const payload = {
           orderIds: bulkOrderIds,
           courierId: formData.courier,
           warehouseId: formData.warehouseId, // Added warehouseId
+          serviceType: activeTab, // Added serviceType
           insuranceEnabled: insuranceEnabled,
           insuranceAmount: insuranceEnabled ? insuranceAmount : 0
         };
@@ -262,6 +332,7 @@ const CreateShipment = () => {
           orderId: formData.orderId,
           courierId: formData.courier,
           warehouseId: formData.warehouseId, // Added warehouseId
+          serviceType: activeTab, // Added serviceType
           insuranceEnabled: insuranceEnabled,
           insuranceAmount: insuranceEnabled ? insuranceAmount : 0
         };
@@ -434,19 +505,64 @@ const CreateShipment = () => {
                   </select>
                 </div>
 
+                {/* Surface / Air Tab Switcher */}
+                {!recommendationLoading && (surfaceRates.length > 0 || airRates.length > 0) && (
+                  <div style={{ display: "flex", gap: "6px", marginBottom: "20px", background: "#f1f5f9", borderRadius: "10px", padding: "4px" }}>
+                    {["Surface", "Air"].map((tab) => {
+                      const isActive = activeTab === tab;
+                      const count = tab === "Surface" ? surfaceRates.length : airRates.length;
+                      return (
+                        <button
+                          key={tab}
+                          type="button"
+                          onClick={() => {
+                            setActiveTab(tab);
+                            const rec = tab === "Air" ? recommendedAir : recommendedSurface;
+                            if (rec?.courierId) {
+                              setFormData(prev => ({ ...prev, courier: rec.courierId }));
+                            } else {
+                              const list = tab === "Air" ? airRates : surfaceRates;
+                              if (list.length > 0) {
+                                setFormData(prev => ({ ...prev, courier: list[0].courierId }));
+                              } else {
+                                setFormData(prev => ({ ...prev, courier: "" }));
+                              }
+                            }
+                          }}
+                          style={{
+                            flex: 1,
+                            padding: "8px 16px",
+                            borderRadius: "8px",
+                            border: "none",
+                            cursor: "pointer",
+                            background: isActive ? "#fff" : "transparent",
+                            color: isActive ? "#0f172a" : "#64748b",
+                            fontWeight: isActive ? "700" : "500",
+                            fontSize: "13px",
+                            boxShadow: isActive ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
+                            transition: "all 0.2s",
+                          }}
+                        >
+                          {tab === "Surface" ? "🚛 Surface" : "✈️ Air"} ({count})
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
                 {/* Top 3 Recommended Couriers Card */}
                 {recommendationLoading ? (
                   <div className="loading-text">⏳ Finding best couriers...</div>
-                ) : courierRates.length > 0 ? (
+                ) : (activeTab === "Air" ? airRates : surfaceRates).length > 0 ? (
                   <>
                     <div className="recommended-card">
                       <div className="recommended-badge">🏆 Top 3</div>
                       <div className="recommended-title">
                         <FaStar className="star-icon" />
-                        Recommended Couriers (Cheapest)
+                        Recommended Couriers (Cheapest) - {activeTab}
                       </div>
                       
-                      {courierRates.slice(0, 3).map((c, index) => {
+                      {(activeTab === "Air" ? airRates : surfaceRates).slice(0, 3).map((c, index) => {
                         const total = Number(c.total || 0);
                         const isCheapest = index === 0;
                         
@@ -471,19 +587,19 @@ const CreateShipment = () => {
                         );
                       })}
                       
-                      {courierRates.length > 3 && (
+                      {(activeTab === "Air" ? airRates : surfaceRates).length > 3 && (
                         <div className="more-couriers-text">
-                          +{courierRates.length - 3} more couriers available
+                          +{(activeTab === "Air" ? airRates : surfaceRates).length - 3} more couriers available
                         </div>
                       )}
                     </div>
 
                     {/* Courier Comparison Table */}
-                    {courierRates.length > 0 && (
+                    {(activeTab === "Air" ? airRates : surfaceRates).length > 0 && (
                       <div className="comparison-card">
                         <div className="comparison-title">
                           <FaSortAmountUp className="comparison-icon" />
-                          All Courier Comparison
+                          All Courier Comparison ({activeTab})
                         </div>
 
                         <table className="comparison-table">
@@ -498,7 +614,7 @@ const CreateShipment = () => {
                           </thead>
 
                           <tbody>
-                            {courierRates.slice(0, 5).map((c, index) => {
+                            {(activeTab === "Air" ? airRates : surfaceRates).slice(0, 5).map((c, index) => {
                               const total = Number(c.total || 0);
                               const isCheapest = index === 0;
                               const eta = c.estimatedDays ? `${c.estimatedDays} Days` : "N/A";
@@ -534,10 +650,10 @@ const CreateShipment = () => {
                               );
                             })}
                             
-                            {courierRates.length > 5 && (
+                            {(activeTab === "Air" ? airRates : surfaceRates).length > 5 && (
                               <tr>
                                 <td colSpan="5" className="more-couriers-row">
-                                  +{courierRates.length - 5} more couriers
+                                  +{(activeTab === "Air" ? airRates : surfaceRates).length - 5} more couriers
                                 </td>
                               </tr>
                             )}
@@ -548,7 +664,7 @@ const CreateShipment = () => {
                   </>
                 ) : formData.orderId || isBulk ? (
                   <div className="no-rates-text">
-                    No rate cards found. Please contact admin.
+                    No rate cards found for {activeTab}. Please contact admin.
                   </div>
                 ) : null}
 
@@ -557,9 +673,9 @@ const CreateShipment = () => {
                   <div className="form-label">
                     <FaTruck className="label-icon" />
                     <span>Select Courier <span className="required-star">*</span></span>
-                    {recommended && (
+                    {(activeTab === "Air" ? recommendedAir : recommendedSurface) && (
                       <span className="recommended-tag">
-                        ⭐ Best: {recommended.courierName || recommended.courierId}
+                        ⭐ Best: {(activeTab === "Air" ? recommendedAir : recommendedSurface).courierName || (activeTab === "Air" ? recommendedAir : recommendedSurface).courierId}
                       </span>
                     )}
                   </div>
@@ -567,11 +683,11 @@ const CreateShipment = () => {
                     name="courier"
                     value={formData.courier}
                     onChange={(e) => setFormData({ ...formData, courier: e.target.value })}
-                    className={`form-select courier-select ${recommended && formData.courier === recommended.courierId ? 'recommended-select' : ''}`}
+                    className={`form-select courier-select ${(activeTab === "Air" ? recommendedAir : recommendedSurface) && formData.courier === (activeTab === "Air" ? recommendedAir : recommendedSurface).courierId ? 'recommended-select' : ''}`}
                     required
                   >
                     <option value="">Choose a courier partner</option>
-                    {courierRates.map((c) => (
+                    {(activeTab === "Air" ? airRates : surfaceRates).map((c) => (
                       <option
                         key={c.courierId}
                         value={c.courierId}

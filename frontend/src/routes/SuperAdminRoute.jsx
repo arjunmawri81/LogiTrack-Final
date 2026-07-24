@@ -1,11 +1,32 @@
 import { Navigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 
 const SuperAdminRoute = ({ children }) => {
-  const role = localStorage.getItem("role");
+  const token = localStorage.getItem("token");
 
-  return role === "SUPER_ADMIN"
-    ? children
-    : <Navigate to="/login" />;
+  if (!token) {
+    return <Navigate to="/login" />;
+  }
+
+  try {
+    const decoded = jwtDecode(token);
+
+    if (decoded.exp && decoded.exp * 1000 < Date.now()) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      return <Navigate to="/login" />;
+    }
+
+    const role = decoded.role;
+
+    return role === "SUPER_ADMIN"
+      ? children
+      : <Navigate to="/login" />;
+  } catch (error) {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    return <Navigate to="/login" />;
+  }
 };
 
 export default SuperAdminRoute;

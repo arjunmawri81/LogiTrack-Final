@@ -142,6 +142,7 @@ const downloadInvoice = async (req, res) => {
     const totalAmount =
       invoice.totalAmount ??
       (
+        (invoice.amount || 0) +
         (invoice.shippingCharge || 0) +
         (invoice.taxAmount || 0) +
         (invoice.insuranceCharge || 0)
@@ -239,30 +240,54 @@ const getInvoiceSummary = async (req, res) => {
       }
     }
 
-    const invoices = await Invoice.find(matchStage);
+    // Ensure we are matching on the correct ObjectId type if needed, but Mongoose usually handles this. Let's cast it just in case.
+    const mongoose = require("mongoose");
+    const merchantObjectId = new mongoose.Types.ObjectId(req.user.id);
+    matchStage.merchantId = merchantObjectId;
 
-    const totalInvoices = invoices.length;
+    const summary = await Invoice.aggregate([
+      { $match: matchStage },
+      {
+        $group: {
+          _id: null,
+          totalInvoices: { $sum: 1 },
+          paidInvoices: {
+            $sum: { $cond: [{ $eq: ["$status", "PAID"] }, 1, 0] },
+          },
+          pendingInvoices: {
+            $sum: { $cond: [{ $eq: ["$status", "PENDING"] }, 1, 0] },
+          },
+          totalRevenue: { 
+            $sum: { 
+              $ifNull: [
+                "$totalAmount", 
+                { $add: [
+                    { $ifNull: ["$amount", 0] },
+                    { $ifNull: ["$shippingCharge", 0] },
+                    { $ifNull: ["$taxAmount", 0] },
+                    { $ifNull: ["$insuranceCharge", 0] }
+                  ]
+                }
+              ] 
+            } 
+          },
+        },
+      },
+    ]);
 
-    const paidInvoices = invoices.filter(
-      (i) => i.status === "PAID"
-    ).length;
-
-    const pendingInvoices = invoices.filter(
-      (i) => i.status === "PENDING"
-    ).length;
-
-    const totalRevenue = invoices.reduce(
-      (sum, invoice) =>
-        sum + (invoice.totalAmount || 0),
-      0
-    );
+    const result = summary[0] || {
+      totalInvoices: 0,
+      paidInvoices: 0,
+      pendingInvoices: 0,
+      totalRevenue: 0,
+    };
 
     res.status(200).json({
       success: true,
-      totalInvoices,
-      paidInvoices,
-      pendingInvoices,
-      totalRevenue,
+      totalInvoices: result.totalInvoices,
+      paidInvoices: result.paidInvoices,
+      pendingInvoices: result.pendingInvoices,
+      totalRevenue: result.totalRevenue,
     });
   } catch (error) {
     console.error("GET INVOICE SUMMARY ERROR =>", error);

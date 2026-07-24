@@ -1,16 +1,11 @@
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-
-const uploadDir = "uploads/logos";
-
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+const os = require("os");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, uploadDir);
+    cb(null, os.tmpdir());
   },
 
   filename: (req, file, cb) => {
@@ -25,13 +20,12 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-  const allowed = [
-    "image/png",
-    "image/jpeg",
-    "image/jpg",
-  ];
+  const allowedMimes = ["image/png", "image/jpeg", "image/jpg"];
+  const allowedExts = [".png", ".jpg", ".jpeg"];
 
-  if (allowed.includes(file.mimetype)) {
+  const ext = path.extname(file.originalname).toLowerCase();
+
+  if (allowedMimes.includes(file.mimetype) && allowedExts.includes(ext)) {
     cb(null, true);
   } else {
     cb(new Error("Only PNG/JPG images are allowed"), false);

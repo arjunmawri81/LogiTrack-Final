@@ -30,7 +30,7 @@ const ndrSchema = new mongoose.Schema(
       required: true,
     },
 
-    // ✅ FIXED: Added REATTEMPT_REQUESTED and RTO_REQUESTED
+
     status: {
       type: String,
       enum: [
@@ -51,7 +51,7 @@ const ndrSchema = new mongoose.Schema(
       default: "",
     },
 
-    // ✅ CHANGE 1: Simplified actionTaken enum
+    // Action taken
     actionTaken: {
       type: String,
       enum: [
@@ -98,7 +98,7 @@ const ndrSchema = new mongoose.Schema(
       type: Date,
     },
 
-    // ✅ CHANGE 2: Added new fields below nextAttemptDate
+
     rejectReason: {
       type: String,
       default: "",

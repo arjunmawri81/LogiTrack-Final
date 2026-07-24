@@ -96,8 +96,9 @@ const Shipments = () => {
 
       const token = localStorage.getItem("token");
 
+      const baseUrl = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : "/api";
       const response = await fetch(
-        `http://localhost:5000/api/invoices/${invoiceId}/download`,
+        `${baseUrl}/invoices/${invoiceId}/download`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

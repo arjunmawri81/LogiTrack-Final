@@ -953,7 +953,7 @@
 /* ---------- TABLET (768px) ---------- */
 @media (max-width: 768px) {
   .rto-content {
-    margin-left: 0;
+    margin-left: 70px;
     padding: 16px 20px;
   }
 
