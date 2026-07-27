@@ -16,6 +16,7 @@ const path = require("path");
 const mongoose = require("mongoose");
 const Warehouse = require("../models/Warehouse"); // Added Warehouse import
 const { determineZone, calculateShippingRates } = require("./rateCardController");
+const whatsappService = require("../services/whatsappService");
 
 // ===============================
 // LOGGER (Simple Structured Logger)
@@ -1387,6 +1388,18 @@ const createShipment = async (req, res) => {
 
     if (session) await session.commitTransaction();
 
+    // Trigger WhatsApp notification if option enabled
+    if (req.body.sendWhatsAppNotification !== false) {
+      whatsappService.sendShipmentNotification({
+        customerName: order.customerName,
+        customerPhone: order.customerPhone,
+        orderNumber: order.orderNumber || order._id.toString().slice(-6),
+        awb: createdShipment.awb,
+        courierName: courier.name,
+        trackingUrl: createdShipment.trackingUrl,
+      }).catch(err => console.error("Async WhatsApp error:", err));
+    }
+
     logger.info("Shipment created successfully", { 
       shipmentId: createdShipment._id,
       awb: createdShipment.awb,
@@ -1727,6 +1740,18 @@ const createBulkShipments = async (req, res) => {
         await order.save({ session });
 
         shipments.push(createdShipment);
+
+        // Trigger WhatsApp notification if enabled
+        if (req.body.sendWhatsAppNotification !== false) {
+          whatsappService.sendShipmentNotification({
+            customerName: order.customerName,
+            customerPhone: order.customerPhone,
+            orderNumber: order.orderNumber || order._id.toString().slice(-6),
+            awb: createdShipment.awb,
+            courierName: courier.name,
+            trackingUrl: createdShipment.trackingUrl,
+          }).catch(err => console.error("Async WhatsApp bulk error:", err));
+        }
 
         wallet.balance = Math.max(0, Math.round((wallet.balance - shippingCharge) * 100) / 100);
         totalCharges += shippingCharge;

@@ -426,19 +426,23 @@
 .orders-table-wrapper {
   background: #fff;
   border-radius: 16px;
-  overflow: hidden;
   border: 1px solid #e2e8f0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  min-height: 340px;
 }
 
 .orders-table-container {
   overflow-x: auto;
+  overflow-y: visible;
   -webkit-overflow-scrolling: touch;
+  min-height: 340px;
+  padding-bottom: 180px;
 }
 
 .orders-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   min-width: 900px;
 }
 
@@ -516,9 +520,15 @@
 /* ACTION MENU */
 /* ============================================ */
 
+.orders-table-row.active-menu-row {
+  position: relative !important;
+  z-index: 100 !important;
+}
+
 .action-menu-container {
   position: relative;
   display: inline-block;
+  z-index: 200;
 }
 
 .orders-action-btn {
@@ -543,13 +553,20 @@
   right: 0;
   top: 100%;
   margin-top: 4px;
-  background: #fff;
+  background: #ffffff !important;
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   min-width: 200px;
-  z-index: 100;
+  z-index: 99999 !important;
   padding: 6px 0;
   border: 1px solid #e2e8f0;
+}
+
+.orders-action-menu.dropup {
+  top: auto;
+  bottom: 100%;
+  margin-top: 0;
+  margin-bottom: 4px;
 }
 
 .orders-menu-item {

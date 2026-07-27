@@ -37,6 +37,7 @@ const Orders = () => {
   const [exporting, setExporting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [menuPos, setMenuPos] = useState(null);
   
   const [downloadingLabel, setDownloadingLabel] = useState(false);
   
@@ -89,15 +90,28 @@ const Orders = () => {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (openMenuId && !event.target.closest('.action-menu-container')) {
+      if (openMenuId && !event.target.closest('.orders-action-menu') && !event.target.closest('.orders-action-btn')) {
         setOpenMenuId(null);
+        setMenuPos(null);
       }
       if (showBulkDropdown && !event.target.closest('.bulk-actions-wrapper')) {
         setShowBulkDropdown(false);
       }
     };
+
+    const handleScroll = () => {
+      if (openMenuId) {
+        setOpenMenuId(null);
+        setMenuPos(null);
+      }
+    };
+
     document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
+    window.addEventListener('scroll', handleScroll, true);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+      window.removeEventListener('scroll', handleScroll, true);
+    };
   }, [openMenuId, showBulkDropdown]);
 
   const filteredOrders = orders.filter((o) => {
@@ -760,7 +774,7 @@ const Orders = () => {
               </thead>
               <tbody>
                 {filteredOrders.length > 0 ? (
-                  filteredOrders.map((order) => {
+                  filteredOrders.map((order, index) => {
                     const statusStyle = getStatusStyle(order.status);
                     const hasShipment = !!order.shipmentId;
                     const isDelivered = order.status === 'DELIVERED';
@@ -768,7 +782,11 @@ const Orders = () => {
                     const canCancel = !isDelivered && !isCancelled && !hasShipment;
                     
                     return (
-                      <tr key={order._id} className="orders-table-row">
+                      <tr 
+                        key={order._id} 
+                        className={`orders-table-row ${openMenuId === order._id ? 'active-menu-row' : ''}`}
+                        style={{ position: 'relative', zIndex: openMenuId === order._id ? 100 : 1 }}
+                      >
                         <td className="orders-table-td orders-table-checkbox">
                           <input
                             type="checkbox"
@@ -821,7 +839,27 @@ const Orders = () => {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setOpenMenuId(openMenuId === order._id ? null : order._id);
+                                if (openMenuId === order._id) {
+                                  setOpenMenuId(null);
+                                  setMenuPos(null);
+                                } else {
+                                  const rect = e.currentTarget.getBoundingClientRect();
+                                  const spaceBelow = window.innerHeight - rect.bottom;
+                                  if (spaceBelow < 260 && rect.top > 260) {
+                                    setMenuPos({
+                                      bottom: window.innerHeight - rect.top + 4,
+                                      right: window.innerWidth - rect.right,
+                                      isUp: true
+                                    });
+                                  } else {
+                                    setMenuPos({
+                                      top: rect.bottom + 4,
+                                      right: window.innerWidth - rect.right,
+                                      isUp: false
+                                    });
+                                  }
+                                  setOpenMenuId(order._id);
+                                }
                               }}
                               className="orders-action-btn"
                             >
@@ -830,8 +868,20 @@ const Orders = () => {
                               <FaChevronDown size={10} />
                             </button>
 
-                            {openMenuId === order._id && (
-                              <div className="orders-action-menu">
+                            {openMenuId === order._id && menuPos && (
+                              <div 
+                                className="orders-action-menu"
+                                style={{
+                                  position: "fixed",
+                                  ...(menuPos.isUp 
+                                    ? { bottom: `${menuPos.bottom}px`, top: "auto" } 
+                                    : { top: `${menuPos.top}px`, bottom: "auto" }),
+                                  right: `${menuPos.right}px`,
+                                  zIndex: 999999,
+                                  background: "#ffffff",
+                                  boxShadow: "0 10px 30px rgba(0,0,0,0.2)"
+                                }}
+                              >
                                 <button
                                   onClick={() => {
                                     navigate(`/merchant/orders/${order._id}`);

@@ -43,6 +43,9 @@ const CreateShipment = () => {
   const [insuranceEnabled, setInsuranceEnabled] = useState(false);
   const [insuranceAmount, setInsuranceAmount] = useState(0);
 
+  // WhatsApp notification toggle state
+  const [sendWhatsAppNotification, setSendWhatsAppNotification] = useState(true);
+
   // Insurance charge calculation
   const INSURANCE_CHARGE = 12;
 
@@ -320,7 +323,8 @@ const CreateShipment = () => {
           warehouseId: formData.warehouseId, // Added warehouseId
           serviceType: activeTab, // Added serviceType
           insuranceEnabled: insuranceEnabled,
-          insuranceAmount: insuranceEnabled ? insuranceAmount : 0
+          insuranceAmount: insuranceEnabled ? insuranceAmount : 0,
+          sendWhatsAppNotification: sendWhatsAppNotification
         };
         
         await api.post("/shipments/bulk", payload);
@@ -334,7 +338,8 @@ const CreateShipment = () => {
           warehouseId: formData.warehouseId, // Added warehouseId
           serviceType: activeTab, // Added serviceType
           insuranceEnabled: insuranceEnabled,
-          insuranceAmount: insuranceEnabled ? insuranceAmount : 0
+          insuranceAmount: insuranceEnabled ? insuranceAmount : 0,
+          sendWhatsAppNotification: sendWhatsAppNotification
         };
         
         await api.post("/shipments", payload);
@@ -743,6 +748,30 @@ const CreateShipment = () => {
                     </div>
                   </div>
                 )}
+
+                {/* WhatsApp Notification Toggle */}
+                <div 
+                  className={`insurance-toggle ${sendWhatsAppNotification ? 'insurance-active' : ''}`}
+                  onClick={() => setSendWhatsAppNotification(!sendWhatsAppNotification)}
+                  style={{ marginTop: '12px', borderLeft: sendWhatsAppNotification ? '4px solid #25D366' : '4px solid #cbd5e1' }}
+                >
+                  <div className="insurance-left">
+                    <div className="insurance-icon" style={{ color: '#25D366', fontSize: '18px' }}>
+                      💬
+                    </div>
+                    <div>
+                      <div className="insurance-label" style={{ color: '#0f172a' }}>
+                        Send WhatsApp Notification to Customer
+                      </div>
+                      <div className="insurance-subtext">
+                        Send tracking link, AWB number & courier details via WhatsApp to customer
+                      </div>
+                    </div>
+                  </div>
+                  <div className={`insurance-switch ${sendWhatsAppNotification ? 'switch-active' : ''}`} style={{ background: sendWhatsAppNotification ? '#25D366' : '#cbd5e1' }}>
+                    <div className={`insurance-knob ${sendWhatsAppNotification ? 'knob-active' : ''}`} />
+                  </div>
+                </div>
 
                 {/* Cost Preview */}
                 <div className="cost-preview-card">

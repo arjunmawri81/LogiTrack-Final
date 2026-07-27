@@ -201,6 +201,7 @@
 .shipments-table-wrapper {
   overflow-x: auto;
   border-radius: 16px;
+  min-height: 280px;
 }
 
 .shipments-loading {

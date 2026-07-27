@@ -25,6 +25,7 @@ const BulkShipment = () => {
   const [selectedOrders, setSelectedOrders] = useState([]);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [sendWhatsAppNotification, setSendWhatsAppNotification] = useState(true);
 
   // Get selected order IDs from navigation state
   const orderIds = location.state?.orderIds || [];
@@ -96,6 +97,7 @@ const BulkShipment = () => {
 
       const payload = {
         orderIds: selectedOrders,
+        sendWhatsAppNotification: sendWhatsAppNotification,
       };
 
       const response = await api.post("/shipments/bulk", payload);
@@ -202,8 +204,16 @@ const BulkShipment = () => {
               }}>
                 Create shipments for multiple orders at once
               </p>
-            </div>
-            <div style={{ display: "flex", gap: "10px" }}>
+            <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+              <label style={{ display: "flex", alignItems: "center", gap: "8px", background: "#f0fdf4", border: "1px solid #bbf7d0", padding: "8px 14px", borderRadius: "10px", cursor: "pointer", fontSize: "13px", color: "#166534", fontWeight: "500" }}>
+                <input 
+                  type="checkbox" 
+                  checked={sendWhatsAppNotification} 
+                  onChange={(e) => setSendWhatsAppNotification(e.target.checked)} 
+                  style={{ width: "16px", height: "16px", accentColor: "#25D366", cursor: "pointer" }}
+                />
+                <span>💬 Send WhatsApp Notification</span>
+              </label>
               <button
                 onClick={handleBulkShipment}
                 disabled={processing || selectedOrders.length === 0}
