@@ -45,6 +45,11 @@ const merchantSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+
+    logo: {
+      type: String,
+      default: "",
+    },
   },
   {
     timestamps: true,

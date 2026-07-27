@@ -5,7 +5,10 @@ import {
   FaDownload,
   FaUpload,
   FaTrash,
+  FaCheckCircle,
+  FaSpinner,
 } from "react-icons/fa";
+import api from "../services/api";
 
 // Default settings object
 const defaultSettings = {
@@ -33,20 +36,34 @@ const LabelSettingsModal = ({
   isBulk = false,
   selectedCount = 0,
 }) => {
-
   const [settings, setSettings] = useState({
     ...defaultSettings,
   });
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isUploadingPermanentLogo, setIsUploadingPermanentLogo] = useState(false);
+  const [permanentLogo, setPermanentLogo] = useState(null);
 
-  // Reset all settings when modal opens
+  // Load merchant user profile logo on mount / open
   useEffect(() => {
     if (open) {
-
       setSettings({
         ...defaultSettings,
       });
       setIsDownloading(false);
+      setIsUploadingPermanentLogo(false);
+
+      // Load user profile logo from localStorage or API
+      try {
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          const parsedUser = JSON.parse(storedUser);
+          if (parsedUser.logo) {
+            setPermanentLogo(parsedUser.logo);
+          }
+        }
+      } catch (e) {
+        console.error("Error reading stored user logo", e);
+      }
     }
   }, [open]);
 
@@ -57,18 +74,17 @@ const LabelSettingsModal = ({
     }));
   };
 
-  const handleLogoUpload = (e) => {
+  // 1. Temporary (One-Time) Logo Upload Handler
+  const handleTemporaryLogoUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // File validation - Check file type
     if (!file.type.startsWith("image/")) {
       alert("❌ Only image files are allowed (PNG, JPG, JPEG, SVG, etc.)");
       e.target.value = '';
       return;
     }
 
-    // File validation - Check file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
       alert("❌ Logo must be under 2MB. Please compress your image.");
       e.target.value = '';
@@ -88,10 +104,66 @@ const LabelSettingsModal = ({
       alert("❌ Failed to read image file. Please try again.");
     };
     reader.readAsDataURL(file);
-    e.target.value = ''; // Reset input
+    e.target.value = '';
   };
 
-  const handleRemoveLogo = () => {
+  // 2. Permanent Logo Upload Handler (Saves to Merchant Profile)
+  const handlePermanentLogoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      alert("❌ Only image files are allowed (PNG, JPG, JPEG, SVG, etc.)");
+      e.target.value = '';
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      alert("❌ Logo must be under 2MB. Please compress your image.");
+      e.target.value = '';
+      return;
+    }
+
+    try {
+      setIsUploadingPermanentLogo(true);
+      const formData = new FormData();
+      formData.append("logo", file);
+
+      const response = await api.post("/merchant/logo", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      if (response.data.success) {
+        const updatedLogo = response.data.logo;
+        setPermanentLogo(updatedLogo);
+
+        // Update localStorage user object
+        const storedUser = localStorage.getItem("user");
+        let parsedUser = storedUser ? JSON.parse(storedUser) : {};
+        parsedUser.logo = updatedLogo;
+        localStorage.setItem("user", JSON.stringify(parsedUser));
+        window.dispatchEvent(new Event("userUpdated"));
+
+        // Set modal setting to use merchant logo
+        setSettings(prev => ({
+          ...prev,
+          useMerchantLogo: true,
+          uploadedLogo: null,
+          logoFile: null,
+        }));
+
+        alert("✅ Permanent merchant logo updated successfully!");
+      }
+    } catch (error) {
+      console.error("Permanent logo upload error:", error);
+      alert(error.response?.data?.message || "❌ Failed to upload permanent logo.");
+    } finally {
+      setIsUploadingPermanentLogo(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleRemoveTemporaryLogo = () => {
     setSettings(prev => ({
       ...prev,
       uploadedLogo: null,
@@ -106,7 +178,6 @@ const LabelSettingsModal = ({
 
     setIsDownloading(true);
     try {
-
       if (onDownload) {
         await onDownload(settings);
       } else {
@@ -115,7 +186,6 @@ const LabelSettingsModal = ({
         setIsDownloading(false);
         return;
       }
-      
 
       if (typeof onClose === "function") {
         onClose();
@@ -207,44 +277,96 @@ const LabelSettingsModal = ({
             </div>
           </div>
 
-          {/* Upload Logo */}
+          {/* Logo Options Section */}
           <div style={sectionStyles.container}>
-            <h4 style={sectionStyles.title}>Logo</h4>
+            <h4 style={sectionStyles.title}>Logo Options</h4>
             <div style={logoStyles.container}>
-              <div style={logoStyles.uploadArea}>
-                <label style={logoStyles.uploadButton}>
-                  <FaUpload size={14} style={{ marginRight: '6px' }} />
-                  Choose Image
-                  <input
-                    type="file"
-                    accept=".png,.jpg,.jpeg"
-                    hidden
-                    onChange={handleLogoUpload}
-                    disabled={isDownloading}
-                  />
-                </label>
+              {/* Toggle Use Merchant Logo */}
+              <div style={{ marginBottom: '8px' }}>
                 <Toggle
-                  label="Use Merchant Logo"
+                  label="Use Merchant Saved Logo"
                   checked={settings.useMerchantLogo}
                   onChange={(val) => handleSettingChange('useMerchantLogo', val)}
                 />
               </div>
-              {settings.uploadedLogo && (
-                <div style={logoStyles.previewContainer}>
-                  <img 
-                    src={settings.uploadedLogo} 
-                    alt="Uploaded logo"
-                    style={logoStyles.preview}
-                  />
-                  <button
-                    onClick={handleRemoveLogo}
-                    style={logoStyles.removeButton}
-                    disabled={isDownloading}
-                  >
-                    <FaTrash size={12} />
-                  </button>
+
+              {/* Upload Buttons Box */}
+              <div style={logoStyles.dualUploadContainer}>
+                {/* Temporary Logo */}
+                <div style={logoStyles.uploadBox}>
+                  <span style={logoStyles.boxTitle}>One-Time Custom Logo</span>
+                  <p style={logoStyles.boxDesc}>Used only for this label download session</p>
+                  <label style={logoStyles.uploadButton}>
+                    <FaUpload size={13} style={{ marginRight: '6px' }} />
+                    Upload Custom Logo
+                    <input
+                      type="file"
+                      accept=".png,.jpg,.jpeg"
+                      hidden
+                      onChange={handleTemporaryLogoUpload}
+                      disabled={isDownloading || isUploadingPermanentLogo}
+                    />
+                  </label>
+
+                  {settings.uploadedLogo && (
+                    <div style={logoStyles.previewContainer}>
+                      <div style={logoStyles.badge}>One-Time</div>
+                      <img 
+                        src={settings.uploadedLogo} 
+                        alt="Temporary custom logo"
+                        style={logoStyles.preview}
+                      />
+                      <button
+                        onClick={handleRemoveTemporaryLogo}
+                        style={logoStyles.removeButton}
+                        disabled={isDownloading}
+                        title="Remove custom logo"
+                      >
+                        <FaTrash size={10} />
+                      </button>
+                    </div>
+                  )}
                 </div>
-              )}
+
+                {/* Permanent Logo */}
+                <div style={logoStyles.uploadBox}>
+                  <span style={logoStyles.boxTitle}>Permanent Merchant Logo</span>
+                  <p style={logoStyles.boxDesc}>Saves to your account for all future labels</p>
+                  <label style={{
+                    ...logoStyles.uploadButton,
+                    background: '#fff7ed',
+                    color: '#c2410c',
+                    borderColor: '#ffedd5',
+                  }}>
+                    {isUploadingPermanentLogo ? (
+                      <FaSpinner size={13} style={{ marginRight: '6px', animation: 'spin 1s linear infinite' }} />
+                    ) : (
+                      <FaUpload size={13} style={{ marginRight: '6px' }} />
+                    )}
+                    {isUploadingPermanentLogo ? 'Saving Logo...' : 'Upload Permanent Logo'}
+                    <input
+                      type="file"
+                      accept=".png,.jpg,.jpeg"
+                      hidden
+                      onChange={handlePermanentLogoUpload}
+                      disabled={isDownloading || isUploadingPermanentLogo}
+                    />
+                  </label>
+
+                  {permanentLogo && (
+                    <div style={logoStyles.previewContainer}>
+                      <div style={{ ...logoStyles.badge, background: '#10b981', color: '#fff' }}>
+                        <FaCheckCircle size={9} style={{ marginRight: '3px' }} /> Saved Profile Logo
+                      </div>
+                      <img 
+                        src={permanentLogo} 
+                        alt="Permanent merchant logo"
+                        style={{ ...logoStyles.preview, borderColor: '#10b981' }}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -487,41 +609,76 @@ const logoStyles = {
     flexDirection: 'column',
     gap: '12px',
   },
-  uploadArea: {
+  dualUploadContainer: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+    gap: '12px',
+    marginTop: '6px',
+  },
+  uploadBox: {
+    background: '#f8fafc',
+    border: '1px dashed #cbd5e1',
+    borderRadius: '12px',
+    padding: '12px',
     display: 'flex',
-    alignItems: 'center',
-    gap: '16px',
-    flexWrap: 'wrap',
+    flexDirection: 'column',
+    gap: '6px',
+  },
+  boxTitle: {
+    fontSize: '13px',
+    fontWeight: '600',
+    color: '#334155',
+  },
+  boxDesc: {
+    fontSize: '11px',
+    color: '#64748b',
+    margin: 0,
   },
   uploadButton: {
-    background: '#f1f5f9',
+    background: '#ffffff',
     color: '#475569',
-    padding: '8px 16px',
+    padding: '8px 14px',
     borderRadius: '8px',
-    fontSize: '13px',
+    fontSize: '12px',
     fontWeight: '500',
     cursor: 'pointer',
-    display: 'flex',
+    display: 'inline-flex',
     alignItems: 'center',
+    justifyContent: 'center',
     transition: 'all 0.2s',
-    border: '1px dashed #cbd5e1',
+    border: '1px solid #cbd5e1',
+    marginTop: '4px',
+    boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
   },
   previewContainer: {
     position: 'relative',
     display: 'inline-block',
+    marginTop: '8px',
+  },
+  badge: {
+    fontSize: '10px',
+    fontWeight: '600',
+    background: '#f97316',
+    color: '#fff',
+    padding: '2px 6px',
+    borderRadius: '4px',
+    marginBottom: '4px',
+    display: 'inline-flex',
+    alignItems: 'center',
   },
   preview: {
-    width: '60px',
-    height: '60px',
+    width: '64px',
+    height: '64px',
     objectFit: 'contain',
     border: '1px solid #e2e8f0',
     borderRadius: '8px',
     padding: '4px',
     background: '#fff',
+    display: 'block',
   },
   removeButton: {
     position: 'absolute',
-    top: '-6px',
+    top: '18px',
     right: '-6px',
     background: '#fee2e2',
     color: '#dc2626',
@@ -547,6 +704,7 @@ const toggleStyles = {
   },
   label: {
     fontSize: '13px',
+    fontWeight: '500',
     color: '#475569',
   },
   track: {

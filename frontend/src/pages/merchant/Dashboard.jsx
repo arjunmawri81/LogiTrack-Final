@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaWallet } from "react-icons/fa";
+import { FaWallet, FaPlusCircle } from "react-icons/fa";
 import Sidebar from "../../components/Sidebar";
 import api from "../../services/api";
 import "./Dashboard.css";
@@ -59,28 +59,39 @@ const Dashboard = () => {
       </div>
 
       <main className="dashboard-main">
-        {/*  Header with Wallet - No duplication */}
+        {/*  Header with Wallet - Premium Glass Widget */}
         <div className="dashboard-header">
-          <h1 className="dashboard-title">
-            Welcome Back, {user?.name || "Merchant"}
-          </h1>
+          <div className="dashboard-title-group">
+            <h1 className="dashboard-title">
+              Welcome Back, {user?.name || "Merchant"} 👋
+            </h1>
+            <p className="dashboard-subtitle">
+              Here is what is happening with your shipments today
+            </p>
+          </div>
 
           <div className="dashboard-wallet">
-            <div className="dashboard-wallet-info">
-              <FaWallet className="dashboard-wallet-icon" />
-              <span className="dashboard-wallet-balance">
-                ₹{formatCurrency(stats.walletBalance)}
-              </span>
+            <div className="dashboard-wallet-badge">
+              <div className="dashboard-wallet-icon-box">
+                <FaWallet className="dashboard-wallet-icon" />
+              </div>
+              <div className="dashboard-wallet-details">
+                <span className="dashboard-wallet-label">Wallet Balance</span>
+                <span className="dashboard-wallet-balance">
+                  ₹{formatCurrency(stats.walletBalance)}
+                </span>
+              </div>
             </div>
 
             <button
               className="dashboard-wallet-btn"
               onClick={() => navigate("/merchant/wallet")}
             >
-              Recharge Wallet
+              <FaPlusCircle className="btn-plus-icon" /> Recharge Wallet
             </button>
           </div>
         </div>
+
 
        
 

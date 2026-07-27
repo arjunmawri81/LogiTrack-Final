@@ -8,8 +8,10 @@ const {
   updateProfile,
   changePassword,
   uploadKYCDocument,
+  uploadLogo,
 } = require("../controllers/merchantController");
 const kycUpload = require("../middleware/kycUploadMiddleware");
+const logoUpload = require("../middleware/logoUploadMiddleware");
 
 // Get Profile
 router.get(
@@ -38,6 +40,14 @@ router.post(
   authMiddleware,
   kycUpload.single("document"),
   uploadKYCDocument
+);
+
+// Permanent Logo Upload Route
+router.post(
+  "/logo",
+  authMiddleware,
+  logoUpload.single("logo"),
+  uploadLogo
 );
 
 module.exports = router;

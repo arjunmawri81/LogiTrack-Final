@@ -790,20 +790,10 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
   currentY = section2Y + section2Height;
   doc.moveTo(contentX, currentY)
      .lineTo(contentX + maxWidth, currentY)
-     .stroke();
-  
-  // SECTION 3: SHIP FROM + ORDER DETAILS (20%)
-  const section3Height = totalHeight * 0.20;
+     .stroke();  // SECTION 3: SHIP FROM + ORDER DETAILS (Dynamic height to prevent text overflow)
   const section3Y = currentY;
-  
-  const dividerX3 = contentX + maxWidth / 2;
-  doc.moveTo(dividerX3, section3Y)
-     .lineTo(dividerX3, section3Y + section3Height)
-     .stroke();
-  
   const leftFromX = contentX + padding;
   const leftFromWidth = maxWidth / 2 - padding * 2;
-  const fromStartY = section3Y + padding + 5;
   
   doc.font(boldFont)
      .fontSize(headerFontSize)
@@ -812,63 +802,56 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
        width: leftFromWidth,
        align: 'left',
      });
-  
-  const companyY = fromStartY + 16;
+   
+  const companyY = section3Y + padding + 14;
   doc.font(boldFont)
-     .fontSize(fontSize + 1)
+     .fontSize(7.5)
      .fillColor('#000000')
      .text(shipment.merchantId?.companyName || 'LogiTrack', leftFromX, companyY, {
        width: leftFromWidth,
        align: 'left',
      });
-  
+   
   const pickup = shipment.pickupAddress || {};
+  let currentFromY = companyY + 11;
 
   doc.font(regularFont)
-     .fontSize(fontSize)
-     .text(pickup.warehouseName || "", leftFromX, companyY + 14);
+     .fontSize(6.5)
+     .fillColor('#333333');
 
-  doc.text(
-    `${pickup.addressLine1 || ""} ${pickup.addressLine2 || ""}`,
-    leftFromX,
-    companyY + 28,
-    {
-      width: leftFromWidth
-    }
-  );
+  if (pickup.warehouseName) {
+    doc.text(pickup.warehouseName, leftFromX, currentFromY, { width: leftFromWidth, height: 10, lineBreak: false });
+    currentFromY += 9.5;
+  }
 
-  doc.text(
-    `${pickup.city || ""}, ${pickup.state || ""} - ${pickup.pincode || ""}`,
-    leftFromX,
-    companyY + 42,
-    {
-      width: leftFromWidth
-    }
-  );
+  const addrStr = `${pickup.addressLine1 || ""} ${pickup.addressLine2 || ""}`.trim();
+  if (addrStr) {
+    doc.text(addrStr, leftFromX, currentFromY, { width: leftFromWidth, height: 10, lineBreak: false });
+    currentFromY += 9.5;
+  }
 
-  doc.text(
-    `Contact: ${pickup.contactPerson || ""}`,
-    leftFromX,
-    companyY + 56
-  );
+  const cityStr = `${pickup.city || ""}, ${pickup.state || ""} - ${pickup.pincode || ""}`.trim();
+  if (cityStr && cityStr !== "-") {
+    doc.text(cityStr, leftFromX, currentFromY, { width: leftFromWidth, height: 10, lineBreak: false });
+    currentFromY += 9.5;
+  }
 
-  doc.text(
-    `Phone: ${pickup.phone || ""}`,
-    leftFromX,
-    companyY + 70
-  );
+  const contactList = [];
+  if (pickup.contactPerson) contactList.push(`Contact: ${pickup.contactPerson}`);
+  if (pickup.phone) contactList.push(`Phone: ${pickup.phone}`);
+  
+  if (contactList.length > 0) {
+    doc.text(contactList.join(' | '), leftFromX, currentFromY, { width: leftFromWidth, height: 10, lineBreak: false });
+    currentFromY += 9.5;
+  }
 
   if (shipment.merchantId?.gst) {
-    doc.text(
-      `GST: ${shipment.merchantId.gst}`,
-      leftFromX,
-      companyY + 84
-    );
+    doc.text(`GST: ${shipment.merchantId.gst}`, leftFromX, currentFromY, { width: leftFromWidth, height: 10, lineBreak: false });
+    currentFromY += 9.5;
   }
   
-  const rightOrderX = dividerX3 + padding;
+  const rightOrderX = contentX + maxWidth / 2 + padding;
   const rightOrderWidth = maxWidth / 2 - padding * 2;
-  const orderStartY = section3Y + padding + 5;
   
   doc.font(boldFont)
      .fontSize(headerFontSize)
@@ -877,8 +860,8 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
        width: rightOrderWidth,
        align: 'left',
      });
-  
-  const orderNumY = orderStartY + 16;
+   
+  const orderNumY = section3Y + padding + 14;
   let orderNumber = shipment.orderId?.orderNumber || shipment.orderId?._id?.toString()?.slice(-6) || 'N/A';
   
   if (orderNumber.length > 14) {
@@ -902,7 +885,7 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
        lineBreak: false
      });
   
-  const barcodeOrderY = orderNumY + 18;
+  const barcodeOrderY = orderNumY + 16;
   if (orderNumber) {
     try {
       const smallBarcode = await bwipjs.toBuffer({
@@ -917,14 +900,14 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
       const barcodeWidthSmall = Math.min(rightOrderWidth - 40, 130);
       doc.image(smallBarcode, barcodeX, barcodeOrderY, {
         width: barcodeWidthSmall,
-        height: 22,
+        height: 20,
       });
     } catch (err) {
       logger.error("Order barcode error", { error: err.message });
     }
   }
   
-  const paymentStatusY = barcodeOrderY + 26;
+  const paymentStatusY = barcodeOrderY + 23;
   doc.font(boldFont)
      .fontSize(9)
      .fillColor('#000000')
@@ -932,6 +915,13 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
        width: rightOrderWidth,
        align: 'left',
      });
+
+  const section3Height = Math.max(totalHeight * 0.20, currentFromY - section3Y + padding);
+
+  const dividerX3 = contentX + maxWidth / 2;
+  doc.moveTo(dividerX3, section3Y)
+     .lineTo(dividerX3, section3Y + section3Height)
+     .stroke();
   
   currentY = section3Y + section3Height;
   doc.moveTo(contentX, currentY)

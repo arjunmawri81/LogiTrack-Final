@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import api from "../../services/api";
 import SuperAdminLayout from "./SuperAdminLayout";
@@ -18,33 +18,31 @@ import {
   FaArrowLeft,
   FaSave,
   FaUndo,
-  FaWallet,
   FaBuilding,
-  FaEnvelope,
-  FaPhone,
-  FaIdCard,
-  FaCalendarAlt,
   FaSearch,
   FaEdit,
   FaPlusCircle,
+  FaCalculator,
+  FaCoins,
+  FaExchangeAlt,
 } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./RateCardManagement.css";
 
 // ─────────────────────────────────────────────────────────────────
-// CONSTANTS & HELPERS
+// CONSTANTS & INITIAL FORM STATE
 // ─────────────────────────────────────────────────────────────────
 
 const EMPTY_FORM = {
   forwardRates: { rate500gm: "", rate1kg: "", rate2kg: "", rate5kg: "", additionalKg: "" },
-  codCharges:   { codCharge: "" },
-  rtoCharges:   { rtoCharge: "" },
-  additionalCharges: { reversePickup: "", fuelCharge: "" },
   zoneRates:    { local: "", regional: "", national: "" },
+  buyingRate:   { buyRate: "", internalCostPercent: "70" },
+  codCharges:   { codCharge: "", codPercentage: "", codBuyCharge: "", codBuyPercentage: "" },
+  rtoCharges:   { rtoCharge: "", rtoBuyCharge: "" },
+  additionalCharges: { reversePickup: "", fuelCharge: "", insuranceCharge: "", odaCharge: "", handlingCharge: "" },
+  volumetricDivisor: "5000",
   gst:          18,
-  odaCharge:    "",
-  handlingCharge: "",
   effectiveFrom: "",
   effectiveTo:   "",
   serviceability: { codEnabled: true, prepaidEnabled: true, rtoEnabled: true, reversePickup: true },
@@ -52,7 +50,7 @@ const EMPTY_FORM = {
 
 const normalizeFromBackend = (data) => {
   if (!data) return { ...EMPTY_FORM };
-  const str = (v) => (v !== undefined && v !== null ? String(v) : "");
+  const str = (v) => (v !== undefined && v !== null && v !== "" ? String(v) : "");
   return {
     forwardRates: {
       rate500gm:    str(data.forwardRates?.rate500gm),
@@ -61,20 +59,34 @@ const normalizeFromBackend = (data) => {
       rate5kg:      str(data.forwardRates?.rate5kg),
       additionalKg: str(data.forwardRates?.additionalKg),
     },
-    codCharges:   { codCharge: str(data.codCharge) },
-    rtoCharges:   { rtoCharge: str(data.rtoCharge) },
-    additionalCharges: {
-      reversePickup: str(data.reversePickup),
-      fuelCharge:    str(data.fuelCharge),
-    },
     zoneRates: {
       local:    str(data.zoneRates?.local),
       regional: str(data.zoneRates?.regional),
       national: str(data.zoneRates?.national),
     },
+    buyingRate: {
+      buyRate:             str(data.buyRate),
+      internalCostPercent: data.internalCostPercent !== undefined && data.internalCostPercent !== null ? String(data.internalCostPercent) : "70",
+    },
+    codCharges: {
+      codCharge:        str(data.codCharge),
+      codPercentage:    str(data.codPercentage),
+      codBuyCharge:     str(data.codBuyCharge),
+      codBuyPercentage: str(data.codBuyPercentage),
+    },
+    rtoCharges: {
+      rtoCharge:    str(data.rtoCharge),
+      rtoBuyCharge: str(data.rtoBuyCharge),
+    },
+    additionalCharges: {
+      reversePickup:   str(data.reversePickup),
+      fuelCharge:      str(data.fuelCharge),
+      insuranceCharge: str(data.insuranceCharge),
+      odaCharge:       str(data.odaCharge),
+      handlingCharge:  str(data.handlingCharge),
+    },
+    volumetricDivisor: data.volumetricDivisor ? String(data.volumetricDivisor) : "5000",
     gst:           data.gst !== undefined && data.gst !== null ? Number(data.gst) : 18,
-    odaCharge:     str(data.odaCharge),
-    handlingCharge:str(data.handlingCharge),
     effectiveFrom: data.effectiveFrom ? data.effectiveFrom.split("T")[0] : "",
     effectiveTo:   data.effectiveTo   ? data.effectiveTo.split("T")[0]   : "",
     serviceability: {
@@ -86,34 +98,98 @@ const normalizeFromBackend = (data) => {
   };
 };
 
+// ─────────────────────────────────────────────────────────────────
+// FORM VALIDATION RULES
+// ─────────────────────────────────────────────────────────────────
+
 const validateForm = (formData) => {
+  const num = (v) => (v !== "" && v !== null && v !== undefined ? Number(v) : null);
+
+  // 1. Required Fields
   if (formData.gst === "" || formData.gst === null || formData.gst === undefined)
     return "GST percentage is required.";
   if (!formData.forwardRates.rate500gm) return "500gm Forward Rate is required.";
   if (formData.codCharges.codCharge === "" || formData.codCharges.codCharge === null)
-    return "COD Charge is required.";
+    return "Selling COD Charge is required.";
   if (!formData.effectiveFrom) return "Effective From date is required.";
   if (!formData.effectiveTo)   return "Effective To date is required.";
-  if (Number(formData.gst) < 0)   return "GST cannot be negative.";
-  if (Number(formData.gst) > 100) return "GST must be between 0 and 100.";
-  if (Number(formData.forwardRates.rate500gm)    < 0) return "500gm rate cannot be negative.";
-  if (Number(formData.forwardRates.rate1kg)      < 0) return "1kg rate cannot be negative.";
-  if (Number(formData.forwardRates.rate2kg)      < 0) return "2kg rate cannot be negative.";
-  if (Number(formData.forwardRates.rate5kg)      < 0) return "5kg rate cannot be negative.";
-  if (Number(formData.forwardRates.additionalKg) < 0) return "Additional kg rate cannot be negative.";
-  if (Number(formData.zoneRates.local)    < 0) return "Local zone rate cannot be negative.";
-  if (Number(formData.zoneRates.regional) < 0) return "Regional zone rate cannot be negative.";
-  if (Number(formData.zoneRates.national) < 0) return "National zone rate cannot be negative.";
-  if (Number(formData.codCharges.codCharge)            < 0) return "COD charge cannot be negative.";
-  if (Number(formData.rtoCharges.rtoCharge)            < 0) return "RTO charge cannot be negative.";
-  if (Number(formData.additionalCharges.reversePickup) < 0) return "Reverse pickup cannot be negative.";
-  if (Number(formData.additionalCharges.fuelCharge)    < 0) return "Fuel charge cannot be negative.";
-  if (Number(formData.odaCharge)      < 0) return "ODA charge cannot be negative.";
-  if (Number(formData.handlingCharge) < 0) return "Handling charge cannot be negative.";
-  if (formData.effectiveFrom && formData.effectiveTo) {
-    if (new Date(formData.effectiveTo) < new Date(formData.effectiveFrom))
-      return "Effective To must be ≥ Effective From.";
+
+  // 2. Percentage range validation (0 - 100%)
+  const gst = num(formData.gst);
+  if (gst !== null && (gst < 0 || gst > 100)) return "GST percentage must be between 0% and 100%.";
+
+  const intCost = num(formData.buyingRate?.internalCostPercent);
+  if (intCost !== null && (intCost < 0 || intCost > 100)) return "Internal Cost % must be between 0% and 100%.";
+
+  const codPct = num(formData.codCharges?.codPercentage);
+  if (codPct !== null && (codPct < 0 || codPct > 100)) return "Selling COD % must be between 0% and 100%.";
+
+  const codBuyPct = num(formData.codCharges?.codBuyPercentage);
+  if (codBuyPct !== null && (codBuyPct < 0 || codBuyPct > 100)) return "Buying COD % must be between 0% and 100%.";
+
+  const insCharge = num(formData.additionalCharges?.insuranceCharge);
+  if (insCharge !== null && (insCharge < 0 || insCharge > 100)) return "Insurance % must be between 0% and 100%.";
+
+  // 3. Non-negative checks
+  const r500 = num(formData.forwardRates.rate500gm) || 0;
+  const r1k  = num(formData.forwardRates.rate1kg)    || 0;
+  const r2k  = num(formData.forwardRates.rate2kg)    || 0;
+  const r5k  = num(formData.forwardRates.rate5kg)    || 0;
+  const rAdd = num(formData.forwardRates.additionalKg) || 0;
+
+  if (r500 < 0 || r1k < 0 || r2k < 0 || r5k < 0 || rAdd < 0) return "Forward rates cannot be negative numbers.";
+
+  const zLoc = num(formData.zoneRates.local) || 0;
+  const zReg = num(formData.zoneRates.regional) || 0;
+  const zNat = num(formData.zoneRates.national) || 0;
+  if (zLoc < 0 || zReg < 0 || zNat < 0) return "Zone rates cannot be negative numbers.";
+
+  const buyRate = num(formData.buyingRate?.buyRate);
+  if (buyRate !== null && buyRate < 0) return "Buying Rate cannot be negative.";
+
+  const codCharge = num(formData.codCharges.codCharge) || 0;
+  const codBuyCharge = num(formData.codCharges.codBuyCharge);
+  if (codCharge < 0) return "Selling COD Charge cannot be negative.";
+  if (codBuyCharge !== null && codBuyCharge < 0) return "Buying COD Charge cannot be negative.";
+
+  const rtoCharge = num(formData.rtoCharges.rtoCharge) || 0;
+  const rtoBuyCharge = num(formData.rtoCharges.rtoBuyCharge);
+  if (rtoCharge < 0) return "Selling RTO Charge cannot be negative.";
+  if (rtoBuyCharge !== null && rtoBuyCharge < 0) return "Buying RTO Charge cannot be negative.";
+
+  const oda = num(formData.additionalCharges?.odaCharge) || 0;
+  const hnd = num(formData.additionalCharges?.handlingCharge) || 0;
+  const fuel = num(formData.additionalCharges?.fuelCharge) || 0;
+  const rev = num(formData.additionalCharges?.reversePickup) || 0;
+  if (oda < 0 || hnd < 0 || fuel < 0 || rev < 0) return "Additional charges cannot be negative numbers.";
+
+  // 4. Buying Rate vs Selling Rate check (Loss Prevention)
+  const estSell = r500 + zNat;
+  if (buyRate !== null && buyRate > estSell && estSell > 0) {
+    return `Buying Rate (₹${buyRate}) cannot be greater than 500g National Selling Rate (₹${estSell}) — this will cause a loss!`;
   }
+
+  // 5. Volumetric Divisor check (min 1000, cannot be 0)
+  const volDiv = num(formData.volumetricDivisor) || 5000;
+  if (volDiv < 1000) return "Volumetric Divisor must be at least 1000 to avoid divide-by-zero errors.";
+
+  // 6. Effective Date check
+  if (formData.effectiveFrom && formData.effectiveTo) {
+    if (new Date(formData.effectiveTo) < new Date(formData.effectiveFrom)) {
+      return "Effective To date must be on or after Effective From date.";
+    }
+  }
+
+  // 7. Buying COD vs Selling COD check
+  if (codBuyCharge !== null && codBuyCharge > codCharge && codCharge > 0) {
+    return `Buying COD Charge (₹${codBuyCharge}) cannot be greater than Selling COD Charge (₹${codCharge}).`;
+  }
+
+  // 8. Buying RTO vs Selling RTO check
+  if (rtoBuyCharge !== null && rtoBuyCharge > rtoCharge && rtoCharge > 0) {
+    return `Buying RTO Charge (₹${rtoBuyCharge}) cannot be greater than Selling RTO Charge (₹${rtoCharge}).`;
+  }
+
   return null;
 };
 
@@ -137,11 +213,20 @@ const FormInput = ({
   disabled = false,
   required = false,
   prefix = "₹",
+  helperText = "",
+  tooltip = "",
+  warning = "",
+  error = "",
 }) => (
   <div className="rcm-form-field">
     <label className="rcm-field-label">
       {label}
       {required && <span className="rcm-field-required">*</span>}
+      {tooltip && (
+        <span className="rcm-info-icon" title={tooltip}>
+          <FaInfoCircle size={12} />
+        </span>
+      )}
     </label>
     <div className="rcm-field-input-box">
       {prefix && <span className="rcm-field-prefix">{prefix}</span>}
@@ -151,9 +236,12 @@ const FormInput = ({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
-        className={`rcm-input-element ${prefix ? "has-prefix" : ""}`}
+        className={`rcm-input-element ${prefix ? "has-prefix" : ""} ${error ? "has-error" : warning ? "has-warning" : ""}`}
       />
     </div>
+    {helperText && <p className="rcm-field-helper">{helperText}</p>}
+    {warning && <p className="rcm-field-warning">⚠️ {warning}</p>}
+    {error && <p className="rcm-field-error">❌ {error}</p>}
   </div>
 );
 
@@ -167,19 +255,124 @@ const CheckboxToggle = ({ label, checked, onChange }) => (
 );
 
 // ─────────────────────────────────────────────────────────────────
-// RATE FORM
+// LIVE PROFIT MARGIN PREVIEW COMPONENT
+// ─────────────────────────────────────────────────────────────────
+
+const LiveMarginPreview = ({ formData, courierName, activeTab }) => {
+  const num = (v) => (v !== "" && v !== null && v !== undefined ? Number(v) : 0);
+
+  const r500 = num(formData.forwardRates?.rate500gm);
+  const zNat = num(formData.zoneRates?.national);
+  const sellForward = r500 + zNat;
+
+  const userBuyRate = num(formData.buyingRate?.buyRate);
+  const intCostPct = num(formData.buyingRate?.internalCostPercent) || 70;
+  const calculatedBuyRate = userBuyRate > 0 ? userBuyRate : Math.round(sellForward * (intCostPct / 100));
+  const isBuyAuto = userBuyRate <= 0;
+  const freightMargin = Math.round((sellForward - calculatedBuyRate) * 100) / 100;
+
+  // COD Margin
+  const sellCod = num(formData.codCharges?.codCharge);
+  const userCodBuy = num(formData.codCharges?.codBuyCharge);
+  const calculatedCodBuy = userCodBuy > 0 ? userCodBuy : Math.round(sellCod * 0.50);
+  const isCodBuyAuto = userCodBuy <= 0;
+  const codMargin = Math.round((sellCod - calculatedCodBuy) * 100) / 100;
+
+  // RTO Margin
+  const sellRto = num(formData.rtoCharges?.rtoCharge);
+  const userRtoBuy = num(formData.rtoCharges?.rtoBuyCharge);
+  const calculatedRtoBuy = userRtoBuy > 0 ? userRtoBuy : Math.round(sellRto * 0.60);
+  const isRtoBuyAuto = userRtoBuy <= 0;
+  const rtoMargin = Math.round((sellRto - calculatedRtoBuy) * 100) / 100;
+
+  // Total Estimated Profit
+  const totalMargin = Math.round((freightMargin + codMargin + rtoMargin) * 100) / 100;
+  const isLoss = totalMargin < 0;
+
+  return (
+    <div className="rcm-preview-card sticky-preview">
+      <div className="rcm-preview-header">
+        <h3 className="rcm-preview-title">
+          <FaCalculator size={16} color="#ea580c" /> Live Profit Margin Preview
+        </h3>
+        <span className="rcm-preview-courier-tag">{courierName} ({activeTab})</span>
+      </div>
+
+      {/* Main Net Profit Badge */}
+      <div className={`rcm-margin-hero-box ${isLoss ? "loss" : "profit"}`}>
+        <p className="rcm-margin-hero-label">Estimated Superadmin Profit / Order</p>
+        <p className="rcm-margin-hero-value">
+          {totalMargin >= 0 ? `+₹${totalMargin}` : `-₹${Math.abs(totalMargin)}`}
+        </p>
+        <span className="rcm-margin-hero-sub">
+          {isLoss ? "⚠️ Warning: Selling rates are below buying costs!" : "✅ Healthy profit margin locked"}
+        </span>
+      </div>
+
+      {/* Margin Breakdown Rows */}
+      <div className="rcm-preview-breakdown">
+        {/* 1. Freight Margin */}
+        <div className="rcm-margin-row">
+          <div className="rcm-margin-row-info">
+            <span className="rcm-margin-row-title">Freight Margin (500g Nat.)</span>
+            <span className="rcm-margin-row-details">
+              Sell ₹{sellForward} - Buy ₹{calculatedBuyRate} {isBuyAuto ? "(Auto 70%)" : "(Manual)"}
+            </span>
+          </div>
+          <span className={`rcm-margin-badge ${freightMargin >= 0 ? "positive" : "negative"}`}>
+            {freightMargin >= 0 ? `+₹${freightMargin}` : `-₹${Math.abs(freightMargin)}`}
+          </span>
+        </div>
+
+        {/* 2. COD Margin */}
+        <div className="rcm-margin-row">
+          <div className="rcm-margin-row-info">
+            <span className="rcm-margin-row-title">COD Margin</span>
+            <span className="rcm-margin-row-details">
+              Sell ₹{sellCod} - Buy ₹{calculatedCodBuy} {isCodBuyAuto ? "(Auto 50%)" : "(Manual)"}
+            </span>
+          </div>
+          <span className={`rcm-margin-badge ${codMargin >= 0 ? "positive" : "negative"}`}>
+            {codMargin >= 0 ? `+₹${codMargin}` : `-₹${Math.abs(codMargin)}`}
+          </span>
+        </div>
+
+        {/* 3. RTO Margin */}
+        <div className="rcm-margin-row">
+          <div className="rcm-margin-row-info">
+            <span className="rcm-margin-row-title">RTO Margin</span>
+            <span className="rcm-margin-row-details">
+              Sell ₹{sellRto} - Buy ₹{calculatedRtoBuy} {isRtoBuyAuto ? "(Auto 60%)" : "(Manual)"}
+            </span>
+          </div>
+          <span className={`rcm-margin-badge ${rtoMargin >= 0 ? "positive" : "negative"}`}>
+            {rtoMargin >= 0 ? `+₹${rtoMargin}` : `-₹${Math.abs(rtoMargin)}`}
+          </span>
+        </div>
+      </div>
+
+      <div className="rcm-preview-footer">
+        <span>GST Billed: {formData.gst || 18}%</span>
+        <span>Volumetric Divisor: {formData.volumetricDivisor || 5000}</span>
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────
+// RATE FORM COMPONENT
 // ─────────────────────────────────────────────────────────────────
 
 const RateForm = ({ formData, onChange, onSave, onReset, onBack, saving, activeTab, onTabChange, courierName }) => {
   const {
     forwardRates,
+    zoneRates,
+    buyingRate,
     codCharges,
     rtoCharges,
     additionalCharges,
-    zoneRates,
+    volumetricDivisor,
     gst,
-    odaCharge,
-    handlingCharge,
     effectiveFrom,
     effectiveTo,
     serviceability,
@@ -187,21 +380,40 @@ const RateForm = ({ formData, onChange, onSave, onReset, onBack, saving, activeT
 
   const field = (section, key, val) => onChange(section, key, val);
 
-  const preview = [
-    { label: "500gm",    value: forwardRates.rate500gm || 0 },
-    { label: "1kg",      value: forwardRates.rate1kg   || 0 },
-    { label: "2kg",      value: forwardRates.rate2kg   || 0 },
-    { label: "5kg",      value: forwardRates.rate5kg   || 0 },
-    { label: "Local",    value: zoneRates.local    || 0 },
-    { label: "Regional", value: zoneRates.regional || 0 },
-    { label: "National", value: zoneRates.national || 0 },
-  ];
+  // Slab order warning checks
+  const num = (v) => (v !== "" && v !== null && v !== undefined ? Number(v) : 0);
+  const r500 = num(forwardRates.rate500gm);
+  const r1k  = num(forwardRates.rate1kg);
+  const r2k  = num(forwardRates.rate2kg);
+  const r5k  = num(forwardRates.rate5kg);
+
+  const warn1kg = r1k > 0 && r1k < r500 ? "1kg rate is lower than 500gm rate" : "";
+  const warn2kg = r2k > 0 && r2k < r1k  ? "2kg rate is lower than 1kg rate" : "";
+  const warn5kg = r5k > 0 && r5k < r2k  ? "5kg rate is lower than 2kg rate" : "";
+
+  // Buying vs Selling warnings
+  const userBuyRate = num(buyingRate?.buyRate);
+  const estSell = r500 + num(zoneRates.national);
+  const errorBuyRate = userBuyRate > 0 && userBuyRate > estSell && estSell > 0 
+    ? `Buying Rate (₹${userBuyRate}) > Selling Rate (₹${estSell})` : "";
+
+  const codCharge = num(codCharges.codCharge);
+  const codBuyCharge = num(codCharges.codBuyCharge);
+  const warnCodBuy = codBuyCharge > 0 && codBuyCharge > codCharge && codCharge > 0 
+    ? `Buying COD Charge (₹${codBuyCharge}) is higher than Selling COD Charge (₹${codCharge})` : "";
+
+  const rtoCharge = num(rtoCharges.rtoCharge);
+  const rtoBuyCharge = num(rtoCharges.rtoBuyCharge);
+  const warnRtoBuy = rtoBuyCharge > 0 && rtoBuyCharge > rtoCharge && rtoCharge > 0
+    ? `Buying RTO Charge (₹${rtoBuyCharge}) is higher than Selling RTO Charge (₹${rtoCharge})` : "";
+
+  const validationError = useMemo(() => validateForm(formData), [formData]);
 
   return (
     <>
       {/* Top Controls Bar */}
       <div className="rcm-form-top-bar">
-        <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "14px" }}>
           <button onClick={onBack} className="rcm-back-btn">
             <FaArrowLeft size={12} /> Back to Couriers
           </button>
@@ -223,68 +435,185 @@ const RateForm = ({ formData, onChange, onSave, onReset, onBack, saving, activeT
         </div>
       </div>
 
+      {/* Validation Warning Alert */}
+      {validationError && (
+        <div className="rcm-validation-alert">
+          <FaExclamationTriangle size={16} />
+          <span>{validationError}</span>
+        </div>
+      )}
+
       {/* Two Column Grid */}
       <div className="rcm-form-grid-layout">
-        {/* LEFT FIELDS (Dark Rate Cards) */}
+        {/* LEFT FORM FIELDS */}
         <div>
-          {/* Basic Information */}
+          {/* SECTION 1: Basic Information & Volumetric */}
           <div className="rcm-card">
             <h3 className="rcm-card-title">
-              <span className="rcm-card-title-icon"><FaInfoCircle size={16} /></span> Basic Information
+              <span className="rcm-card-title-icon"><FaInfoCircle size={16} /></span> Section 1: Basic Information & Volumetric
             </h3>
             <div className="rcm-inputs-grid-3">
-              <FormInput label="Service Type" value={activeTab} onChange={() => {}} disabled placeholder="" type="text" prefix="" />
-              <FormInput label="GST (%)" value={gst} onChange={(v) => onChange(null, "gst", v)} required prefix="%" />
-              <FormInput label="Effective From" value={effectiveFrom} onChange={(v) => onChange(null, "effectiveFrom", v)} type="date" placeholder="" required prefix="" />
-              <FormInput label="Effective To"   value={effectiveTo}   onChange={(v) => onChange(null, "effectiveTo",   v)} type="date" placeholder="" required prefix="" />
+              <FormInput label="Service Type" value={activeTab} onChange={() => {}} disabled type="text" prefix="" />
+              <FormInput label="GST (%)" value={gst} onChange={(v) => onChange(null, "gst", v)} required prefix="%" tooltip="Standard GST percentage (0 - 100%)" />
+              <FormInput 
+                label="Volumetric Divisor" 
+                value={volumetricDivisor} 
+                onChange={(v) => onChange(null, "volumetricDivisor", v)} 
+                type="number" 
+                prefix="" 
+                placeholder="5000"
+                helperText="Standard default is 5000 (Min 1000)"
+                tooltip="Divisor for (L x B x H) / Divisor to compute volumetric weight"
+              />
+              <FormInput label="Effective From" value={effectiveFrom} onChange={(v) => onChange(null, "effectiveFrom", v)} type="date" prefix="" required />
+              <FormInput label="Effective To"   value={effectiveTo}   onChange={(v) => onChange(null, "effectiveTo",   v)} type="date" prefix="" required />
             </div>
           </div>
 
-          {/* Forward Rates */}
-          <div className="rcm-card">
+          {/* SECTION 2: Courier Buying Rate & Margin Control */}
+          <div className="rcm-card highlight-buying-card">
             <h3 className="rcm-card-title">
-              <span className="rcm-card-title-icon"><FaBoxes size={16} /></span> Forward Rates
+              <span className="rcm-card-title-icon"><FaCoins size={16} /></span> Section 2: Courier Buying Rate & Internal Margin
             </h3>
-            <div className="rcm-inputs-grid-3">
-              <FormInput label="500gm"        value={forwardRates.rate500gm}    onChange={(v) => field("forwardRates","rate500gm",v)}    required />
-              <FormInput label="1kg"          value={forwardRates.rate1kg}      onChange={(v) => field("forwardRates","rate1kg",v)} />
-              <FormInput label="2kg"          value={forwardRates.rate2kg}      onChange={(v) => field("forwardRates","rate2kg",v)} />
-              <FormInput label="5kg"          value={forwardRates.rate5kg}      onChange={(v) => field("forwardRates","rate5kg",v)} />
-              <FormInput label="Additional KG" value={forwardRates.additionalKg} onChange={(v) => field("forwardRates","additionalKg",v)} />
+            <div className="rcm-inputs-grid-2">
+              <FormInput 
+                label="Courier Buying Rate" 
+                value={buyingRate?.buyRate} 
+                onChange={(v) => field("buyingRate", "buyRate", v)} 
+                placeholder="0 (Optional)"
+                helperText="If empty, system auto-calculates using Internal Cost %"
+                tooltip="Optional explicit buy rate paid to courier partner"
+                error={errorBuyRate}
+              />
+              <FormInput 
+                label="Internal Cost (%)" 
+                value={buyingRate?.internalCostPercent} 
+                onChange={(v) => field("buyingRate", "internalCostPercent", v)} 
+                prefix="%" 
+                placeholder="70"
+                helperText="Fallback cost ratio (Default 70% cost, 30% profit margin)"
+                tooltip="Default ratio used when explicit Buying Rate is empty"
+              />
             </div>
           </div>
 
-          {/* Zone Rates */}
+          {/* SECTION 3: Forward Freight Rates */}
           <div className="rcm-card">
             <h3 className="rcm-card-title">
-              <span className="rcm-card-title-icon"><FaMapMarkerAlt size={16} /></span> Zone Rates
+              <span className="rcm-card-title-icon"><FaBoxes size={16} /></span> Section 3: Forward Freight Weight Slabs
             </h3>
             <div className="rcm-inputs-grid-3">
-              <FormInput label="Local"    value={zoneRates.local}    onChange={(v) => field("zoneRates","local",v)} />
-              <FormInput label="Regional" value={zoneRates.regional} onChange={(v) => field("zoneRates","regional",v)} />
-              <FormInput label="National" value={zoneRates.national} onChange={(v) => field("zoneRates","national",v)} />
+              <FormInput label="500gm Rate" value={forwardRates.rate500gm} onChange={(v) => field("forwardRates","rate500gm",v)} required />
+              <FormInput label="1kg Rate"   value={forwardRates.rate1kg}   onChange={(v) => field("forwardRates","rate1kg",v)} warning={warn1kg} />
+              <FormInput label="2kg Rate"   value={forwardRates.rate2kg}   onChange={(v) => field("forwardRates","rate2kg",v)} warning={warn2kg} />
+              <FormInput label="5kg Rate"   value={forwardRates.rate5kg}   onChange={(v) => field("forwardRates","rate5kg",v)} warning={warn5kg} />
+              <FormInput label="Additional KG" value={forwardRates.additionalKg} onChange={(v) => field("forwardRates","additionalKg",v)} helperText="Rate per extra 1kg beyond 5kg" />
             </div>
           </div>
 
-          {/* Additional Charges */}
+          {/* SECTION 4: Zone Rates */}
           <div className="rcm-card">
             <h3 className="rcm-card-title">
-              <span className="rcm-card-title-icon"><FaReceipt size={16} /></span> Additional Charges
+              <span className="rcm-card-title-icon"><FaMapMarkerAlt size={16} /></span> Section 4: Zone Rates
             </h3>
             <div className="rcm-inputs-grid-3">
-              <FormInput label="COD Charge"      value={codCharges.codCharge}             onChange={(v) => field("codCharges","codCharge",v)} required />
-              <FormInput label="RTO Charge"      value={rtoCharges.rtoCharge}             onChange={(v) => field("rtoCharges","rtoCharge",v)} />
-              <FormInput label="Reverse Pickup"  value={additionalCharges.reversePickup}  onChange={(v) => field("additionalCharges","reversePickup",v)} />
+              <FormInput label="Local Zone"    value={zoneRates.local}    onChange={(v) => field("zoneRates","local",v)} helperText="Same city delivery" />
+              <FormInput label="Regional Zone" value={zoneRates.regional} onChange={(v) => field("zoneRates","regional",v)} helperText="Same state/region" />
+              <FormInput label="National Zone" value={zoneRates.national} onChange={(v) => field("zoneRates","national",v)} helperText="Inter-state national" />
+            </div>
+          </div>
+
+          {/* SECTION 5: COD Charges (Selling & Buying) */}
+          <div className="rcm-card">
+            <h3 className="rcm-card-title">
+              <span className="rcm-card-title-icon"><FaExchangeAlt size={16} /></span> Section 5: COD Charges (Selling & Buying)
+            </h3>
+            <div className="rcm-inputs-grid-2">
+              <FormInput 
+                label="Selling COD Charge (Flat)" 
+                value={codCharges.codCharge} 
+                onChange={(v) => field("codCharges","codCharge",v)} 
+                required 
+                helperText="Fixed COD fee billed to merchant"
+              />
+              <FormInput 
+                label="Selling COD (%)" 
+                value={codCharges.codPercentage} 
+                onChange={(v) => field("codCharges","codPercentage",v)} 
+                prefix="%" 
+                placeholder="0"
+                helperText="Optional percentage fee on order value"
+              />
+              <FormInput 
+                label="Buying COD Charge (Flat)" 
+                value={codCharges.codBuyCharge} 
+                onChange={(v) => field("codCharges","codBuyCharge",v)} 
+                placeholder="0 (Optional)"
+                helperText="If empty, system defaults to 50% of Selling COD Charge"
+                tooltip="Explicit COD fee paid to courier gateway"
+                warning={warnCodBuy}
+              />
+              <FormInput 
+                label="Buying COD (%)" 
+                value={codCharges.codBuyPercentage} 
+                onChange={(v) => field("codCharges","codBuyPercentage",v)} 
+                prefix="%" 
+                placeholder="0"
+                helperText="Optional buying percentage paid to courier"
+              />
+            </div>
+          </div>
+
+          {/* SECTION 6: RTO Charges (Selling & Buying) */}
+          <div className="rcm-card">
+            <h3 className="rcm-card-title">
+              <span className="rcm-card-title-icon"><FaUndo size={16} /></span> Section 6: RTO Charges (Selling & Buying)
+            </h3>
+            <div className="rcm-inputs-grid-2">
+              <FormInput 
+                label="Selling RTO Charge" 
+                value={rtoCharges.rtoCharge} 
+                onChange={(v) => field("rtoCharges","rtoCharge",v)} 
+                placeholder="60"
+                helperText="Fee debited from merchant wallet on return (Default ₹60)"
+              />
+              <FormInput 
+                label="Buying RTO Charge" 
+                value={rtoCharges.rtoBuyCharge} 
+                onChange={(v) => field("rtoCharges","rtoBuyCharge",v)} 
+                placeholder="0 (Optional)"
+                helperText="If empty, system defaults to 60% of Selling RTO Charge (₹36)"
+                tooltip="Actual RTO cost paid to courier partner"
+                warning={warnRtoBuy}
+              />
+            </div>
+          </div>
+
+          {/* SECTION 7: Additional Charges & VAS */}
+          <div className="rcm-card">
+            <h3 className="rcm-card-title">
+              <span className="rcm-card-title-icon"><FaReceipt size={16} /></span> Section 7: Additional Charges & VAS
+            </h3>
+            <div className="rcm-inputs-grid-3">
               <FormInput label="Fuel Charge"     value={additionalCharges.fuelCharge}     onChange={(v) => field("additionalCharges","fuelCharge",v)} />
-              <FormInput label="ODA Charge"      value={odaCharge}      onChange={(v) => onChange(null,"odaCharge",v)} />
-              <FormInput label="Handling Charge" value={handlingCharge} onChange={(v) => onChange(null,"handlingCharge",v)} />
+              <FormInput label="ODA Charge"      value={additionalCharges.odaCharge}      onChange={(v) => field("additionalCharges","odaCharge",v)} />
+              <FormInput label="Handling Charge" value={additionalCharges.handlingCharge} onChange={(v) => field("additionalCharges","handlingCharge",v)} />
+              <FormInput 
+                label="Insurance (%)" 
+                value={additionalCharges.insuranceCharge} 
+                onChange={(v) => field("additionalCharges","insuranceCharge",v)} 
+                prefix="%" 
+                placeholder="2"
+                helperText="Per-ratecard insurance % override (Default 2%)"
+              />
+              <FormInput label="Reverse Pickup"  value={additionalCharges.reversePickup}  onChange={(v) => field("additionalCharges","reversePickup",v)} />
             </div>
           </div>
 
-          {/* Serviceability */}
+          {/* SECTION 8: Serviceability Options */}
           <div className="rcm-card">
             <h3 className="rcm-card-title">
-              <span className="rcm-card-title-icon"><FaSlidersH size={16} /></span> Serviceability Options
+              <span className="rcm-card-title-icon"><FaSlidersH size={16} /></span> Section 8: Serviceability Options
             </h3>
             <div className="rcm-inputs-grid-2">
               <CheckboxToggle label="COD Enabled"     checked={serviceability.codEnabled}     onChange={() => onChange("serviceability","codEnabled",    !serviceability.codEnabled)} />
@@ -295,82 +624,9 @@ const RateForm = ({ formData, onChange, onSave, onReset, onBack, saving, activeT
           </div>
         </div>
 
-        {/* RIGHT SIDEBAR PREVIEW */}
+        {/* RIGHT SIDEBAR - STICKY LIVE PROFIT MARGIN PREVIEW */}
         <div>
-          {/* Live Preview Card */}
-          <div className="rcm-preview-card">
-            <div className="rcm-preview-header">
-              <h3 className="rcm-preview-title">
-                <FaEye size={16} color="#ea580c" /> Live Rate Preview
-              </h3>
-              <span className="rcm-preview-courier-tag">{courierName}</span>
-            </div>
-            <div className="rcm-preview-grid">
-              {preview.map(({ label, value }) => (
-                <div key={label} className="rcm-preview-item">
-                  <p className="rcm-preview-item-label">{label}</p>
-                  <p className="rcm-preview-item-val">₹{value || 0}</p>
-                </div>
-              ))}
-            </div>
-            <div className="rcm-preview-footer">
-              <span>Service: {activeTab}</span>
-              <span>GST: {gst}%</span>
-            </div>
-          </div>
-
-          {/* Summary Breakdown */}
-          <div className="rcm-card">
-            <h3 className="rcm-card-title">Summary Breakdown</h3>
-            {[
-              { label: "COD Charge",  value: codCharges.codCharge || 0 },
-              { label: "RTO Charge",  value: rtoCharges.rtoCharge || 0 },
-              { label: "Fuel Charge", value: additionalCharges.fuelCharge || 0 },
-              { label: "ODA Charge",  value: odaCharge || 0 },
-              { label: "Handling",    value: handlingCharge || 0 },
-            ].map(({ label, value }) => (
-              <div key={label} className="rcm-summary-item">
-                <span className="rcm-summary-label">{label}</span>
-                <span className="rcm-summary-val">₹{value}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Validity Period */}
-          <div className="rcm-card">
-            <h3 className="rcm-card-title">Validity Period</h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              {effectiveFrom ? (
-                <div className="rcm-summary-item">
-                  <span className="rcm-summary-label">From</span>
-                  <span className="rcm-summary-val">
-                    {new Date(effectiveFrom).toLocaleDateString("en-IN")}
-                  </span>
-                </div>
-              ) : null}
-              {effectiveTo ? (
-                <div className="rcm-summary-item">
-                  <span className="rcm-summary-label">To</span>
-                  <span className="rcm-summary-val">
-                    {new Date(effectiveTo).toLocaleDateString("en-IN")}
-                  </span>
-                </div>
-              ) : null}
-              {!effectiveFrom && !effectiveTo && (
-                <p style={{ fontSize: "13px", color: "#94a3b8", textAlign: "center", margin: "4px 0" }}>No dates configured yet</p>
-              )}
-            </div>
-          </div>
-
-          {/* Super Admin Note */}
-          <div className="rcm-note-card">
-            <p className="rcm-note-title">
-              <FaShieldAlt size={15} /> Super Admin Override
-            </p>
-            <p className="rcm-note-body">
-              You are setting merchant-specific rate card overrides. These rates will override standard courier default rates for this merchant account.
-            </p>
-          </div>
+          <LiveMarginPreview formData={formData} courierName={courierName} activeTab={activeTab} />
         </div>
       </div>
 
@@ -383,7 +639,7 @@ const RateForm = ({ formData, onChange, onSave, onReset, onBack, saving, activeT
           <button onClick={onReset} className="rcm-reset-btn">
             <FaUndo size={12} /> Reset
           </button>
-          <button onClick={onSave} disabled={saving} className="rcm-save-btn">
+          <button onClick={onSave} disabled={saving || !!validationError} className="rcm-save-btn">
             {saving ? (
               <FaSpinner size={16} className="rcm-spinner" />
             ) : (
@@ -398,7 +654,7 @@ const RateForm = ({ formData, onChange, onSave, onReset, onBack, saving, activeT
 };
 
 // ─────────────────────────────────────────────────────────────────
-// COURIER CARD (DARK SIDEBAR BACKGROUND #0f172a)
+// COURIER CARD COMPONENT
 // ─────────────────────────────────────────────────────────────────
 
 const CourierCard = ({ courier, surfaceCard, airCard, onSelect }) => {
@@ -655,9 +911,9 @@ const RateCardManagement = () => {
 
       const payload = {
         merchantId,
-        courierId:     selectedCourier._id,
-        courierPartner:selectedCourier.code || selectedCourier.name,
-        serviceType:   activeFormTab,
+        courierId:           selectedCourier._id,
+        courierPartner:      selectedCourier.code || selectedCourier.name,
+        serviceType:         activeFormTab,
         forwardRates: {
           rate500gm:    Number(formData.forwardRates.rate500gm)    || 0,
           rate1kg:      Number(formData.forwardRates.rate1kg)      || 0,
@@ -670,16 +926,24 @@ const RateCardManagement = () => {
           regional: Number(formData.zoneRates.regional) || 0,
           national: Number(formData.zoneRates.national) || 0,
         },
-        codCharge:     Number(formData.codCharges.codCharge)            || 0,
-        rtoCharge:     Number(formData.rtoCharges.rtoCharge)            || 0,
-        reversePickup: Number(formData.additionalCharges.reversePickup) || 0,
-        fuelCharge:    Number(formData.additionalCharges.fuelCharge)    || 0,
-        gst:           Number(formData.gst) || 18,
-        odaCharge:     Number(formData.odaCharge)      || 0,
-        handlingCharge:Number(formData.handlingCharge) || 0,
-        effectiveFrom: formData.effectiveFrom || undefined,
-        effectiveTo:   formData.effectiveTo   || undefined,
-        serviceability: formData.serviceability,
+        buyRate:             formData.buyingRate?.buyRate ? Number(formData.buyingRate.buyRate) : 0,
+        internalCostPercent: formData.buyingRate?.internalCostPercent ? Number(formData.buyingRate.internalCostPercent) : 70,
+        codCharge:           Number(formData.codCharges.codCharge) || 0,
+        codPercentage:       formData.codCharges?.codPercentage ? Number(formData.codCharges.codPercentage) : 0,
+        codBuyCharge:        formData.codCharges?.codBuyCharge ? Number(formData.codCharges.codBuyCharge) : 0,
+        codBuyPercentage:    formData.codCharges?.codBuyPercentage ? Number(formData.codCharges.codBuyPercentage) : 0,
+        rtoCharge:           Number(formData.rtoCharges.rtoCharge) || 0,
+        rtoBuyCharge:        formData.rtoCharges?.rtoBuyCharge ? Number(formData.rtoCharges.rtoBuyCharge) : 0,
+        reversePickup:       Number(formData.additionalCharges?.reversePickup) || 0,
+        fuelCharge:          Number(formData.additionalCharges?.fuelCharge) || 0,
+        insuranceCharge:     formData.additionalCharges?.insuranceCharge ? Number(formData.additionalCharges.insuranceCharge) : 0,
+        volumetricDivisor:   formData.volumetricDivisor ? Number(formData.volumetricDivisor) : 5000,
+        gst:                 Number(formData.gst) || 18,
+        odaCharge:           Number(formData.additionalCharges?.odaCharge) || 0,
+        handlingCharge:      Number(formData.additionalCharges?.handlingCharge) || 0,
+        effectiveFrom:       formData.effectiveFrom || undefined,
+        effectiveTo:         formData.effectiveTo   || undefined,
+        serviceability:      formData.serviceability,
         enabled:  true,
         isActive: true,
       };
@@ -751,7 +1015,7 @@ const RateCardManagement = () => {
               Merchant Rate Management
             </h1>
             <p className="rcm-subtitle">
-              Configure and manage custom Surface & Air rate cards for courier partners
+              Configure custom rates, courier buying margins, COD & RTO fees, and live profit margins
             </p>
           </div>
           {isDirty && (
@@ -761,7 +1025,7 @@ const RateCardManagement = () => {
           )}
         </div>
 
-        {/* Hero Merchant Card (Clean Light Styling) */}
+        {/* Hero Merchant Card */}
         <div className="rcm-merchant-card">
           <div className="rcm-merchant-card-header">
             <div className="rcm-merchant-title-group">
@@ -866,7 +1130,7 @@ const RateCardManagement = () => {
               </div>
             </div>
 
-            {/* Courier Grid (Cards have #0f172a Sidebar Dark BG) */}
+            {/* Courier Grid */}
             {filteredCouriers.length === 0 ? (
               <div style={{ textAlign: "center", padding: "60px 20px", background: "#ffffff", borderRadius: "20px", border: "1px solid #e2e8f0" }}>
                 <FaTruck size={44} color="#cbd5e1" style={{ marginBottom: "14px" }} />

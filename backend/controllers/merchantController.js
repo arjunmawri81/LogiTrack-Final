@@ -258,9 +258,47 @@ const uploadKYCDocument = async (req, res) => {
   }
 };
 
+// Upload Merchant Permanent Logo
+const uploadLogo = async (req, res) => {
+  try {
+    let logoData = null;
+    if (req.file) {
+      const fs = require("fs");
+      const fileBuffer = fs.readFileSync(req.file.path);
+      const mimeType = req.file.mimetype || "image/png";
+      logoData = `data:${mimeType};base64,${fileBuffer.toString("base64")}`;
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (e) {}
+    } else if (req.body.logo) {
+      logoData = req.body.logo;
+    }
+
+    if (!logoData) {
+      return res.status(400).json({ success: false, message: "No logo image provided" });
+    }
+
+    const [user, merchant] = await Promise.all([
+      User.findByIdAndUpdate(req.user.id, { logo: logoData }, { new: true }).select("-password"),
+      Merchant.findOneAndUpdate({ userId: req.user.id }, { logo: logoData }, { new: true, upsert: true }),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      message: "Permanent logo updated successfully",
+      logo: logoData,
+      user,
+      merchant,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   getProfile,
   updateProfile,
   changePassword,
   uploadKYCDocument,
+  uploadLogo,
 };

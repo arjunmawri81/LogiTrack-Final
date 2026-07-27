@@ -204,6 +204,7 @@ const BulkShipment = () => {
               }}>
                 Create shipments for multiple orders at once
               </p>
+            </div>
             <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
               <label style={{ display: "flex", alignItems: "center", gap: "8px", background: "#f0fdf4", border: "1px solid #bbf7d0", padding: "8px 14px", borderRadius: "10px", cursor: "pointer", fontSize: "13px", color: "#166534", fontWeight: "500" }}>
                 <input 
@@ -530,12 +531,12 @@ const BulkShipment = () => {
             <span>
               {selectedOrders.length > 0 && (
                 <span style={{ fontWeight: "500", color: "#0f172a" }}>
-                  {selectedOrders.length} order{selectedOrders.length !== 1 ? "s" : ""} selected for shipment
+                  {`${selectedOrders.length} order${selectedOrders.length !== 1 ? "s" : ""} selected for shipment`}
                 </span>
               )}
             </span>
             <span>
-              Total: {orders.length} order{orders.length !== 1 ? "s" : ""}
+              {`Total: ${orders.length} order${orders.length !== 1 ? "s" : ""}`}
             </span>
           </div>
         )}

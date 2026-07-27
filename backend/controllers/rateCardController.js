@@ -172,7 +172,15 @@ const saveRateCard = async (req, res) => {
       forwardRates,
       zoneRates,
       codCharge,
+      codPercentage,
+      codBuyCharge,
+      codBuyPercentage,
       rtoCharge,
+      rtoBuyCharge,
+      buyRate,
+      internalCostPercent,
+      insuranceCharge,
+      volumetricDivisor,
       reversePickup,
       fuelCharge,
       enabled,          
@@ -273,12 +281,18 @@ const saveRateCard = async (req, res) => {
       rateCard.courierPartner = finalCourierPartner;
       rateCard.forwardRates = forwardRatesData;
       rateCard.zoneRates = zoneRates;
-      rateCard.codCharge = codCharge;
-      rateCard.rtoCharge = rtoCharge;
-      rateCard.reversePickup = reversePickup;
-      rateCard.fuelCharge = fuelCharge;
-      rateCard.codPercentage = req.body.codPercentage !== undefined ? req.body.codPercentage : rateCard.codPercentage;
-      rateCard.volumetricDivisor = req.body.volumetricDivisor !== undefined ? req.body.volumetricDivisor : rateCard.volumetricDivisor;
+      rateCard.codCharge = codCharge !== undefined ? Number(codCharge) : rateCard.codCharge;
+      rateCard.codPercentage = codPercentage !== undefined ? Number(codPercentage) : rateCard.codPercentage;
+      rateCard.codBuyCharge = codBuyCharge !== undefined ? Number(codBuyCharge) : rateCard.codBuyCharge;
+      rateCard.codBuyPercentage = codBuyPercentage !== undefined ? Number(codBuyPercentage) : rateCard.codBuyPercentage;
+      rateCard.rtoCharge = rtoCharge !== undefined ? Number(rtoCharge) : rateCard.rtoCharge;
+      rateCard.rtoBuyCharge = rtoBuyCharge !== undefined ? Number(rtoBuyCharge) : rateCard.rtoBuyCharge;
+      rateCard.buyRate = buyRate !== undefined ? Number(buyRate) : rateCard.buyRate;
+      rateCard.internalCostPercent = internalCostPercent !== undefined ? Number(internalCostPercent) : rateCard.internalCostPercent;
+      rateCard.insuranceCharge = insuranceCharge !== undefined ? Number(insuranceCharge) : rateCard.insuranceCharge;
+      rateCard.volumetricDivisor = volumetricDivisor !== undefined ? Number(volumetricDivisor) : rateCard.volumetricDivisor;
+      rateCard.reversePickup = reversePickup !== undefined ? Number(reversePickup) : rateCard.reversePickup;
+      rateCard.fuelCharge = fuelCharge !== undefined ? Number(fuelCharge) : rateCard.fuelCharge;
       
       // Update service type specific fields
       rateCard.gst = gst !== undefined ? gst : rateCard.gst;
@@ -313,12 +327,18 @@ const saveRateCard = async (req, res) => {
       courierPartner: finalCourierPartner,
       forwardRates: forwardRatesData,
       zoneRates,
-      codCharge,
-      rtoCharge,
-      reversePickup,
-      fuelCharge,
-      codPercentage,
-      volumetricDivisor,
+      codCharge: codCharge || 0,
+      codPercentage: codPercentage || 0,
+      codBuyCharge: codBuyCharge || 0,
+      codBuyPercentage: codBuyPercentage || 0,
+      rtoCharge: rtoCharge || 0,
+      rtoBuyCharge: rtoBuyCharge || 0,
+      buyRate: buyRate || 0,
+      internalCostPercent: internalCostPercent !== undefined ? Number(internalCostPercent) : 70,
+      insuranceCharge: insuranceCharge || 0,
+      volumetricDivisor: volumetricDivisor || 5000,
+      reversePickup: reversePickup || 0,
+      fuelCharge: fuelCharge || 0,
       
       // Service type specific fields
       serviceType: targetServiceType,
@@ -827,6 +847,25 @@ const getRecommendedCouriers = async (req, res) => {
 
     const zone = determineZone(pickup, destination);
 
+const sanitizeDetailsForMerchant = (details, userRole) => {
+  if (!details) return null;
+  if (userRole === "SUPER_ADMIN" || userRole === "ADMIN") {
+    return details;
+  }
+  const {
+    buyRate,
+    codBuyCharge,
+    codBuyPercentage,
+    codMarginEarned,
+    rtoBuyCharge,
+    rtoMarginEarned,
+    marginEarned,
+    totalNetProfit,
+    ...merchantSafeDetails
+  } = details;
+  return merchantSafeDetails;
+};
+
     const couriersWithRates = allCouriers.map((courier) => {
       const rateCard = rateCardMap.get(courier._id.toString());
       const hasRate = !!rateCard;
@@ -870,7 +909,7 @@ const getRecommendedCouriers = async (req, res) => {
         fuelCharge: fuelCharge,
         gstAmount: gstAmount,
         total: total,
-        calculationDetails: details,
+        calculationDetails: sanitizeDetailsForMerchant(details, req.user?.role),
         rateCardId: hasRate ? rateCard._id : null,
         pricingType: hasRate ? rateCard.pricingType : "STANDARD",
         isDefault: hasRate ? (rateCard ? rateCard.merchantId === null : true) : true,
@@ -1031,8 +1070,9 @@ const calculatePricing = async (req, res) => {
       courierName: rateCard.courierId?.name || courier.name,
       pricingType: pricingType,
       rateCardSource: pricingType === "MERCHANT" ? "Merchant Rate" : "Default Rate",
-      calculationDetails: calculated,
+      calculationDetails: sanitizeDetailsForMerchant(calculated, req.user?.role),
     });
+
   } catch (error) {
     console.error("Calculate pricing error:", error);
     res.status(500).json({

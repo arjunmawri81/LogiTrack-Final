@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import api from "../../services/api";
-import { FaBox, FaTruck, FaArrowLeft, FaCheckCircle, FaShippingFast, FaWallet, FaRupeeSign, FaStar, FaSortAmountUp, FaShieldAlt } from "react-icons/fa";
+import { FaBox, FaTruck, FaArrowLeft, FaCheckCircle, FaShippingFast, FaWallet, FaRupeeSign, FaStar, FaSortAmountUp, FaShieldAlt, FaChevronDown, FaSearch } from "react-icons/fa";
 import "./CreateShipment.css"; 
 
 const CreateShipment = () => {
@@ -21,6 +21,35 @@ const CreateShipment = () => {
     courier: "",
     warehouseId: "", // Added warehouseId
   });
+
+  // Custom Searchable Order Picker States
+  const [orderDropdownOpen, setOrderDropdownOpen] = useState(false);
+  const [orderSearchTerm, setOrderSearchTerm] = useState("");
+  const orderDropdownRef = useRef(null);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (orderDropdownRef.current && !orderDropdownRef.current.contains(e.target)) {
+        setOrderDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Filter orders for searchable dropdown
+  const filteredOrdersList = useMemo(() => {
+    if (!orderSearchTerm.trim()) return orders;
+    const term = orderSearchTerm.toLowerCase();
+    return orders.filter(
+      (o) =>
+        (o.orderNumber || "").toLowerCase().includes(term) ||
+        (o.customerName || "").toLowerCase().includes(term) ||
+        (o._id || "").toLowerCase().includes(term)
+    );
+  }, [orders, orderSearchTerm]);
+
   const [loading, setLoading] = useState(false);
   const [walletBalance, setWalletBalance] = useState(0);
   
@@ -445,29 +474,83 @@ const CreateShipment = () => {
                   </div>
                 )}
 
-                {/* Order Selection - Hide in bulk mode */}
+                {/* Order Selection - Custom Searchable Dropdown */}
                 {!isBulk && (
-                  <div className="form-group">
+                  <div className="form-group custom-order-select-container" ref={orderDropdownRef}>
                     <div className="form-label">
                       <FaBox className="label-icon" />
                       <span>Select Order <span className="required-star">*</span></span>
                     </div>
-                    <select
-                      name="orderId"
-                      value={formData.orderId}
-                      onChange={(e) => setFormData({ ...formData, orderId: e.target.value })}
-                      className="form-select"
-                      required
+                    
+                    <div 
+                      className={`custom-order-trigger ${orderDropdownOpen ? 'open' : ''}`}
+                      onClick={() => setOrderDropdownOpen((prev) => !prev)}
                     >
-                      <option value="">Choose an order</option>
-                      {orders.map((o) => (
-                        <option key={o._id} value={o._id}>
-                          {`${o.orderNumber || o._id.slice(-6)} - ${o.customerName}`}
-                        </option>
-                      ))}
-                    </select>
+                      <span className={formData.orderId ? "selected-text" : "placeholder-text"}>
+                        {formData.orderId ? (
+                          (() => {
+                            const found = orders.find((o) => o._id === formData.orderId);
+                            return found ? `${found.orderNumber || found._id.slice(-6)} - ${found.customerName}` : "Choose an order";
+                          })()
+                        ) : (
+                          "Choose an order"
+                        )}
+                      </span>
+                      <FaChevronDown className={`chevron-icon ${orderDropdownOpen ? 'rotate' : ''}`} />
+                    </div>
+
+                    {orderDropdownOpen && (
+                      <div className="custom-order-menu">
+                        <div className="custom-order-search-box">
+                          <FaSearch className="search-icon" />
+                          <input
+                            type="text"
+                            placeholder="Search by Order # or Customer..."
+                            value={orderSearchTerm}
+                            onChange={(e) => setOrderSearchTerm(e.target.value)}
+                            className="custom-order-search-input"
+                            autoFocus
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </div>
+
+                        <div className="custom-order-options-list">
+                          <div 
+                            className={`custom-order-option ${!formData.orderId ? 'selected' : ''}`}
+                            onClick={() => {
+                              setFormData({ ...formData, orderId: "" });
+                              setOrderDropdownOpen(false);
+                            }}
+                          >
+                            Choose an order
+                          </div>
+
+                          {filteredOrdersList.length === 0 ? (
+                            <div className="custom-order-no-results">No orders matching "{orderSearchTerm}"</div>
+                          ) : (
+                            filteredOrdersList.map((o) => (
+                              <div
+                                key={o._id}
+                                className={`custom-order-option ${formData.orderId === o._id ? 'selected' : ''}`}
+                                onClick={() => {
+                                  setFormData({ ...formData, orderId: o._id });
+                                  setOrderDropdownOpen(false);
+                                }}
+                              >
+                                <div className="option-main-info">
+                                  <span className="option-order-num">{o.orderNumber || o._id.slice(-6)}</span>
+                                  <span className="option-cust-name">- {o.customerName}</span>
+                                </div>
+                                {o.amount ? <span className="option-amount">₹{o.amount}</span> : null}
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
+
 
                 {/* For bulk: Show selected orders count and first order for recommendations */}
                 {isBulk && (
