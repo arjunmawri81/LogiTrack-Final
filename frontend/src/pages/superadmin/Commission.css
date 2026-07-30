@@ -70,10 +70,13 @@
 .card-orange .card-label { color: #ffedd5; }
 
 .card-value {
-  font-size: 38px;
+  font-size: clamp(22px, 2.2vw, 30px);
   font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.03em;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .table-card {

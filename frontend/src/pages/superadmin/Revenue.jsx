@@ -14,11 +14,12 @@ import {
   FaChevronRight,
   FaExclamationTriangle,
   FaCheckCircle,
+  FaTruck,
 } from "react-icons/fa";
 import "./Revenue.css";
 
 const Revenue = () => {
-  const [range, setRange] = useState("month");
+  const [range, setRange] = useState("all");
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState("");
@@ -183,8 +184,9 @@ const Revenue = () => {
   if (loading) {
     return (
       <SuperAdminLayout>
-        <div className="revenue-loading-container">
-          Loading Revenue Data...
+        <div className="revenue-loading-container" style={{ display: "flex", flexDirection: "column", gap: "12px", alignItems: "center", justifyContent: "center", minHeight: "60vh" }}>
+          <div style={{ width: "40px", height: "40px", border: "4px solid #3b82f6", borderTop: "4px solid transparent", borderRadius: "50%", animation: "spin 1s linear infinite" }} />
+          <span style={{ color: "#64748b", fontWeight: "600", fontSize: "15px" }}>Loading Revenue Analytics...</span>
         </div>
       </SuperAdminLayout>
     );
@@ -238,11 +240,11 @@ const Revenue = () => {
               onChange={(e) => setRange(e.target.value)}
               className="range-select"
             >
-              <option value="today">Today</option>
-              <option value="week">Last 7 Days</option>
-              <option value="month">This Month</option>
-              <option value="year">This Year</option>
               <option value="all">All Time</option>
+              <option value="month">This Month</option>
+              <option value="week">Last 7 Days</option>
+              <option value="today">Today</option>
+              <option value="year">This Year</option>
             </select>
 
             <button
@@ -263,44 +265,49 @@ const Revenue = () => {
 
         {error && <div className="revenue-error">{error}</div>}
 
-        {/* 6 SUMMARY CARDS GRID */}
-        <div className="metrics-grid">
-          <MetricCard
-            label="Platform Revenue"
-            value={`₹${(revenueData.totalRevenue || 0).toLocaleString()}`}
-            color="#3b82f6"
-            icon={<FaRupeeSign />}
-          />
-          <MetricCard
-            label="Net Revenue"
-            value={`₹${(revenueData.profit || 0).toLocaleString()}`}
-            color="#8b5cf6"
-            icon={<FaChartLine />}
-          />
-          <MetricCard
-            label="Total Commission"
-            value={`₹${(revenueData.totalCommission || 0).toLocaleString()}`}
-            color="#ec4899"
-            icon={<FaMoneyBillWave />}
-          />
-          <MetricCard
-            label="Active Merchants"
-            value={(revenueData.activeMerchants || 0).toLocaleString()}
-            color="#10b981"
-            icon={<FaUsers />}
-          />
-          <MetricCard
-            label="Total Orders"
-            value={(revenueData.totalOrders || 0).toLocaleString()}
-            color="#f59e0b"
-            icon={<FaStore />}
-          />
-          <MetricCard
-            label="Avg Rev / Merchant"
-            value={`₹${Math.round(avgRevenuePerMerchant || 0).toLocaleString()}`}
-            color="#06b6d4"
-            icon={<FaRupeeSign />}
-          />
+        {/* ANALYTICS KPI CARDS GRID (MATCHING COMMISSION PAGE) */}
+        <div className="kpi-grid">
+          <div className="card-blue">
+            <div className="card-label">Total Revenue</div>
+            <div className="card-value" title={`₹${(revenueData.totalRevenue || 0).toLocaleString()}`}>
+              ₹{Math.round(revenueData.totalRevenue || 0).toLocaleString()}
+            </div>
+          </div>
+
+          <div className="card-green">
+            <div className="card-label">Net Revenue</div>
+            <div className="card-value" title={`₹${(revenueData.netRevenue || 0).toLocaleString()}`}>
+              ₹{Math.round(revenueData.netRevenue || 0).toLocaleString()}
+            </div>
+          </div>
+
+          <div className="card-orange">
+            <div className="card-label">Total Commission</div>
+            <div className="card-value" title={`₹${(revenueData.totalCommission || 0).toLocaleString()}`}>
+              ₹{Math.round(revenueData.totalCommission || 0).toLocaleString()}
+            </div>
+          </div>
+
+          <div className="card-purple">
+            <div className="card-label">Courier Cost</div>
+            <div className="card-value" title={`₹${(revenueData.totalCourierCost || 0).toLocaleString()}`}>
+              ₹{Math.round(revenueData.totalCourierCost || 0).toLocaleString()}
+            </div>
+          </div>
+
+          <div className="card-green">
+            <div className="card-label">Platform Profit</div>
+            <div className="card-value" title={`₹${(revenueData.profit || 0).toLocaleString()}`}>
+              ₹{Math.round(revenueData.profit || 0).toLocaleString()}
+            </div>
+          </div>
+
+          <div className="card-orange">
+            <div className="card-label">Active Merchants</div>
+            <div className="card-value">
+              {revenueData.activeMerchants || 0}
+            </div>
+          </div>
         </div>
 
         {/* MERCHANT REVENUE BREAKDOWN TABLE */}
@@ -383,8 +390,30 @@ const Revenue = () => {
 
                     return (
                       <tr key={merchant._id}>
-                        <td style={{ fontWeight: "600", color: "#0f172a" }}>
-                          {merchant.merchantName || "Unknown"}
+                        <td>
+                          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                            <div style={{
+                              width: "32px",
+                              height: "32px",
+                              borderRadius: "8px",
+                              background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
+                              color: "#ffffff",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontWeight: "700",
+                              fontSize: "13px",
+                              flexShrink: 0
+                            }}>
+                              {(merchant.merchantName || "M").charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <div style={{ fontWeight: "700", color: "#0f172a" }}>{merchant.merchantName || "Unknown"}</div>
+                              {merchant.companyName && merchant.companyName !== "-" && (
+                                <div style={{ fontSize: "11px", color: "#64748b", fontWeight: "400" }}>{merchant.companyName}</div>
+                              )}
+                            </div>
+                          </div>
                         </td>
                         <td style={{ color: "#64748b" }}>{merchant.email || "-"}</td>
                         <td>{merchant.orders || 0}</td>
@@ -497,7 +526,7 @@ const Revenue = () => {
                   })
                 ) : (
                   <tr>
-                    <td colSpan="10" style={{ textAlign: "center", padding: "32px 16px" }}>
+                    <td colSpan="13" style={{ textAlign: "center", padding: "32px 16px" }}>
                       <div style={{ color: "#94a3b8", fontSize: "14px", fontWeight: "500" }}>
                         No Revenue Data Available
                       </div>
@@ -603,16 +632,21 @@ const Revenue = () => {
 };
 
 // Simple Metric Card Component
-const MetricCard = ({ label, value, color, icon }) => {
+const MetricCard = ({ label, value, color, icon, subtext }) => {
   return (
-    <div className="metric-card" style={{ borderTop: `3px solid ${color}` }}>
+    <div className="metric-card" style={{ borderTop: `4px solid ${color}` }}>
       <div className="metric-header">
         <span className="metric-card-label">{label}</span>
-        {icon && <span className="metric-icon" style={{ color }}>{icon}</span>}
+        {icon && (
+          <div className="metric-icon-circle" style={{ background: `${color}18`, color }}>
+            {icon}
+          </div>
+        )}
       </div>
-      <div className="metric-card-value" style={{ color }}>
+      <div className="metric-card-value">
         {value}
       </div>
+      {subtext && <div className="metric-subtext">{subtext}</div>}
     </div>
   );
 };
