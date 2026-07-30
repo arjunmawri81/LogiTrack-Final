@@ -17,7 +17,6 @@ import {
 } from "react-icons/fa";
 
 import AdminSidebar from "../../components/admin/AdminSidebar";
-import AdminTopbar from "../../components/admin/AdminTopbar";
 import api from "../../services/api";
 import "./AdminTickets.css"; 
 
@@ -177,8 +176,6 @@ const AdminTickets = () => {
     <div className="tickets-container">
       <AdminSidebar />
       <div className="tickets-main">
-        <AdminTopbar />
-
         <div className="tickets-header">
           <h1 className="tickets-header-title">
             🎫 Support Tickets

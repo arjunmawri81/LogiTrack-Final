@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import api from "../../services/api";
 import AdminSidebar from "../../components/admin/AdminSidebar";
-import AdminTopbar from "../../components/admin/AdminTopbar";
+import "./RateCardManagement.css";
 import {
   FaTruck,
   FaPlane,
@@ -952,7 +952,6 @@ const RateCardManagement = () => {
       <div className="admin-container">
         <AdminSidebar />
         <div className="admin-main">
-          <AdminTopbar />
           <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "60vh" }}>
             <FaSpinner size={36} color="#ea580c" className="rcm-spinner" />
           </div>
@@ -965,7 +964,6 @@ const RateCardManagement = () => {
     <div className="admin-container">
       <AdminSidebar />
       <div className="admin-main">
-        <AdminTopbar />
         <div className="rcm-container">
           <div className="rcm-header">
             <div className="rcm-header-left">

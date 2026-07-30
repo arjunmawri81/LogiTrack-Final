@@ -71,12 +71,9 @@ router.post("/:id/pickup", authMiddleware, schedulePickup);
 // ===============================
 // GENERATE SHIPPING LABEL PDF
 // ===============================
-router.post(
-  "/:id/label",
-  authMiddleware,
-  logoUpload.single("logo"),
-  generateLabel
-);
+router.route("/:id/label")
+  .get(authMiddleware, logoUpload.single("logo"), generateLabel)
+  .post(authMiddleware, logoUpload.single("logo"), generateLabel);
 
 // ===============================
 // GENERATE QR CODE

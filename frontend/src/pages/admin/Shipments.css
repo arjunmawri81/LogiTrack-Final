@@ -28,6 +28,8 @@
   min-height: 100vh;
   background: #f8fafc;
   box-sizing: border-box;
+  min-width: 0;
+  width: calc(100% - 280px);
 }
 
 /* ---------- HEADER ---------- */
@@ -323,25 +325,14 @@
 .shipments-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 1200px;
-  table-layout: fixed;
+  min-width: 1000px;
 }
 
-/* Table Columns - Fixed Widths */
-.shipments-table .col-awb { width: 12%; }
-.shipments-table .col-order { width: 12%; }
-.shipments-table .col-merchant { width: 12%; }
-.shipments-table .col-customer { width: 14%; }
-.shipments-table .col-courier { width: 10%; }
-.shipments-table .col-status { width: 12%; }
-.shipments-table .col-scan { width: 12%; }
-.shipments-table .col-actions { width: 16%; }
-
 .shipments-th {
-  padding: 14px 12px;
+  padding: 14px 16px;
   text-align: left;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   color: #64748b;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -351,13 +342,13 @@
 }
 
 .shipments-td {
-  padding: 12px 12px;
-  font-size: 12px;
+  padding: 14px 16px;
+  font-size: 13px;
   color: #0f172a;
   border-bottom: 1px solid #f1f5f9;
   transition: background 0.15s;
   vertical-align: middle;
-  word-break: break-word;
+  white-space: nowrap;
 }
 
 .shipments-row {

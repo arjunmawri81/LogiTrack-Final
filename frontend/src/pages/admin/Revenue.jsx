@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
-import AdminTopbar from "../../components/admin/AdminTopbar";
 import api from "../../services/api";
 import {
   FaRupeeSign,
@@ -57,19 +56,34 @@ const Revenue = () => {
           totalInvoices: response.data.totalInvoices || 0,
         });
 
-        const revenueData = Object.entries(
-          response.data.monthlyRevenue || {}
-        ).map(([month, revenue]) => ({
-          month,
-          revenue,
-        }));
+        let revenueData = [];
+        if (response.data.trendData && response.data.trendData.length > 0) {
+          revenueData = response.data.trendData;
+        } else if (response.data.monthlyRevenue) {
+          revenueData = Object.entries(response.data.monthlyRevenue).map(([month, revenue]) => ({
+            month,
+            revenue,
+          }));
+        }
         setMonthlyData(revenueData);
 
-        setRecentInvoices(response.data.recentInvoices || []);
+        setRecentInvoices(response.data.recentInvoices || response.data.invoices || []);
 
-        if (response.data.invoices) {
+        if (response.data.merchantBreakdown && response.data.merchantBreakdown.length > 0) {
+          const sortedMerchants = response.data.merchantBreakdown
+            .map((m) => ({
+              id: m._id,
+              name: m.merchantName || m.companyName || "Merchant",
+              companyName: m.companyName || "-",
+              totalRevenue: m.revenue || 0,
+            }))
+            .sort((a, b) => b.totalRevenue - a.totalRevenue)
+            .slice(0, 5);
+
+          setTopMerchants(sortedMerchants);
+        } else if (response.data.invoices) {
           const merchantMap = {};
-          response.data.invoices.forEach(invoice => {
+          response.data.invoices.forEach((invoice) => {
             const merchantId = invoice.merchantId?._id || invoice.merchantId;
             if (merchantId) {
               if (!merchantMap[merchantId]) {
@@ -77,17 +91,17 @@ const Revenue = () => {
                   id: merchantId,
                   name: invoice.merchantId?.name || "Unknown Merchant",
                   companyName: invoice.merchantId?.companyName || "-",
-                  totalRevenue: 0
+                  totalRevenue: 0,
                 };
               }
-              merchantMap[merchantId].totalRevenue += (invoice.totalAmount || 0);
+              merchantMap[merchantId].totalRevenue += invoice.totalAmount || 0;
             }
           });
-          
+
           const sortedMerchants = Object.values(merchantMap)
             .sort((a, b) => b.totalRevenue - a.totalRevenue)
             .slice(0, 5);
-          
+
           setTopMerchants(sortedMerchants);
         }
       }
@@ -135,7 +149,6 @@ const Revenue = () => {
       <div className="revenue-container">
         <AdminSidebar />
         <div className="revenue-content">
-          <AdminTopbar />
           <div className="revenue-loading">Loading revenue data...</div>
         </div>
       </div>
@@ -146,8 +159,6 @@ const Revenue = () => {
     <div className="revenue-container">
       <AdminSidebar />
       <div className="revenue-content">
-        <AdminTopbar />
-
         {/* Header */}
         <div className="revenue-header">
           <div className="revenue-header-left">

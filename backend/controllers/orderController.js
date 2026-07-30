@@ -24,7 +24,7 @@ const createOrder = async (req, res) => {
     const customerPincode = req.body.customerPincode || req.body.pincode;
     const serviceType = req.body.serviceType || req.body.shippingMode || "Surface";
 
-    //  Validate required address fields
+    // Validate required address fields
     if (!customerCity || !customerState || !customerPincode) {
       const missing = [];
       if (!customerCity) missing.push("City");
@@ -36,6 +36,30 @@ const createOrder = async (req, res) => {
       });
     }
 
+    // Validate package dimensions (length, breadth, height) and weight
+    const length = Number(req.body.length || (req.body.dimensions && req.body.dimensions.length));
+    const breadth = Number(req.body.breadth || (req.body.dimensions && req.body.dimensions.breadth));
+    const height = Number(req.body.height || (req.body.dimensions && req.body.dimensions.height));
+    const weight = Number(req.body.weight);
+
+    if (!length || length <= 0 || !breadth || breadth <= 0 || !height || height <= 0) {
+      const missing = [];
+      if (!length || length <= 0) missing.push("Length");
+      if (!breadth || breadth <= 0) missing.push("Breadth");
+      if (!height || height <= 0) missing.push("Height");
+      return res.status(400).json({
+        success: false,
+        message: `Missing or invalid required dimensions: ${missing.join(", ")}. Dimensions (length, breadth, height) are compulsory and must be > 0.`,
+      });
+    }
+
+    if (!weight || weight <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Weight is compulsory and must be greater than 0.",
+      });
+    }
+
     const orderData = {
       ...req.body,
       merchantId: req.user.id,
@@ -44,6 +68,11 @@ const createOrder = async (req, res) => {
       customerState,
       customerPincode,
       serviceType,
+      length,
+      breadth,
+      height,
+      weight,
+      dimensions: { length, breadth, height },
     };
 
     const order = await Order.create(orderData);
@@ -377,6 +406,32 @@ const uploadCSVOrders = async (req, res) => {
           errors.push({
             row: results.length + 1,
             message: `Missing required address fields: ${missing.join(", ")}`,
+          });
+          return;
+        }
+
+        // Validate package dimensions (length, breadth, height) and weight
+        const len = Number(data.length);
+        const brd = Number(data.breadth);
+        const hgt = Number(data.height);
+        const wgt = Number(data.weight);
+
+        if (!len || len <= 0 || !brd || brd <= 0 || !hgt || hgt <= 0) {
+          const missing = [];
+          if (!len || len <= 0) missing.push("length");
+          if (!brd || brd <= 0) missing.push("breadth");
+          if (!hgt || hgt <= 0) missing.push("height");
+          errors.push({
+            row: results.length + 1,
+            message: `Missing or invalid dimensions: ${missing.join(", ")} (must be > 0)`,
+          });
+          return;
+        }
+
+        if (!wgt || wgt <= 0) {
+          errors.push({
+            row: results.length + 1,
+            message: "Missing or invalid weight (must be > 0)",
           });
           return;
         }

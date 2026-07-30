@@ -13,6 +13,9 @@
   flex: 1;
   margin-left: 280px;
   padding: 20px 30px;
+  min-width: 0;
+  width: calc(100% - 280px);
+  box-sizing: border-box;
 }
 
 /* ---------- TOAST ---------- */
@@ -281,6 +284,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  white-space: nowrap;
 }
 
 .ndr-th-center {
@@ -305,6 +309,7 @@
   padding: 14px 16px;
   color: #0f172a;
   font-size: 13px;
+  white-space: nowrap;
 }
 
 .ndr-td-awb {

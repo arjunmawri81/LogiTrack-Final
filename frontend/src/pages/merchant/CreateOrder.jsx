@@ -31,6 +31,24 @@ const CreateOrder = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+
+    const length = parseFloat(formData.length);
+    const breadth = parseFloat(formData.breadth);
+    const height = parseFloat(formData.height);
+    const weight = parseFloat(formData.weight);
+
+    if (!weight || weight <= 0) {
+      alert("Weight is mandatory and must be greater than 0");
+      setLoading(false);
+      return;
+    }
+
+    if (!length || length <= 0 || !breadth || breadth <= 0 || !height || height <= 0) {
+      alert("Length, Breadth, and Height dimensions are mandatory and must be greater than 0");
+      setLoading(false);
+      return;
+    }
+
     try {
       await api.post("/orders", formData);
       alert("Order Created Successfully");
@@ -203,35 +221,47 @@ const CreateOrder = () => {
             <input 
               type="number" 
               name="weight" 
-              placeholder="Weight (kg)" 
+              placeholder="Weight (kg) *" 
               value={formData.weight} 
               onChange={handleChange} 
+              required
+              min="0.01"
+              step="any"
               style={inputStyle} 
             />
             
             <input 
               type="number" 
               name="length" 
-              placeholder="Length (cm)" 
+              placeholder="Length (cm) *" 
               value={formData.length} 
               onChange={handleChange} 
+              required
+              min="0.01"
+              step="any"
               style={inputStyle} 
             />
             <input 
               type="number" 
               name="breadth" 
-              placeholder="Breadth (cm)" 
+              placeholder="Breadth (cm) *" 
               value={formData.breadth} 
               onChange={handleChange} 
+              required
+              min="0.01"
+              step="any"
               style={inputStyle} 
             />
             
             <input 
               type="number" 
               name="height" 
-              placeholder="Height (cm)" 
+              placeholder="Height (cm) *" 
               value={formData.height} 
               onChange={handleChange} 
+              required
+              min="0.01"
+              step="any"
               style={{...inputStyle, ...fullWidthStyle}}
             />
             

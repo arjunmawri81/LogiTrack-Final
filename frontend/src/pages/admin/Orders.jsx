@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
-import AdminTopbar from "../../components/admin/AdminTopbar";
 import api from "../../services/api";
 import {
   FaBox,
@@ -131,8 +130,6 @@ const Orders = () => {
       <AdminSidebar />
 
       <div className="orders-main">
-        <AdminTopbar />
-
         <h1 className="orders-header-title">
           📦 Orders Management
         </h1>

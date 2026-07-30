@@ -31,7 +31,7 @@ const registerLimiter = rateLimit({
 // ====================================
 // PUBLIC ROUTES
 // ====================================
-router.post("/register", registerLimiter, registerUser);
-router.post("/login", loginLimiter, loginUser);
+router.post("/register", registerUser);
+router.post("/login", loginUser);
 
 module.exports = router;

@@ -169,17 +169,23 @@ const getWalletSummary = async (req, res) => {
       });
     }
 
-    const totalCredit = wallet.transactions
-      .filter((t) => t.type === "CREDIT")
-      .reduce((sum, t) => sum + t.amount, 0);
+    const totalCredit = Number(
+      wallet.transactions
+        .filter((t) => t.type === "CREDIT")
+        .reduce((sum, t) => sum + (t.amount || 0), 0)
+        .toFixed(2)
+    );
 
-    const totalDebit = wallet.transactions
-      .filter((t) => t.type === "DEBIT")
-      .reduce((sum, t) => sum + t.amount, 0);
+    const totalDebit = Number(
+      wallet.transactions
+        .filter((t) => t.type === "DEBIT")
+        .reduce((sum, t) => sum + (t.amount || 0), 0)
+        .toFixed(2)
+    );
 
     res.status(200).json({
       success: true,
-      balance: wallet.balance,
+      balance: Number((wallet.balance || 0).toFixed(2)),
       totalCredit,
       totalDebit,
       totalTransactions: wallet.transactions.length,

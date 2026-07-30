@@ -237,7 +237,8 @@
 .invoices-table-wrapper {
   background: #ffffff;
   border-radius: 12px;
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   border: 1px solid #e2e8f0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
@@ -245,7 +246,7 @@
 .invoices-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 800px;
+  min-width: 900px;
 }
 
 .invoices-table-head {
@@ -261,6 +262,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  white-space: nowrap;
 }
 
 .invoices-row {
@@ -277,6 +279,7 @@
   padding: 14px 18px;
   font-size: 14px;
   color: #334155;
+  white-space: nowrap;
 }
 
 .invoices-invoice-number {

@@ -70,12 +70,14 @@ const Shipments = () => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `Label-${awb}.pdf`);
+      link.setAttribute("download", `Label-${awb || shipmentId}.pdf`);
       document.body.appendChild(link);
       link.click();
       link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
     } catch (error) {
-      alert("Label download failed");
+      console.error("Label download error:", error);
+      alert("Label download failed. Please try again.");
     }
   };
 

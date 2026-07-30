@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
-import AdminTopbar from "../../components/admin/AdminTopbar";
 import api from "../../services/api";
 import {
   FaStore,
@@ -14,6 +13,8 @@ import {
   FaMoneyBillWave,
   FaBox,
   FaShoppingCart,
+  FaTags,
+  FaCheckCircle,
 } from "react-icons/fa";
 import "./Merchants.css"; 
 
@@ -128,8 +129,6 @@ const Merchants = () => {
     <div className="merchants-container">
       <AdminSidebar />
       <div className="merchants-main">
-        <AdminTopbar />
-
         <div className="merchants-header-block">
           <h1 className="merchants-header-title">
             🏪 Merchant Management
@@ -203,7 +202,7 @@ const Merchants = () => {
                   <th className="merchants-th">COMPANY</th>
                   <th className="merchants-th">EMAIL</th>
                   <th className="merchants-th">STATUS</th>
-                  <th className="merchants-th">ACTION</th>
+                  <th className="merchants-th" style={{ minWidth: "260px" }}>ACTION</th>
                 </tr>
               </thead>
               <tbody>
@@ -225,53 +224,94 @@ const Merchants = () => {
                         </span>
                       </td>
                       <td className="merchants-td">
-                        <div className="merchants-action-group">
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "nowrap" }}>
                           <button
                             onClick={() => viewMerchant(merchant._id)}
-                            className="merchants-action-btn merchants-action-view"
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "4px",
+                              padding: "6px 12px",
+                              background: "#ffffff",
+                              border: "1px solid #cbd5e1",
+                              borderRadius: "8px",
+                              fontSize: "12px",
+                              fontWeight: "600",
+                              color: "#334155",
+                              cursor: "pointer",
+                              whiteSpace: "nowrap"
+                            }}
                           >
-                            <FaEye />
-                            View
+                            <FaEye size={12} /> View
                           </button>
 
-                          {!merchant.isApproved && (
-                            <button
-                              className="merchants-action-btn merchants-action-approve"
-                              onClick={() => approveMerchant(merchant._id)}
-                            >
-                              Approve
-                            </button>
-                          )}
-                          
+                          <button
+                            onClick={() => navigate(`/admin/ratecard/${merchant._id}`)}
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "4px",
+                              padding: "6px 12px",
+                              background: "#f0f9ff",
+                              border: "1px solid #bae6fd",
+                              borderRadius: "8px",
+                              fontSize: "12px",
+                              fontWeight: "600",
+                              color: "#0369a1",
+                              cursor: "pointer",
+                              whiteSpace: "nowrap"
+                            }}
+                          >
+                            <FaTags size={11} /> Rates
+                          </button>
+
                           {merchant.isBlocked ? (
                             <button
-                              className="merchants-action-btn merchants-action-unblock"
                               onClick={() => {
-                                if (
-                                  window.confirm(
-                                    `Unblock "${merchant.name}"?`
-                                  )
-                                ) {
+                                if (window.confirm(`Unblock "${merchant.name}"?`)) {
                                   unblockMerchant(merchant._id);
                                 }
+                              }}
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "4px",
+                                padding: "6px 12px",
+                                background: "#fef3c7",
+                                border: "1px solid #fde68a",
+                                borderRadius: "8px",
+                                fontSize: "12px",
+                                fontWeight: "700",
+                                color: "#b45309",
+                                cursor: "pointer",
+                                whiteSpace: "nowrap"
                               }}
                             >
                               Unblock
                             </button>
                           ) : (
                             <button
-                              className="merchants-action-btn merchants-action-block"
                               onClick={() => {
-                                if (
-                                  window.confirm(
-                                    `Block "${merchant.name}"?`
-                                  )
-                                ) {
+                                if (window.confirm(`Block "${merchant.name}"?`)) {
                                   blockMerchant(merchant._id);
                                 }
                               }}
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "4px",
+                                padding: "6px 12px",
+                                background: "#fee2e2",
+                                border: "1px solid #fca5a5",
+                                borderRadius: "8px",
+                                fontSize: "12px",
+                                fontWeight: "700",
+                                color: "#b91c1c",
+                                cursor: "pointer",
+                                whiteSpace: "nowrap"
+                              }}
                             >
-                              Block
+                              <FaBan size={11} /> Block
                             </button>
                           )}
                         </div>

@@ -317,7 +317,7 @@ const Invoices = () => {
                         title="Download Invoice PDF"
                         onClick={() => downloadInvoice(invoice._id)}
                       >
-                        <FaDownload />
+                        <FaDownload /> Download
                       </button>
                     </td>
                   </tr>

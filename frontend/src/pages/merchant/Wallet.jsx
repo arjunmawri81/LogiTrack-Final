@@ -91,7 +91,7 @@ const Wallet = () => {
             </p>
 
             <h2 className="wallet-balance-amount">
-              ₹{wallet.balance || 0}
+              ₹{Number(wallet.balance || 0).toFixed(2)}
             </h2>
           </div>
 
@@ -106,7 +106,7 @@ const Wallet = () => {
             </h4>
 
             <h2 className="wallet-summary-value-green">
-              ₹{summary.totalCredit}
+              ₹{Number(summary.totalCredit || 0).toFixed(2)}
             </h2>
           </div>
 
@@ -116,7 +116,7 @@ const Wallet = () => {
             </h4>
 
             <h2 className="wallet-summary-value-red">
-              ₹{summary.totalDebit}
+              ₹{Number(summary.totalDebit || 0).toFixed(2)}
             </h2>
           </div>
 
@@ -198,7 +198,7 @@ const Wallet = () => {
 
                         <td className="wallet-td">
                           <span className="wallet-amount">
-                            ₹{t.amount}
+                            ₹{Number(t.amount || 0).toFixed(2)}
                           </span>
                         </td>
 

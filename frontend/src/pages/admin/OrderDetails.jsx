@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
-import AdminTopbar from "../../components/admin/AdminTopbar";
 import api from "../../services/api";
 import {
   FaEdit,
@@ -185,8 +184,6 @@ const OrderDetails = () => {
           overflowY: "auto",
         }}
       >
-        <AdminTopbar />
-
         {/* Header with Actions - Clean Version */}
         <div
           style={{

@@ -1,441 +1,345 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
-import AdminTopbar from "../../components/admin/AdminTopbar";
+import api from "../../services/api";
 import {
   FaRupeeSign,
-  FaPercentage,
   FaTruck,
   FaWeightHanging,
   FaEdit,
   FaPlus,
-  FaTrash,
   FaSearch,
+  FaSync,
+  FaBoxes,
 } from "react-icons/fa";
+import "./Pricing.css";
 
 const Pricing = () => {
-  // Pricing data
-  const pricingData = [
-    { courier: "DTDC", code: "DT", weightSlab: "500 gm", basePrice: 40, margin: 5, finalPrice: 45 },
-    { courier: "Delhivery", code: "DL", weightSlab: "1 Kg", basePrice: 57, margin: 8, finalPrice: 65 },
-    { courier: "Blue Dart", code: "BD", weightSlab: "2 Kg", basePrice: 95, margin: 10, finalPrice: 105 },
-    { courier: "XpressBees", code: "XB", weightSlab: "500 gm", basePrice: 38, margin: 6, finalPrice: 44 },
-    { courier: "Ecom Express", code: "EE", weightSlab: "1 Kg", basePrice: 52, margin: 7, finalPrice: 59 },
-    { courier: "Shadowfax", code: "SF", weightSlab: "2 Kg", basePrice: 88, margin: 9, finalPrice: 97 },
-  ];
+  const navigate = useNavigate();
+  const [rateCards, setRateCards] = useState([]);
+  const [couriers, setCouriers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
+  const [courierFilter, setCourierFilter] = useState("");
+  const [weightFilter, setWeightFilter] = useState("");
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Updated styles matching admin theme
-  const styles = {
-    container: {
-      display: "flex",
-      minHeight: "100vh",
-      backgroundColor: "#f1f5f9",
-      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-    },
-    mainContent: {
-      flex: 1,
-      marginLeft: "280px",
-      padding: "20px 30px",
-      overflowX: "auto"
-    },
-    // Header Section - Simple like Orders page
-    headerBlock: {
-      marginBottom: "25px",
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      background: "white",
-      padding: "20px 24px",
-      borderRadius: "12px",
-      border: "1px solid #eef2f6"
-    },
-    headerLeft: {
-      display: "flex",
-      flexDirection: "column",
-      gap: "4px"
-    },
-    headerTitle: {
-      fontSize: "20px",
-      fontWeight: "700",
-      color: "#0f172a",
-      margin: 0
-    },
-    headerSubtitle: {
-      fontSize: "13px",
-      color: "#64748b",
-      margin: 0
-    },
-    addButton: {
-      background: "#3b82f6",
-      color: "white",
-      border: "none",
-      padding: "10px 20px",
-      borderRadius: "8px",
-      fontSize: "13px",
-      fontWeight: "600",
-      cursor: "pointer",
-      display: "flex",
-      alignItems: "center",
-      gap: "8px",
-      transition: "all 0.2s",
-      whiteSpace: "nowrap"
-    },
-    // Stats Cards - White with blue accents
-    statsGrid: {
-      display: "grid",
-      gridTemplateColumns: "repeat(4, 1fr)",
-      gap: "20px",
-      marginBottom: "25px"
-    },
-    statCard: {
-      background: "white",
-      padding: "20px",
-      borderRadius: "12px",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      border: "1px solid #eef2f6",
-      transition: "transform 0.2s, box-shadow 0.2s",
-      cursor: "pointer"
-    },
-    statInfo: {
-      flex: 1
-    },
-    statLabel: {
-      fontSize: "12px",
-      fontWeight: "600",
-      textTransform: "uppercase",
-      color: "#64748b",
-      marginBottom: "8px",
-      letterSpacing: "0.5px"
-    },
-    statValue: {
-      fontSize: "28px",
-      fontWeight: "800",
-      color: "#0f172a",
-      margin: 0
-    },
-    statIconWrapper: {
-      width: "48px",
-      height: "48px",
-      borderRadius: "12px",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center"
-    },
-    // Search + Filters Row - White card
-    filterContainer: {
-      background: "white",
-      padding: "16px 20px",
-      borderRadius: "12px",
-      border: "1px solid #eef2f6",
-      marginBottom: "25px",
-      display: "flex",
-      alignItems: "center",
-      gap: "16px",
-      flexWrap: "wrap"
-    },
-    searchWrapper: {
-      flex: 1,
-      minWidth: "200px",
-      position: "relative",
-      display: "flex",
-      alignItems: "center"
-    },
-    searchIcon: {
-      position: "absolute",
-      left: "12px",
-      color: "#94a3b8",
-      fontSize: "14px"
-    },
-    searchInput: {
-      width: "100%",
-      padding: "10px 12px 10px 38px",
-      borderRadius: "8px",
-      border: "1px solid #e2e8f0",
-      fontSize: "13px",
-      color: "#334155",
-      background: "#f8fafc",
-      transition: "all 0.2s",
-      outline: "none"
-    },
-    filterGroup: {
-      display: "flex",
-      gap: "10px",
-      flexWrap: "wrap"
-    },
-    filterSelect: {
-      padding: "10px 14px",
-      borderRadius: "8px",
-      border: "1px solid #e2e8f0",
-      background: "#f8fafc",
-      fontSize: "13px",
-      color: "#334155",
-      outline: "none",
-      minWidth: "150px",
-      cursor: "pointer"
-    },
-    // Table Container - White background
-    tableContainer: {
-      background: "white",
-      borderRadius: "12px",
-      border: "1px solid #eef2f6",
-      overflow: "hidden"
-    },
-    tableWrapper: {
-      overflowX: "auto"
-    },
-    table: {
-      width: "100%",
-      borderCollapse: "collapse",
-      background: "white"
-    },
-    th: {
-      textAlign: "left",
-      padding: "14px 20px",
-      background: "#f8fafc",
-      color: "#475569",
-      fontSize: "12px",
-      fontWeight: "600",
-      textTransform: "uppercase",
-      letterSpacing: "0.5px",
-      borderBottom: "1px solid #eef2f6"
-    },
-    td: {
-      padding: "16px 20px",
-      borderBottom: "1px solid #f1f5f9",
-      color: "#1e293b",
-      fontSize: "14px",
-      background: "white"
-    },
-    courierInfo: {
-      display: "flex",
-      alignItems: "center",
-      gap: "12px"
-    },
-    courierAvatar: {
-      width: "38px",
-      height: "38px",
-      background: "#3b82f6",
-      borderRadius: "8px",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      color: "white",
-      fontSize: "11px",
-      fontWeight: "700"
-    },
-    courierName: {
-      fontWeight: "600",
-      color: "#0f172a"
-    },
-    priceCell: {
-      fontWeight: "600",
-      color: "#0f172a"
-    },
-    marginCell: {
-      fontWeight: "600",
-      color: "#10b981"
-    },
-    finalPriceCell: {
-      fontWeight: "700",
-      color: "#3b82f6",
-      fontSize: "15px"
-    },
-    weightBadge: {
-      display: "inline-block",
-      padding: "4px 12px",
-      borderRadius: "6px",
-      fontSize: "12px",
-      fontWeight: "500",
-      background: "#f1f5f9",
-      color: "#475569"
-    },
-    actionGroup: {
-      display: "flex",
-      gap: "6px"
-    },
-    actionBtn: {
-      background: "white",
-      border: "1px solid #e2e8f0",
-      padding: "6px 10px",
-      borderRadius: "6px",
-      cursor: "pointer",
-      color: "#64748b",
-      transition: "all 0.2s",
-      display: "inline-flex",
-      alignItems: "center",
-      gap: "6px",
-      fontSize: "13px"
-    },
-    actionBtnEdit: {
-      background: "#eff6ff",
-      border: "1px solid #bfdbfe",
-      padding: "6px 10px",
-      borderRadius: "6px",
-      cursor: "pointer",
-      color: "#3b82f6",
-      transition: "all 0.2s",
-      display: "inline-flex",
-      alignItems: "center",
-      gap: "6px",
-      fontSize: "13px"
-    },
-    actionBtnDelete: {
-      background: "#fef2f2",
-      border: "1px solid #fecaca",
-      padding: "6px 10px",
-      borderRadius: "6px",
-      cursor: "pointer",
-      color: "#ef4444",
-      transition: "all 0.2s",
-      display: "inline-flex",
-      alignItems: "center",
-      gap: "6px",
-      fontSize: "13px"
+  useEffect(() => {
+    fetchPricingData();
+  }, []);
+
+  const fetchPricingData = async (showRefresh = false) => {
+    try {
+      if (showRefresh) setIsRefreshing(true);
+      else setLoading(true);
+      setError("");
+
+      const [rateCardsRes, couriersRes] = await Promise.allSettled([
+        api.get("/ratecards/merchant/default"),
+        api.get("/couriers/active/list"),
+      ]);
+
+      let cardsData = [];
+      if (rateCardsRes.status === "fulfilled" && rateCardsRes.value.data?.success) {
+        cardsData = rateCardsRes.value.data.rateCards || [];
+      }
+
+      let activeCouriers = [];
+      if (couriersRes.status === "fulfilled" && couriersRes.value.data?.success) {
+        activeCouriers = couriersRes.value.data.couriers || [];
+      }
+      setCouriers(activeCouriers);
+
+      // Transform rate cards into individual slab pricing items for display
+      const pricingList = [];
+
+      if (cardsData.length > 0) {
+        cardsData.forEach((card) => {
+          const courierName = card.courier?.name || card.courierPartner || "Standard Courier";
+          const courierCode = (card.courier?.code || courierName.substring(0, 2)).toUpperCase();
+          const gstRate = card.gst || 18;
+
+          const slabs = [
+            { slab: "500 gm", base: card.forwardRates?.rate500gm || 40 },
+            { slab: "1 Kg", base: card.forwardRates?.rate1kg || 60 },
+            { slab: "2 Kg", base: card.forwardRates?.rate2kg || 95 },
+            { slab: "3 Kg", base: card.forwardRates?.rate3kg || 135 },
+            { slab: "5 Kg", base: card.forwardRates?.rate5kg || 210 },
+          ];
+
+          slabs.forEach((s) => {
+            const gstAmount = Math.round((s.base * gstRate) / 100);
+            const finalPrice = s.base + gstAmount;
+
+            pricingList.push({
+              id: `${card._id}_${s.slab}`,
+              cardId: card._id,
+              merchantId: card.merchantId || "default",
+              courier: courierName,
+              code: courierCode,
+              serviceType: card.serviceType || "Surface",
+              weightSlab: s.slab,
+              basePrice: s.base,
+              gst: gstRate,
+              margin: gstAmount,
+              finalPrice: finalPrice,
+              odaCharge: card.odaCharge || 0,
+              handlingCharge: card.handlingCharge || 0,
+            });
+          });
+        });
+      } else if (activeCouriers.length > 0) {
+        // Fallback pricing generated from active couriers if ratecards not yet saved
+        activeCouriers.forEach((courier) => {
+          const baseRate = courier.baseRate || 45;
+          const slabs = [
+            { slab: "500 gm", base: baseRate },
+            { slab: "1 Kg", base: Math.round(baseRate * 1.4) },
+            { slab: "2 Kg", base: Math.round(baseRate * 2.2) },
+          ];
+
+          slabs.forEach((s) => {
+            const margin = Math.round(s.base * 0.18);
+            pricingList.push({
+              id: `${courier._id}_${s.slab}`,
+              cardId: courier._id,
+              merchantId: "default",
+              courier: courier.name,
+              code: (courier.code || courier.name.substring(0, 2)).toUpperCase(),
+              serviceType: "Surface",
+              weightSlab: s.slab,
+              basePrice: s.base,
+              gst: 18,
+              margin: margin,
+              finalPrice: s.base + margin,
+              odaCharge: 0,
+              handlingCharge: 0,
+            });
+          });
+        });
+      }
+
+      setRateCards(pricingList);
+      setLoading(false);
+      setIsRefreshing(false);
+    } catch (err) {
+      console.error("Failed to load pricing data:", err);
+      setError("Failed to load pricing rates. Please try again.");
+      setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
+  // Filtering
+  const filteredPricing = rateCards.filter((item) => {
+    const matchesSearch =
+      item.courier.toLowerCase().includes(search.toLowerCase()) ||
+      item.code.toLowerCase().includes(search.toLowerCase());
+
+    const matchesCourier =
+      !courierFilter || item.courier.toLowerCase() === courierFilter.toLowerCase();
+
+    const matchesWeight =
+      !weightFilter || item.weightSlab.toLowerCase() === weightFilter.toLowerCase();
+
+    return matchesSearch && matchesCourier && matchesWeight;
+  });
+
+  // Calculate Summary Stats
+  const totalRules = rateCards.length;
+  const uniqueCouriersCount = new Set(rateCards.map((item) => item.courier)).size || couriers.length;
+  const uniqueSlabsCount = new Set(rateCards.map((item) => item.weightSlab)).size;
+  const avgShippingCost =
+    totalRules > 0
+      ? Math.round(rateCards.reduce((acc, curr) => acc + curr.finalPrice, 0) / totalRules)
+      : 0;
+
+  // Get distinct list of couriers & weight slabs for dropdowns
+  const availableCouriers = Array.from(new Set(rateCards.map((item) => item.courier)));
+  const availableWeightSlabs = Array.from(new Set(rateCards.map((item) => item.weightSlab)));
+
   return (
-    <div style={styles.container}>
+    <div className="pricing-container">
       <AdminSidebar />
-      <div style={styles.mainContent}>
-        <AdminTopbar />
-
-        {/* Header Section - Simple like Orders page */}
-        <div style={styles.headerBlock}>
-          <div style={styles.headerLeft}>
-            <h1 style={styles.headerTitle}>Pricing Management</h1>
-            <p style={styles.headerSubtitle}>Manage courier pricing rules and shipping rates</p>
+      <div className="pricing-content">
+        {/* Header */}
+        <div className="pricing-header">
+          <div className="pricing-header-left">
+            <h1>Pricing & Rate Cards</h1>
+            <p>Manage system default courier pricing rules, weight slabs, and shipping rates</p>
           </div>
-          <button style={styles.addButton}>
-            <FaPlus size={14} /> Add Pricing Rule
-          </button>
-        </div>
-
-        {/* Stats Cards - Updated labels */}
-        <div style={styles.statsGrid}>
-          <div style={styles.statCard}>
-            <div style={styles.statInfo}>
-              <div style={styles.statLabel}>Total Pricing Rules</div>
-              <h2 style={styles.statValue}>24</h2>
-            </div>
-            <div style={{ ...styles.statIconWrapper, background: "#eff6ff" }}>
-              <FaTruck color="#3b82f6" size={22} />
-            </div>
-          </div>
-
-          <div style={styles.statCard}>
-            <div style={styles.statInfo}>
-              <div style={styles.statLabel}>Courier Partners</div>
-              <h2 style={styles.statValue}>8</h2>
-            </div>
-            <div style={{ ...styles.statIconWrapper, background: "#fef3c7" }}>
-              <FaTruck color="#f59e0b" size={22} />
-            </div>
-          </div>
-
-          <div style={styles.statCard}>
-            <div style={styles.statInfo}>
-              <div style={styles.statLabel}>Weight Slabs</div>
-              <h2 style={styles.statValue}>24</h2>
-            </div>
-            <div style={{ ...styles.statIconWrapper, background: "#f0fdf4" }}>
-              <FaWeightHanging color="#22c55e" size={22} />
-            </div>
-          </div>
-
-          <div style={styles.statCard}>
-            <div style={styles.statInfo}>
-              <div style={styles.statLabel}>Average Shipping Cost</div>
-              <h2 style={styles.statValue}>₹58</h2>
-            </div>
-            <div style={{ ...styles.statIconWrapper, background: "#fefce8" }}>
-              <FaRupeeSign color="#eab308" size={22} />
-            </div>
+          <div className="pricing-header-actions">
+            <button
+              onClick={() => fetchPricingData(true)}
+              className="pricing-btn-secondary"
+              disabled={isRefreshing}
+            >
+              <FaSync className={isRefreshing ? "revenue-refresh-btn-spin" : ""} size={13} />
+              {isRefreshing ? "Refreshing..." : "Refresh"}
+            </button>
+            <button
+              onClick={() => navigate("/admin/ratecard/default")}
+              className="pricing-btn-primary"
+            >
+              <FaPlus size={13} /> Manage Default Rate Cards
+            </button>
           </div>
         </div>
 
-        {/* Search + Filters Row */}
-        <div style={styles.filterContainer}>
-          <div style={styles.searchWrapper}>
-            <FaSearch style={styles.searchIcon} />
+        {/* Error Alert */}
+        {error && (
+          <div style={{ padding: "12px 16px", background: "#fef2f2", color: "#991b1b", borderRadius: "8px", marginBottom: "20px" }}>
+            {error}
+          </div>
+        )}
+
+        {/* Stats Cards */}
+        <div className="pricing-stats-grid">
+          <div className="pricing-stat-card">
+            <div>
+              <div className="pricing-stat-label">Total Pricing Rules</div>
+              <h2 className="pricing-stat-value">{totalRules}</h2>
+            </div>
+            <div className="pricing-stat-icon" style={{ background: "#eff6ff" }}>
+              <FaBoxes color="#2563eb" size={20} />
+            </div>
+          </div>
+
+          <div className="pricing-stat-card">
+            <div>
+              <div className="pricing-stat-label">Courier Partners</div>
+              <h2 className="pricing-stat-value">{uniqueCouriersCount}</h2>
+            </div>
+            <div className="pricing-stat-icon" style={{ background: "#fef3c7" }}>
+              <FaTruck color="#d97706" size={20} />
+            </div>
+          </div>
+
+          <div className="pricing-stat-card">
+            <div>
+              <div className="pricing-stat-label">Weight Slabs</div>
+              <h2 className="pricing-stat-value">{uniqueSlabsCount}</h2>
+            </div>
+            <div className="pricing-stat-icon" style={{ background: "#dcfce7" }}>
+              <FaWeightHanging color="#166534" size={20} />
+            </div>
+          </div>
+
+          <div className="pricing-stat-card">
+            <div>
+              <div className="pricing-stat-label">Avg Shipping Rate</div>
+              <h2 className="pricing-stat-value">₹{avgShippingCost}</h2>
+            </div>
+            <div className="pricing-stat-icon" style={{ background: "#fefce8" }}>
+              <FaRupeeSign color="#ca8a04" size={20} />
+            </div>
+          </div>
+        </div>
+
+        {/* Search & Filters */}
+        <div className="pricing-filter-container">
+          <div className="pricing-search-wrapper">
+            <FaSearch className="pricing-search-icon" />
             <input
               type="text"
-              placeholder="Search courier..."
-              style={styles.searchInput}
+              placeholder="Search courier name or code..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pricing-search-input"
             />
           </div>
-          <div style={styles.filterGroup}>
-            <select style={styles.filterSelect}>
-              <option value="">All Couriers</option>
-              <option>DTDC</option>
-              <option>Delhivery</option>
-              <option>Blue Dart</option>
-              <option>XpressBees</option>
-              <option>Ecom Express</option>
-              <option>Shadowfax</option>
-            </select>
-            <select style={styles.filterSelect}>
-              <option value="">All Weight Slabs</option>
-              <option>500 gm</option>
-              <option>1 Kg</option>
-              <option>2 Kg</option>
-              <option>3 Kg</option>
-              <option>5 Kg</option>
-            </select>
-          </div>
+
+          <select
+            value={courierFilter}
+            onChange={(e) => setCourierFilter(e.target.value)}
+            className="pricing-filter-select"
+          >
+            <option value="">All Couriers</option>
+            {availableCouriers.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={weightFilter}
+            onChange={(e) => setWeightFilter(e.target.value)}
+            className="pricing-filter-select"
+          >
+            <option value="">All Weight Slabs</option>
+            {availableWeightSlabs.map((w) => (
+              <option key={w} value={w}>
+                {w}
+              </option>
+            ))}
+          </select>
         </div>
 
-        {/* Pricing Table - White background */}
-        <div style={styles.tableContainer}>
-          <div style={styles.tableWrapper}>
-            <table style={styles.table}>
-              <thead>
-                <tr>
-                  <th style={styles.th}>COURIER</th>
-                  <th style={styles.th}>WEIGHT SLAB</th>
-                  <th style={styles.th}>BASE PRICE</th>
-                  <th style={styles.th}>MARGIN</th>
-                  <th style={styles.th}>FINAL PRICE</th>
-                  <th style={styles.th}>ACTION</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pricingData.map((item, index) => (
-                  <tr key={index}>
-                    <td style={styles.td}>
-                      <div style={styles.courierInfo}>
-                        <div style={styles.courierAvatar}>
-                          {item.code}
-                        </div>
-                        <span style={styles.courierName}>{item.courier}</span>
-                      </div>
-                    </td>
-                    <td style={styles.td}>
-                      <span style={styles.weightBadge}>{item.weightSlab}</span>
-                    </td>
-                    <td style={styles.td}>
-                      <span style={styles.priceCell}>₹{item.basePrice}</span>
-                    </td>
-                    <td style={styles.td}>
-                      <span style={styles.marginCell}>+₹{item.margin}</span>
-                    </td>
-                    <td style={styles.td}>
-                      <span style={styles.finalPriceCell}>₹{item.finalPrice}</span>
-                    </td>
-                    <td style={styles.td}>
-                      <div style={styles.actionGroup}>
-                        <button style={styles.actionBtnEdit} title="Edit">
-                          <FaEdit size={13} /> Edit
-                        </button>
-                        <button style={styles.actionBtnDelete} title="Delete">
-                          <FaTrash size={13} /> Delete
-                        </button>
-                      </div>
-                    </td>
+        {/* Pricing Table */}
+        <div className="pricing-table-container">
+          <div className="pricing-table-wrapper">
+            {loading ? (
+              <div className="pricing-empty-state">Loading pricing rules...</div>
+            ) : (
+              <table className="pricing-table">
+                <thead>
+                  <tr>
+                    <th className="pricing-th">COURIER & SERVICE</th>
+                    <th className="pricing-th">WEIGHT SLAB</th>
+                    <th className="pricing-th">BASE PRICE</th>
+                    <th className="pricing-th">GST / MARGIN</th>
+                    <th className="pricing-th">FINAL PRICE</th>
+                    <th className="pricing-th">ACTION</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filteredPricing.length > 0 ? (
+                    filteredPricing.map((item) => (
+                      <tr key={item.id}>
+                        <td className="pricing-td">
+                          <div className="pricing-courier-info">
+                            <div className="pricing-courier-avatar">{item.code}</div>
+                            <div>
+                              <span className="pricing-courier-name">{item.courier}</span>
+                              <span className="pricing-service-badge">{item.serviceType}</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="pricing-td">
+                          <span className="pricing-weight-badge">{item.weightSlab}</span>
+                        </td>
+                        <td className="pricing-td">
+                          <span className="pricing-price-cell">₹{item.basePrice}</span>
+                        </td>
+                        <td className="pricing-td">
+                          <span className="pricing-margin-cell">+{item.gst}% (₹{item.margin})</span>
+                        </td>
+                        <td className="pricing-td">
+                          <span className="pricing-final-price">₹{item.finalPrice}</span>
+                        </td>
+                        <td className="pricing-td">
+                          <button
+                            className="pricing-action-btn-edit"
+                            onClick={() => navigate(`/admin/ratecard/${item.merchantId}`)}
+                            title="Edit Rate Card"
+                          >
+                            <FaEdit size={12} /> Edit Rate Card
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="6" className="pricing-empty-state">
+                        No pricing rules found matching your filters.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       </div>

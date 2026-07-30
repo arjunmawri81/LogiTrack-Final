@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
-import AdminTopbar from "../../components/admin/AdminTopbar";
 import api from "../../services/api";
 import {
   FaUsers,
@@ -85,8 +84,6 @@ const Users = () => {
     <div className="users-container">
       <AdminSidebar />
       <div className="users-main">
-        <AdminTopbar />
-
         <div className="users-header-block">
           <h1 className="users-header-title">👥 Users Management</h1>
           <p className="users-header-subtitle">Manage platform users, admins and merchants</p>

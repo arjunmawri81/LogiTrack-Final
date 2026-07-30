@@ -921,7 +921,15 @@ const Orders = () => {
                                 {hasShipment && (
                                   <button
                                     onClick={() => {
-                                      navigate(`/merchant/shipment/track/${order.shipmentId?._id}`);
+                                      const trackingAwb = order.awb || order.shipmentId?.awb;
+                                      if (trackingAwb) {
+                                        navigate(`/merchant/tracking/${trackingAwb}`);
+                                      } else if (order.shipmentId?._id || typeof order.shipmentId === "string") {
+                                        const shipmentId = order.shipmentId?._id || order.shipmentId;
+                                        navigate(`/merchant/shipments/${shipmentId}`);
+                                      } else {
+                                        alert("⚠️ Shipment tracking details not found");
+                                      }
                                       setOpenMenuId(null);
                                     }}
                                     className="orders-menu-item orders-menu-track"

@@ -1892,8 +1892,9 @@ const trackShipment = async (req, res) => {
   try {
     const { id } = req.params;
 
+    const isObjectId = mongoose.Types.ObjectId.isValid(id);
     const shipment = await Shipment.findOne({
-      awb: id,
+      $or: [{ awb: id }, ...(isObjectId ? [{ _id: id }] : [])],
       merchantId: req.user.id,
     })
       .populate({
@@ -1907,7 +1908,7 @@ const trackShipment = async (req, res) => {
       .populate("warehouseId"); // Added warehouse population
 
     if (!shipment) {
-      logger.warn("Shipment not found for tracking", { awb: id });
+      logger.warn("Shipment not found for tracking", { awbOrId: id });
       return res.status(404).json({
         success: false,
         message: "Shipment not found",
@@ -2191,14 +2192,16 @@ const generateShipmentQR = async (req, res) => {
 // ===============================
 const generateLabel = async (req, res) => {
   try {
-    const shipment = await Shipment.findOne({
-      _id: req.params.id,
-      merchantId: req.user.id,
-    })
+    const query = { _id: req.params.id };
+    if (req.user && req.user.role !== "ADMIN" && req.user.role !== "SUPER_ADMIN") {
+      query.merchantId = req.user.id;
+    }
+
+    const shipment = await Shipment.findOne(query)
       .populate("merchantId", "companyName phone logo gst")
       .populate("orderId")
       .populate("invoiceId")
-      .populate("warehouseId"); // Added warehouse population
+      .populate("warehouseId");
 
     if (!shipment) {
       return res.status(404).json({
@@ -2215,10 +2218,14 @@ const generateLabel = async (req, res) => {
     }
 
     let settings = {};
-    if (req.body.settings) {
-      settings = JSON.parse(req.body.settings);
+    if (req.body && req.body.settings) {
+      try {
+        settings = typeof req.body.settings === "string" ? JSON.parse(req.body.settings) : req.body.settings;
+      } catch (e) {
+        settings = req.body;
+      }
     } else {
-      settings = req.body;
+      settings = { ...(req.query || {}), ...(req.body || {}) };
     }
 
     if (req.file) {

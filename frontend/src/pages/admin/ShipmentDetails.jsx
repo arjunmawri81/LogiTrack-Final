@@ -45,6 +45,25 @@ const ShipmentDetail = () => {
     }
   };
 
+  const handleDownloadLabel = async () => {
+    if (!shipment?._id) return;
+    try {
+      const response = await api.get(`/shipments/${shipment._id}/label`, { responseType: "blob" });
+      const blob = new Blob([response.data], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `Label-${shipment.awb || shipment._id}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Label download failed:", err);
+      alert("Label download failed. Please try again.");
+    }
+  };
+
   const getStatusColor = (status) => {
     const colors = {
       PICKUP_PENDING: "#f59e0b",
@@ -430,7 +449,9 @@ const ShipmentDetail = () => {
                   onMouseLeave={(e) => e.currentTarget.style.background = "#3b82f6"}>
                     <FaFileInvoice /> Generate Invoice
                   </button>
-                  <button style={{
+                  <button 
+                    onClick={handleDownloadLabel}
+                    style={{
                     padding: "8px 16px",
                     background: "#10b981",
                     color: "#fff",
@@ -447,7 +468,9 @@ const ShipmentDetail = () => {
                   onMouseLeave={(e) => e.currentTarget.style.background = "#10b981"}>
                     <FaPrint /> Print Label
                   </button>
-                  <button style={{
+                  <button 
+                    onClick={handleDownloadLabel}
+                    style={{
                     padding: "8px 16px",
                     background: "#8b5cf6",
                     color: "#fff",

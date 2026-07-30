@@ -1,0 +1,30 @@
+@import "../superadmin/RateCardManagement.css";
+
+/* Admin Container Layout for Rate Card Management */
+.admin-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f8fafc;
+}
+
+.admin-main {
+  flex: 1;
+  margin-left: 280px;
+  min-width: 0;
+  width: calc(100% - 280px);
+  box-sizing: border-box;
+}
+
+@media (max-width: 1024px) {
+  .admin-main {
+    margin-left: 80px;
+    width: calc(100% - 80px);
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-main {
+    margin-left: 70px;
+    width: calc(100% - 70px);
+  }
+}

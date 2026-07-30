@@ -29,6 +29,25 @@ const ShipmentDetails = () => {
     }
   };
 
+  const downloadLabel = async () => {
+    if (!shipment?._id) return;
+    try {
+      const response = await api.get(`/shipments/${shipment._id}/label`, { responseType: "blob" });
+      const blob = new Blob([response.data], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `Label-${shipment.awb || shipment._id}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Label download error:", error);
+      alert("Label download failed. Please try again.");
+    }
+  };
+
   const statusColor = (status) => {
     switch (status) {
       case "DELIVERED":
@@ -185,25 +204,44 @@ const ShipmentDetails = () => {
             >
               {shipment.status}
             </span>
-            <button
-              onClick={() => navigate("/merchant/shipments")}
-              style={{
-                background: "#f97316",
-                color: "#fff",
-                border: "none",
-                padding: "8px 18px",
-                borderRadius: "8px",
-                cursor: "pointer",
-                fontWeight: "500",
-                fontSize: "13px",
-                marginLeft: "auto",
-                transition: "all 0.3s ease",
-              }}
-              onMouseEnter={(e) => e.target.style.background = "#ea580c"}
-              onMouseLeave={(e) => e.target.style.background = "#f97316"}
-            >
-              ← Back
-            </button>
+            <div style={{ marginLeft: "auto", display: "flex", gap: "10px" }}>
+              <button
+                onClick={downloadLabel}
+                style={{
+                  background: "#2563eb",
+                  color: "#fff",
+                  border: "none",
+                  padding: "8px 18px",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  fontWeight: "500",
+                  fontSize: "13px",
+                  transition: "all 0.3s ease",
+                }}
+                onMouseEnter={(e) => e.target.style.background = "#1d4ed8"}
+                onMouseLeave={(e) => e.target.style.background = "#2563eb"}
+              >
+                📄 Download Label
+              </button>
+              <button
+                onClick={() => navigate("/merchant/shipments")}
+                style={{
+                  background: "#f97316",
+                  color: "#fff",
+                  border: "none",
+                  padding: "8px 18px",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  fontWeight: "500",
+                  fontSize: "13px",
+                  transition: "all 0.3s ease",
+                }}
+                onMouseEnter={(e) => e.target.style.background = "#ea580c"}
+                onMouseLeave={(e) => e.target.style.background = "#f97316"}
+              >
+                ← Back
+              </button>
+            </div>
           </div>
         </div>
 

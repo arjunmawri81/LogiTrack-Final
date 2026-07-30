@@ -253,7 +253,7 @@ router.get(
 router.get(
   "/revenue",
   authMiddleware,
-  authorizeRoles("SUPER_ADMIN"),
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
   getRevenue
 );
 

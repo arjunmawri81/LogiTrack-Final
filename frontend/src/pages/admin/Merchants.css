@@ -245,8 +245,10 @@
 /* ---------- ACTIONS ---------- */
 .merchants-action-group {
   display: flex;
+  align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  white-space: nowrap;
 }
 
 .merchants-action-btn {

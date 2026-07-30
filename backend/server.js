@@ -58,17 +58,9 @@ app.use(
 app.set("trust proxy", 1);
 app.use(helmet());
 
-const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  limit: 200, // Limit each IP to 200 requests per `window`
-  standardHeaders: "draft-7",
-  legacyHeaders: false,
-  message: {
-    success: false,
-    message: "Too many requests from this IP, please try again later."
-  }
-});
-app.use("/api", apiLimiter);
+// Rate Limiter disabled to prevent IP blocking during development & merchant operations
+// const apiLimiter = rateLimit({ ... });
+// app.use("/api", apiLimiter);
 
 // ====================================
 // MIDDLEWARE
