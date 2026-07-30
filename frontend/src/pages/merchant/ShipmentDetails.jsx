@@ -92,12 +92,12 @@ const ShipmentDetails = () => {
         </div>
         <div style={{ flex: 1, padding: "40px", display: "flex", justifyContent: "center", alignItems: "center" }}>
           <div style={{ textAlign: "center" }}>
-            <div style={{ 
-              width: "50px", 
-              height: "50px", 
-              border: "4px solid #f97316", 
-              borderTop: "4px solid transparent", 
-              borderRadius: "50%", 
+            <div style={{
+              width: "50px",
+              height: "50px",
+              border: "4px solid #f97316",
+              borderTop: "4px solid transparent",
+              borderRadius: "50%",
               animation: "spin 1s linear infinite",
               margin: "0 auto 20px"
             }} />
@@ -115,10 +115,10 @@ const ShipmentDetails = () => {
           <Sidebar />
         </div>
         <div style={{ flex: 1, padding: "40px" }}>
-          <div style={{ 
-            background: "#fff", 
-            padding: "40px", 
-            borderRadius: "16px", 
+          <div style={{
+            background: "#fff",
+            padding: "40px",
+            borderRadius: "16px",
             textAlign: "center",
             border: "1px solid #e2e8f0"
           }}>
@@ -204,6 +204,49 @@ const ShipmentDetails = () => {
             >
               {shipment.status}
             </span>
+            {shipment.pickupStatus === "AUTO_SCHEDULED" ? (
+              <span
+                style={{
+                  display: "inline-block",
+                  padding: "4px 14px",
+                  borderRadius: "20px",
+                  fontSize: "13px",
+                  fontWeight: "600",
+                  background: "#dcfce7",
+                  color: "#15803d",
+                }}
+              >
+                ✓ Pickup: Auto-scheduled by courier
+              </span>
+            ) : shipment.pickupStatus === "SCHEDULED" ? (
+              <span
+                style={{
+                  display: "inline-block",
+                  padding: "4px 14px",
+                  borderRadius: "20px",
+                  fontSize: "13px",
+                  fontWeight: "600",
+                  background: "#e0f2fe",
+                  color: "#0369a1",
+                }}
+              >
+                ✓ Pickup: Scheduled {shipment.lrNumber ? `(LR: ${shipment.lrNumber})` : ""}
+              </span>
+            ) : (
+              <span
+                style={{
+                  display: "inline-block",
+                  padding: "4px 14px",
+                  borderRadius: "20px",
+                  fontSize: "13px",
+                  fontWeight: "600",
+                  background: "#fef3c7",
+                  color: "#b45309",
+                }}
+              >
+                ⏳ Pickup: Pending
+              </span>
+            )}
             <div style={{ marginLeft: "auto", display: "flex", gap: "10px" }}>
               <button
                 onClick={downloadLabel}
@@ -249,7 +292,7 @@ const ShipmentDetails = () => {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
             gap: "15px",
             marginBottom: "25px",
           }}
@@ -257,6 +300,20 @@ const ShipmentDetails = () => {
           <div style={statCardOrange}>
             <p style={statLabelOrange}>Courier</p>
             <p style={statValueOrange}>{shipment.courier || "-"}</p>
+          </div>
+          <div style={statCardOrange}>
+            <p style={statLabelOrange}>Pickup Status</p>
+            <p style={statValueOrange}>
+              {shipment.pickupStatus === "AUTO_SCHEDULED"
+                ? "Auto-Scheduled"
+                : shipment.pickupStatus === "SCHEDULED"
+                  ? "Scheduled"
+                  : "Pending"}
+            </p>
+          </div>
+          <div style={statCardOrange}>
+            <p style={statLabelOrange}>LR Number</p>
+            <p style={statValueOrange}>{shipment.lrNumber || shipment.pickupRequestId || "-"}</p>
           </div>
           <div style={statCardOrange}>
             <p style={statLabelOrange}>Pickup Date</p>
@@ -456,7 +513,7 @@ const ShipmentDetails = () => {
                         }}
                       />
                     )}
-                    
+
                     {/* Timeline Dot */}
                     <div
                       style={{
@@ -470,7 +527,7 @@ const ShipmentDetails = () => {
                         boxShadow: "0 0 0 2px #e2e8f0",
                       }}
                     />
-                    
+
                     {/* Timeline Content */}
                     <div style={{ flex: 1 }}>
                       <div

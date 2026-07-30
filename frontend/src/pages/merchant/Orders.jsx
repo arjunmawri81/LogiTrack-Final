@@ -5,25 +5,7 @@ import Sidebar from "../../components/Sidebar";
 import LabelSettingsModal from "../../components/LabelSettingsModal";
 import api from "../../services/api";
 import * as XLSX from 'xlsx';
-import {
-  FaSearch,
-  FaEye,
-  FaSpinner,
-  FaEdit,
-  FaTruck,
-  FaFileExcel,
-  FaUpload,
-  FaDownload,
-  FaFileInvoice,
-  FaBox,
-  FaTag,
-  FaFilter,
-  FaCalendarAlt,
-  FaTimes,
-  FaChevronDown,
-  FaEllipsisV,
-  FaBan,
-} from "react-icons/fa";
+import { FaSearch, FaEye, FaSpinner, FaEdit, FaTruck, FaFileExcel, FaUpload, FaDownload, FaFileInvoice, FaBox, FaTag, FaFilter, FaCalendarAlt, FaTimes, FaChevronDown, FaEllipsisV, FaBan, FaCheckCircle, FaExclamationTriangle, FaClock, FaRedo } from "react-icons/fa";
 import { format, subDays, isToday, isYesterday } from 'date-fns';
 import "./Orders.css";
 
@@ -56,6 +38,57 @@ const Orders = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [showCourierDropdown, setShowCourierDropdown] = useState(false);
   const [showDateDropdown, setShowDateDropdown] = useState(false);
+  const [syncStatusMap, setSyncStatusMap] = useState({});
+  const [retryingOrderId, setRetryingOrderId] = useState(null);
+
+  const fetchSyncStatus = async () => {
+    try {
+      const res = await api.get("/channels/sync-status");
+      setSyncStatusMap(res.data.syncStatus || {});
+    } catch {
+      // silently fail — sync status is non-critical
+    }
+  };
+
+  const handleRetrySync = async (orderId) => {
+    try {
+      setRetryingOrderId(orderId);
+      await api.post(`/channels/retry-sync/${orderId}`);
+      await fetchSyncStatus();
+      alert("✅ Sync retry triggered successfully!");
+    } catch (err) {
+      alert(err?.response?.data?.message || "❌ Retry failed.");
+    } finally {
+      setRetryingOrderId(null);
+    }
+  };
+
+  const getSyncBadge = (order) => {
+    const src = order.channelSource;
+    if (!src || src === "MANUAL") return null;
+    const syncSt = order.channelSyncStatus;
+    const label = src === "SHOPIFY" ? "Shopify" : src === "WOOCOMMERCE" ? "WooCommerce" : "Channel";
+    if (syncSt === "SYNCED") {
+      return (
+        <span title={`Synced to ${label}`} style={{ display: "inline-flex", alignItems: "center", gap: 3, background: "#dcfce7", color: "#16a34a", borderRadius: 8, padding: "2px 8px", fontSize: 11, fontWeight: 600, marginTop: 4 }}>
+          <FaCheckCircle size={10} /> Synced to {label}
+        </span>
+      );
+    } else if (syncSt === "FAILED") {
+      return (
+        <span title={`Sync failed — click to retry`} style={{ display: "inline-flex", alignItems: "center", gap: 3, background: "#fee2e2", color: "#dc2626", borderRadius: 8, padding: "2px 8px", fontSize: 11, fontWeight: 600, marginTop: 4, cursor: "pointer" }} onClick={() => handleRetrySync(order._id)}>
+          {retryingOrderId === order._id ? <FaSpinner className="fa-spin" size={10} /> : <><FaExclamationTriangle size={10} /> Sync Failed <FaRedo size={9} /></>}
+        </span>
+      );
+    } else if (syncSt === "PENDING") {
+      return (
+        <span title={`Sync pending to ${label}`} style={{ display: "inline-flex", alignItems: "center", gap: 3, background: "#fef9c3", color: "#b45309", borderRadius: 8, padding: "2px 8px", fontSize: 11, fontWeight: 600, marginTop: 4 }}>
+          <FaClock size={10} /> Sync Pending
+        </span>
+      );
+    }
+    return null;
+  };
 
   const getUniqueCouriers = () => {
     const courierSet = new Set();
@@ -76,6 +109,7 @@ const Orders = () => {
       const res = await api.get("/orders");
       console.log("ORDERS =>", res.data.orders);
       setOrders(res.data.orders || []);
+      fetchSyncStatus();
     } catch (error) {
       console.error("Error fetching orders:", error);
       setError("Failed to load orders. Please try again.");
@@ -765,7 +799,7 @@ const Orders = () => {
                       onChange={handleSelectAll}
                     />
                   </th>
-                  {["ORDER ID", "AWB", "CUSTOMER", "PHONE", "COURIER", "AMOUNT", "STATUS", "DATE", "ACTIONS"].map((h) => (
+                  {["ORDER ID", "AWB", "CUSTOMER", "PHONE", "COURIER", "AMOUNT", "STATUS", "CHANNEL SYNC", "DATE", "ACTIONS"].map((h) => (
                     <th key={h} className="orders-table-th">
                       {h}
                     </th>
@@ -830,6 +864,11 @@ const Orders = () => {
                           }}>
                             {order.status || "NEW"}
                           </span>
+                        </td>
+                        <td className="orders-table-td orders-date">
+                          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                            {getSyncBadge(order)}
+                          </div>
                         </td>
                         <td className="orders-table-td orders-date">
                           {order.createdAt ? format(new Date(order.createdAt), 'dd MMM yyyy') : "N/A"}

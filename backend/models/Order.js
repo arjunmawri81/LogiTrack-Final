@@ -153,6 +153,26 @@ const orderSchema = new mongoose.Schema(
       default: 0,
     },
 
+    // ===== CHANNEL SOURCE (Two-Way Sync) =====
+    channelSource: {
+      type: String,
+      enum: ["SHOPIFY", "WOOCOMMERCE", "CUSTOM", "MANUAL"],
+      default: "MANUAL",
+      index: true,
+    },
+
+    channelOrderId: {
+      type: String,
+      default: "",
+    },
+
+    channelSyncStatus: {
+      type: String,
+      enum: ["NOT_APPLICABLE", "PENDING", "SYNCED", "FAILED"],
+      default: "NOT_APPLICABLE",
+      index: true,
+    },
+
     // ===== SHIPMENT REFERENCES =====
     courierPartner: {
       type: String,

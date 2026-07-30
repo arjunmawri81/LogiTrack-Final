@@ -17,6 +17,7 @@ const mongoose = require("mongoose");
 const Warehouse = require("../models/Warehouse"); // Added Warehouse import
 const { determineZone, calculateShippingRates } = require("./rateCardController");
 const whatsappService = require("../services/whatsappService");
+const { triggerChannelSync } = require("../services/channelSyncService");
 
 // ===============================
 // LOGGER (Simple Structured Logger)
@@ -104,6 +105,9 @@ function createFakeProvider(providerName, prefix, deliveryDays) {
       response: {
         shipment_id: `${prefix}${timestamp}${random}`,
         awb: `AWB${timestamp}${random}`,
+        awb_number: `AWB${timestamp}${random}`,
+        lr_number: `LR${timestamp}${random}`,
+        pickups_automatically_scheduled: "NO",
         pickup_request_id: `PICK${timestamp}${random}`,
         tracking_id: `TRK${timestamp}${random}`,
         label_url: "",
@@ -270,13 +274,17 @@ function createRatesResponse(providerName, order) {
 // GENERIC PICKUP RESPONSE FACTORY
 // ===============================
 function createPickupResponse(providerName, shipmentId) {
+  const timestamp = Date.now();
+  const random = Math.floor(Math.random() * 1000);
   return {
     success: true,
     statusCode: 200,
     provider: providerName.toUpperCase(),
     response: {
-      pickup_request_id: `PICK${Date.now()}`,
+      pickup_request_id: `PICK${timestamp}`,
       shipment_id: shipmentId,
+      awb_number: `AWB${timestamp}`,
+      lr_number: `LR${timestamp}${random}`,
       status: "SCHEDULED",
       scheduled_date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       message: "Pickup scheduled successfully"
@@ -333,7 +341,10 @@ const CourierService = {
       provider: result.provider,
       providerShipmentId: result.response.shipment_id,
       providerTrackingId: result.response.tracking_id,
-      awb: result.response.awb,
+      awb: result.response.awb || result.response.awb_number,
+      pickupsAutomaticallyScheduled: result.response.pickups_automatically_scheduled || result.response.pickupsAutomaticallyScheduled || "NO",
+      lrNumber: result.response.lr_number || result.response.lrNumber || "",
+      pickupRequestId: result.response.pickup_request_id || "",
       labelUrl: result.response.label_url,
       manifestUrl: result.response.manifest_url,
       trackingUrl: result.response.tracking_url,
@@ -1376,6 +1387,36 @@ const createShipment = async (req, res) => {
     order.status = ORDER_STATUS_MAP[createdShipment.status] || "READY_FOR_PICKUP";
     await order.save({ session });
 
+    // ── Shipmozo Auto Schedule Pickup check ──
+    if (courierResponse.pickupsAutomaticallyScheduled === "NO") {
+      try {
+        logger.info("[Shipmozo] pickups_automatically_scheduled is NO — Triggering auto pickup schedule API", { awb: createdShipment.awb });
+        const pickupResult = await CourierService.schedulePickup(courier, createdShipment._id);
+        const pResp = pickupResult?.response || {};
+        createdShipment.pickupRequestId = pResp.pickup_request_id || createdShipment.pickupRequestId || `PICK${Date.now()}`;
+        createdShipment.lrNumber = pResp.lr_number || pResp.lrNumber || createdShipment.lrNumber || `LR${Date.now()}`;
+        createdShipment.pickupStatus = "SCHEDULED";
+        createdShipment.status = "PICKUP_SCHEDULED";
+        createdShipment.pickupDate = new Date();
+        createdShipment.tracking.push({
+          status: "PICKUP_SCHEDULED",
+          location: courier.name,
+          remarks: `Pickup Scheduled Automatically (LR: ${createdShipment.lrNumber})`,
+          eventTime: new Date(),
+        });
+        await createdShipment.save({ session });
+        order.status = "READY_FOR_PICKUP";
+        await order.save({ session });
+      } catch (pErr) {
+        logger.error("[Shipmozo] Auto schedule pickup error:", { error: pErr.message });
+      }
+    } else {
+      createdShipment.pickupStatus = "AUTO_SCHEDULED";
+      createdShipment.status = "PICKUP_SCHEDULED";
+      createdShipment.pickupDate = new Date();
+      await createdShipment.save({ session });
+    }
+
     if (session) await session.commitTransaction();
 
     // Trigger WhatsApp notification if option enabled
@@ -1389,6 +1430,14 @@ const createShipment = async (req, res) => {
         trackingUrl: createdShipment.trackingUrl,
       }).catch(err => console.error("Async WhatsApp error:", err));
     }
+
+    // ── Two-Way Sync: push fulfillment back to Shopify / WooCommerce ──
+    triggerChannelSync(order, createdShipment, "SHIPPED")
+      .then(async () => {
+        const syncStatus = (order.channelSource && order.channelSource !== "MANUAL") ? "SYNCED" : "NOT_APPLICABLE";
+        await Order.findByIdAndUpdate(order._id, { channelSyncStatus: syncStatus });
+      })
+      .catch(err => console.error("[TwoWaySync] Single shipment sync error:", err.message));
 
     logger.info("Shipment created successfully", { 
       shipmentId: createdShipment._id,
@@ -1685,11 +1734,15 @@ const createBulkShipments = async (req, res) => {
           totalNetProfit: (marginEarned || 0) + (calculated.codMarginEarned || 0),
           fuelCharge: calculated.fuelCharge, // Added fuelCharge
           serviceType: selectedServiceType, // Added serviceType
+          pickupsAutomaticallyScheduled: courierResponse.pickupsAutomaticallyScheduled || "NO",
+          pickupStatus: courierResponse.pickupsAutomaticallyScheduled === "YES" ? "AUTO_SCHEDULED" : "PENDING",
+          lrNumber: courierResponse.lrNumber || "",
+          pickupRequestId: courierResponse.pickupRequestId || "",
           tracking: [
             {
               status: "PICKUP_PENDING",
               location: courier.name,
-              remarks: "Bulk Shipment Created",
+              remarks: "Shipment Created",
               eventTime: new Date(),
             },
           ],
@@ -1729,6 +1782,36 @@ const createBulkShipments = async (req, res) => {
         order.serviceType = selectedServiceType;
         await order.save({ session });
 
+        // ── Shipmozo Auto Schedule Pickup check (Bulk) ──
+        if (courierResponse.pickupsAutomaticallyScheduled === "NO") {
+          try {
+            logger.info("[Shipmozo] Bulk pickups_automatically_scheduled is NO — Triggering auto pickup schedule", { awb: createdShipment.awb });
+            const pickupResult = await CourierService.schedulePickup(courier, createdShipment._id);
+            const pResp = pickupResult?.response || {};
+            createdShipment.pickupRequestId = pResp.pickup_request_id || createdShipment.pickupRequestId || `PICK${Date.now()}`;
+            createdShipment.lrNumber = pResp.lr_number || pResp.lrNumber || createdShipment.lrNumber || `LR${Date.now()}`;
+            createdShipment.pickupStatus = "SCHEDULED";
+            createdShipment.status = "PICKUP_SCHEDULED";
+            createdShipment.pickupDate = new Date();
+            createdShipment.tracking.push({
+              status: "PICKUP_SCHEDULED",
+              location: courier.name,
+              remarks: `Pickup Scheduled Automatically (LR: ${createdShipment.lrNumber})`,
+              eventTime: new Date(),
+            });
+            await createdShipment.save({ session });
+            order.status = "READY_FOR_PICKUP";
+            await order.save({ session });
+          } catch (pErr) {
+            logger.error("[Shipmozo] Bulk auto schedule pickup error:", { error: pErr.message });
+          }
+        } else {
+          createdShipment.pickupStatus = "AUTO_SCHEDULED";
+          createdShipment.status = "PICKUP_SCHEDULED";
+          createdShipment.pickupDate = new Date();
+          await createdShipment.save({ session });
+        }
+
         shipments.push(createdShipment);
 
         // Trigger WhatsApp notification if enabled
@@ -1742,6 +1825,14 @@ const createBulkShipments = async (req, res) => {
             trackingUrl: createdShipment.trackingUrl,
           }).catch(err => console.error("Async WhatsApp bulk error:", err));
         }
+
+        // ── Two-Way Sync: push fulfillment back to channel for bulk shipments ──
+        triggerChannelSync(order, createdShipment, "SHIPPED")
+          .then(async () => {
+            const syncStatus = (order.channelSource && order.channelSource !== "MANUAL") ? "SYNCED" : "NOT_APPLICABLE";
+            await Order.findByIdAndUpdate(order._id, { channelSyncStatus: syncStatus });
+          })
+          .catch(err => console.error("[TwoWaySync] Bulk sync error:", err.message));
 
         wallet.balance = Math.max(0, Math.round((wallet.balance - shippingCharge) * 100) / 100);
         totalCharges += shippingCharge;
@@ -2081,6 +2172,22 @@ const updateShipmentStatus = async (req, res) => {
       }
     }
 
+    // ── Two-Way Sync: Delivery trigger (once only) ──
+    if (status === "DELIVERED" && !shipment.deliverySyncTriggered) {
+      // Mark flag first so concurrent polls don't double-fire
+      await Shipment.findByIdAndUpdate(shipment._id, { deliverySyncTriggered: true });
+      logger.info("[TwoWaySync] Delivery trigger fired", { awb: shipment.awb, orderId: shipment.orderId });
+
+      triggerChannelSync(order, shipment, "DELIVERED")
+        .then(async () => {
+          if (order && order.channelSource && order.channelSource !== "MANUAL") {
+            await Order.findByIdAndUpdate(shipment.orderId, { channelSyncStatus: "SYNCED" });
+            logger.info("[TwoWaySync] Delivery synced to channel", { orderId: shipment.orderId });
+          }
+        })
+        .catch(err => logger.error("[TwoWaySync] Delivery sync error", { error: err.message }));
+    }
+
     return res.status(200).json({
       success: true,
       message: "Status Updated Successfully",
@@ -2113,14 +2220,18 @@ const schedulePickup = async (req, res) => {
     }
 
     const courier = await Courier.findById(shipment.courierId);
-    await CourierService.schedulePickup(courier, shipment._id);
+    const pickupResult = await CourierService.schedulePickup(courier, shipment._id);
+    const pResp = pickupResult?.response || {};
 
     shipment.pickupDate = new Date();
+    shipment.pickupStatus = "SCHEDULED";
+    if (pResp.pickup_request_id) shipment.pickupRequestId = pResp.pickup_request_id;
+    if (pResp.lr_number || pResp.lrNumber) shipment.lrNumber = pResp.lr_number || pResp.lrNumber;
 
     await shipment.addTrackingEvent(
       "PICKUP_SCHEDULED",
       "Admin Panel",
-      "Pickup Scheduled"
+      `Pickup Scheduled (LR: ${shipment.lrNumber || "N/A"})`
     );
 
     const order = await Order.findById(shipment.orderId);

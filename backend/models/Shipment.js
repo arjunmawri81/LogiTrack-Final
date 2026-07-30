@@ -367,6 +367,31 @@ const shipmentSchema = new mongoose.Schema(
       initiatedDate: { type: Date, default: null },
       completedDate: { type: Date, default: null },
     },
+
+    // ── Two-Way Sync Delivery Flag ──
+    // Prevents duplicate "DELIVERED" channel sync if status polled multiple times
+    deliverySyncTriggered: {
+      type: Boolean,
+      default: false,
+    },
+
+    // ── Shipmozo / Courier Pickup Scheduling Fields ──
+    pickupsAutomaticallyScheduled: {
+      type: String,
+      enum: ["YES", "NO"],
+      default: "NO",
+    },
+
+    pickupStatus: {
+      type: String,
+      enum: ["PENDING", "AUTO_SCHEDULED", "SCHEDULED", "FAILED"],
+      default: "PENDING",
+    },
+
+    lrNumber: {
+      type: String,
+      default: "",
+    },
   },
   {
     timestamps: true,

@@ -28,6 +28,8 @@ const ticketRoutes = require("./routes/ticketRoutes");
 const warehouseRoutes = require("./routes/warehouseRoutes");
 const remittanceRoutes = require("./routes/remittanceRoutes");
 const channelRoutes = require("./routes/channelRoutes");
+const webhookRoutes = require("./routes/webhookRoutes");
+const { startChannelPolling } = require("./services/channelPollingService");
 const app = express();
 
 // ====================================
@@ -113,6 +115,9 @@ app.use("/api/tickets", ticketRoutes);
 app.use("/api/warehouses", warehouseRoutes); 
 app.use("/api/remittance", remittanceRoutes);
 app.use("/api/channels", channelRoutes);
+// Webhook receivers (Shopify & WooCommerce real-time order events)
+// Must use raw body parser — registered BEFORE express.json() middleware
+app.use("/api/webhooks", webhookRoutes);
 
 // ====================================
 // 404 HANDLER
@@ -144,6 +149,8 @@ const PORT = process.env.PORT || 5000;
 const startServer = async () => {
   try {
     await connectDB();
+    // Start channel auto-polling cron jobs (15-min poll + 1-hr retry)
+    startChannelPolling();
     const server = app.listen(PORT, () => {
       console.log(` Server Running On Port ${PORT}`);
     });

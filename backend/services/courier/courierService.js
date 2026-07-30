@@ -1,5 +1,3 @@
-
-
 const createShipment = async (courier, orderData) => {
   if (!courier) {
     throw new Error("Courier not found");
