@@ -1,6 +1,7 @@
 // ================================
 // IMPORTS
 // ================================
+const mongoose = require("mongoose");
 const User = require("../models/User");
 const Order = require("../models/Order");
 const Shipment = require("../models/Shipment");
@@ -375,7 +376,14 @@ const getApprovedMerchants = async (req, res) => {
 const approveMerchant = async (req, res) => {
   try {
     const { id } = req.params;
-    const { kycStatus } = req.body;
+    const { kycStatus } = req.body || {};
+
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Merchant ID format",
+      });
+    }
 
     const merchant = await User.findById(id);
     if (!merchant) {
@@ -392,28 +400,29 @@ const approveMerchant = async (req, res) => {
       });
     }
 
-    merchant.isApproved = true;
-    if (kycStatus) {
-      merchant.kycStatus = kycStatus;
-    }
-    await merchant.save();
+    const updatedMerchant = await User.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          isApproved: true,
+          isBlocked: false,
+          isActive: true,
+          kycStatus: kycStatus || (merchant.kycStatus === "PENDING" ? "APPROVED" : merchant.kycStatus || "APPROVED"),
+        },
+      },
+      { new: true }
+    ).select("-password");
 
     res.status(200).json({
       success: true,
       message: "Merchant approved successfully",
-      merchant: {
-        id: merchant._id,
-        name: merchant.name,
-        email: merchant.email,
-        companyName: merchant.companyName,
-        isApproved: merchant.isApproved,
-        kycStatus: merchant.kycStatus,
-      },
+      merchant: updatedMerchant,
     });
   } catch (error) {
+    console.error("Error in approveMerchant:", error);
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: error.message || "Failed to approve merchant",
     });
   }
 };
@@ -421,8 +430,15 @@ const approveMerchant = async (req, res) => {
 const rejectMerchant = async (req, res) => {
   try {
     const { id } = req.params;
-    const merchant = await User.findById(id);
 
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Merchant ID format",
+      });
+    }
+
+    const merchant = await User.findById(id);
     if (!merchant) {
       return res.status(404).json({
         success: false,
@@ -437,25 +453,27 @@ const rejectMerchant = async (req, res) => {
       });
     }
 
-    merchant.isApproved = false;
-    merchant.kycStatus = "REJECTED";
-    await merchant.save();
+    const updatedMerchant = await User.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          isApproved: false,
+          kycStatus: "REJECTED",
+        },
+      },
+      { new: true }
+    ).select("-password");
 
     res.status(200).json({
       success: true,
       message: "Merchant rejected successfully",
-      merchant: {
-        id: merchant._id,
-        name: merchant.name,
-        email: merchant.email,
-        isApproved: merchant.isApproved,
-        kycStatus: merchant.kycStatus,
-      },
+      merchant: updatedMerchant,
     });
   } catch (error) {
+    console.error("Error in rejectMerchant:", error);
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: error.message || "Failed to reject merchant",
     });
   }
 };

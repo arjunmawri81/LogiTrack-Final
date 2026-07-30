@@ -71,6 +71,17 @@ const Merchants = () => {
     }
   };
 
+  const rejectMerchant = async (id) => {
+    try {
+      await api.put(`/admin/merchants/${id}/reject`);
+      fetchMerchants();
+      alert("❌ Merchant Rejected Successfully");
+    } catch (error) {
+      console.error("Reject Error:", error);
+      alert("❌ Rejection Failed. Please try again.");
+    }
+  };
+
   const blockMerchant = async (id) => {
     try {
       await api.put(`/admin/merchants/${id}/block`);
@@ -264,6 +275,32 @@ const Merchants = () => {
                           >
                             <FaTags size={11} /> Rates
                           </button>
+
+                          {!merchant.isApproved && (
+                            <button
+                              onClick={() => {
+                                if (window.confirm(`Approve merchant "${merchant.name}"?`)) {
+                                  approveMerchant(merchant._id);
+                                }
+                              }}
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "4px",
+                                padding: "6px 12px",
+                                background: "#dcfce7",
+                                border: "1px solid #86efac",
+                                borderRadius: "8px",
+                                fontSize: "12px",
+                                fontWeight: "700",
+                                color: "#15803d",
+                                cursor: "pointer",
+                                whiteSpace: "nowrap"
+                              }}
+                            >
+                              <FaUserCheck size={11} /> Approve
+                            </button>
+                          )}
 
                           {merchant.isBlocked ? (
                             <button
@@ -481,17 +518,70 @@ const Merchants = () => {
                   </div>
                 </div>
 
-                {/* View Rate Cards Button with modal close */}
-                <button
-                  className="merchants-modal-view-rate-btn"
-                  onClick={() => {
-                    closeModal(); // Close modal first
-                    navigate(`/admin/ratecard/${selectedMerchant.merchant._id}`);
-                  }}
-                >
-                  <FaEye size={16} />
-                  View Rate Cards
-                </button>
+                {/* Action Buttons in Modal */}
+                <div style={{ display: "flex", gap: "10px", marginTop: "16px", flexWrap: "wrap" }}>
+                  {!selectedMerchant.merchant?.isApproved && (
+                    <>
+                      <button
+                        style={{
+                          flex: 1,
+                          padding: "12px 16px",
+                          background: "#16a34a",
+                          color: "#ffffff",
+                          border: "none",
+                          borderRadius: "10px",
+                          fontWeight: "700",
+                          fontSize: "14px",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "8px"
+                        }}
+                        onClick={() => {
+                          approveMerchant(selectedMerchant.merchant._id);
+                          closeModal();
+                        }}
+                      >
+                        <FaUserCheck size={16} /> Approve Merchant
+                      </button>
+
+                      <button
+                        style={{
+                          padding: "12px 16px",
+                          background: "#dc2626",
+                          color: "#ffffff",
+                          border: "none",
+                          borderRadius: "10px",
+                          fontWeight: "700",
+                          fontSize: "14px",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "8px"
+                        }}
+                        onClick={() => {
+                          rejectMerchant(selectedMerchant.merchant._id);
+                          closeModal();
+                        }}
+                      >
+                        <FaTimes size={16} /> Reject
+                      </button>
+                    </>
+                  )}
+
+                  <button
+                    className="merchants-modal-view-rate-btn"
+                    style={{ flex: 1, marginTop: 0 }}
+                    onClick={() => {
+                      closeModal();
+                      navigate(`/admin/ratecard/${selectedMerchant.merchant._id}`);
+                    }}
+                  >
+                    <FaEye size={16} /> View Rate Cards
+                  </button>
+                </div>
               </>
             )}
           </div>

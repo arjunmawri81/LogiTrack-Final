@@ -213,10 +213,11 @@ const loginUser = async (req, res) => {
       });
     }
 
-    if (user.role === "MERCHANT" && !user.isApproved) {
+    // Merchant Approval Check
+    if ((user.role === "MERCHANT" || user.role === "merchant") && user.isApproved !== true) {
       return res.status(403).json({
         success: false,
-        message: "Your merchant account is pending admin approval. Please wait for admin to approve your account.",
+        message: "Your merchant account is pending admin approval. Please wait for an admin to approve your account before logging in.",
       });
     }
 
