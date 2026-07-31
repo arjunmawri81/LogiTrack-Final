@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
-import { 
-  FaUndo, 
-  FaTruck, 
+import {
+  FaUndo,
+  FaTruck,
   FaExclamationTriangle,
   FaEye,
   FaCheckCircle,
@@ -22,7 +22,7 @@ import {
 } from "react-icons/fa";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import api from "../../services/api";
-import "./RTO.css"; 
+import "./RTO.css";
 
 const RTO = () => {
   const [shipments, setShipments] = useState([]);
@@ -36,7 +36,7 @@ const RTO = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
-  
+
   const statusStyles = {
     INITIATED: {
       className: "rto-status-initiated",
@@ -80,7 +80,7 @@ const RTO = () => {
   // ================================
   // API FUNCTIONS
   // ================================
-  
+
   // Schedule Pickup
   const schedulePickup = async (id) => {
     try {
@@ -162,16 +162,16 @@ const RTO = () => {
       if (showRefresh) setIsRefreshing(true);
       else setLoading(true);
       setError(null);
-      
+
       const res = await api.get("/admin/rto");
-      
+
       const rtoShipments = (res.data.rtos || res.data || []).filter(
         (s) => s.status && (
-          s.status === "INITIATED" || 
-          s.status === "PICKUP_SCHEDULED" || 
-          s.status === "PICKED_UP" || 
-          s.status === "IN_TRANSIT" || 
-          s.status === "RECEIVED_AT_WAREHOUSE" || 
+          s.status === "INITIATED" ||
+          s.status === "PICKUP_SCHEDULED" ||
+          s.status === "PICKED_UP" ||
+          s.status === "IN_TRANSIT" ||
+          s.status === "RECEIVED_AT_WAREHOUSE" ||
           s.status === "COMPLETED"
         )
       );
@@ -197,10 +197,10 @@ const RTO = () => {
   // Filter shipments
   const filteredShipments = shipments.filter((s) => {
     const matchesSearch = s.awb?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          s.orderId?.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          s.orderId?.customerPhone?.includes(searchTerm) ||
-                          s.orderId?.orderNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          s.orderId?.merchantName?.toLowerCase().includes(searchTerm.toLowerCase());
+      s.orderId?.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.orderId?.customerPhone?.includes(searchTerm) ||
+      s.orderId?.orderNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.orderId?.merchantName?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "ALL" || s.status === statusFilter;
     const matchesCourier = courierFilter === "ALL" || s.courier === courierFilter;
     return matchesSearch && matchesStatus && matchesCourier;
@@ -257,14 +257,14 @@ const RTO = () => {
 
   if (loading) {
     return (
-      <div className="rto-container">
+      <div className="admin-scope rto-container">
         <AdminSidebar />
         <div className="rto-content" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ textAlign: "center" }}>
-            <div style={{ 
-              width: "80px", 
-              height: "80px", 
-              borderRadius: "50%", 
+            <div style={{
+              width: "80px",
+              height: "80px",
+              borderRadius: "50%",
               background: "#fee2e2",
               display: "flex",
               alignItems: "center",
@@ -282,7 +282,7 @@ const RTO = () => {
   }
 
   return (
-    <div className="rto-container">
+    <div className="admin-scope rto-container">
       <AdminSidebar />
 
       <div className="rto-content">
@@ -439,7 +439,7 @@ const RTO = () => {
                 {filteredShipments.length > 0 ? (
                   filteredShipments.map((s) => {
                     const status = s.status || "INITIATED";
-                    
+
                     return (
                       <tr key={s._id} className="rto-tr">
                         <td className="rto-td">
@@ -559,8 +559,8 @@ const RTO = () => {
                           No RTO Shipments Found
                         </h3>
                         <p className="rto-no-data-text">
-                          {searchTerm || statusFilter !== "ALL" || courierFilter !== "ALL" 
-                            ? "Try adjusting your filters to see more results." 
+                          {searchTerm || statusFilter !== "ALL" || courierFilter !== "ALL"
+                            ? "Try adjusting your filters to see more results."
                             : "No return-to-origin cases available at the moment."}
                         </p>
                       </div>
@@ -621,7 +621,7 @@ const RTO = () => {
               <div className="rto-modal-field">
                 <p className="rto-modal-label">Status</p>
                 <span className={`rto-status-badge ${getStatusClass(selectedShipment.status)}`}>
-                  {getStatusIcon(selectedShipment.status)} 
+                  {getStatusIcon(selectedShipment.status)}
                   {statusDisplayNames[selectedShipment.status] || selectedShipment.status || "Initiated"}
                 </span>
               </div>
@@ -686,7 +686,7 @@ const RTO = () => {
                 const stepIndex = statusOrder.indexOf(step);
                 const currentIndex = statusOrder.indexOf(currentStatus);
                 const isCompleted = stepIndex <= currentIndex;
-                
+
                 return (
                   <div key={step} className={`rto-modal-timeline-item ${isCompleted ? 'rto-modal-timeline-item-completed' : 'rto-modal-timeline-item-pending'}`}>
                     <span className="rto-modal-timeline-icon">
@@ -732,7 +732,7 @@ const RTO = () => {
               <button className="rto-modal-close-btn" onClick={closeModal}>
                 Close
               </button>
-              
+
               {/* Modal Action Buttons */}
               {selectedShipment.status === "INITIATED" && (
                 <button

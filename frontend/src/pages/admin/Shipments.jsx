@@ -18,7 +18,7 @@ import {
   FaFilter,
   FaBuilding,
 } from "react-icons/fa";
-import "./Shipments.css"; 
+import "./Shipments.css";
 
 const Shipments = () => {
   const navigate = useNavigate();
@@ -32,12 +32,12 @@ const Shipments = () => {
 
   useEffect(() => {
     fetchShipments();
-    
+
     // Auto-refresh every 30 seconds
     const interval = setInterval(() => {
       fetchShipments();
     }, 30000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -93,7 +93,7 @@ const Shipments = () => {
 
   const filteredShipments = shipments.filter((shipment) => {
     const merchantName = shipment.merchantId?.companyName || shipment.merchantId?.name || "";
-    const searchMatch = 
+    const searchMatch =
       shipment.awb?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       shipment.orderId?.orderNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       merchantName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -109,9 +109,9 @@ const Shipments = () => {
   // Stats calculations
   const totalCount = shipments.length;
   const pickupPendingCount = shipments.filter((s) => s.status === "PICKUP_PENDING").length;
-  const inTransitCount = shipments.filter((s) => 
-    s.status === "IN_TRANSIT" || 
-    s.status === "OUT_FOR_DELIVERY" || 
+  const inTransitCount = shipments.filter((s) =>
+    s.status === "IN_TRANSIT" ||
+    s.status === "OUT_FOR_DELIVERY" ||
     s.status === "PICKED_UP"
   ).length;
   const deliveredCount = shipments.filter((s) => s.status === "DELIVERED").length;
@@ -132,7 +132,7 @@ const Shipments = () => {
   ];
 
   return (
-    <div className="shipments-container">
+    <div className="admin-scope shipments-container">
       <AdminSidebar />
       <div className="shipments-content">
         {/* Header */}
@@ -289,7 +289,7 @@ const Shipments = () => {
               </button>
             </div>
           </div>
-          
+
           {loading ? (
             <div className="shipments-loading">
               Loading shipments...
@@ -326,7 +326,7 @@ const Shipments = () => {
                       filteredShipments.map((shipment, index) => {
                         const merchantName = shipment.merchantId?.companyName || shipment.merchantId?.name || "N/A";
                         const lastTrackingUpdate = shipment.lastTrackingUpdate || shipment.tracking?.updatedAt || shipment.updatedAt;
-                        
+
                         return (
                           <tr key={shipment._id} className="shipments-row">
                             <td className="shipments-td shipments-awb">
@@ -364,14 +364,14 @@ const Shipments = () => {
                                   {shipment.status?.replace(/_/g, " ")}
                                 </span>
                                 <div className="shipments-status-scan">
-                                  {lastTrackingUpdate ? 
-                                    new Date(lastTrackingUpdate).toLocaleString('en-IN', { 
-                                      day: '2-digit', 
-                                      month: '2-digit', 
+                                  {lastTrackingUpdate ?
+                                    new Date(lastTrackingUpdate).toLocaleString('en-IN', {
+                                      day: '2-digit',
+                                      month: '2-digit',
                                       year: 'numeric',
                                       hour: '2-digit',
                                       minute: '2-digit'
-                                    }) : 
+                                    }) :
                                     "No scan"
                                   }
                                 </div>
@@ -380,12 +380,12 @@ const Shipments = () => {
                             <td className="shipments-td">
                               <div style={{ display: "flex", flexDirection: "column" }}>
                                 <span className="shipments-last-scan-date">
-                                  {lastTrackingUpdate ? 
-                                    new Date(lastTrackingUpdate).toLocaleDateString('en-IN', { 
-                                      day: '2-digit', 
-                                      month: '2-digit', 
-                                      year: 'numeric' 
-                                    }) : 
+                                  {lastTrackingUpdate ?
+                                    new Date(lastTrackingUpdate).toLocaleDateString('en-IN', {
+                                      day: '2-digit',
+                                      month: '2-digit',
+                                      year: 'numeric'
+                                    }) :
                                     "---"
                                   }
                                 </span>
@@ -409,8 +409,8 @@ const Shipments = () => {
                     ) : (
                       <tr>
                         <td colSpan="8" className="shipments-no-data">
-                          {searchTerm || statusFilter !== "ALL" 
-                            ? "No shipments match your filters" 
+                          {searchTerm || statusFilter !== "ALL"
+                            ? "No shipments match your filters"
                             : "No shipments found"}
                         </td>
                       </tr>
@@ -426,7 +426,7 @@ const Shipments = () => {
                     const isExpanded = expandedRows[shipment._id] || false;
                     const merchantName = shipment.merchantId?.companyName || shipment.merchantId?.name || "N/A";
                     const lastTrackingUpdate = shipment.lastTrackingUpdate || shipment.tracking?.updatedAt || shipment.updatedAt;
-                    
+
                     return (
                       <div key={shipment._id} className="shipments-mobile-card">
                         <div className="shipments-mobile-card-header">
@@ -440,14 +440,14 @@ const Shipments = () => {
                                   {shipment.status?.replace(/_/g, " ")}
                                 </span>
                                 <div className="shipments-status-scan">
-                                  {lastTrackingUpdate ? 
-                                    new Date(lastTrackingUpdate).toLocaleString('en-IN', { 
-                                      day: '2-digit', 
-                                      month: '2-digit', 
+                                  {lastTrackingUpdate ?
+                                    new Date(lastTrackingUpdate).toLocaleString('en-IN', {
+                                      day: '2-digit',
+                                      month: '2-digit',
                                       year: 'numeric',
                                       hour: '2-digit',
                                       minute: '2-digit'
-                                    }) : 
+                                    }) :
                                     "No scan"
                                   }
                                 </div>
@@ -483,7 +483,7 @@ const Shipments = () => {
                             {isExpanded ? <FaChevronUp /> : <FaChevronDown />}
                           </button>
                         </div>
-                        
+
                         {isExpanded && (
                           <div className="shipments-mobile-expanded">
                             <button
@@ -499,8 +499,8 @@ const Shipments = () => {
                   })
                 ) : (
                   <div className="shipments-no-data">
-                    {searchTerm || statusFilter !== "ALL" 
-                      ? "No shipments match your filters" 
+                    {searchTerm || statusFilter !== "ALL"
+                      ? "No shipments match your filters"
                       : "No shipments found"}
                   </div>
                 )}

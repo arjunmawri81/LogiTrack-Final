@@ -100,6 +100,7 @@
 .rto-btn-refresh {
   background: #1e293b;
 }
+
 .rto-btn-refresh:hover:not(:disabled) {
   background: #0f172a;
 }
@@ -107,6 +108,7 @@
 .rto-btn-export {
   background: #059669;
 }
+
 .rto-btn-export:hover:not(:disabled) {
   background: #047857;
 }
@@ -116,6 +118,7 @@
   padding: 6px 12px;
   font-size: 11px;
 }
+
 .rto-btn-view:hover:not(:disabled) {
   background: #0f172a;
 }
@@ -125,6 +128,7 @@
   padding: 6px 12px;
   font-size: 11px;
 }
+
 .rto-btn-track:hover:not(:disabled) {
   background: #1d4ed8;
 }
@@ -161,19 +165,50 @@
   border-color: #f97316;
 }
 
-.rto-stat-total     { border-top: 3px solid #60a5fa; }
-.rto-stat-initiated { border-top: 3px solid #facc15; }
-.rto-stat-transit   { border-top: 3px solid #60a5fa; }
-.rto-stat-returned  { border-top: 3px solid #a78bfa; }
-.rto-stat-completed { border-top: 3px solid #4ade80; }
+.rto-stat-total {
+  border-top: 3px solid #60a5fa;
+}
 
-.rto-stat-icon { font-size: 20px; margin-bottom: 6px; }
+.rto-stat-initiated {
+  border-top: 3px solid #facc15;
+}
 
-.rto-stat-icon-total     { color: #60a5fa; }
-.rto-stat-icon-initiated { color: #facc15; }
-.rto-stat-icon-transit   { color: #60a5fa; }
-.rto-stat-icon-returned  { color: #a78bfa; }
-.rto-stat-icon-completed { color: #4ade80; }
+.rto-stat-transit {
+  border-top: 3px solid #60a5fa;
+}
+
+.rto-stat-returned {
+  border-top: 3px solid #a78bfa;
+}
+
+.rto-stat-completed {
+  border-top: 3px solid #4ade80;
+}
+
+.rto-stat-icon {
+  font-size: 20px;
+  margin-bottom: 6px;
+}
+
+.rto-stat-icon-total {
+  color: #60a5fa;
+}
+
+.rto-stat-icon-initiated {
+  color: #facc15;
+}
+
+.rto-stat-icon-transit {
+  color: #60a5fa;
+}
+
+.rto-stat-icon-returned {
+  color: #a78bfa;
+}
+
+.rto-stat-icon-completed {
+  color: #4ade80;
+}
 
 .rto-stat-value {
   font-size: 24px;
@@ -211,7 +246,10 @@
   box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
 }
 
-.rto-search-icon { color: #4f6080; flex-shrink: 0; }
+.rto-search-icon {
+  color: #4f6080;
+  flex-shrink: 0;
+}
 
 .rto-search-input {
   border: none;
@@ -224,7 +262,9 @@
   color: #e8edf5;
 }
 
-.rto-search-input::placeholder { color: #4f6080; }
+.rto-search-input::placeholder {
+  color: #4f6080;
+}
 
 .rto-filter-select {
   padding: 10px 16px;
@@ -302,8 +342,13 @@
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .rto-empty {
@@ -736,6 +781,7 @@
     transform: translateX(100%);
     opacity: 0;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;

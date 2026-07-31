@@ -1,308 +1,323 @@
 .superadmin-scope {
-/* BASE SYSTEM ROOT STYLING */
-.sidebar {
-  width: 280px;
-  height: 100vh;
-  position: fixed;
-  top: 0;
-  left: 0;
-  background-color: #0f172a; /* Premium Slate Dark */
-  color: #f8fafc;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-  border-right: 1px solid #1e293b;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  z-index: 100;
-}
 
-/* BRAND LOGO HEADER SETUP */
-.sidebar-header {
-  padding: 32px 24px 24px 24px; /* Top cushioning badha di */
-}
-
-.logo {
-  margin: 0;
-  font-size: 26px; /* Font size improved from 22px */
-  font-weight: 800;
-  color: #ffffff;
-  letter-spacing: -0.03em;
-}
-
-.logo-subtitle {
-  font-size: 12px; /* Text scaling optimized */
-  font-weight: 600;
-  text-transform: uppercase;
-  color: #38bdf8; /* Vibrant Cyan Info Glow */
-  letter-spacing: 0.06em;
-  display: block;
-  margin-top: 6px;
-}
-
-/* PROFILE WIDGET DESIGN BLOCK */
-.sidebar-profile {
-  padding: 18px 20px; /* Padding expanded */
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  background-color: #1e293b;
-  margin: 10px 20px 24px 20px; /* Surrounding margins clean kiye */
-  border-radius: 14px;
-}
-
-.avatar {
-  width: 46px; /* Avatar layout enlarged */
-  height: 46px;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  font-weight: 700;
-  color: #ffffff;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
-  flex-shrink: 0;
-}
-
-.profile-info h4 {
-  margin: 0;
-  font-size: 15px; /* Text visibility raised */
-  font-weight: 600;
-  color: #ffffff;
-  line-height: 1.2;
-}
-
-.profile-info span {
-  font-size: 12px;
-  color: #94a3b8;
-  font-weight: 500;
-  display: block;
-  margin-top: 2px;
-}
-
-/* NAVIGATION MENU TRACKS */
-.sidebar-menu {
-  list-style: none;
-  padding: 0 16px;
-  margin: 0;
-  flex-grow: 1;
-  overflow-y: auto;
-}
-
-.sidebar-menu li {
-  margin-bottom: 6px; /* Elements ke beech breathability space add kiya */
-}
-
-.sidebar-menu a {
-  display: flex;
-  align-items: center;
-  gap: 16px; /* Icons aur labels ka gap setup clear kiya */
-  padding: 14px 20px; /* Links row area increase kiya */
-  color: #94a3b8;
-  text-decoration: none;
-  font-size: 15px; /* "Chota text" issue resolved by scaling up */
-  font-weight: 550;
-  border-radius: 10px;
-  transition: all 0.2s ease-in-out;
-}
-
-/* NAVLINK STATES (HOVER & ACTIVE) */
-.sidebar-menu a:hover {
-  background-color: rgba(30, 41, 59, 0.8);
-  color: #ffffff;
-}
-
-.sidebar-menu a.active {
-  background: linear-gradient(90deg, #ff6b00, #ff8c3a) !important; /* Premium Crisp Orange Gradient */
-  color: #ffffff !important;
-  font-weight: 700;
-  box-shadow: 0 4px 15px rgba(255, 107, 0, 0.25);
-}
-
-.sidebar-menu a.active svg {
-  color: #ffffff !important;
-}
-
-/* COURIERS - Specific Active State (Optional - can have its own color or keep consistent) */
-.sidebar-menu a[href="/superadmin/couriers"].active {
-  background: linear-gradient(90deg, #ff6b00, #ff8c3a) !important;
-  box-shadow: 0 4px 15px rgba(255, 107, 0, 0.25);
-}
-
-.sidebar-menu a[href="/superadmin/couriers"]:hover {
-  background-color: rgba(30, 41, 59, 0.8);
-  color: #ffffff;
-}
-
-/* COMMISSION - Specific Active State (Green Theme) */
-.sidebar-menu a[href="/superadmin/commission"].active {
-  background: linear-gradient(90deg, #10b981, #059669) !important;
-  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25);
-}
-
-.sidebar-menu a[href="/superadmin/commission"]:hover {
-  background-color: rgba(16, 185, 129, 0.1);
-  color: #34d399;
-}
-
-/* API MONITORING - Specific Active State (Purple Theme) */
-.sidebar-menu a[href="/superadmin/api-monitoring"].active {
-  background: linear-gradient(90deg, #8b5cf6, #7c3aed) !important;
-  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.25);
-}
-
-.sidebar-menu a[href="/superadmin/api-monitoring"]:hover {
-  background-color: rgba(139, 92, 246, 0.1);
-  color: #a78bfa;
-}
-
-/* AUDIT LOGS - Specific Active State (Cyan Theme) */
-.sidebar-menu a[href="/superadmin/audit-logs"].active {
-  background: linear-gradient(90deg, #06b6d4, #0891b2) !important;
-  box-shadow: 0 4px 15px rgba(6, 182, 212, 0.25);
-}
-
-.sidebar-menu a[href="/superadmin/audit-logs"]:hover {
-  background-color: rgba(6, 182, 212, 0.1);
-  color: #22d3ee;
-}
-
-/* REVENUE - Specific Active State (Amber Theme) */
-.sidebar-menu a[href="/superadmin/revenue"].active {
-  background: linear-gradient(90deg, #f59e0b, #d97706) !important;
-  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.25);
-}
-
-.sidebar-menu a[href="/superadmin/revenue"]:hover {
-  background-color: rgba(245, 158, 11, 0.1);
-  color: #fbbf24;
-}
-
-/* ADMINS - Specific Active State (Blue Theme) */
-.sidebar-menu a[href="/superadmin/admins"].active {
-  background: linear-gradient(90deg, #3b82f6, #2563eb) !important;
-  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.25);
-}
-
-.sidebar-menu a[href="/superadmin/admins"]:hover {
-  background-color: rgba(59, 130, 246, 0.1);
-  color: #60a5fa;
-}
-
-/* MERCHANTS - Specific Active State (Teal Theme) */
-.sidebar-menu a[href="/superadmin/merchants"].active {
-  background: linear-gradient(90deg, #14b8a6, #0d9488) !important;
-  box-shadow: 0 4px 15px rgba(20, 184, 166, 0.25);
-}
-
-.sidebar-menu a[href="/superadmin/merchants"]:hover {
-  background-color: rgba(20, 184, 166, 0.1);
-  color: #2dd4bf;
-}
-
-/* DASHBOARD - Specific Active State (Orange Theme) */
-.sidebar-menu a[href="/superadmin/dashboard"].active {
-  background: linear-gradient(90deg, #ff6b00, #ff8c3a) !important;
-  box-shadow: 0 4px 15px rgba(255, 107, 0, 0.25);
-}
-
-.sidebar-menu a[href="/superadmin/dashboard"]:hover {
-  background-color: rgba(255, 107, 0, 0.1);
-  color: #ff8c3a;
-}
-
-/* SETTINGS - Specific Active State (Slate Theme) */
-.sidebar-menu a[href="/superadmin/settings"].active {
-  background: linear-gradient(90deg, #64748b, #475569) !important;
-  box-shadow: 0 4px 15px rgba(100, 116, 139, 0.25);
-}
-
-.sidebar-menu a[href="/superadmin/settings"]:hover {
-  background-color: rgba(100, 116, 139, 0.1);
-  color: #94a3b8;
-}
-
-/* LOGOUT COMPONENT CONFIG */
-.logout-section {
-  margin: 20px;
-  padding: 16px 20px;
-  border-top: 1px solid #1e293b;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  color: #fca5a5; 
-  font-size: 15px;
-  font-weight: 600;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.logout-section:hover {
-  background-color: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
-}
-
-/* SCROLLBAR STYLING */
-.sidebar-menu::-webkit-scrollbar {
-  width: 4px;
-}
-
-.sidebar-menu::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 20px;
-}
-
-.sidebar-menu::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-/* MOBILE RESPONSIVENESS */
-@media (max-width: 768px) {
+  /* BASE SYSTEM ROOT STYLING */
   .sidebar {
-    width: 72px;
+    width: 280px;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #0f172a;
+    /* Premium Slate Dark */
+    color: #f8fafc;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    border-right: 1px solid #1e293b;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    z-index: 100;
   }
 
-  .logo,
-  .logo-subtitle,
-  .profile-info,
-  .sidebar-menu a span,
-  .logout-section span {
-    display: none;
+  /* BRAND LOGO HEADER SETUP */
+  .sidebar-header {
+    padding: 32px 24px 24px 24px;
+    /* Top cushioning badha di */
   }
 
+  .logo {
+    margin: 0;
+    font-size: 26px;
+    /* Font size improved from 22px */
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.03em;
+  }
+
+  .logo-subtitle {
+    font-size: 12px;
+    /* Text scaling optimized */
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #38bdf8;
+    /* Vibrant Cyan Info Glow */
+    letter-spacing: 0.06em;
+    display: block;
+    margin-top: 6px;
+  }
+
+  /* PROFILE WIDGET DESIGN BLOCK */
   .sidebar-profile {
+    padding: 18px 20px;
+    /* Padding expanded */
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background-color: #1e293b;
+    margin: 10px 20px 24px 20px;
+    /* Surrounding margins clean kiye */
+    border-radius: 14px;
+  }
+
+  .avatar {
+    width: 46px;
+    /* Avatar layout enlarged */
+    height: 46px;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
     justify-content: center;
-    padding: 14px;
-    margin: 10px 12px 20px 12px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+    flex-shrink: 0;
+  }
+
+  .profile-info h4 {
+    margin: 0;
+    font-size: 15px;
+    /* Text visibility raised */
+    font-weight: 600;
+    color: #ffffff;
+    line-height: 1.2;
+  }
+
+  .profile-info span {
+    font-size: 12px;
+    color: #94a3b8;
+    font-weight: 500;
+    display: block;
+    margin-top: 2px;
+  }
+
+  /* NAVIGATION MENU TRACKS */
+  .sidebar-menu {
+    list-style: none;
+    padding: 0 16px;
+    margin: 0;
+    flex-grow: 1;
+    overflow-y: auto;
+  }
+
+  .sidebar-menu li {
+    margin-bottom: 6px;
+    /* Elements ke beech breathability space add kiya */
   }
 
   .sidebar-menu a {
-    justify-content: center;
-    padding: 14px;
-    gap: 0;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    /* Icons aur labels ka gap setup clear kiya */
+    padding: 14px 20px;
+    /* Links row area increase kiya */
+    color: #94a3b8;
+    text-decoration: none;
+    font-size: 15px;
+    /* "Chota text" issue resolved by scaling up */
+    font-weight: 550;
+    border-radius: 10px;
+    transition: all 0.2s ease-in-out;
   }
 
-  .sidebar-menu a svg {
-    margin: 0;
-    font-size: 22px !important;
+  /* NAVLINK STATES (HOVER & ACTIVE) */
+  .sidebar-menu a:hover {
+    background-color: rgba(30, 41, 59, 0.8);
+    color: #ffffff;
   }
 
+  .sidebar-menu a.active {
+    background: linear-gradient(90deg, #ff6b00, #ff8c3a) !important;
+    /* Premium Crisp Orange Gradient */
+    color: #ffffff !important;
+    font-weight: 700;
+    box-shadow: 0 4px 15px rgba(255, 107, 0, 0.25);
+  }
+
+  .sidebar-menu a.active svg {
+    color: #ffffff !important;
+  }
+
+  /* COURIERS - Specific Active State (Optional - can have its own color or keep consistent) */
+  .sidebar-menu a[href="/superadmin/couriers"].active {
+    background: linear-gradient(90deg, #ff6b00, #ff8c3a) !important;
+    box-shadow: 0 4px 15px rgba(255, 107, 0, 0.25);
+  }
+
+  .sidebar-menu a[href="/superadmin/couriers"]:hover {
+    background-color: rgba(30, 41, 59, 0.8);
+    color: #ffffff;
+  }
+
+  /* COMMISSION - Specific Active State (Green Theme) */
+  .sidebar-menu a[href="/superadmin/commission"].active {
+    background: linear-gradient(90deg, #10b981, #059669) !important;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25);
+  }
+
+  .sidebar-menu a[href="/superadmin/commission"]:hover {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: #34d399;
+  }
+
+  /* API MONITORING - Specific Active State (Purple Theme) */
+  .sidebar-menu a[href="/superadmin/api-monitoring"].active {
+    background: linear-gradient(90deg, #8b5cf6, #7c3aed) !important;
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.25);
+  }
+
+  .sidebar-menu a[href="/superadmin/api-monitoring"]:hover {
+    background-color: rgba(139, 92, 246, 0.1);
+    color: #a78bfa;
+  }
+
+  /* AUDIT LOGS - Specific Active State (Cyan Theme) */
+  .sidebar-menu a[href="/superadmin/audit-logs"].active {
+    background: linear-gradient(90deg, #06b6d4, #0891b2) !important;
+    box-shadow: 0 4px 15px rgba(6, 182, 212, 0.25);
+  }
+
+  .sidebar-menu a[href="/superadmin/audit-logs"]:hover {
+    background-color: rgba(6, 182, 212, 0.1);
+    color: #22d3ee;
+  }
+
+  /* REVENUE - Specific Active State (Amber Theme) */
+  .sidebar-menu a[href="/superadmin/revenue"].active {
+    background: linear-gradient(90deg, #f59e0b, #d97706) !important;
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.25);
+  }
+
+  .sidebar-menu a[href="/superadmin/revenue"]:hover {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: #fbbf24;
+  }
+
+  /* ADMINS - Specific Active State (Blue Theme) */
+  .sidebar-menu a[href="/superadmin/admins"].active {
+    background: linear-gradient(90deg, #3b82f6, #2563eb) !important;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.25);
+  }
+
+  .sidebar-menu a[href="/superadmin/admins"]:hover {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #60a5fa;
+  }
+
+  /* MERCHANTS - Specific Active State (Teal Theme) */
+  .sidebar-menu a[href="/superadmin/merchants"].active {
+    background: linear-gradient(90deg, #14b8a6, #0d9488) !important;
+    box-shadow: 0 4px 15px rgba(20, 184, 166, 0.25);
+  }
+
+  .sidebar-menu a[href="/superadmin/merchants"]:hover {
+    background-color: rgba(20, 184, 166, 0.1);
+    color: #2dd4bf;
+  }
+
+  /* DASHBOARD - Specific Active State (Orange Theme) */
+  .sidebar-menu a[href="/superadmin/dashboard"].active {
+    background: linear-gradient(90deg, #ff6b00, #ff8c3a) !important;
+    box-shadow: 0 4px 15px rgba(255, 107, 0, 0.25);
+  }
+
+  .sidebar-menu a[href="/superadmin/dashboard"]:hover {
+    background-color: rgba(255, 107, 0, 0.1);
+    color: #ff8c3a;
+  }
+
+  /* SETTINGS - Specific Active State (Slate Theme) */
+  .sidebar-menu a[href="/superadmin/settings"].active {
+    background: linear-gradient(90deg, #64748b, #475569) !important;
+    box-shadow: 0 4px 15px rgba(100, 116, 139, 0.25);
+  }
+
+  .sidebar-menu a[href="/superadmin/settings"]:hover {
+    background-color: rgba(100, 116, 139, 0.1);
+    color: #94a3b8;
+  }
+
+  /* LOGOUT COMPONENT CONFIG */
   .logout-section {
-    justify-content: center;
-    padding: 14px;
-    margin: 16px 12px;
+    margin: 20px;
+    padding: 16px 20px;
+    border-top: 1px solid #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    color: #fca5a5;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
   }
-}
 
-/* ADDITIONAL: Active Link Icons Color Fix */
-.sidebar-menu a.active svg {
-  color: #ffffff !important;
-}
+  .logout-section:hover {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+  }
 
-/* ADDITIONAL: Smooth Transitions for All Links */
-.sidebar-menu a {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
+  /* SCROLLBAR STYLING */
+  .sidebar-menu::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .sidebar-menu::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 20px;
+  }
+
+  .sidebar-menu::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  /* MOBILE RESPONSIVENESS */
+  @media (max-width: 768px) {
+    .sidebar {
+      width: 72px;
+    }
+
+    .logo,
+    .logo-subtitle,
+    .profile-info,
+    .sidebar-menu a span,
+    .logout-section span {
+      display: none;
+    }
+
+    .sidebar-profile {
+      justify-content: center;
+      padding: 14px;
+      margin: 10px 12px 20px 12px;
+    }
+
+    .sidebar-menu a {
+      justify-content: center;
+      padding: 14px;
+      gap: 0;
+    }
+
+    .sidebar-menu a svg {
+      margin: 0;
+      font-size: 22px !important;
+    }
+
+    .logout-section {
+      justify-content: center;
+      padding: 14px;
+      margin: 16px 12px;
+    }
+  }
+
+  /* ADDITIONAL: Active Link Icons Color Fix */
+  .sidebar-menu a.active svg {
+    color: #ffffff !important;
+  }
+
+  /* ADDITIONAL: Smooth Transitions for All Links */
+  .sidebar-menu a {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
 }

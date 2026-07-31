@@ -20,7 +20,7 @@ import {
 } from 'react-icons/fa';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 import api from '../../services/api';
-import './NDR.css'; 
+import './NDR.css';
 
 const NDR = () => {
   const [ndrRecords, setNdrRecords] = useState([]);
@@ -51,18 +51,18 @@ const NDR = () => {
       setLoading(true);
       setError(null);
       const res = await api.get('/admin/ndr');
-      
+
       const records = res.data.ndrs || res.data || [];
       setNdrRecords(records);
       setFilteredRecords(records);
-      
+
       // Calculate stats
       const total = records.length;
       const pending = records.filter(r => r.status === 'PENDING').length;
       const reattemptRequested = records.filter(r => r.status === 'REATTEMPT_REQUESTED').length;
       const rtoRequested = records.filter(r => r.status === 'RTO_REQUESTED').length;
       const resolved = records.filter(r => r.status === 'RESOLVED').length;
-      
+
       setStats({
         total,
         pending,
@@ -293,7 +293,7 @@ const NDR = () => {
   // =================================
   if (loading) {
     return (
-      <div className="ndr-container">
+      <div className="admin-scope ndr-container">
         <AdminSidebar />
         <div className="ndr-content">
           <div style={{ textAlign: 'center', padding: '100px 0' }}>
@@ -312,7 +312,7 @@ const NDR = () => {
   }
 
   return (
-    <div className="ndr-container">
+    <div className="admin-scope ndr-container">
       <AdminSidebar />
 
       <div className="ndr-content">
@@ -486,7 +486,7 @@ const NDR = () => {
                   const requestType = getRequestType(r.status);
                   const isReattemptRequested = r.status === 'REATTEMPT_REQUESTED';
                   const isRTORequested = r.status === 'RTO_REQUESTED';
-                  
+
                   return (
                     <tr key={r._id} className="ndr-tr">
                       <td className="ndr-td ndr-td-awb">

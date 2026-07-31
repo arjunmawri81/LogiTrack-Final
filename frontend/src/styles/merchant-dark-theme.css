@@ -1,25 +1,6 @@
 /* ============================================================
-   MERCHANT DARK THEME — Professional Black
-   Color Palette:
-   --bg-base:      #0f1117  (main background)
-   --bg-card:      #181d2a  (card/panel surface)
-   --bg-card-2:    #1e2640  (secondary card surface)
-   --bg-input:     #1a1f2e  (input fields)
-   --border:       #2a3350  (borders)
-   --border-2:     #232b42  (subtle borders)
-   --text-primary: #e8edf5  (main text)
-   --text-muted:   #8896b0  (muted/secondary text)
-   --text-faint:   #4f6080  (faint labels)
-   --accent:       #f97316  (orange brand accent)
-   --accent-glow:  rgba(249,115,22,0.18)
-   --green:        #22c55e
-   --red:          #ef4444
-   --blue:         #3b82f6
-   --yellow:       #eab308
-   ============================================================ */
-
-/* ============================================================
-   CSS VARIABLES (scoped to body so all merchant pages share)
+   MERCHANT DARK THEME — Strictly Scoped to .merchant-scope
+   Zero impact on Admin & SuperAdmin panels.
    ============================================================ */
 
 :root {
@@ -44,16 +25,16 @@
 }
 
 /* ============================================================
-   GLOBAL LAYOUT — main-content & layout-container override
+   GLOBAL LAYOUT — merchant scope only
    ============================================================ */
 
-.main-content,
-.layout-container {
+.merchant-scope .main-content,
+.merchant-scope .layout-container {
   background: var(--m-bg-base) !important;
 }
 
 /* ============================================================
-   SIDEBAR (already dark, just ensure consistency)
+   SIDEBAR
    ============================================================ */
 
 .merchant-scope .sidebar {
@@ -73,112 +54,110 @@
    DASHBOARD
    ============================================================ */
 
-.dashboard-page,
-.dashboard-loading-container {
+.merchant-scope .dashboard-page,
+.merchant-scope .dashboard-loading-container {
   background: var(--m-bg-base) !important;
 }
 
-.dashboard-main {
+.merchant-scope .dashboard-main {
   background: var(--m-bg-base) !important;
 }
 
-.dashboard-title {
+.merchant-scope .dashboard-title {
   color: var(--m-text) !important;
 }
 
-.dashboard-subtitle {
+.merchant-scope .dashboard-subtitle {
   color: var(--m-text-muted) !important;
 }
 
-/* Wallet pill */
-.dashboard-wallet {
+.merchant-scope .dashboard-wallet {
   background: linear-gradient(135deg, var(--m-bg-card) 0%, var(--m-bg-card-2) 100%) !important;
   border: 1.5px solid var(--m-border) !important;
   box-shadow: 0 4px 18px rgba(0,0,0,0.4) !important;
 }
 
-.dashboard-wallet:hover {
+.merchant-scope .dashboard-wallet:hover {
   border-color: var(--m-accent) !important;
   box-shadow: 0 8px 28px var(--m-accent-glow) !important;
 }
 
-.dashboard-wallet-label {
+.merchant-scope .dashboard-wallet-label {
   color: var(--m-accent) !important;
 }
 
-.dashboard-wallet-balance {
+.merchant-scope .dashboard-wallet-balance {
   color: var(--m-text) !important;
 }
 
-/* Stats cards */
-.dashboard-summary-card {
+.merchant-scope .dashboard-summary-card {
   background: var(--m-bg-card) !important;
   border: 1px solid var(--m-border) !important;
   box-shadow: 0 2px 10px rgba(0,0,0,0.3) !important;
 }
 
-.dashboard-summary-card:hover {
+.merchant-scope .dashboard-summary-card:hover {
   background: var(--m-bg-hover) !important;
   border-color: var(--m-accent) !important;
   box-shadow: 0 6px 20px var(--m-accent-glow) !important;
 }
 
-.dashboard-summary-label {
+.merchant-scope .dashboard-summary-label {
   color: var(--m-text-muted) !important;
 }
 
-.dashboard-summary-value {
+.merchant-scope .dashboard-summary-value {
   color: var(--m-text) !important;
 }
 
 /* ============================================================
-   ORDERS
+   ORDERS (Merchant)
    ============================================================ */
 
-.orders-loading-container,
-.orders-container {
+.merchant-scope .orders-loading-container,
+.merchant-scope .orders-container {
   background: var(--m-bg-base) !important;
 }
 
-.orders-main {
+.merchant-scope .orders-main {
   background: var(--m-bg-base) !important;
 }
 
-.orders-title {
+.merchant-scope .orders-title {
   color: var(--m-text) !important;
 }
 
-.orders-subtitle {
+.merchant-scope .orders-subtitle {
   color: var(--m-text-muted) !important;
 }
 
 /* ============================================================
-   SHIPMENTS
+   SHIPMENTS (Merchant)
    ============================================================ */
 
-.shipments-container {
+.merchant-scope .shipments-container {
   background: var(--m-bg-base) !important;
 }
 
-.shipments-main {
+.merchant-scope .shipments-main {
   background: var(--m-bg-base) !important;
 }
 
-.shipments-title {
+.merchant-scope .shipments-title {
   color: var(--m-text) !important;
 }
 
-.shipments-subtitle {
+.merchant-scope .shipments-subtitle {
   color: var(--m-text-muted) !important;
 }
 
-.stat-card {
+.merchant-scope .stat-card {
   background: var(--m-bg-card) !important;
   border: 1px solid var(--m-border) !important;
   box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
 }
 
-.stat-card:hover {
+.merchant-scope .stat-card:hover {
   background: var(--m-bg-hover) !important;
   box-shadow: 0 6px 18px rgba(0,0,0,0.4) !important;
 }
@@ -187,19 +166,19 @@
    BILLING
    ============================================================ */
 
-.billing-container {
+.merchant-scope .billing-container {
   background: var(--m-bg-base) !important;
 }
 
-.billing-content {
+.merchant-scope .billing-content {
   background: var(--m-bg-base) !important;
 }
 
-.billing-title {
+.merchant-scope .billing-title {
   color: var(--m-text) !important;
 }
 
-.billing-subtitle {
+.merchant-scope .billing-subtitle {
   color: var(--m-text-muted) !important;
 }
 
@@ -207,23 +186,23 @@
    TRACKING
    ============================================================ */
 
-.tracking-container {
+.merchant-scope .tracking-container {
   background: var(--m-bg-base) !important;
 }
 
-.tracking-main {
+.merchant-scope .tracking-main {
   background: var(--m-bg-base) !important;
 }
 
-.tracking-title {
+.merchant-scope .tracking-title {
   color: var(--m-text) !important;
 }
 
-.tracking-subtitle {
+.merchant-scope .tracking-subtitle {
   color: var(--m-text-muted) !important;
 }
 
-.tracking-search-card {
+.merchant-scope .tracking-search-card {
   background: var(--m-bg-card) !important;
   border: 1px solid var(--m-border) !important;
 }
@@ -232,109 +211,109 @@
    WALLET
    ============================================================ */
 
-.wallet-container {
+.merchant-scope .wallet-container {
   background: var(--m-bg-base) !important;
 }
 
-.wallet-main {
+.merchant-scope .wallet-main {
   background: var(--m-bg-base) !important;
 }
 
-.wallet-title {
+.merchant-scope .wallet-title {
   color: var(--m-text) !important;
 }
 
-.wallet-subtitle {
+.merchant-scope .wallet-subtitle {
   color: var(--m-text-muted) !important;
 }
 
-.wallet-balance-card {
+.merchant-scope .wallet-balance-card {
   background: linear-gradient(135deg, #0c101a 0%, #181d2a 100%) !important;
   border: 1px solid var(--m-border) !important;
   box-shadow: 0 6px 24px rgba(0,0,0,0.5) !important;
 }
 
-.wallet-summary-card {
+.merchant-scope .wallet-summary-card {
   background: var(--m-bg-card) !important;
   border: 1px solid var(--m-border) !important;
   box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
 }
 
-.wallet-summary-card:hover {
+.merchant-scope .wallet-summary-card:hover {
   background: var(--m-bg-hover) !important;
   box-shadow: 0 6px 16px rgba(0,0,0,0.4) !important;
 }
 
-.wallet-summary-label {
+.merchant-scope .wallet-summary-label {
   color: var(--m-text-muted) !important;
 }
 
-.wallet-summary-value-dark {
+.merchant-scope .wallet-summary-value-dark {
   color: var(--m-text) !important;
 }
 
-.wallet-card {
+.merchant-scope .wallet-card {
   background: var(--m-bg-card) !important;
   border: 1px solid var(--m-border) !important;
 }
 
-.wallet-card-header {
+.merchant-scope .wallet-card-header {
   background: var(--m-bg-card) !important;
   border-bottom: 1px solid var(--m-border) !important;
 }
 
-.wallet-card-title {
+.merchant-scope .wallet-card-title {
   color: var(--m-text) !important;
 }
 
-.wallet-input {
+.merchant-scope .wallet-input {
   background: var(--m-bg-input) !important;
   border: 1px solid var(--m-border) !important;
   color: var(--m-text) !important;
 }
 
-.wallet-input:focus {
+.merchant-scope .wallet-input:focus {
   border-color: var(--m-accent) !important;
   box-shadow: 0 0 0 3px var(--m-accent-glow) !important;
 }
 
-.wallet-input::placeholder {
+.merchant-scope .wallet-input::placeholder {
   color: var(--m-text-faint) !important;
 }
 
-.wallet-table-head {
+.merchant-scope .wallet-table-head {
   background: var(--m-bg-card-2) !important;
   border-bottom: 2px solid var(--m-border) !important;
 }
 
-.wallet-th {
+.merchant-scope .wallet-th {
   color: var(--m-text-muted) !important;
 }
 
-.wallet-td {
+.merchant-scope .wallet-td {
   border-bottom: 1px solid var(--m-border-2) !important;
   color: var(--m-text-muted) !important;
 }
 
-.wallet-amount {
+.merchant-scope .wallet-amount {
   color: var(--m-text) !important;
 }
 
-.wallet-description {
+.merchant-scope .wallet-description {
   color: var(--m-text-muted) !important;
 }
 
-.wallet-type-credit {
+.merchant-scope .wallet-type-credit {
   background: rgba(34,197,94,0.15) !important;
   color: #4ade80 !important;
 }
 
-.wallet-type-debit {
+.merchant-scope .wallet-type-debit {
   background: rgba(239,68,68,0.15) !important;
   color: #f87171 !important;
 }
 
-.wallet-empty {
+.merchant-scope .wallet-empty {
   color: var(--m-text-faint) !important;
 }
 
@@ -342,399 +321,267 @@
    REPORTS
    ============================================================ */
 
-.reports-container {
+.merchant-scope .reports-container {
   background: var(--m-bg-base) !important;
 }
 
-.reports-main {
+.merchant-scope .reports-main {
   background: var(--m-bg-base) !important;
 }
 
-.reports-title {
+.merchant-scope .reports-title {
   color: var(--m-text) !important;
 }
 
-.reports-subtitle {
+.merchant-scope .reports-subtitle {
   color: var(--m-text-muted) !important;
 }
 
-.btn-refresh {
+.merchant-scope .btn-refresh {
   background: var(--m-bg-card) !important;
   color: var(--m-text-muted) !important;
   border: 1px solid var(--m-border) !important;
 }
 
-.btn-refresh:hover {
+.merchant-scope .btn-refresh:hover {
   background: var(--m-bg-hover) !important;
   border-color: var(--m-accent) !important;
   color: var(--m-text) !important;
 }
 
-.date-filter-bar {
+.merchant-scope .date-filter-bar {
   background: var(--m-bg-card) !important;
   border: 1px solid var(--m-border) !important;
 }
 
-.filter-label {
+.merchant-scope .filter-label {
   color: var(--m-text-muted) !important;
 }
 
-.pill-btn {
+.merchant-scope .pill-btn {
   background: var(--m-bg-input) !important;
   color: var(--m-text-muted) !important;
   border: 1px solid var(--m-border) !important;
 }
 
-.pill-btn:hover {
+.merchant-scope .pill-btn:hover {
   background: var(--m-bg-hover) !important;
   color: var(--m-text) !important;
 }
 
-.pill-btn.active {
+.merchant-scope .pill-btn.active {
   background: var(--m-accent) !important;
   color: #ffffff !important;
   border-color: var(--m-accent) !important;
 }
 
-.date-picker {
+.merchant-scope .date-picker {
   background: var(--m-bg-input) !important;
   border: 1px solid var(--m-border) !important;
   color: var(--m-text) !important;
 }
 
-.metric-card {
+.merchant-scope .metric-card {
   background: var(--m-bg-card) !important;
   border: 1px solid var(--m-border) !important;
   box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
 }
 
-.metric-card:hover {
+.merchant-scope .metric-card:hover {
   background: var(--m-bg-hover) !important;
   box-shadow: 0 6px 18px rgba(0,0,0,0.4) !important;
 }
 
-.metric-icon.blue  { background: rgba(59,130,246,0.15) !important; color: #60a5fa !important; }
-.metric-icon.purple{ background: rgba(139,92,246,0.15) !important; color: #a78bfa !important; }
-.metric-icon.green { background: rgba(34,197,94,0.15)  !important; color: #4ade80 !important; }
-.metric-icon.yellow{ background: rgba(234,179,8,0.15)  !important; color: #facc15 !important; }
-.metric-icon.red   { background: rgba(239,68,68,0.15)  !important; color: #f87171 !important; }
-.metric-icon.emerald{ background: rgba(16,185,129,0.15) !important; color: #34d399 !important; }
+.merchant-scope .metric-icon.blue  { background: rgba(59,130,246,0.15) !important; color: #60a5fa !important; }
+.merchant-scope .metric-icon.purple{ background: rgba(139,92,246,0.15) !important; color: #a78bfa !important; }
+.merchant-scope .metric-icon.green { background: rgba(34,197,94,0.15)  !important; color: #4ade80 !important; }
+.merchant-scope .metric-icon.yellow{ background: rgba(234,179,8,0.15)  !important; color: #facc15 !important; }
+.merchant-scope .metric-icon.red   { background: rgba(239,68,68,0.15)  !important; color: #f87171 !important; }
+.merchant-scope .metric-icon.emerald{ background: rgba(16,185,129,0.15) !important; color: #34d399 !important; }
 
-.metric-title {
+.merchant-scope .metric-title {
   color: var(--m-text-muted) !important;
 }
 
-.metric-value {
+.merchant-scope .metric-value {
   color: var(--m-text) !important;
 }
 
-.details-card {
+.merchant-scope .details-card {
   background: var(--m-bg-card) !important;
   border: 1px solid var(--m-border) !important;
 }
 
-.details-card h3 {
+.merchant-scope .details-card h3 {
   color: var(--m-text) !important;
 }
 
-.status-item {
+.merchant-scope .status-item {
   background: var(--m-bg-card-2) !important;
 }
 
-.status-name {
+.merchant-scope .status-name {
   color: var(--m-text-muted) !important;
 }
 
-.status-item strong {
+.merchant-scope .status-item strong {
   color: var(--m-text) !important;
 }
 
-.reports-table th {
+.merchant-scope .reports-table th {
   background: var(--m-bg-card-2) !important;
   color: var(--m-text-muted) !important;
   border-bottom: 2px solid var(--m-border) !important;
 }
 
-.reports-table td {
+.merchant-scope .reports-table td {
   border-bottom: 1px solid var(--m-border-2) !important;
   color: var(--m-text-muted) !important;
 }
 
-.reports-table tr:hover td {
+.merchant-scope .reports-table tr:hover td {
   background: var(--m-bg-hover) !important;
 }
 
-.font-bold {
-  color: var(--m-text) !important;
-}
-
-.rate-badge.high {
+.merchant-scope .rate-badge.high {
   background: rgba(34,197,94,0.15) !important;
   color: #4ade80 !important;
 }
 
-.rate-badge.med {
+.merchant-scope .rate-badge.med {
   background: rgba(234,179,8,0.15) !important;
   color: #facc15 !important;
 }
 
-.rate-badge.low {
+.merchant-scope .rate-badge.low {
   background: rgba(239,68,68,0.15) !important;
   color: #f87171 !important;
-}
-
-.no-data {
-  color: var(--m-text-faint) !important;
 }
 
 /* ============================================================
    PROFILE
    ============================================================ */
 
-.profile-container {
+.merchant-scope .profile-container {
   background: var(--m-bg-base) !important;
 }
 
-.profile-container h1 {
+.merchant-scope .profile-container h1 {
   color: var(--m-text) !important;
 }
 
-.profile-card {
+.merchant-scope .profile-card {
   background: var(--m-bg-card) !important;
   border: 1px solid var(--m-border) !important;
   box-shadow: 0 4px 16px rgba(0,0,0,0.4) !important;
 }
 
-.profile-header {
+.merchant-scope .profile-header {
   border-bottom: 1px solid var(--m-border) !important;
 }
 
-.profile-header h2 {
+.merchant-scope .profile-header h2 {
   color: var(--m-text) !important;
 }
 
-.profile-header p {
+.merchant-scope .profile-header p {
   color: var(--m-text-muted) !important;
 }
 
-.profile-stat {
+.merchant-scope .profile-stat {
   background: var(--m-bg-card-2) !important;
   border: 1px solid var(--m-border) !important;
   box-shadow: none !important;
 }
 
-.profile-stat h4 {
+.merchant-scope .profile-stat h4 {
   color: var(--m-text-muted) !important;
 }
 
-.profile-stat p {
+.merchant-scope .profile-stat p {
   color: var(--m-text) !important;
 }
 
-.profile-form input,
-.profile-form textarea {
+.merchant-scope .profile-form input,
+.merchant-scope .profile-form textarea {
   background: var(--m-bg-input) !important;
   border: 1px solid var(--m-border) !important;
   color: var(--m-text) !important;
 }
 
-.profile-form input::placeholder,
-.profile-form textarea::placeholder {
+.merchant-scope .profile-form input::placeholder,
+.merchant-scope .profile-form textarea::placeholder {
   color: var(--m-text-faint) !important;
 }
 
-.profile-form input:focus,
-.profile-form textarea:focus {
+.merchant-scope .profile-form input:focus,
+.merchant-scope .profile-form textarea:focus {
   border-color: var(--m-accent) !important;
   box-shadow: 0 0 0 3px var(--m-accent-glow) !important;
 }
 
-.profile-form input:read-only,
-.profile-form textarea:read-only {
+.merchant-scope .profile-form input:read-only,
+.merchant-scope .profile-form textarea:read-only {
   background: var(--m-bg-card-2) !important;
   color: var(--m-text-muted) !important;
 }
 
 /* ============================================================
-   CHANNEL INTEGRATIONS
+   OTHER CONTAINERS
    ============================================================ */
 
-.channel-integrations-container {
+.merchant-scope .channel-integrations-container,
+.merchant-scope .merchant-ndr-container,
+.merchant-scope .merchant-rto-container,
+.merchant-scope .warehouse-container,
+.merchant-scope .tickets-container,
+.merchant-scope .invoices-container,
+.merchant-scope .rate-calculator-container,
+.merchant-scope .serviceability-container,
+.merchant-scope .settings-container {
   background: var(--m-bg-base) !important;
 }
 
 /* ============================================================
-   NDR
+   INPUT / SELECT FOR MERCHANT PAGES
    ============================================================ */
 
-.merchant-ndr-container {
-  background: var(--m-bg-base) !important;
-}
-
-/* ============================================================
-   RTO
-   ============================================================ */
-
-.merchant-rto-container {
-  background: var(--m-bg-base) !important;
-}
-
-/* ============================================================
-   WAREHOUSE
-   ============================================================ */
-
-.warehouse-container {
-  background: var(--m-bg-base) !important;
-}
-
-/* ============================================================
-   TICKETS
-   ============================================================ */
-
-.tickets-container {
-  background: var(--m-bg-base) !important;
-}
-
-/* ============================================================
-   INVOICES
-   ============================================================ */
-
-.invoices-container {
-  background: var(--m-bg-base) !important;
-}
-
-/* ============================================================
-   RATE CALCULATOR
-   ============================================================ */
-
-.rate-calculator-container {
-  background: var(--m-bg-base) !important;
-}
-
-/* ============================================================
-   SERVICEABILITY
-   ============================================================ */
-
-.serviceability-container {
-  background: var(--m-bg-base) !important;
-}
-
-/* ============================================================
-   SETTINGS
-   ============================================================ */
-
-.settings-container {
-  background: var(--m-bg-base) !important;
-}
-
-/* ============================================================
-   UNIVERSAL CARD/TABLE/FORM OVERRIDES
-   (catches all remaining white boxes in merchant pages)
-   ============================================================ */
-
-/* White backgrounds → dark card */
-.billing-container > *:not(.billing-sidebar),
-.shipments-main > *,
-.orders-main > *,
-.reports-main > *,
-.tracking-main > *,
-.wallet-main > *,
-.dashboard-main > * {
-  /* cascade only structural */
-}
-
-/* CARDS — generic white box pattern */
-[class*="-card"]:not([class*="dashboard-wallet"]):not([class*="dashboard-card"]):not([class*="wallet-balance-card"]) {
-  /* We avoid over-broad selectors. Use specific overrides above. */
-}
-
-/* INPUT / SELECT universal dark override for merchant pages */
-.orders-main input,
-.orders-main select,
-.orders-main textarea,
-.shipments-main input,
-.shipments-main select,
-.shipments-main textarea,
-.billing-content input,
-.billing-content select,
-.billing-content textarea,
-.reports-main input,
-.reports-main select,
-.reports-main textarea,
-.tracking-main input,
-.tracking-main select,
-.tracking-main textarea,
-.wallet-main input,
-.wallet-main select,
-.wallet-main textarea,
-.dashboard-main input,
-.dashboard-main select,
-.dashboard-main textarea,
-.profile-form input,
-.profile-form select,
-.profile-form textarea {
+.merchant-scope input,
+.merchant-scope select,
+.merchant-scope textarea {
   background: var(--m-bg-input) !important;
   border-color: var(--m-border) !important;
   color: var(--m-text) !important;
 }
 
-.orders-main input:focus,
-.orders-main select:focus,
-.orders-main textarea:focus,
-.shipments-main input:focus,
-.shipments-main select:focus,
-.billing-content input:focus,
-.billing-content select:focus,
-.reports-main input:focus,
-.reports-main select:focus,
-.tracking-main input:focus,
-.wallet-main input:focus,
-.wallet-main select:focus,
-.dashboard-main input:focus,
-.dashboard-main select:focus {
+.merchant-scope input:focus,
+.merchant-scope select:focus,
+.merchant-scope textarea:focus {
   border-color: var(--m-accent) !important;
   box-shadow: 0 0 0 3px var(--m-accent-glow) !important;
   outline: none !important;
 }
 
 /* ============================================================
-   TABLES — universal merchant table dark theme
+   TABLES FOR MERCHANT PAGES
    ============================================================ */
 
-.orders-main table,
-.shipments-main table,
-.billing-content table,
-.reports-main table,
-.tracking-main table,
-.wallet-main table {
+.merchant-scope table {
   background: var(--m-bg-card) !important;
 }
 
-.orders-main th,
-.shipments-main th,
-.billing-content th,
-.reports-main th,
-.tracking-main th,
-.wallet-main th {
+.merchant-scope th {
   background: var(--m-bg-card-2) !important;
   color: var(--m-text-muted) !important;
   border-bottom: 2px solid var(--m-border) !important;
 }
 
-.orders-main td,
-.shipments-main td,
-.billing-content td,
-.reports-main td,
-.tracking-main td,
-.wallet-main td {
+.merchant-scope td {
   color: var(--m-text-muted) !important;
   border-bottom: 1px solid var(--m-border-2) !important;
 }
 
-.orders-main tr:hover td,
-.shipments-main tr:hover td,
-.billing-content tr:hover td,
-.reports-main tr:hover td {
+.merchant-scope tr:hover td {
   background: var(--m-bg-hover) !important;
 }
 
@@ -742,262 +589,87 @@
    MODALS & OVERLAYS (merchant-scoped)
    ============================================================ */
 
-/* Generic modal / dialog pattern */
-.modal-overlay,
-.modal-backdrop {
+.merchant-scope .modal-overlay,
+.merchant-scope .modal-backdrop {
   background: rgba(5, 8, 18, 0.75) !important;
   backdrop-filter: blur(4px) !important;
 }
 
-.modal-content,
-.modal-box,
-.modal-panel {
+.merchant-scope .modal-content,
+.merchant-scope .modal-box,
+.merchant-scope .modal-panel {
   background: var(--m-bg-card) !important;
   border: 1px solid var(--m-border) !important;
   color: var(--m-text) !important;
 }
 
 /* ============================================================
-   SCROLLBARS — styled for dark theme
+   SCROLLBARS
    ============================================================ */
 
-.orders-main::-webkit-scrollbar,
-.shipments-main::-webkit-scrollbar,
-.billing-content::-webkit-scrollbar,
-.reports-main::-webkit-scrollbar,
-.tracking-main::-webkit-scrollbar,
-.wallet-main::-webkit-scrollbar,
-.dashboard-main::-webkit-scrollbar {
+.merchant-scope ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
-.orders-main::-webkit-scrollbar-track,
-.shipments-main::-webkit-scrollbar-track,
-.billing-content::-webkit-scrollbar-track,
-.reports-main::-webkit-scrollbar-track,
-.tracking-main::-webkit-scrollbar-track,
-.wallet-main::-webkit-scrollbar-track,
-.dashboard-main::-webkit-scrollbar-track {
+.merchant-scope ::-webkit-scrollbar-track {
   background: var(--m-bg-base);
 }
 
-.orders-main::-webkit-scrollbar-thumb,
-.shipments-main::-webkit-scrollbar-thumb,
-.billing-content::-webkit-scrollbar-thumb,
-.reports-main::-webkit-scrollbar-thumb,
-.tracking-main::-webkit-scrollbar-thumb,
-.wallet-main::-webkit-scrollbar-thumb,
-.dashboard-main::-webkit-scrollbar-thumb {
+.merchant-scope ::-webkit-scrollbar-thumb {
   background: var(--m-border);
   border-radius: 4px;
 }
 
-.orders-main::-webkit-scrollbar-thumb:hover,
-.shipments-main::-webkit-scrollbar-thumb:hover,
-.billing-content::-webkit-scrollbar-thumb:hover,
-.reports-main::-webkit-scrollbar-thumb:hover,
-.tracking-main::-webkit-scrollbar-thumb:hover,
-.wallet-main::-webkit-scrollbar-thumb:hover,
-.dashboard-main::-webkit-scrollbar-thumb:hover {
+.merchant-scope ::-webkit-scrollbar-thumb:hover {
   background: var(--m-accent);
 }
 
 /* ============================================================
-   BADGE STATUS — dark-compatible
+   STATUS BADGES
    ============================================================ */
 
-/* Status badges (pending, delivered, etc.) — enrich colors for dark bg */
-[class*="status-badge"],
-[class*="badge-"],
-[class*="-badge"] {
-  /* These are already colored per class, so no universal override needed */
-}
-
-/* Common status classes used across multiple pages */
-.status-pending   { background: rgba(234,179,8,0.15)  !important; color: #facc15 !important; }
-.status-delivered { background: rgba(34,197,94,0.15)  !important; color: #4ade80 !important; }
-.status-cancelled { background: rgba(239,68,68,0.15)  !important; color: #f87171 !important; }
-.status-transit   { background: rgba(59,130,246,0.15) !important; color: #60a5fa !important; }
-.status-rto       { background: rgba(139,92,246,0.15) !important; color: #a78bfa !important; }
+.merchant-scope .status-pending   { background: rgba(234,179,8,0.15)  !important; color: #facc15 !important; }
+.merchant-scope .status-delivered { background: rgba(34,197,94,0.15)  !important; color: #4ade80 !important; }
+.merchant-scope .status-cancelled { background: rgba(239,68,68,0.15)  !important; color: #f87171 !important; }
+.merchant-scope .status-transit   { background: rgba(59,130,246,0.15) !important; color: #60a5fa !important; }
+.merchant-scope .status-rto       { background: rgba(139,92,246,0.15) !important; color: #a78bfa !important; }
 
 /* ============================================================
-   BUTTONS — secondary/outline buttons for dark theme
+   BUTTONS
    ============================================================ */
 
-/* White / light secondary buttons */
-.btn-secondary,
-.btn-outline,
-button.outline {
+.merchant-scope .btn-secondary,
+.merchant-scope .btn-outline,
+.merchant-scope button.outline {
   background: var(--m-bg-card) !important;
   color: var(--m-text) !important;
   border: 1px solid var(--m-border) !important;
 }
 
-.btn-secondary:hover,
-.btn-outline:hover,
-button.outline:hover {
+.merchant-scope .btn-secondary:hover,
+.merchant-scope .btn-outline:hover,
+.merchant-scope button.outline:hover {
   background: var(--m-bg-hover) !important;
   border-color: var(--m-accent) !important;
   color: var(--m-text) !important;
 }
 
 /* ============================================================
-   LOADING SPINNERS
-   ============================================================ */
-
-.loading-container,
-.orders-loading-spinner,
-.shipments-loading {
-  background: var(--m-bg-base) !important;
-  color: var(--m-text-muted) !important;
-}
-
-/* ============================================================
    EMPTY STATES
    ============================================================ */
 
-.empty-state,
-.no-data,
-.no-results {
+.merchant-scope .empty-state,
+.merchant-scope .no-data,
+.merchant-scope .no-results {
   color: var(--m-text-faint) !important;
 }
 
-/* ============================================================
-   PAGE-LEVEL h1, h2, h3, p overrides inside merchant mains
-   ============================================================ */
-
-.dashboard-main h1,
-.dashboard-main h2,
-.dashboard-main h3,
-.dashboard-main h4,
-.dashboard-main h5,
-.orders-main h1,
-.orders-main h2,
-.orders-main h3,
-.orders-main h4,
-.shipments-main h1,
-.shipments-main h2,
-.shipments-main h3,
-.shipments-main h4,
-.billing-content h1,
-.billing-content h2,
-.billing-content h3,
-.billing-content h4,
-.reports-main h1,
-.reports-main h2,
-.reports-main h3,
-.reports-main h4,
-.tracking-main h1,
-.tracking-main h2,
-.tracking-main h3,
-.wallet-main h1,
-.wallet-main h2,
-.wallet-main h3,
-.profile-container h1,
-.profile-container h2,
-.profile-container h3 {
-  color: var(--m-text) !important;
-}
-
-.dashboard-main p,
-.orders-main p,
-.shipments-main p,
-.billing-content p,
-.reports-main p,
-.tracking-main p,
-.wallet-main p {
-  color: var(--m-text-muted) !important;
-}
-
-/* ============================================================
-   SIDEBAR WRAPPERS (sidebar-wrapper class used in some pages)
-   ============================================================ */
-
-.sidebar-wrapper {
-  background: #0c101a !important;
-  border-right: 1px solid var(--m-border) !important;
-}
-
-/* ============================================================
-   HAMBURGER BUTTON
-   ============================================================ */
-
-.hamburger-btn {
+.merchant-scope .hamburger-btn {
   background: var(--m-bg-card) !important;
   border: 1px solid var(--m-border) !important;
 }
 
-.hamburger-btn:hover {
+.merchant-scope .hamburger-btn:hover {
   background: var(--m-bg-hover) !important;
-}
-
-/* ============================================================
-   GLOBAL TABLE OVERRIDES — merchant pages
-   (index.css sets table { background: #fff } globally;
-    override it for every merchant dark container)
-   ============================================================ */
-
-.ndr-container table,
-.rto-container table,
-.warehouse-container table,
-.shipments-container table,
-.orders-container table,
-.billing-container table,
-.tracking-container table,
-.reports-container table,
-.wallet-container table,
-.profile-container table,
-.rate-container table,
-.channels-page-container table,
-.serviceability-container table,
-.dashboard-page table,
-.invoices-container table,
-.tickets-container table,
-[style*="background: \"#111827\""] table,
-[style*="background: #111827"] table {
-  background: #1c2333 !important;
-  border-radius: 12px !important;
-}
-
-.ndr-container th,
-.rto-container th,
-.warehouse-container th,
-.shipments-container th,
-.orders-container th,
-.billing-container th,
-.tracking-container th,
-.reports-container th,
-.wallet-container th,
-.profile-container th,
-.rate-container th,
-.channels-page-container th,
-.serviceability-container th,
-.dashboard-page th,
-.invoices-container th,
-.tickets-container th {
-  background: #1e2640 !important;
-  color: #8896b0 !important;
-  border-bottom: 1px solid #2a3a52 !important;
-}
-
-.ndr-container td,
-.rto-container td,
-.warehouse-container td,
-.shipments-container td,
-.orders-container td,
-.billing-container td,
-.tracking-container td,
-.reports-container td,
-.wallet-container td,
-.profile-container td,
-.rate-container td,
-.channels-page-container td,
-.serviceability-container td,
-.dashboard-page td,
-.invoices-container td,
-.tickets-container td {
-  background: #1c2333 !important;
-  border-bottom: 1px solid #2a3a52 !important;
-  color: #a0aec0 !important;
 }

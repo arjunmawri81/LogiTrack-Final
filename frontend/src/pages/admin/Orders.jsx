@@ -126,7 +126,7 @@ const Orders = () => {
   };
 
   return (
-    <div className="orders-container">
+    <div className="admin-scope orders-container">
       <AdminSidebar />
 
       <div className="orders-main">

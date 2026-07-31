@@ -64,25 +64,53 @@
 
 .stat-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,  0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-.stat-card-blue { border-top: 3px solid #2563eb; }
-.stat-card-orange { border-top: 3px solid #d97706; }
-.stat-card-green { border-top: 3px solid #16a34a; }
-.stat-card-yellow { border-top: 3px solid #d97706; }
-.stat-card-red { border-top: 3px solid #dc2626; }
+.stat-card-blue {
+  border-top: 3px solid #2563eb;
+}
+
+.stat-card-orange {
+  border-top: 3px solid #d97706;
+}
+
+.stat-card-green {
+  border-top: 3px solid #16a34a;
+}
+
+.stat-card-yellow {
+  border-top: 3px solid #d97706;
+}
+
+.stat-card-red {
+  border-top: 3px solid #dc2626;
+}
 
 .stat-icon {
   font-size: 20px;
   margin-bottom: 6px;
 }
 
-.stat-icon-blue { color: #2563eb; }
-.stat-icon-orange { color: #d97706; }
-.stat-icon-green { color: #16a34a; }
-.stat-icon-yellow { color: #d97706; }
-.stat-icon-red { color: #dc2626; }
+.stat-icon-blue {
+  color: #2563eb;
+}
+
+.stat-icon-orange {
+  color: #d97706;
+}
+
+.stat-icon-green {
+  color: #16a34a;
+}
+
+.stat-icon-yellow {
+  color: #d97706;
+}
+
+.stat-icon-red {
+  color: #dc2626;
+}
 
 .stat-value {
   font-size: 24px;
@@ -314,17 +342,37 @@
   transform: translateY(0);
 }
 
-.shipments-btn-details { background: #1e293b; }
-.shipments-btn-details:hover { background: #0f172a; }
+.shipments-btn-details {
+  background: #1e293b;
+}
 
-.shipments-btn-invoice { background: #059669; }
-.shipments-btn-invoice:hover { background: #047857; }
+.shipments-btn-details:hover {
+  background: #0f172a;
+}
 
-.shipments-btn-label { background: #2563eb; }
-.shipments-btn-label:hover { background: #1d4ed8; }
+.shipments-btn-invoice {
+  background: #059669;
+}
 
-.shipments-btn-timeline { background: #f97316; }
-.shipments-btn-timeline:hover { background: #ea580c; }
+.shipments-btn-invoice:hover {
+  background: #047857;
+}
+
+.shipments-btn-label {
+  background: #2563eb;
+}
+
+.shipments-btn-label:hover {
+  background: #1d4ed8;
+}
+
+.shipments-btn-timeline {
+  background: #f97316;
+}
+
+.shipments-btn-timeline:hover {
+  background: #ea580c;
+}
 
 /* ===== MODAL ===== */
 .shipments-modal-overlay {
