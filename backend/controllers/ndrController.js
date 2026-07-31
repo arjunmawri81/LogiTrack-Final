@@ -3,6 +3,8 @@ const NDR = require("../models/NDR");
 const RTO = require("../models/RTO");
 const Shipment = require("../models/Shipment");
 const Order = require("../models/Order");
+const courierService = require("../services/courier/courierService");
+const { chargeRTOFee } = require("./rtoController");
 
 // Helper to check replica set for Mongoose transactions
 const checkReplicaSet = async () => {
@@ -188,113 +190,239 @@ const resolveNDR = async (req, res) => {
 };
 
 // =================================
-// MERCHANT: REQUEST REATTEMPT
+// MERCHANT: REQUEST REATTEMPT (DIRECT COURIER API CALL FOR ATTEMPTS <= 3)
 // =================================
 const reattemptNDR = async (req, res) => {
+  let session = null;
   try {
+    const isReplSet = await checkReplicaSet();
+    if (isReplSet) {
+      session = await mongoose.startSession();
+      session.startTransaction();
+    }
+
+    const saveOpts = isReplSet && session ? { session } : {};
+
     const ndr = await NDR.findOne({
       _id: req.params.id,
       merchantId: req.user.id,
-    });
+    }, null, saveOpts);
 
     if (!ndr) {
+      if (session) await session.abortTransaction();
       return res.status(404).json({
         success: false,
         message: "NDR not found",
       });
     }
 
-    // Check if NDR is in PENDING status
-    if (ndr.status !== "PENDING") {
-      return res.status(400).json({
-        success: false,
-        message: `Cannot request reattempt. Current status: ${ndr.status}`,
-      });
-    }
+    const currentAttempts = ndr.deliveryAttempts || 0;
+    const maxAttempts = ndr.maxAttempts || 3;
 
     // Check max attempts
-    if (ndr.deliveryAttempts >= (ndr.maxAttempts || 3)) {
+    if (currentAttempts >= maxAttempts) {
+      if (session) await session.abortTransaction();
       return res.status(400).json({
         success: false,
-        message: `Maximum delivery attempts (${ndr.maxAttempts || 3}) reached. Cannot request further reattempts.`,
+        message: `Maximum delivery attempts (${maxAttempts}) reached. Cannot request further reattempts.`,
       });
     }
 
-    // Update status to REATTEMPT_REQUESTED
-    ndr.status = "REATTEMPT_REQUESTED";
-    ndr.actionTaken = "REATTEMPT_REQUESTED";
-    
-    // Save merchant's note
-    if (req.body.note) {
-      ndr.actionNote = req.body.note;
-    }
+    // BYPASS ADMIN APPROVAL FOR ATTEMPTS <= 3 — DIRECT COURIER API CALL
+    const newAttemptNumber = currentAttempts + 1;
+    ndr.deliveryAttempts = newAttemptNumber;
+    ndr.status = "REATTEMPT";
+    ndr.actionTaken = "REATTEMPT";
+    ndr.adminNote = `AUTO_EXECUTED_COURIER_API_ATTEMPT_${newAttemptNumber}`;
+    ndr.approvedAt = new Date();
 
-    // Save new address, phone, and pincode
+    if (req.body.note) ndr.actionNote = req.body.note;
     if (req.body.address) ndr.address = req.body.address;
     if (req.body.customerPhone) ndr.customerPhone = req.body.customerPhone;
     if (req.body.pincode) ndr.pincode = req.body.pincode;
 
-    await ndr.save();
+    const nextDate = new Date();
+    nextDate.setDate(nextDate.getDate() + 1);
+    ndr.nextAttemptDate = nextDate;
+    ndr.lastAttemptDate = new Date();
+
+    if (!ndr.attemptHistory) ndr.attemptHistory = [];
+    ndr.attemptHistory.push({
+      date: new Date().toISOString(),
+      status: `REATTEMPT_ATTEMPT_${newAttemptNumber}_COURIER_API_EXECUTED`,
+    });
+
+    await ndr.save(saveOpts);
+
+    // Sync Order details & status
+    const order = await Order.findById(ndr.orderId, null, saveOpts);
+    if (order) {
+      if (ndr.address) order.customerAddress = ndr.address;
+      if (ndr.customerPhone) order.customerPhone = ndr.customerPhone;
+      if (ndr.pincode) order.customerPincode = ndr.pincode;
+      if (!order.customerCity) order.customerCity = order.city || "N/A";
+      if (!order.customerState) order.customerState = order.state || "N/A";
+      order.status = "SHIPPED";
+      await order.save(saveOpts);
+    }
+
+    // Sync Shipment & Add Tracking Event
+    const shipment = await Shipment.findById(ndr.shipmentId, null, saveOpts);
+    if (shipment) {
+      if (!shipment.tracking) shipment.tracking = [];
+      shipment.tracking.push({
+        status: "IN_TRANSIT",
+        location: "Out for Reattempt Hub",
+        remarks: `Reattempt #${newAttemptNumber} submitted directly to Courier API (${shipment.courier || 'Partner'}). Remarks: ${ndr.actionNote || "Delivery details updated."}`,
+        eventTime: new Date(),
+      });
+      shipment.status = "IN_TRANSIT";
+      await shipment.save(saveOpts);
+    }
+
+    // DIRECT COURIER API CALL
+    const courierApiResult = await courierService.requestReattemptApi({
+      courierCode: shipment?.courier || ndr.courier || "DELHIVERY",
+      awb: ndr.awb,
+      address: ndr.address,
+      customerPhone: ndr.customerPhone,
+      pincode: ndr.pincode,
+      actionNote: ndr.actionNote,
+      attemptNumber: newAttemptNumber,
+    });
+
+    if (session) await session.commitTransaction();
 
     res.status(200).json({
       success: true,
-      message: "Reattempt requested successfully. Waiting for admin approval.",
+      message: `Reattempt #${newAttemptNumber} directly sent to Courier API successfully without requiring admin approval!`,
       ndr,
+      courierApiResponse: courierApiResult,
     });
   } catch (error) {
+    if (session) {
+      try { await session.abortTransaction(); } catch (err) {}
+    }
     res.status(500).json({
       success: false,
       message: error.message,
     });
+  } finally {
+    if (session) await session.endSession();
   }
 };
 
 // =================================
-// MERCHANT: REQUEST RTO
+// MERCHANT: REQUEST RTO (DIRECT COURIER API CALL)
 // =================================
 const convertToRTO = async (req, res) => {
+  let session = null;
   try {
+    const isReplSet = await checkReplicaSet();
+    if (isReplSet) {
+      session = await mongoose.startSession();
+      session.startTransaction();
+    }
+
+    const saveOpts = isReplSet && session ? { session } : {};
+
     const ndr = await NDR.findOne({
       _id: req.params.id,
       merchantId: req.user.id,
-    });
+    }, null, saveOpts);
 
     if (!ndr) {
+      if (session) await session.abortTransaction();
       return res.status(404).json({
         success: false,
         message: "NDR not found",
       });
     }
 
-    // Check if NDR is in PENDING status
-    if (ndr.status !== "PENDING") {
-      return res.status(400).json({
-        success: false,
-        message: `Cannot request RTO. Current status: ${ndr.status}`,
+    // BYPASS ADMIN APPROVAL FOR RTO — DIRECT COURIER API CALL
+    ndr.status = "RTO";
+    ndr.actionTaken = "RTO";
+    ndr.approvedAt = new Date();
+    ndr.adminNote = "AUTO_APPROVED_RTO_DIRECT_COURIER_API";
+
+    if (req.body.note) ndr.actionNote = req.body.note;
+    await ndr.save(saveOpts);
+
+    const order = await Order.findById(ndr.orderId, null, saveOpts);
+    if (order) {
+      order.status = "RTO";
+      await order.save(saveOpts);
+    }
+
+    const shipment = await Shipment.findById(ndr.shipmentId, null, saveOpts);
+    if (shipment) {
+      if (!shipment.tracking) shipment.tracking = [];
+      shipment.tracking.push({
+        status: "RTO_INITIATED",
+        location: "Sorting Hub",
+        remarks: `RTO initiated directly via Courier API (${shipment.courier || 'Partner'}) without requiring admin approval.`,
+        eventTime: new Date(),
       });
+      shipment.rtoStatus = "INITIATED";
+      shipment.status = "RTO";
+      shipment.rtoDetails = {
+        reason: ndr.reason || req.body.note || "Marked RTO from NDR",
+        initiatedDate: new Date(),
+      };
+      await shipment.save(saveOpts);
     }
 
-    // Update status to RTO_REQUESTED
-    ndr.status = "RTO_REQUESTED";
-    ndr.actionTaken = "RTO_REQUESTED";
-    
-    // Save merchant's note
-    if (req.body.note) {
-      ndr.actionNote = req.body.note;
-    }
+    // Create RTO record in database
+    const rtoDocs = await RTO.create([{
+      shipmentId: ndr.shipmentId,
+      merchantId: ndr.merchantId,
+      orderId: ndr.orderId,
+      ndrId: ndr._id,
+      awb: ndr.awb,
+      courier: shipment?.courier || ndr.courier || "Courier",
+      reason: ndr.reason || req.body.note || "Marked RTO from NDR",
+      rtoReason: ndr.reason || req.body.note || "",
+      customerName: ndr.customerName || order?.customerName || "",
+      customerPhone: ndr.customerPhone || order?.customerPhone || "",
+      address: ndr.address || order?.customerAddress || "",
+      pincode: ndr.pincode || order?.customerPincode || "",
+      city: order?.customerCity || "",
+      state: order?.customerState || "",
+      status: "INITIATED",
+      rtoRequestedAt: ndr.createdAt,
+      rtoApprovedAt: new Date(),
+      source: "ndr_direct_courier_api_rto",
+      createdBy: "merchant",
+    }], session ? { session } : {});
 
-    await ndr.save();
+    const createdRto = rtoDocs[0];
+    await chargeRTOFee(createdRto, session);
+
+    // DIRECT COURIER API CALL FOR RTO
+    const courierApiResult = await courierService.requestRTOApi({
+      courierCode: shipment?.courier || ndr.courier || "DELHIVERY",
+      awb: ndr.awb,
+      reason: ndr.reason || req.body.note,
+    });
+
+    if (session) await session.commitTransaction();
 
     res.status(200).json({
       success: true,
-      message: "RTO requested successfully. Waiting for admin approval.",
+      message: "RTO initiated directly with Courier API successfully without requiring admin approval!",
       ndr,
+      courierApiResponse: courierApiResult,
     });
   } catch (error) {
+    if (session) {
+      try { await session.abortTransaction(); } catch (err) {}
+    }
     res.status(500).json({
       success: false,
       message: error.message,
     });
+  } finally {
+    if (session) await session.endSession();
   }
 };
 

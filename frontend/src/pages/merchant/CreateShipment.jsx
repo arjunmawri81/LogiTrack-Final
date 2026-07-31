@@ -75,6 +75,11 @@ const CreateShipment = () => {
   // WhatsApp notification toggle state
   const [sendWhatsAppNotification, setSendWhatsAppNotification] = useState(true);
 
+  // Active Order object memoized
+  const currentOrder = useMemo(() => {
+    return orders.find((o) => o._id === formData.orderId) || selectedOrder || null;
+  }, [orders, formData.orderId, selectedOrder]);
+
   // Insurance charge calculation
   const INSURANCE_CHARGE = 12;
 
@@ -121,15 +126,24 @@ const CreateShipment = () => {
     }
   }, [formData.orderId, formData.warehouseId]);
 
-  // Update insurance amount when order changes
+  // Auto-sync warehouse, insurance, and notification options when order changes
   useEffect(() => {
     if (currentOrder) {
-      setInsuranceAmount(currentOrder.insuranceAmount || 0);
-      if (currentOrder.insuranceEnabled) {
-        setInsuranceEnabled(true);
+      if (currentOrder.warehouseId) {
+        const wId = typeof currentOrder.warehouseId === 'object' ? currentOrder.warehouseId._id : currentOrder.warehouseId;
+        if (wId) {
+          setFormData((prev) => ({ ...prev, warehouseId: wId }));
+        }
       }
+      if (currentOrder.insuranceEnabled !== undefined) {
+        setInsuranceEnabled(!!currentOrder.insuranceEnabled);
+      }
+      if (currentOrder.sendWhatsAppNotification !== undefined) {
+        setSendWhatsAppNotification(!!currentOrder.sendWhatsAppNotification);
+      }
+      setInsuranceAmount(currentOrder.insuranceAmount || 0);
     }
-  }, [formData.orderId]);
+  }, [currentOrder]);
 
   const fetchActiveCouriers = async () => {
     try {
@@ -206,7 +220,6 @@ const CreateShipment = () => {
   };
 
   const useStaticPricing = () => {
-    const currentOrder = orders.find(o => o._id === formData.orderId) || selectedOrder;
     const baseCharge = 45;
     const codCharge = currentOrder?.paymentMode === "COD" ? 30 : 0;
     const fuelCharge = 5;
@@ -223,8 +236,6 @@ const CreateShipment = () => {
   const fetchRecommendations = async () => {
     try {
       setRecommendationLoading(true);
-      
-      const currentOrder = orders.find(o => o._id === formData.orderId) || selectedOrder;
 
       if (!currentOrder) {
         setRecommendationLoading(false);
@@ -317,8 +328,6 @@ const CreateShipment = () => {
     }
   };
 
-  const currentOrder = orders.find(o => o._id === formData.orderId) || selectedOrder;
-
   // Calculate total with insurance
   const baseTotalCharge = pricing.totalCharge || 0;
   const insuranceCost = insuranceEnabled ? INSURANCE_CHARGE : 0;
@@ -329,10 +338,12 @@ const CreateShipment = () => {
   const balanceAfterShipment = Math.max(0, walletBalance - totalCharge);
   const isInsufficientBalance = walletBalance < totalCharge;
 
-  // Updated form validation with warehouseId
+  const effectiveWarehouseId = formData.warehouseId || (typeof currentOrder?.warehouseId === 'object' ? currentOrder?.warehouseId?._id : currentOrder?.warehouseId) || (warehouses.length > 0 ? warehouses[0]._id : "");
+
+  // Updated form validation
   const isFormValid = 
-    formData.orderId && 
-    formData.warehouseId && // Added warehouse validation
+    (formData.orderId || isBulk) && 
+    effectiveWarehouseId &&
     formData.courier && 
     !isInsufficientBalance &&
     !loading;
@@ -344,29 +355,30 @@ const CreateShipment = () => {
 
     setLoading(true);
     try {
-      // Bulk shipment: Submit multiple orders
       if (isBulk && bulkOrderIds.length > 0) {
-        const payload = {
+        const bulkPayload = {
           orderIds: bulkOrderIds,
           courierId: formData.courier,
-          warehouseId: formData.warehouseId, // Added warehouseId
-          serviceType: activeTab, // Added serviceType
-          insuranceEnabled: insuranceEnabled,
-          insuranceAmount: insuranceEnabled ? insuranceAmount : 0,
-          sendWhatsAppNotification: sendWhatsAppNotification
+          warehouseId: effectiveWarehouseId,
+          serviceType: activeTab,
+          isInsured: insuranceEnabled,
+          sendNotification: sendWhatsAppNotification,
         };
-        
-        await api.post("/shipments/bulk", payload);
-        alert(`✅ ${bulkOrderIds.length} shipments created successfully!`);
-        navigate("/merchant/shipments");
+        const res = await api.post("/shipments/bulk-create", bulkPayload);
+        if (res.data.success) {
+          alert(`Successfully created ${bulkOrderIds.length} shipments!`);
+          navigate("/merchant/shipments");
+        } else {
+          alert(res.data.message || "Failed to create bulk shipments");
+        }
       } else {
-        // Single shipment - Updated payload structure
         const payload = {
           orderId: formData.orderId,
           courierId: formData.courier,
-          warehouseId: formData.warehouseId, // Added warehouseId
-          serviceType: activeTab, // Added serviceType
-          insuranceEnabled: insuranceEnabled,
+          warehouseId: effectiveWarehouseId,
+          serviceType: activeTab,
+          isInsured: insuranceEnabled,
+          sendNotification: sendWhatsAppNotification,
           insuranceAmount: insuranceEnabled ? insuranceAmount : 0,
           sendWhatsAppNotification: sendWhatsAppNotification
         };
@@ -568,30 +580,29 @@ const CreateShipment = () => {
                   </div>
                 )}
 
-                {/* ==================== WAREHOUSE DROPDOWN (ADDED) ==================== */}
-                <div className="form-group">
-                  <div className="form-label">
-                    <span>Select Warehouse <span className="required-star">*</span></span>
+                {/* Pickup Warehouse Info Badge (Configured during Create Order) */}
+                {formData.warehouseId && (
+                  <div className="form-group" style={{ marginBottom: "16px" }}>
+                    <div style={{
+                      padding: "10px 14px",
+                      background: "#f8fafc",
+                      border: "1px solid #e2e8f0",
+                      borderRadius: "10px",
+                      fontSize: "13px",
+                      color: "#334155",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px"
+                    }}>
+                      <span style={{ fontSize: "16px" }}>🏭</span>
+                      <div>
+                        <strong style={{ color: "#0f172a" }}>Pickup Warehouse: </strong>
+                        {warehouses.find(w => w._id === formData.warehouseId)?.name || 'Default Warehouse'}
+                        {warehouses.find(w => w._id === formData.warehouseId)?.city && ` (${warehouses.find(w => w._id === formData.warehouseId)?.city})`}
+                      </div>
+                    </div>
                   </div>
-                  <select
-                    value={formData.warehouseId}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        warehouseId: e.target.value,
-                      })
-                    }
-                    required
-                    className="form-select"
-                  >
-                    <option value="">Choose Warehouse</option>
-                    {warehouses.map((w) => (
-                      <option key={w._id} value={w._id}>
-                        {w.name} ({w.city})
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                )}
 
                 {/* Surface / Air Tab Switcher */}
                 {!recommendationLoading && (surfaceRates.length > 0 || airRates.length > 0) && (
@@ -784,76 +795,6 @@ const CreateShipment = () => {
                       </option>
                     ))}
                   </select>
-                </div>
-
-                {/* Insurance Toggle */}
-                {currentOrder && !isBulk && (
-                  <div 
-                    className={`insurance-toggle ${insuranceEnabled ? 'insurance-active' : ''}`}
-                    onClick={() => setInsuranceEnabled(!insuranceEnabled)}
-                  >
-                    <div className="insurance-left">
-                      <FaShieldAlt className="insurance-icon" />
-                      <div>
-                        <div className="insurance-label">
-                          ☑ Add Insurance
-                        </div>
-                        <div className="insurance-subtext">
-                          Protect your shipment (₹{INSURANCE_CHARGE})
-                        </div>
-                      </div>
-                    </div>
-                    <div className={`insurance-switch ${insuranceEnabled ? 'switch-active' : ''}`}>
-                      <div className={`insurance-knob ${insuranceEnabled ? 'knob-active' : ''}`} />
-                    </div>
-                  </div>
-                )}
-
-                {/* Bulk Insurance Toggle */}
-                {isBulk && (
-                  <div 
-                    className={`insurance-toggle ${insuranceEnabled ? 'insurance-active' : ''}`}
-                    onClick={() => setInsuranceEnabled(!insuranceEnabled)}
-                  >
-                    <div className="insurance-left">
-                      <FaShieldAlt className="insurance-icon" />
-                      <div>
-                        <div className="insurance-label">
-                          ☑ Add Insurance to All
-                        </div>
-                        <div className="insurance-subtext">
-                          Protect all shipments (₹{INSURANCE_CHARGE} each)
-                        </div>
-                      </div>
-                    </div>
-                    <div className={`insurance-switch ${insuranceEnabled ? 'switch-active' : ''}`}>
-                      <div className={`insurance-knob ${insuranceEnabled ? 'knob-active' : ''}`} />
-                    </div>
-                  </div>
-                )}
-
-                {/* WhatsApp Notification Toggle */}
-                <div 
-                  className={`insurance-toggle ${sendWhatsAppNotification ? 'insurance-active' : ''}`}
-                  onClick={() => setSendWhatsAppNotification(!sendWhatsAppNotification)}
-                  style={{ marginTop: '12px', borderLeft: sendWhatsAppNotification ? '4px solid #25D366' : '4px solid #cbd5e1' }}
-                >
-                  <div className="insurance-left">
-                    <div className="insurance-icon" style={{ color: '#25D366', fontSize: '18px' }}>
-                      💬
-                    </div>
-                    <div>
-                      <div className="insurance-label" style={{ color: '#0f172a' }}>
-                        Send WhatsApp Notification to Customer
-                      </div>
-                      <div className="insurance-subtext">
-                        Send tracking link, AWB number & courier details via WhatsApp to customer
-                      </div>
-                    </div>
-                  </div>
-                  <div className={`insurance-switch ${sendWhatsAppNotification ? 'switch-active' : ''}`} style={{ background: sendWhatsAppNotification ? '#25D366' : '#cbd5e1' }}>
-                    <div className={`insurance-knob ${sendWhatsAppNotification ? 'knob-active' : ''}`} />
-                  </div>
                 </div>
 
                 {/* Cost Preview */}

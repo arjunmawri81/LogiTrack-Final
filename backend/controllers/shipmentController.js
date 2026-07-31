@@ -14,10 +14,22 @@ const AdmZip = require("adm-zip");
 const fs = require("fs");
 const path = require("path");
 const mongoose = require("mongoose");
-const Warehouse = require("../models/Warehouse"); // Added Warehouse import
+const Warehouse = require("../models/Warehouse"); 
 const { determineZone, calculateShippingRates } = require("./rateCardController");
 const whatsappService = require("../services/whatsappService");
 const { triggerChannelSync } = require("../services/channelSyncService");
+const nimbuspostService = require("../services/nimbuspostService");
+
+// Helper to check replica set for Mongoose transactions
+const checkReplicaSet = async () => {
+  try {
+    if (!mongoose.connection || !mongoose.connection.db) return false;
+    const hello = await mongoose.connection.db.admin().command({ hello: 1 });
+    return !!hello.setName;
+  } catch (err) {
+    return false;
+  }
+};
 
 // ===============================
 // LOGGER (Simple Structured Logger)
@@ -145,11 +157,16 @@ const PROVIDER_REGISTRY = {
   // Aliases (for backward compatibility / different codes)
   XPB: FakeXpressbees,
   XB: FakeXpressbees,
-  ECOM: FakeEcomExpress,
-  DLV: FakeDelhivery,
-  BD: FakeBlueDart,
-  DT: FakeDTDC,
-  SF: FakeShadowfax,
+  // NimbusPost Integration
+  NIMBUSPOST: async function(order, shipmentData) {
+    return await nimbuspostService.createShipment(shipmentData);
+  },
+  NIMBUS: async function(order, shipmentData) {
+    return await nimbuspostService.createShipment(shipmentData);
+  },
+  NIMBUS_POST: async function(order, shipmentData) {
+    return await nimbuspostService.createShipment(shipmentData);
+  },
 };
 
 // ===============================
@@ -1098,16 +1115,6 @@ async function renderLabel(doc, shipment, settings = {}, labelWidth = null, labe
   return renderLabelV2(doc, shipment, settings, labelWidth, labelHeight, x, y);
 }
 
-const checkReplicaSet = async () => {
-  try {
-    if (!mongoose.connection || !mongoose.connection.db) return false;
-    const hello = await mongoose.connection.db.admin().command({ hello: 1 });
-    return !!hello.setName;
-  } catch (err) {
-    return false;
-  }
-};
-
 // ===============================
 // CREATE SHIPMENT WITH TRANSACTION
 // ===============================
@@ -1664,9 +1671,12 @@ const createBulkShipments = async (req, res) => {
           amount: Number(order.amount || 0),
         });
 
-        const shippingCharge = calculated.finalCharge; // Inclusive of GST
-        const subtotal = calculated.subtotal;
-        const taxAmount = calculated.gstAmount;
+        const shippingCharge = calculated.finalCharge || 0; // Inclusive of GST
+        const subtotal = calculated.subtotal || 0;
+        const taxAmount = calculated.gstAmount || 0;
+        const buyRate = calculated.buyRate || 0;
+        const sellRate = calculated.sellRate || 0;
+        const marginEarned = calculated.marginEarned || 0;
 
         if (wallet.balance < shippingCharge) {
           failedOrders.push({ 
@@ -1683,6 +1693,8 @@ const createBulkShipments = async (req, res) => {
 
         const awb = courierResponse.awb;
         const labelUrl = courierResponse.labelUrl;
+
+        const createOpts = session ? { session } : {};
 
         const shipment = await Shipment.create([{
           orderId,
@@ -1746,7 +1758,7 @@ const createBulkShipments = async (req, res) => {
               eventTime: new Date(),
             },
           ],
-        }], { session });
+        }], createOpts);
 
         const createdShipment = shipment[0];
         createdShipmentIds.push(createdShipment._id);
@@ -1762,7 +1774,7 @@ const createBulkShipments = async (req, res) => {
           insuranceCharge: 0,
           paymentMethod: order.paymentMode || "COD",
           status: "PAID",
-        }], { session });
+        }], createOpts);
 
         const createdInvoice = invoice[0];
 

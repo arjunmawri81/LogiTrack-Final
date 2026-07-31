@@ -428,7 +428,7 @@ const RateForm = ({ formData, onChange, onSave, onReset, onBack, saving, activeT
         <div>
           <div className="rcm-card">
             <h3 className="rcm-card-title">
-              <span className="rcm-card-title-icon"><FaInfoCircle size={16} /></span> Section 1: Basic Information & Volumetric
+              <span className="rcm-card-title-icon"><FaInfoCircle size={16} /></span> Basic Information & Volumetric
             </h3>
             <div className="rcm-inputs-grid-3">
               <FormInput label="Service Type" value={activeTab} onChange={() => {}} disabled type="text" prefix="" />
@@ -448,35 +448,9 @@ const RateForm = ({ formData, onChange, onSave, onReset, onBack, saving, activeT
             </div>
           </div>
 
-          <div className="rcm-card highlight-buying-card">
-            <h3 className="rcm-card-title">
-              <span className="rcm-card-title-icon"><FaCoins size={16} /></span> Section 2: Courier Buying Rate & Internal Margin
-            </h3>
-            <div className="rcm-inputs-grid-2">
-              <FormInput 
-                label="Courier Buying Rate" 
-                value={buyingRate?.buyRate} 
-                onChange={(v) => field("buyingRate", "buyRate", v)} 
-                placeholder="0 (Optional)"
-                helperText="If empty, system auto-calculates using Internal Cost %"
-                tooltip="Optional explicit buy rate paid to courier partner"
-                error={errorBuyRate}
-              />
-              <FormInput 
-                label="Internal Cost (%)" 
-                value={buyingRate?.internalCostPercent} 
-                onChange={(v) => field("buyingRate", "internalCostPercent", v)} 
-                prefix="%" 
-                placeholder="70"
-                helperText="Fallback cost ratio (Default 70% cost, 30% profit margin)"
-                tooltip="Default ratio used when explicit Buying Rate is empty"
-              />
-            </div>
-          </div>
-
           <div className="rcm-card">
             <h3 className="rcm-card-title">
-              <span className="rcm-card-title-icon"><FaBoxes size={16} /></span> Section 3: Forward Freight Weight Slabs
+              <span className="rcm-card-title-icon"><FaBoxes size={16} /></span> Forward Freight Weight Slabs
             </h3>
             <div className="rcm-inputs-grid-3">
               <FormInput label="500gm Rate" value={forwardRates.rate500gm} onChange={(v) => field("forwardRates","rate500gm",v)} required />
@@ -489,7 +463,7 @@ const RateForm = ({ formData, onChange, onSave, onReset, onBack, saving, activeT
 
           <div className="rcm-card">
             <h3 className="rcm-card-title">
-              <span className="rcm-card-title-icon"><FaMapMarkerAlt size={16} /></span> Section 4: Zone Rates
+              <span className="rcm-card-title-icon"><FaMapMarkerAlt size={16} /></span> Zone Rates
             </h3>
             <div className="rcm-inputs-grid-3">
               <FormInput label="Local Zone"    value={zoneRates.local}    onChange={(v) => field("zoneRates","local",v)} helperText="Same city delivery" />
@@ -500,71 +474,45 @@ const RateForm = ({ formData, onChange, onSave, onReset, onBack, saving, activeT
 
           <div className="rcm-card">
             <h3 className="rcm-card-title">
-              <span className="rcm-card-title-icon"><FaExchangeAlt size={16} /></span> Section 5: COD Charges (Selling & Buying)
+              <span className="rcm-card-title-icon"><FaExchangeAlt size={16} /></span> COD Charges
             </h3>
             <div className="rcm-inputs-grid-2">
               <FormInput 
-                label="Selling COD Charge (Flat)" 
+                label="COD Flat Fee (₹)" 
                 value={codCharges.codCharge} 
                 onChange={(v) => field("codCharges","codCharge",v)} 
                 required 
-                helperText="Fixed COD fee billed to merchant"
+                helperText="Fixed COD fee billed for COD orders"
               />
               <FormInput 
-                label="Selling COD (%)" 
+                label="COD Percentage (%)" 
                 value={codCharges.codPercentage} 
                 onChange={(v) => field("codCharges","codPercentage",v)} 
                 prefix="%" 
                 placeholder="0"
-                helperText="Optional percentage fee on order value"
-              />
-              <FormInput 
-                label="Buying COD Charge (Flat)" 
-                value={codCharges.codBuyCharge} 
-                onChange={(v) => field("codCharges","codBuyCharge",v)} 
-                placeholder="0 (Optional)"
-                helperText="If empty, system defaults to 50% of Selling COD Charge"
-                tooltip="Explicit COD fee paid to courier gateway"
-                warning={warnCodBuy}
-              />
-              <FormInput 
-                label="Buying COD (%)" 
-                value={codCharges.codBuyPercentage} 
-                onChange={(v) => field("codCharges","codBuyPercentage",v)} 
-                prefix="%" 
-                placeholder="0"
-                helperText="Optional buying percentage paid to courier"
+                helperText="Optional percentage fee on order amount"
               />
             </div>
           </div>
 
           <div className="rcm-card">
             <h3 className="rcm-card-title">
-              <span className="rcm-card-title-icon"><FaUndo size={16} /></span> Section 6: RTO Charges (Selling & Buying)
+              <span className="rcm-card-title-icon"><FaUndo size={16} /></span> RTO Return Charge
             </h3>
-            <div className="rcm-inputs-grid-2">
+            <div className="rcm-inputs-grid-1">
               <FormInput 
-                label="Selling RTO Charge" 
+                label="RTO Return Charge (₹)" 
                 value={rtoCharges.rtoCharge} 
                 onChange={(v) => field("rtoCharges","rtoCharge",v)} 
                 placeholder="60"
-                helperText="Fee debited from merchant wallet on return (Default ₹60)"
-              />
-              <FormInput 
-                label="Buying RTO Charge" 
-                value={rtoCharges.rtoBuyCharge} 
-                onChange={(v) => field("rtoCharges","rtoBuyCharge",v)} 
-                placeholder="0 (Optional)"
-                helperText="If empty, system defaults to 60% of Selling RTO Charge (₹36)"
-                tooltip="Actual RTO cost paid to courier partner"
-                warning={warnRtoBuy}
+                helperText="Fee debited from wallet on return shipment (Default ₹60)"
               />
             </div>
           </div>
 
           <div className="rcm-card">
             <h3 className="rcm-card-title">
-              <span className="rcm-card-title-icon"><FaReceipt size={16} /></span> Section 7: Additional Charges & VAS
+              <span className="rcm-card-title-icon"><FaReceipt size={16} /></span> Additional Charges & VAS
             </h3>
             <div className="rcm-inputs-grid-3">
               <FormInput label="Fuel Charge"     value={additionalCharges.fuelCharge}     onChange={(v) => field("additionalCharges","fuelCharge",v)} />
@@ -584,7 +532,7 @@ const RateForm = ({ formData, onChange, onSave, onReset, onBack, saving, activeT
 
           <div className="rcm-card">
             <h3 className="rcm-card-title">
-              <span className="rcm-card-title-icon"><FaSlidersH size={16} /></span> Section 8: Serviceability Options
+              <span className="rcm-card-title-icon"><FaSlidersH size={16} /></span> Serviceability Options
             </h3>
             <div className="rcm-inputs-grid-2">
               <CheckboxToggle label="COD Enabled"     checked={serviceability.codEnabled}     onChange={() => onChange("serviceability","codEnabled",    !serviceability.codEnabled)} />

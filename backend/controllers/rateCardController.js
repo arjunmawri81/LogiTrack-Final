@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const RateCard = require("../models/RateCard");
 const Order = require("../models/Order");
 const Courier = require("../models/Courier");
+const nimbuspostService = require("../services/nimbuspostService");
 
 const parseMerchantId = (id) => {
   if (!id || id === "null" || id === "undefined" || id === "default" || id === "global") {
@@ -1088,19 +1089,40 @@ const calculatePricing = async (req, res) => {
 const checkServiceability = async (req, res) => {
   try {
     const { pincode } = req.params;
+    const { originPincode = "110001", weight = 0.5, paymentMode = "prepaid", amount = 100 } = req.query;
+
     if (!pincode || !/^\d{6}$/.test(pincode)) {
       return res.status(400).json({ success: false, message: "Invalid pincode" });
     }
 
+    // Try NimbusPost Live Serviceability API
+    const nimbusResult = await nimbuspostService.checkRateAndServiceability({
+      origin: originPincode,
+      destination: pincode,
+      paymentType: paymentMode,
+      orderAmount: amount,
+      weight,
+    });
+
+    if (nimbusResult.success && nimbusResult.rates && nimbusResult.rates.length > 0) {
+      return res.status(200).json({
+        success: true,
+        source: "NIMBUSPOST_LIVE",
+        pincode,
+        couriers: nimbusResult.rates,
+      });
+    }
+
+    // Fallback: Active couriers in database
     const activeCouriers = await Courier.find({ isActive: true });
     const results = activeCouriers.map((courier) => ({
       courierId: courier._id,
       courierName: courier.name,
-      serviceable: true, // TODO: replace with real courier pincode-check once NimbusPost is live
+      serviceable: true,
       estimatedDays: 3,
     }));
 
-    res.status(200).json({ success: true, pincode, couriers: results });
+    res.status(200).json({ success: true, source: "LOCAL_RATE_CARD", pincode, couriers: results });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

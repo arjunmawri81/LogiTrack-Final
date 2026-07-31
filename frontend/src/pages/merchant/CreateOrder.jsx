@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import api from "../../services/api";
@@ -6,6 +6,8 @@ import api from "../../services/api";
 const CreateOrder = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [warehouses, setWarehouses] = useState([]);
+  
   const [formData, setFormData] = useState({
     customerName: "",
     customerPhone: "",
@@ -24,9 +26,35 @@ const CreateOrder = () => {
     paymentMode: "PREPAID",
     amount: "",
     notes: "",
+    warehouseId: "",
+    insuranceEnabled: false,
+    sendWhatsAppNotification: true,
   });
 
-  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+  useEffect(() => {
+    fetchWarehouses();
+  }, []);
+
+  const fetchWarehouses = async () => {
+    try {
+      const res = await api.get("/warehouses");
+      const activeW = (res.data.warehouses || []).filter((w) => w.isActive);
+      setWarehouses(activeW);
+      if (activeW.length > 0) {
+        setFormData((prev) => ({ ...prev, warehouseId: activeW[0]._id }));
+      }
+    } catch (err) {
+      setWarehouses([]);
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData({
+      ...formData,
+      [name]: type === "checkbox" ? checked : value,
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -112,7 +140,7 @@ const CreateOrder = () => {
               margin: 0,
             }}
           >
-            Create and manage customer orders
+            Create and manage customer orders with warehouse, insurance, and notification preferences
           </p>
         </div>
         
@@ -127,6 +155,34 @@ const CreateOrder = () => {
           }}
         >
           <div style={gridStyles}>
+            {/* Pickup & Warehouse Settings */}
+            <div style={fullWidthStyle}>
+              <h2 style={sectionTitle}>Pickup Warehouse Location</h2>
+            </div>
+
+            <div style={fullWidthStyle}>
+              <label style={labelStyle}>Select Pickup Warehouse *</label>
+              <select
+                name="warehouseId"
+                value={formData.warehouseId}
+                onChange={handleChange}
+                required
+                style={{
+                  ...inputStyle,
+                  background: "#f8fafc",
+                  fontWeight: "600",
+                  borderColor: "#cbd5e1"
+                }}
+              >
+                <option value="">-- Select Pickup Warehouse --</option>
+                {warehouses.map((w) => (
+                  <option key={w._id} value={w._id}>
+                    🏬 {w.name} ({w.city}, {w.pincode}) - {w.contactPhone || w.phone || 'Active'}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* Customer Details Section */}
             <div style={fullWidthStyle}>
               <h2 style={sectionTitle}>Customer Details</h2>
@@ -134,7 +190,7 @@ const CreateOrder = () => {
             
             <input 
               name="customerName" 
-              placeholder="Customer Name" 
+              placeholder="Customer Name *" 
               value={formData.customerName} 
               onChange={handleChange} 
               required 
@@ -142,7 +198,7 @@ const CreateOrder = () => {
             />
             <input 
               name="customerPhone" 
-              placeholder="Phone Number" 
+              placeholder="Phone Number *" 
               value={formData.customerPhone} 
               onChange={handleChange} 
               required 
@@ -158,30 +214,33 @@ const CreateOrder = () => {
             />
             <input 
               name="pincode" 
-              placeholder="Pincode" 
+              placeholder="Pincode *" 
               value={formData.pincode} 
               onChange={handleChange} 
+              required
               style={inputStyle} 
             />
             
             <input 
               name="city" 
-              placeholder="City" 
+              placeholder="City *" 
               value={formData.city} 
               onChange={handleChange} 
+              required
               style={inputStyle} 
             />
             <input 
               name="state" 
-              placeholder="State" 
+              placeholder="State *" 
               value={formData.state} 
               onChange={handleChange} 
+              required
               style={inputStyle} 
             />
             
             <textarea 
               name="customerAddress" 
-              placeholder="Full Address" 
+              placeholder="Full Delivery Address *" 
               value={formData.customerAddress} 
               onChange={handleChange} 
               required 
@@ -191,12 +250,12 @@ const CreateOrder = () => {
 
             {/* Product & Package Section */}
             <div style={fullWidthStyle}>
-              <h2 style={sectionTitle}>Product & Package</h2>
+              <h2 style={sectionTitle}>Product & Package Details</h2>
             </div>
             
             <input 
               name="productName" 
-              placeholder="Product Name" 
+              placeholder="Product Name *" 
               value={formData.productName} 
               onChange={handleChange} 
               required 
@@ -267,13 +326,13 @@ const CreateOrder = () => {
             
             {/* Payment Details Section */}
             <div style={fullWidthStyle}>
-              <h2 style={sectionTitle}>Payment Details</h2>
+              <h2 style={sectionTitle}>Payment & Order Value</h2>
             </div>
             
             <input 
               type="number" 
               name="amount" 
-              placeholder="Order Amount" 
+              placeholder="Order Value (₹) *" 
               value={formData.amount} 
               onChange={handleChange} 
               required 
@@ -288,6 +347,78 @@ const CreateOrder = () => {
               <option value="PREPAID">PREPAID</option>
               <option value="COD">COD</option>
             </select>
+
+            {/* Insurance & Notification Preferences */}
+            <div style={fullWidthStyle}>
+              <h2 style={sectionTitle}>Insurance & Notification Options</h2>
+            </div>
+
+            <div
+              style={{
+                ...fullWidthStyle,
+                background: "#f8fafc",
+                border: "1px solid #e2e8f0",
+                borderRadius: "12px",
+                padding: "16px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "14px",
+              }}
+            >
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  color: "#1e293b",
+                }}
+              >
+                <div>
+                  <span>🛡️ Enable Parcel Loss & Damage Insurance Cover (₹12)</span>
+                  <div style={{ fontSize: "12px", color: "#64748b", fontWeight: "normal" }}>
+                    Protects package against lost or damaged transit shipments up to ₹5,000.
+                  </div>
+                </div>
+                <input
+                  type="checkbox"
+                  name="insuranceEnabled"
+                  checked={formData.insuranceEnabled}
+                  onChange={handleChange}
+                  style={{ width: "20px", height: "20px", cursor: "pointer" }}
+                />
+              </label>
+
+              <hr style={{ border: "none", borderTop: "1px solid #e2e8f0", margin: 0 }} />
+
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  color: "#1e293b",
+                }}
+              >
+                <div>
+                  <span>📱 Send Instant WhatsApp & SMS Delivery Tracking Updates</span>
+                  <div style={{ fontSize: "12px", color: "#64748b", fontWeight: "normal" }}>
+                    Sends live tracking link and delivery status updates to customer automatically.
+                  </div>
+                </div>
+                <input
+                  type="checkbox"
+                  name="sendWhatsAppNotification"
+                  checked={formData.sendWhatsAppNotification}
+                  onChange={handleChange}
+                  style={{ width: "20px", height: "20px", cursor: "pointer" }}
+                />
+              </label>
+            </div>
             
             <textarea
               name="notes"
@@ -295,7 +426,7 @@ const CreateOrder = () => {
               value={formData.notes}
               onChange={handleChange}
               style={{...inputStyle, ...fullWidthStyle}}
-              rows="3"
+              rows="2"
             />
           </div>
 
@@ -337,10 +468,18 @@ const CreateOrder = () => {
 };
 
 const sectionTitle = { 
-  fontSize: "18px", 
+  fontSize: "16px", 
   color: "#1e293b", 
-  margin: "10px 0",
+  margin: "12px 0 6px 0",
+  fontWeight: "700",
+};
+
+const labelStyle = {
+  fontSize: "13px",
   fontWeight: "600",
+  color: "#475569",
+  marginBottom: "6px",
+  display: "block",
 };
 
 const inputStyle = { 

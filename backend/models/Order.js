@@ -42,17 +42,17 @@ const orderSchema = new mongoose.Schema(
     // Production fields (used by shipment controller)
     customerCity: {
       type: String,
-      required: true,
+      default: "N/A",
     },
 
     customerState: {
       type: String,
-      required: true,
+      default: "N/A",
     },
 
     customerPincode: {
       type: String,
-      required: true,
+      default: "000000",
     },
 
     // ===== ORDER ITEMS =====
@@ -146,6 +146,22 @@ const orderSchema = new mongoose.Schema(
     insuranceAmount: {
       type: Number,
       default: 0,
+    },
+
+    warehouseId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Warehouse",
+      default: null,
+    },
+
+    sendWhatsAppNotification: {
+      type: Boolean,
+      default: true,
+    },
+
+    sendSmsNotification: {
+      type: Boolean,
+      default: true,
     },
 
     shippingCharge: {

@@ -11,16 +11,16 @@
   position: fixed;
   top: 0;
   left: 0;
-  background-color: #0f172a;
+  background-color: #090d18;
   color: #f8fafc;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid #1e293b;
+  border-right: 1px solid #162035;
   font-family: 'Inter', sans-serif;
   z-index: 2000;
   transition: transform 0.3s ease-in-out, width 0.3s ease;
   overflow: hidden;
-  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
 }
 
 /* ============================================ */

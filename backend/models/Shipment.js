@@ -34,7 +34,6 @@ const shipmentSchema = new mongoose.Schema(
     warehouseId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Warehouse",
-      required: true,
     },
 
     pickupAddress: {

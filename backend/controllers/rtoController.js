@@ -934,6 +934,7 @@ module.exports = {
   requestRTOFromNDR,
   getRTOStats,
   cancelRTO,
+  chargeRTOFee,
 
   // Admin RTO Status Update Functions
   schedulePickup,

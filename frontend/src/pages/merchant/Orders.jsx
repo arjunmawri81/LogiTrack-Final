@@ -20,15 +20,15 @@ const Orders = () => {
   const [uploading, setUploading] = useState(false);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [menuPos, setMenuPos] = useState(null);
-  
+
   const [downloadingLabel, setDownloadingLabel] = useState(false);
-  
+
   const [showBulkDropdown, setShowBulkDropdown] = useState(false);
-  
+
   const [showLabelModal, setShowLabelModal] = useState(false);
   const [labelModalMode, setLabelModalMode] = useState(null);
   const [singleShipmentId, setSingleShipmentId] = useState(null);
-  
+
   const [activeTab, setActiveTab] = useState('ALL');
   const [courierFilter, setCourierFilter] = useState('ALL');
   const [dateFilter, setDateFilter] = useState('ALL');
@@ -150,7 +150,7 @@ const Orders = () => {
 
   const filteredOrders = orders.filter((o) => {
     const searchLower = search.toLowerCase();
-    const matchesSearch = 
+    const matchesSearch =
       o.customerName?.toLowerCase().includes(searchLower) ||
       o.orderNumber?.toLowerCase().includes(searchLower) ||
       o.customerPhone?.includes(search) ||
@@ -158,7 +158,7 @@ const Orders = () => {
 
     if (!matchesSearch) return false;
     if (activeTab !== 'ALL' && o.status !== activeTab) return false;
-    
+
     if (
       courierFilter !== "ALL" &&
       o.shipmentId?.courier?.toLowerCase() !== courierFilter.toLowerCase()
@@ -168,8 +168,8 @@ const Orders = () => {
     if (dateFilter !== 'ALL') {
       const orderDate = new Date(o.createdAt);
       const today = new Date();
-      
-      switch(dateFilter) {
+
+      switch (dateFilter) {
         case 'TODAY':
           if (!isToday(orderDate)) return false;
           break;
@@ -250,7 +250,7 @@ const Orders = () => {
   const exportToExcel = () => {
     try {
       setExporting(true);
-      
+
       const exportData = filteredOrders.map((order) => ({
         'Order ID': order.orderNumber || order._id.slice(-6),
         'AWB': order.awb || 'N/A',
@@ -274,7 +274,7 @@ const Orders = () => {
       XLSX.utils.book_append_sheet(wb, ws, 'Orders');
       const date = new Date().toISOString().split('T')[0];
       XLSX.writeFile(wb, `Orders_${date}.xlsx`);
-      
+
       alert(`✅ Exported ${exportData.length} orders successfully!`);
     } catch (error) {
       console.error('Export error:', error);
@@ -300,7 +300,7 @@ const Orders = () => {
 
   const handleBulkLabels = async (settings) => {
     if (downloadingLabel) return;
-    
+
     if (selectedOrders.length === 0) {
       alert('⚠️ Please select at least one order.');
       return;
@@ -321,10 +321,10 @@ const Orders = () => {
       }
 
       const formData = new FormData();
-      
+
       const settingsData = { ...settings };
       delete settingsData.logoFile;
-      
+
       formData.append("shipmentIds", JSON.stringify(shipmentIds));
       formData.append("settings", JSON.stringify(settingsData));
 
@@ -354,7 +354,7 @@ const Orders = () => {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-      
+
       setShowLabelModal(false);
     } catch (error) {
       console.error('Bulk labels error:', error);
@@ -376,7 +376,7 @@ const Orders = () => {
 
   const downloadSingleLabel = async (settings) => {
     if (downloadingLabel) return;
-    
+
     if (!singleShipmentId) {
       alert('❌ No shipment found.');
       return;
@@ -386,10 +386,10 @@ const Orders = () => {
 
     try {
       const formData = new FormData();
-      
+
       const settingsData = { ...settings };
       delete settingsData.logoFile;
-      
+
       formData.append("settings", JSON.stringify(settingsData));
 
       if (settings.logoFile) {
@@ -406,7 +406,7 @@ const Orders = () => {
           }
         }
       );
-      
+
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
@@ -416,7 +416,7 @@ const Orders = () => {
       link.remove();
       window.URL.revokeObjectURL(url);
       setOpenMenuId(null);
-      
+
       setShowLabelModal(false);
     } catch (error) {
       console.error('Label download error:', error);
@@ -440,7 +440,7 @@ const Orders = () => {
       await api.post('/orders/bulk-cancel', {
         orderIds: selectedOrders
       });
-      
+
       alert(`✅ ${selectedOrders.length} order(s) cancelled successfully.`);
       setSelectedOrders([]);
       setShowBulkDropdown(false);
@@ -461,7 +461,7 @@ const Orders = () => {
       const response = await api.get(`/invoices/${invoiceId}/download`, {
         responseType: 'blob'
       });
-      
+
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
@@ -622,7 +622,7 @@ const Orders = () => {
                   >
                     <FaTruck /> Bulk Actions ({selectedOrders.length})
                   </button>
-                  
+
                   {showBulkDropdown && (
                     <div className="orders-bulk-dropdown">
                       <button onClick={handleBulkShipment} className="orders-dropdown-item">
@@ -742,7 +742,7 @@ const Orders = () => {
                 {dateOptions.map(d => (
                   <button
                     key={d.id}
-                    onClick={() => { 
+                    onClick={() => {
                       setDateFilter(d.id);
                       if (d.id !== 'CUSTOM') {
                         setShowDateDropdown(false);
@@ -814,10 +814,10 @@ const Orders = () => {
                     const isDelivered = order.status === 'DELIVERED';
                     const isCancelled = order.status === 'CANCELLED';
                     const canCancel = !isDelivered && !isCancelled && !hasShipment;
-                    
+
                     return (
-                      <tr 
-                        key={order._id} 
+                      <tr
+                        key={order._id}
                         className={`orders-table-row ${openMenuId === order._id ? 'active-menu-row' : ''}`}
                         style={{ position: 'relative', zIndex: openMenuId === order._id ? 100 : 1 }}
                       >
@@ -850,7 +850,7 @@ const Orders = () => {
                           <span className="orders-courier-badge">
                             {order.shipmentId?.courier
                               ? order.shipmentId.courier.charAt(0).toUpperCase() +
-                                order.shipmentId.courier.slice(1)
+                              order.shipmentId.courier.slice(1)
                               : "-"}
                           </span>
                         </td>
@@ -908,12 +908,12 @@ const Orders = () => {
                             </button>
 
                             {openMenuId === order._id && menuPos && (
-                              <div 
+                              <div
                                 className="orders-action-menu"
                                 style={{
                                   position: "fixed",
-                                  ...(menuPos.isUp 
-                                    ? { bottom: `${menuPos.bottom}px`, top: "auto" } 
+                                  ...(menuPos.isUp
+                                    ? { bottom: `${menuPos.bottom}px`, top: "auto" }
                                     : { top: `${menuPos.top}px`, bottom: "auto" }),
                                   right: `${menuPos.right}px`,
                                   zIndex: 999999,

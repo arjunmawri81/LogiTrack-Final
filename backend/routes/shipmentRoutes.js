@@ -32,6 +32,7 @@ router.post(
 // BULK CREATE SHIPMENTS
 // ===============================
 router.post("/bulk", authMiddleware, createBulkShipments);
+router.post("/bulk-create", authMiddleware, createBulkShipments);
 
 // ===============================
 // BULK LABELS DOWNLOAD
