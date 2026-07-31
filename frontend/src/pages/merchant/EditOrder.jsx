@@ -141,7 +141,7 @@ const EditOrder = () => {
 
   if (loading) {
     return (
-      <div style={{ display: "flex", minHeight: "100vh", background: "#f1f5f9" }}>
+      <div style={{ display: "flex", minHeight: "100vh", background: "#111827" }}>
         <div style={{ width: "280px", flexShrink: 0 }}>
           <Sidebar />
         </div>
@@ -156,7 +156,7 @@ const EditOrder = () => {
     <div style={{
       display: "flex",
       minHeight: "100vh",
-      background: "#f1f5f9",
+      background: "#111827",
       fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif"
     }}>
       <div style={{ width: "280px", flexShrink: 0 }}>
@@ -173,7 +173,7 @@ const EditOrder = () => {
                 style={{
                   background: "transparent",
                   border: "none",
-                  color: "#64748b",
+                  color: "#94a3b8",
                   cursor: "pointer",
                   fontSize: "14px",
                   display: "flex",
@@ -181,15 +181,15 @@ const EditOrder = () => {
                   gap: "8px",
                   marginBottom: "8px"
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.color = "#0f172a"}
-                onMouseLeave={(e) => e.currentTarget.style.color = "#64748b"}
+                onMouseEnter={(e) => e.currentTarget.style.color = "#f1f5f9"}
+                onMouseLeave={(e) => e.currentTarget.style.color = "#94a3b8"}
               >
                 <FaArrowLeft /> Back
               </button>
               <h1 style={{
                 fontSize: "28px",
                 fontWeight: "700",
-                color: "#0f172a",
+                color: "#f1f5f9",
                 margin: "0 0 6px 0",
                 display: "flex",
                 alignItems: "center",
@@ -199,7 +199,7 @@ const EditOrder = () => {
                 Edit Order
               </h1>
               <p style={{
-                color: "#64748b",
+                color: "#94a3b8",
                 margin: 0,
                 fontSize: "14px"
               }}>
@@ -268,10 +268,10 @@ const EditOrder = () => {
 
         {/* Edit Form */}
         <div style={{
-          background: "white",
+          background: "#1c2333",
           borderRadius: "16px",
-          border: "1px solid #e2e8f0",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+          border: "1px solid #2a3a52",
+          boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
           padding: "32px",
           maxWidth: "800px"
         }}>

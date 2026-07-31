@@ -3,7 +3,7 @@
 .channels-page-container {
   display: flex;
   min-height: 100vh;
-  background-color: #f8fafc;
+  background-color: #111827;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   overflow-x: hidden;
 }
@@ -15,8 +15,8 @@
   position: sticky;
   top: 0;
   overflow-y: auto;
-  background: #fff;
-  border-right: 1px solid #e2e8f0;
+  background: #0c101a;
+  border-right: 1px solid #1e2a3a;
   z-index: 50;
 }
 
@@ -37,13 +37,13 @@
 .channels-title {
   font-size: 28px;
   font-weight: 800;
-  color: #1e293b;
+  color: #f1f5f9;
   margin-bottom: 6px;
 }
 
 .channels-subtitle {
   font-size: 15px;
-  color: #64748b;
+  color: #94a3b8;
 }
 
 .channels-section {
@@ -53,13 +53,13 @@
 .section-title {
   font-size: 18px;
   font-weight: 700;
-  color: #0f172a;
+  color: #f1f5f9;
   display: flex;
   align-items: center;
   gap: 10px;
   margin-bottom: 20px;
   padding-bottom: 8px;
-  border-bottom: 2px solid #e2e8f0;
+  border-bottom: 2px solid #2a3a52;
 }
 
 /* CONNECTED CARDS GRID */
@@ -70,17 +70,17 @@
 }
 
 .connected-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: #1c2333;
+  border: 1px solid #2a3a52;
   border-radius: 12px;
   padding: 22px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   transition: all 0.2s ease;
 }
 
 .connected-card:hover {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
-  border-color: #cbd5e1;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  border-color: #f97316;
 }
 
 .connected-card-header {
@@ -93,7 +93,7 @@
 .channel-icon-wrapper {
   width: 48px;
   height: 48px;
-  background: #f1f5f9;
+  background: #1a2235;
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -125,7 +125,7 @@
 .channel-info h3 {
   font-size: 16px;
   font-weight: 700;
-  color: #0f172a;
+  color: #f1f5f9;
   margin: 0 0 3px 0;
   white-space: nowrap;
   overflow: hidden;
@@ -158,12 +158,12 @@
 }
 
 .status-badge.active {
-  background: #dcfce7;
-  color: #166534;
+  background: rgba(34,197,94,0.15);
+  color: #4ade80;
 }
 
 .connected-card-body {
-  background: #f8fafc;
+  background: #1a2235;
   border-radius: 8px;
   padding: 12px 16px;
   margin-bottom: 18px;
@@ -178,15 +178,15 @@
 }
 
 .stat-row:not(:last-child) {
-  border-bottom: 1px dashed #e2e8f0;
+  border-bottom: 1px dashed #2a3a52;
 }
 
 .stat-row span {
-  color: #64748b;
+  color: #94a3b8;
 }
 
 .stat-row strong {
-  color: #1e293b;
+  color: #f1f5f9;
 }
 
 .toggle-btn {
@@ -239,8 +239,8 @@
 }
 
 .btn-disconnect {
-  background: #fee2e2;
-  color: #dc2626;
+  background: rgba(239,68,68,0.15);
+  color: #f87171;
   border: none;
   padding: 10px 14px;
   border-radius: 8px;

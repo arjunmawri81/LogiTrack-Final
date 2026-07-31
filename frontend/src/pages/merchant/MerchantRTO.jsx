@@ -219,14 +219,14 @@ const MerchantRTO = () => {
   const getStatusStyle = (status) => {
     const normalizedStatus = (status || '').toUpperCase();
     const styles = {
-      'INITIATED': { background: "#fef3c7", color: "#92400e" },
-      'PICKUP_SCHEDULED': { background: "#dbeafe", color: "#1e40af" },
-      'PICKED_UP': { background: "#f3e8ff", color: "#6d28d9" },
-      'IN_TRANSIT': { background: "#dbeafe", color: "#1d4ed8" },
-      'RECEIVED_AT_WAREHOUSE': { background: "#ede9fe", color: "#6d28d9" },
-      'COMPLETED': { background: "#dcfce7", color: "#166534" }
+      'INITIATED': { background: "rgba(234,179,8,0.15)", color: "#facc15" },
+      'PICKUP_SCHEDULED': { background: "rgba(59,130,246,0.15)", color: "#60a5fa" },
+      'PICKED_UP': { background: "rgba(139,92,246,0.15)", color: "#a78bfa" },
+      'IN_TRANSIT': { background: "rgba(59,130,246,0.15)", color: "#60a5fa" },
+      'RECEIVED_AT_WAREHOUSE': { background: "rgba(139,92,246,0.15)", color: "#a78bfa" },
+      'COMPLETED': { background: "rgba(34,197,94,0.15)", color: "#4ade80" }
     };
-    return styles[normalizedStatus] || { background: "#f1f5f9", color: "#475569" };
+    return styles[normalizedStatus] || { background: "rgba(148,163,184,0.15)", color: "#8896b0" };
   };
 
   const getStatusLabel = (status) => {
@@ -244,16 +244,16 @@ const MerchantRTO = () => {
 
   const getReasonBadge = (reason) => {
     const reasonColors = {
-      'Customer Refused': { background: '#fef2f2', color: '#dc2626' },
-      'Wrong Address': { background: '#fff7ed', color: '#ea580c' },
-      'Damaged Product': { background: '#faf5ff', color: '#7c3aed' },
-      'Wrong Product': { background: '#eff6ff', color: '#2563eb' },
-      'Delivery Failed': { background: '#fffbeb', color: '#d97706' },
-      'Customer Cancelled': { background: '#f5f5f5', color: '#333' },
-      'Quality Issue': { background: '#fef2f2', color: '#b91c1c' },
-      'Exchange Request': { background: '#f0fdf4', color: '#16a34a' }
+      'Customer Refused': { background: 'rgba(239,68,68,0.15)', color: '#f87171' },
+      'Wrong Address': { background: 'rgba(249,115,22,0.15)', color: '#f97316' },
+      'Damaged Product': { background: 'rgba(139,92,246,0.15)', color: '#a78bfa' },
+      'Wrong Product': { background: 'rgba(59,130,246,0.15)', color: '#60a5fa' },
+      'Delivery Failed': { background: 'rgba(234,179,8,0.15)', color: '#facc15' },
+      'Customer Cancelled': { background: 'rgba(148,163,184,0.15)', color: '#8896b0' },
+      'Quality Issue': { background: 'rgba(239,68,68,0.15)', color: '#f87171' },
+      'Exchange Request': { background: 'rgba(34,197,94,0.15)', color: '#4ade80' }
     };
-    return reasonColors[reason] || { background: '#f5f5f5', color: '#333' };
+    return reasonColors[reason] || { background: 'rgba(148,163,184,0.15)', color: '#8896b0' };
   };
 
   const getCourierIcon = (courier) => {

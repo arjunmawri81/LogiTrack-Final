@@ -17,7 +17,7 @@ let tokenExpiresAt = null;
  * Checks if email/password login is available or falls back to API Key.
  */
 async function getAuthHeader() {
-  const apiKey = process.env.NIMBUSPOST_API_KEY || "5613ebf6b705e5e04729fe2c64cf6fc2c4677a12246252";
+  const apiKey = process.env.NIMBUSPOST_API_KEY;
   const email = process.env.NIMBUSPOST_EMAIL;
   const password = process.env.NIMBUSPOST_PASSWORD;
 

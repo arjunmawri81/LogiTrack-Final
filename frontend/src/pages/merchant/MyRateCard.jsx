@@ -67,7 +67,7 @@ const MyRateCard = () => {
   }, [rateCards]);
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#f8fafc", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
+    <div className="rate-container" style={{ display: "flex", minHeight: "100vh", background: "#111827", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
       {/* SIDEBAR WRAPPER */}
       <div style={{ width: "280px", flexShrink: 0 }}>
         <Sidebar />
@@ -78,10 +78,10 @@ const MyRateCard = () => {
         {/* HEADER */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px", flexWrap: "wrap", gap: "16px" }}>
           <div>
-            <h1 style={{ fontSize: "24px", fontWeight: "700", color: "#0f172a", margin: 0, display: "flex", alignItems: "center", gap: "10px" }}>
-              <FaTags color="#2563eb" size={22} /> My Rate Cards & Pricing
+            <h1 style={{ fontSize: "24px", fontWeight: "700", color: "#f1f5f9", margin: 0, display: "flex", alignItems: "center", gap: "10px" }}>
+              <FaTags color="#f97316" size={22} /> My Rate Cards & Pricing
             </h1>
-            <p style={{ fontSize: "14px", color: "#64748b", margin: "4px 0 0" }}>
+            <p style={{ fontSize: "14px", color: "#94a3b8", margin: "4px 0 0" }}>
               View your contracted courier shipping rates, weight slabs, and zone pricing
             </p>
           </div>
@@ -94,14 +94,15 @@ const MyRateCard = () => {
               alignItems: "center",
               gap: "8px",
               padding: "9px 16px",
-              background: "#ffffff",
-              border: "1px solid #cbd5e1",
+              background: "#1c2333",
+              border: "1px solid #2a3a52",
               borderRadius: "10px",
               fontSize: "13px",
               fontWeight: "600",
-              color: "#334155",
+              color: "#a0aec0",
               cursor: "pointer",
-              boxShadow: "0 1px 2px rgba(0,0,0,0.04)"
+              boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+              transition: "all 0.2s ease",
             }}
           >
             <FaSync className={loading ? "spin-icon" : ""} size={12} /> Refresh Rates
@@ -110,42 +111,42 @@ const MyRateCard = () => {
 
         {/* SUMMARY CARDS */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px", marginBottom: "24px" }}>
-          <div style={{ background: "#ffffff", borderRadius: "12px", padding: "18px 20px", border: "1px solid #e2e8f0" }}>
-            <span style={{ fontSize: "12px", fontWeight: "600", color: "#64748b", textTransform: "uppercase" }}>Total Couriers</span>
-            <h2 style={{ fontSize: "26px", fontWeight: "700", color: "#0f172a", margin: "6px 0 0" }}>{rateCards.length}</h2>
-            <p style={{ fontSize: "12px", color: "#94a3b8", margin: "4px 0 0" }}>Active courier partnerships</p>
+          <div style={{ background: "#1c2333", borderRadius: "12px", padding: "18px 20px", border: "1px solid #2a3a52", boxShadow: "0 2px 8px rgba(0,0,0,0.3)" }}>
+            <span style={{ fontSize: "12px", fontWeight: "600", color: "#8896b0", textTransform: "uppercase" }}>Total Couriers</span>
+            <h2 style={{ fontSize: "26px", fontWeight: "700", color: "#f1f5f9", margin: "6px 0 0" }}>{rateCards.length}</h2>
+            <p style={{ fontSize: "12px", color: "#8896b0", margin: "4px 0 0" }}>Active courier partnerships</p>
           </div>
 
-          <div style={{ background: "#ffffff", borderRadius: "12px", padding: "18px 20px", border: "1px solid #e2e8f0" }}>
-            <span style={{ fontSize: "12px", fontWeight: "600", color: "#16a34a", textTransform: "uppercase" }}>Custom Rates</span>
-            <h2 style={{ fontSize: "26px", fontWeight: "700", color: "#15803d", margin: "6px 0 0" }}>{customCount}</h2>
-            <p style={{ fontSize: "12px", color: "#16a34a", margin: "4px 0 0" }}>Discounted merchant plans</p>
+          <div style={{ background: "#1c2333", borderRadius: "12px", padding: "18px 20px", border: "1px solid #2a3a52", boxShadow: "0 2px 8px rgba(0,0,0,0.3)" }}>
+            <span style={{ fontSize: "12px", fontWeight: "600", color: "#4ade80", textTransform: "uppercase" }}>Custom Rates</span>
+            <h2 style={{ fontSize: "26px", fontWeight: "700", color: "#4ade80", margin: "6px 0 0" }}>{customCount}</h2>
+            <p style={{ fontSize: "12px", color: "#4ade80", margin: "4px 0 0" }}>Discounted merchant plans</p>
           </div>
 
-          <div style={{ background: "#ffffff", borderRadius: "12px", padding: "18px 20px", border: "1px solid #e2e8f0" }}>
-            <span style={{ fontSize: "12px", fontWeight: "600", color: "#64748b", textTransform: "uppercase" }}>Standard Rates</span>
-            <h2 style={{ fontSize: "26px", fontWeight: "700", color: "#334155", margin: "6px 0 0" }}>{standardCount}</h2>
-            <p style={{ fontSize: "12px", color: "#64748b", margin: "4px 0 0" }}>Baseline rate cards</p>
+          <div style={{ background: "#1c2333", borderRadius: "12px", padding: "18px 20px", border: "1px solid #2a3a52", boxShadow: "0 2px 8px rgba(0,0,0,0.3)" }}>
+            <span style={{ fontSize: "12px", fontWeight: "600", color: "#8896b0", textTransform: "uppercase" }}>Standard Rates</span>
+            <h2 style={{ fontSize: "26px", fontWeight: "700", color: "#f1f5f9", margin: "6px 0 0" }}>{standardCount}</h2>
+            <p style={{ fontSize: "12px", color: "#8896b0", margin: "4px 0 0" }}>Baseline rate cards</p>
           </div>
         </div>
 
         {/* FILTERS TOOLBAR */}
-        <div style={{ background: "#ffffff", padding: "14px 18px", borderRadius: "12px", border: "1px solid #e2e8f0", marginBottom: "20px", display: "flex", gap: "12px", flexWrap: "wrap", alignItems: "center" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "#f8fafc", padding: "8px 14px", borderRadius: "8px", border: "1px solid #e2e8f0", flex: 1, minWidth: "240px" }}>
-            <FaSearch color="#94a3b8" size={13} />
+        <div style={{ background: "#1c2333", padding: "14px 18px", borderRadius: "12px", border: "1px solid #2a3a52", marginBottom: "20px", display: "flex", gap: "12px", flexWrap: "wrap", alignItems: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.3)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "#151c2c", padding: "8px 14px", borderRadius: "8px", border: "1px solid #2a3a52", flex: 1, minWidth: "240px" }}>
+            <FaSearch color="#4f6080" size={13} />
             <input
               type="text"
               placeholder="Search courier name..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              style={{ border: "none", background: "transparent", outline: "none", width: "100%", fontSize: "13px", color: "#0f172a" }}
+              style={{ border: "none", background: "transparent", outline: "none", width: "100%", fontSize: "13px", color: "#e8edf5" }}
             />
           </div>
 
           <select
             value={serviceTypeFilter}
             onChange={(e) => setServiceTypeFilter(e.target.value)}
-            style={{ padding: "8px 14px", borderRadius: "8px", border: "1px solid #cbd5e1", background: "#ffffff", fontSize: "13px", color: "#0f172a", outline: "none", cursor: "pointer" }}
+            style={{ padding: "8px 14px", borderRadius: "8px", border: "1px solid #2a3a52", background: "#151c2c", fontSize: "13px", color: "#e8edf5", outline: "none", cursor: "pointer" }}
           >
             <option value="ALL">All Modes (Surface & Air)</option>
             <option value="Surface">Surface Only</option>
@@ -155,7 +156,7 @@ const MyRateCard = () => {
           <select
             value={rateTypeFilter}
             onChange={(e) => setRateTypeFilter(e.target.value)}
-            style={{ padding: "8px 14px", borderRadius: "8px", border: "1px solid #cbd5e1", background: "#ffffff", fontSize: "13px", color: "#0f172a", outline: "none", cursor: "pointer" }}
+            style={{ padding: "8px 14px", borderRadius: "8px", border: "1px solid #2a3a52", background: "#151c2c", fontSize: "13px", color: "#e8edf5", outline: "none", cursor: "pointer" }}
           >
             <option value="ALL">All Rate Types</option>
             <option value="CUSTOM">Custom Rates Only</option>
@@ -165,31 +166,31 @@ const MyRateCard = () => {
 
         {/* LOADING & ERROR */}
         {loading && (
-          <div style={{ textAlign: "center", padding: "60px 20px", color: "#64748b", fontSize: "14px", background: "#ffffff", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
+          <div style={{ textAlign: "center", padding: "60px 20px", color: "#8896b0", fontSize: "14px", background: "#1c2333", borderRadius: "12px", border: "1px solid #2a3a52" }}>
             Loading rate cards...
           </div>
         )}
 
         {error && !loading && (
-          <div style={{ padding: "14px 18px", background: "#fef2f2", border: "1px solid #fca5a5", borderRadius: "10px", color: "#991b1b", fontSize: "14px", marginBottom: "20px" }}>
+          <div style={{ padding: "14px 18px", background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.3)", borderRadius: "10px", color: "#f87171", fontSize: "14px", marginBottom: "20px" }}>
             {error}
           </div>
         )}
 
         {/* ORIGINAL RATE CARDS TABLE */}
         {!loading && !error && (
-          <div style={{ background: "#ffffff", borderRadius: "12px", border: "1px solid #e2e8f0", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+          <div style={{ background: "#1c2333", borderRadius: "12px", border: "1px solid #2a3a52", overflow: "hidden", boxShadow: "0 2px 10px rgba(0,0,0,0.3)" }}>
             <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "13.5px" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "13.5px", background: "#1c2333" }}>
                 <thead>
-                  <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0", color: "#475569", fontWeight: "600" }}>
-                    <th style={{ padding: "14px 18px" }}>Courier Partner</th>
-                    <th style={{ padding: "14px 16px" }}>Mode</th>
-                    <th style={{ padding: "14px 16px" }}>Pricing Type</th>
-                    <th style={{ padding: "14px 16px" }}>Weight Slabs (Forward)</th>
-                    <th style={{ padding: "14px 16px" }}>Zone Rates</th>
-                    <th style={{ padding: "14px 16px" }}>COD Charge</th>
-                    <th style={{ padding: "14px 18px" }}>Fuel & Taxes</th>
+                  <tr style={{ background: "#1e2640", borderBottom: "1px solid #2a3a52", color: "#8896b0", fontWeight: "600" }}>
+                    <th style={{ padding: "14px 18px", background: "#1e2640", color: "#8896b0", borderBottom: "1px solid #2a3a52" }}>Courier Partner</th>
+                    <th style={{ padding: "14px 16px", background: "#1e2640", color: "#8896b0", borderBottom: "1px solid #2a3a52" }}>Mode</th>
+                    <th style={{ padding: "14px 16px", background: "#1e2640", color: "#8896b0", borderBottom: "1px solid #2a3a52" }}>Pricing Type</th>
+                    <th style={{ padding: "14px 16px", background: "#1e2640", color: "#8896b0", borderBottom: "1px solid #2a3a52" }}>Weight Slabs (Forward)</th>
+                    <th style={{ padding: "14px 16px", background: "#1e2640", color: "#8896b0", borderBottom: "1px solid #2a3a52" }}>Zone Rates</th>
+                    <th style={{ padding: "14px 16px", background: "#1e2640", color: "#8896b0", borderBottom: "1px solid #2a3a52" }}>COD Charge</th>
+                    <th style={{ padding: "14px 18px", background: "#1e2640", color: "#8896b0", borderBottom: "1px solid #2a3a52" }}>Fuel &amp; Taxes</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -206,29 +207,29 @@ const MyRateCard = () => {
                         ((fw.rate500gm || 0) > 0 || (fw.rate1kg || 0) > 0 || (fw.rate2kg || 0) > 0);
 
                       return (
-                        <tr key={card._id || `${courierName}_${card.serviceType}`} style={{ borderBottom: "1px solid #f1f5f9", verticalAlign: "top" }}>
+                        <tr key={card._id || `${courierName}_${card.serviceType}`} style={{ background: "#1c2333", borderBottom: "1px solid #1e2a3a", verticalAlign: "top" }}>
                           {/* Courier Name */}
-                          <td style={{ padding: "16px 18px", fontWeight: "700", color: "#0f172a" }}>
+                          <td style={{ padding: "16px 18px", fontWeight: "700", color: "#f1f5f9", background: "#1c2333" }}>
                             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "2px" }}>
                               {card.serviceType === "Air" ? (
-                                <FaPlane color="#2563eb" size={14} />
+                                <FaPlane color="#60a5fa" size={14} />
                               ) : (
-                                <FaTruck color="#ea580c" size={14} />
+                                <FaTruck color="#f97316" size={14} />
                               )}
                               <span>{courierName}</span>
                             </div>
                           </td>
 
                           {/* Mode */}
-                          <td style={{ padding: "16px 16px" }}>
+                          <td style={{ padding: "16px 16px", background: "#1c2333" }}>
                             <span
                               style={{
                                 padding: "3px 10px",
                                 borderRadius: "12px",
                                 fontSize: "12px",
                                 fontWeight: "600",
-                                background: card.serviceType === "Air" ? "#eff6ff" : "#fff7ed",
-                                color: card.serviceType === "Air" ? "#1d4ed8" : "#c2410c",
+                                background: card.serviceType === "Air" ? "rgba(59,130,246,0.15)" : "rgba(249,115,22,0.15)",
+                                color: card.serviceType === "Air" ? "#60a5fa" : "#f97316",
                                 display: "inline-block",
                                 marginTop: "2px"
                               }}
@@ -238,80 +239,64 @@ const MyRateCard = () => {
                           </td>
 
                           {/* Pricing Type Badge */}
-                          <td style={{ padding: "16px 16px" }}>
+                          <td style={{ padding: "16px 16px", background: "#1c2333" }}>
                             {!isConfigured ? (
-                              <span style={{ padding: "3px 10px", borderRadius: "12px", fontSize: "12px", fontWeight: "600", background: "#fef3c7", color: "#b45309", display: "inline-block", marginTop: "2px" }}>
+                              <span style={{ padding: "3px 10px", borderRadius: "12px", fontSize: "12px", fontWeight: "600", background: "rgba(234,179,8,0.15)", color: "#facc15", display: "inline-block", marginTop: "2px" }}>
                                 Not Configured
                               </span>
                             ) : isCustom ? (
-                              <span style={{ padding: "3px 10px", borderRadius: "12px", fontSize: "12px", fontWeight: "600", background: "#dcfce7", color: "#15803d", display: "inline-block", marginTop: "2px" }}>
+                              <span style={{ padding: "3px 10px", borderRadius: "12px", fontSize: "12px", fontWeight: "600", background: "rgba(34,197,94,0.15)", color: "#4ade80", display: "inline-block", marginTop: "2px" }}>
                                 Custom Rate
                               </span>
                             ) : (
-                              <span style={{ padding: "3px 10px", borderRadius: "12px", fontSize: "12px", fontWeight: "600", background: "#f1f5f9", color: "#64748b", display: "inline-block", marginTop: "2px" }}>
+                              <span style={{ padding: "3px 10px", borderRadius: "12px", fontSize: "12px", fontWeight: "600", background: "#1a2235", color: "#8896b0", display: "inline-block", marginTop: "2px" }}>
                                 Standard Rate
                               </span>
                             )}
                           </td>
 
-                          {/* Forward Weight Slabs */}
-                          <td style={{ padding: "16px 16px", minWidth: "140px" }}>
-                            {isConfigured ? (
-                              <div style={{ display: "flex", flexDirection: "column", gap: "4px", fontSize: "13px" }}>
-                                <span><strong>500g:</strong> ₹{fw.rate500gm || 0}</span>
-                                <span><strong>1kg:</strong> ₹{fw.rate1kg || 0}</span>
-                                <span><strong>2kg:</strong> ₹{fw.rate2kg || 0}</span>
-                                {fw.rate5kg > 0 && <span><strong>5kg:</strong> ₹{fw.rate5kg}</span>}
-                                <span><strong>Add'l:</strong> ₹{fw.additionalKg || 0} / kg</span>
+                          {/* Weight Slabs */}
+                          <td style={{ padding: "16px 16px", color: "#a0aec0", background: "#1c2333" }}>
+                            <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                              <div>0.5 kg: <strong style={{ color: "#f1f5f9" }}>₹{fw.rate500gm || 0}</strong></div>
+                              <div>1.0 kg: <strong style={{ color: "#f1f5f9" }}>₹{fw.rate1kg || 0}</strong></div>
+                              <div>2.0 kg: <strong style={{ color: "#f1f5f9" }}>₹{fw.rate2kg || 0}</strong></div>
+                              <div style={{ fontSize: "11px", color: "#8896b0" }}>
+                                Add. 0.5kg: ₹{fw.additional500gm || 0}
                               </div>
-                            ) : (
-                              <span style={{ fontSize: "13px", color: "#94a3b8" }}>—</span>
-                            )}
+                            </div>
                           </td>
 
                           {/* Zone Rates */}
-                          <td style={{ padding: "16px 16px", minWidth: "120px" }}>
-                            {isConfigured ? (
-                              <div style={{ display: "flex", flexDirection: "column", gap: "4px", fontSize: "13px" }}>
-                                <span><strong>Local:</strong> ₹{zn.local || 0}</span>
-                                <span><strong>Regional:</strong> ₹{zn.regional || 0}</span>
-                                <span><strong>National:</strong> ₹{zn.national || 0}</span>
-                              </div>
-                            ) : (
-                              <span style={{ fontSize: "13px", color: "#94a3b8" }}>—</span>
-                            )}
+                          <td style={{ padding: "16px 16px", color: "#a0aec0", background: "#1c2333" }}>
+                            <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                              <div>Intra-City: <strong style={{ color: "#f1f5f9" }}>₹{zn.withinCity || 0}</strong></div>
+                              <div>Intra-State: <strong style={{ color: "#f1f5f9" }}>₹{zn.withinState || 0}</strong></div>
+                              <div>Metro: <strong style={{ color: "#f1f5f9" }}>₹{zn.metro || 0}</strong></div>
+                              <div>Rest of India: <strong style={{ color: "#f1f5f9" }}>₹{zn.restOfIndia || 0}</strong></div>
+                            </div>
                           </td>
 
                           {/* COD Charge */}
-                          <td style={{ padding: "16px 16px", minWidth: "120px" }}>
-                            {isConfigured ? (
-                              <div style={{ display: "flex", flexDirection: "column", gap: "4px", fontSize: "13px" }}>
-                                <span><strong>Fixed:</strong> ₹{card.codCharge || 0}</span>
-                                <span><strong>Percentage:</strong> {card.codPercentage || 0}%</span>
-                              </div>
-                            ) : (
-                              <span style={{ fontSize: "13px", color: "#94a3b8" }}>—</span>
-                            )}
+                          <td style={{ padding: "16px 16px", color: "#f1f5f9", fontWeight: "600", background: "#1c2333" }}>
+                            ₹{card.codCharge || 0}
+                            <span style={{ fontSize: "11px", fontWeight: "400", color: "#8896b0", display: "block" }}>
+                              or {card.codPercent || 0}%
+                            </span>
                           </td>
 
-                          {/* Fuel & GST */}
-                          <td style={{ padding: "16px 18px", minWidth: "120px" }}>
-                            {isConfigured ? (
-                              <div style={{ display: "flex", flexDirection: "column", gap: "4px", fontSize: "13px" }}>
-                                <span><strong>Fuel Fee:</strong> ₹{card.fuelCharge || 0}</span>
-                                <span><strong>GST:</strong> {card.gst !== undefined ? card.gst : 18}%</span>
-                              </div>
-                            ) : (
-                              <span style={{ fontSize: "13px", color: "#94a3b8" }}>—</span>
-                            )}
+                          {/* Fuel & Taxes */}
+                          <td style={{ padding: "16px 18px", color: "#a0aec0", background: "#1c2333" }}>
+                            <div>Fuel Surcharge: <strong style={{ color: "#f1f5f9" }}>{card.fuelSurcharge || 0}%</strong></div>
+                            <div>GST Rate: <strong style={{ color: "#f1f5f9" }}>{card.gstRate || 18}%</strong></div>
                           </td>
                         </tr>
                       );
                     })
                   ) : (
                     <tr>
-                      <td colSpan="7" style={{ textAlign: "center", padding: "40px 20px", color: "#94a3b8" }}>
-                        No Rate Cards match your search filters.
+                      <td colSpan="7" style={{ textAlign: "center", padding: "40px", color: "#8896b0", background: "#1c2333" }}>
+                        No matching rate cards found.
                       </td>
                     </tr>
                   )}
@@ -321,16 +306,6 @@ const MyRateCard = () => {
           </div>
         )}
       </div>
-
-      <style>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-        .spin-icon {
-          animation: spin 1s linear infinite;
-        }
-      `}</style>
     </div>
   );
 };

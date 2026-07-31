@@ -9,11 +9,7 @@ import {
   FaCalculator, 
   FaTags, 
   FaEye, 
-  FaArrowRight,
-  FaCheckCircle,
-  FaClock,
-  FaExclamationTriangle,
-  FaUndo
+  FaArrowRight
 } from "react-icons/fa";
 import Sidebar from "../../components/Sidebar";
 import api from "../../services/api";
@@ -86,13 +82,13 @@ const Dashboard = () => {
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case "DELIVERED": return { bg: "#dcfce7", color: "#15803d" };
-      case "IN_TRANSIT": return { bg: "#dbeafe", color: "#1d4ed8" };
-      case "OUT_FOR_DELIVERY": return { bg: "#eff6ff", color: "#2563eb" };
-      case "NDR": return { bg: "#fef3c7", color: "#b45309" };
-      case "RTO": return { bg: "#fee2e2", color: "#b91c1c" };
-      case "PICKUP_PENDING": return { bg: "#fff7ed", color: "#c2410c" };
-      default: return { bg: "#f1f5f9", color: "#475569" };
+      case "DELIVERED": return { bg: "rgba(34,197,94,0.15)", color: "#4ade80" };
+      case "IN_TRANSIT": return { bg: "rgba(59,130,246,0.15)", color: "#60a5fa" };
+      case "OUT_FOR_DELIVERY": return { bg: "rgba(59,130,246,0.15)", color: "#60a5fa" };
+      case "NDR": return { bg: "rgba(234,179,8,0.15)", color: "#facc15" };
+      case "RTO": return { bg: "rgba(239,68,68,0.15)", color: "#f87171" };
+      case "PICKUP_PENDING": return { bg: "rgba(249,115,22,0.15)", color: "#f97316" };
+      default: return { bg: "rgba(148,163,184,0.15)", color: "#8896b0" };
     }
   };
 
@@ -158,7 +154,7 @@ const Dashboard = () => {
               fontWeight: "700",
               fontSize: "13.5px",
               cursor: "pointer",
-              boxShadow: "0 4px 12px rgba(37, 99, 235, 0.2)",
+              boxShadow: "0 4px 12px rgba(37, 99, 235, 0.25)",
               transition: "all 0.2s ease"
             }}
             onMouseEnter={(e) => e.currentTarget.style.background = "#1d4ed8"}
@@ -181,7 +177,7 @@ const Dashboard = () => {
               fontWeight: "700",
               fontSize: "13.5px",
               cursor: "pointer",
-              boxShadow: "0 4px 12px rgba(234, 88, 12, 0.2)",
+              boxShadow: "0 4px 12px rgba(234, 88, 12, 0.25)",
               transition: "all 0.2s ease"
             }}
             onMouseEnter={(e) => e.currentTarget.style.background = "#c2410c"}
@@ -197,19 +193,25 @@ const Dashboard = () => {
               alignItems: "center",
               gap: "8px",
               padding: "12px 20px",
-              background: "#ffffff",
-              color: "#334155",
-              border: "1.5px solid #cbd5e1",
+              background: "#1c2333",
+              color: "#a0aec0",
+              border: "1px solid #2a3a52",
               borderRadius: "12px",
               fontWeight: "600",
               fontSize: "13.5px",
               cursor: "pointer",
               transition: "all 0.2s ease"
             }}
-            onMouseEnter={(e) => e.currentTarget.style.borderColor = "#94a3b8"}
-            onMouseLeave={(e) => e.currentTarget.style.borderColor = "#cbd5e1"}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = "#f97316";
+              e.currentTarget.style.color = "#f1f5f9";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = "#2a3a52";
+              e.currentTarget.style.color = "#a0aec0";
+            }}
           >
-            <FaBoxOpen size={14} color="#64748b" /> Bulk Upload
+            <FaBoxOpen size={14} color="#f97316" /> Bulk Upload
           </button>
 
           <button
@@ -219,19 +221,25 @@ const Dashboard = () => {
               alignItems: "center",
               gap: "8px",
               padding: "12px 20px",
-              background: "#ffffff",
-              color: "#334155",
-              border: "1.5px solid #cbd5e1",
+              background: "#1c2333",
+              color: "#a0aec0",
+              border: "1px solid #2a3a52",
               borderRadius: "12px",
               fontWeight: "600",
               fontSize: "13.5px",
               cursor: "pointer",
               transition: "all 0.2s ease"
             }}
-            onMouseEnter={(e) => e.currentTarget.style.borderColor = "#94a3b8"}
-            onMouseLeave={(e) => e.currentTarget.style.borderColor = "#cbd5e1"}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = "#f97316";
+              e.currentTarget.style.color = "#f1f5f9";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = "#2a3a52";
+              e.currentTarget.style.color = "#a0aec0";
+            }}
           >
-            <FaCalculator size={13} color="#64748b" /> Rate Calculator
+            <FaCalculator size={13} color="#f97316" /> Rate Calculator
           </button>
 
           <button
@@ -241,19 +249,25 @@ const Dashboard = () => {
               alignItems: "center",
               gap: "8px",
               padding: "12px 20px",
-              background: "#ffffff",
-              color: "#334155",
-              border: "1.5px solid #cbd5e1",
+              background: "#1c2333",
+              color: "#a0aec0",
+              border: "1px solid #2a3a52",
               borderRadius: "12px",
               fontWeight: "600",
               fontSize: "13.5px",
               cursor: "pointer",
               transition: "all 0.2s ease"
             }}
-            onMouseEnter={(e) => e.currentTarget.style.borderColor = "#94a3b8"}
-            onMouseLeave={(e) => e.currentTarget.style.borderColor = "#cbd5e1"}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = "#f97316";
+              e.currentTarget.style.color = "#f1f5f9";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = "#2a3a52";
+              e.currentTarget.style.color = "#a0aec0";
+            }}
           >
-            <FaTags size={13} color="#64748b" /> My Rate Cards
+            <FaTags size={13} color="#f97316" /> My Rate Cards
           </button>
         </div>
 
@@ -355,24 +369,25 @@ const Dashboard = () => {
 
         {/* RECENT SHIPMENTS TABLE */}
         <div style={{
-          background: "#ffffff",
+          background: "#1c2333",
           borderRadius: "16px",
-          border: "1px solid #e2e8f0",
+          border: "1px solid #2a3a52",
           overflow: "hidden",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.04)"
+          boxShadow: "0 2px 10px rgba(0,0,0,0.3)"
         }}>
           <div style={{
             padding: "20px 24px",
-            borderBottom: "1px solid #f1f5f9",
+            borderBottom: "1px solid #2a3a52",
+            background: "#1e2640",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center"
           }}>
             <div>
-              <h3 style={{ fontSize: "17px", fontWeight: "700", color: "#0f172a", margin: 0 }}>
+              <h3 style={{ fontSize: "17px", fontWeight: "700", color: "#f1f5f9", margin: 0 }}>
                 Recent Shipments
               </h3>
-              <p style={{ fontSize: "13px", color: "#64748b", margin: "2px 0 0" }}>
+              <p style={{ fontSize: "13px", color: "#94a3b8", margin: "2px 0 0" }}>
                 Latest dispatched packages and live delivery status
               </p>
             </div>
@@ -384,13 +399,22 @@ const Dashboard = () => {
                 alignItems: "center",
                 gap: "6px",
                 padding: "8px 14px",
-                background: "#ffffff",
-                border: "1px solid #cbd5e1",
+                background: "#1c2333",
+                border: "1px solid #2a3a52",
                 borderRadius: "10px",
                 fontSize: "13px",
                 fontWeight: "600",
-                color: "#2563eb",
-                cursor: "pointer"
+                color: "#f97316",
+                cursor: "pointer",
+                transition: "all 0.2s ease"
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "#243049";
+                e.currentTarget.style.borderColor = "#f97316";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "#1c2333";
+                e.currentTarget.style.borderColor = "#2a3a52";
               }}
             >
               View All Shipments <FaArrowRight size={11} />
@@ -399,13 +423,13 @@ const Dashboard = () => {
 
           <div style={{ overflowX: "auto" }}>
             {loadingRecent ? (
-              <div style={{ padding: "40px", textAlign: "center", color: "#64748b" }}>
+              <div style={{ padding: "40px", textAlign: "center", color: "#8896b0" }}>
                 Loading recent shipments...
               </div>
             ) : recentShipments.length > 0 ? (
               <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "13.5px" }}>
                 <thead>
-                  <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0", color: "#475569", fontWeight: "600" }}>
+                  <tr style={{ background: "#1e2640", borderBottom: "1px solid #2a3a52", color: "#8896b0", fontWeight: "600" }}>
                     <th style={{ padding: "14px 24px" }}>AWB Number</th>
                     <th style={{ padding: "14px 20px" }}>Customer</th>
                     <th style={{ padding: "14px 20px" }}>Courier</th>
@@ -418,14 +442,19 @@ const Dashboard = () => {
                   {recentShipments.map((shipment) => {
                     const badge = getStatusBadge(shipment.status);
                     return (
-                      <tr key={shipment._id} style={{ borderBottom: "1px solid #f1f5f9" }}>
-                        <td style={{ padding: "16px 24px", fontWeight: "700", color: "#0f172a" }}>
+                      <tr 
+                        key={shipment._id} 
+                        style={{ borderBottom: "1px solid #1e2a3a", background: "#1c2333", transition: "background 0.2s" }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = "#243049"}
+                        onMouseLeave={(e) => e.currentTarget.style.background = "#1c2333"}
+                      >
+                        <td style={{ padding: "16px 24px", fontWeight: "700", color: "#f97316", fontFamily: "monospace" }}>
                           {shipment.awb}
                         </td>
-                        <td style={{ padding: "16px 20px", color: "#334155" }}>
+                        <td style={{ padding: "16px 20px", color: "#f1f5f9", fontWeight: "500" }}>
                           {shipment.orderId?.customerName || "N/A"}
                         </td>
-                        <td style={{ padding: "16px 20px", color: "#475569" }}>
+                        <td style={{ padding: "16px 20px", color: "#a0aec0" }}>
                           {shipment.courier || "-"}
                         </td>
                         <td style={{ padding: "16px 20px" }}>
@@ -440,7 +469,7 @@ const Dashboard = () => {
                             {shipment.status}
                           </span>
                         </td>
-                        <td style={{ padding: "16px 20px", color: "#64748b" }}>
+                        <td style={{ padding: "16px 20px", color: "#8896b0" }}>
                           {new Date(shipment.createdAt).toLocaleDateString('en-GB')}
                         </td>
                         <td style={{ padding: "16px 24px", textAlign: "right" }}>
@@ -448,8 +477,8 @@ const Dashboard = () => {
                             onClick={() => navigate(`/merchant/shipments/${shipment._id}`)}
                             style={{
                               padding: "6px 14px",
-                              background: "#f1f5f9",
-                              color: "#334155",
+                              background: "rgba(249, 115, 22, 0.12)",
+                              color: "#f97316",
                               border: "none",
                               borderRadius: "8px",
                               fontSize: "12px",
@@ -457,7 +486,14 @@ const Dashboard = () => {
                               cursor: "pointer",
                               display: "inline-flex",
                               alignItems: "center",
-                              gap: "5px"
+                              gap: "5px",
+                              transition: "all 0.2s"
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = "rgba(249, 115, 22, 0.25)";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = "rgba(249, 115, 22, 0.12)";
                             }}
                           >
                             <FaEye size={11} /> Details
@@ -469,8 +505,8 @@ const Dashboard = () => {
                 </tbody>
               </table>
             ) : (
-              <div style={{ padding: "40px", textAlign: "center", color: "#94a3b8" }}>
-                No recent shipments found. Click <strong>Create Order</strong> or <strong>Create Shipment</strong> above to get started!
+              <div style={{ padding: "40px", textAlign: "center", color: "#8896b0" }}>
+                No recent shipments found. Click <strong style={{ color: "#f1f5f9" }}>Create Order</strong> or <strong style={{ color: "#f1f5f9" }}>Create Shipment</strong> above to get started!
               </div>
             )}
           </div>

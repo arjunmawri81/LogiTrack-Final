@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import api from "../../services/api";
+import { FaLock, FaKey, FaShieldAlt, FaCheckCircle, FaExclamationTriangle, FaCog } from "react-icons/fa";
 import "./Settings.css";
 
 const Settings = () => {
@@ -64,50 +65,89 @@ const Settings = () => {
   };
 
   return (
-    <div className="dashboard">
-      <Sidebar />
-
-      <div className="settings-container">
-        <h1>Settings</h1>
-
-        <div className="settings-card">
-          <h2>Change Password</h2>
-
-          <input
-            type="password"
-            name="currentPassword"
-            placeholder="Current Password"
-            value={passwords.currentPassword}
-            onChange={handleChange}
-          />
-
-          <input
-            type="password"
-            name="newPassword"
-            placeholder="New Password"
-            value={passwords.newPassword}
-            onChange={handleChange}
-          />
-
-          <input
-            type="password"
-            name="confirmPassword"
-            placeholder="Confirm New Password"
-            value={passwords.confirmPassword}
-            onChange={handleChange}
-          />
-
-          <button
-            className="save-btn"
-            onClick={changePassword}
-            disabled={loading}
-          >
-            {loading
-              ? "Updating..."
-              : "Change Password"}
-          </button>
-        </div>
+    <div className="settings-page-container">
+      <div className="sidebar-wrapper">
+        <Sidebar />
       </div>
+
+      <main className="settings-main-content">
+        <div className="settings-wrapper">
+          {/* HEADER */}
+          <div className="settings-header">
+            <h1 className="settings-title">
+              <FaCog className="header-icon-orange" /> Settings & Security
+            </h1>
+            <p className="settings-subtitle">
+              Manage your account authentication and password security preferences
+            </p>
+          </div>
+
+          {/* CHANGE PASSWORD CARD */}
+          <div className="settings-card">
+            <div className="settings-card-header">
+              <div className="header-icon-wrapper">
+                <FaLock className="card-header-icon" />
+              </div>
+              <div>
+                <h2 className="card-title">Change Password</h2>
+                <p className="card-subtitle">Ensure your account uses a strong, secure password</p>
+              </div>
+            </div>
+
+            <div className="settings-card-body">
+              <div className="form-group">
+                <label className="form-label">
+                  <FaKey size={12} color="#f97316" /> Current Password
+                </label>
+                <input
+                  type="password"
+                  name="currentPassword"
+                  placeholder="Enter current password"
+                  value={passwords.currentPassword}
+                  onChange={handleChange}
+                  className="settings-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">
+                  <FaShieldAlt size={12} color="#60a5fa" /> New Password
+                </label>
+                <input
+                  type="password"
+                  name="newPassword"
+                  placeholder="Enter new password"
+                  value={passwords.newPassword}
+                  onChange={handleChange}
+                  className="settings-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">
+                  <FaCheckCircle size={12} color="#4ade80" /> Confirm New Password
+                </label>
+                <input
+                  type="password"
+                  name="confirmPassword"
+                  placeholder="Re-enter new password"
+                  value={passwords.confirmPassword}
+                  onChange={handleChange}
+                  className="settings-input"
+                />
+              </div>
+
+              <button
+                className="save-btn"
+                onClick={changePassword}
+                disabled={loading}
+              >
+                {loading ? "Updating Password..." : "Update Password"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
   );
 };

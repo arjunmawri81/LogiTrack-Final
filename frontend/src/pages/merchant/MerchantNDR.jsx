@@ -282,18 +282,18 @@ const MerchantNDR = () => {
   const getStatusStyle = (status) => {
     const normalizedStatus = (status || 'pending').toLowerCase();
     const styles = {
-      pending: { background: "#fef3c7", color: "#92400e" },
-      reattempt_requested: { background: "#f3e8ff", color: "#6d28d9" },
-      reattempt: { background: "#dbeafe", color: "#1e40af" },
-      rto_requested: { background: "#fef3c7", color: "#92400e" },
-      resolved: { background: "#dcfce7", color: "#166534" },
-      rto: { background: "#fee2e2", color: "#991b1b" },
-      delivered: { background: "#dcfce7", color: "#166534" },
-      failed: { background: "#fee2e2", color: "#991b1b" },
-      ready_for_reattempt: { background: "#dbeafe", color: "#1e40af" },
-      out_for_delivery: { background: "#dbeafe", color: "#1d4ed8" },
+      pending: { background: "rgba(234,179,8,0.15)", color: "#facc15" },
+      reattempt_requested: { background: "rgba(139,92,246,0.15)", color: "#a78bfa" },
+      reattempt: { background: "rgba(59,130,246,0.15)", color: "#60a5fa" },
+      rto_requested: { background: "rgba(234,179,8,0.15)", color: "#facc15" },
+      resolved: { background: "rgba(34,197,94,0.15)", color: "#4ade80" },
+      rto: { background: "rgba(239,68,68,0.15)", color: "#f87171" },
+      delivered: { background: "rgba(34,197,94,0.15)", color: "#4ade80" },
+      failed: { background: "rgba(239,68,68,0.15)", color: "#f87171" },
+      ready_for_reattempt: { background: "rgba(59,130,246,0.15)", color: "#60a5fa" },
+      out_for_delivery: { background: "rgba(59,130,246,0.15)", color: "#60a5fa" },
     };
-    return styles[normalizedStatus] || { background: "#f1f5f9", color: "#475569" };
+    return styles[normalizedStatus] || { background: "rgba(148,163,184,0.15)", color: "#8896b0" };
   };
 
   const getSubStatus = (status) => {
@@ -314,16 +314,16 @@ const MerchantNDR = () => {
 
   const getReasonBadge = (reason) => {
     const reasonColors = {
-      'Customer Not Available': { background: '#fff7ed', color: '#ea580c' },
-      'Address Issue': { background: '#fef2f2', color: '#dc2626' },
-      'Customer Refused': { background: '#faf5ff', color: '#7c3aed' },
-      'Phone Unreachable': { background: '#eff6ff', color: '#2563eb' },
-      'Delivery Delayed': { background: '#fffbeb', color: '#d97706' },
-      'Wrong Contact Number': { background: '#fef3c7', color: '#92400e' },
-      'Address Not Found': { background: '#ffedd5', color: '#9a3412' },
-      'Incorrect Address': { background: '#fef2f2', color: '#b91c1c' }
+      'Customer Not Available': { background: 'rgba(249,115,22,0.15)', color: '#f97316' },
+      'Address Issue': { background: 'rgba(239,68,68,0.15)', color: '#f87171' },
+      'Customer Refused': { background: 'rgba(139,92,246,0.15)', color: '#a78bfa' },
+      'Phone Unreachable': { background: 'rgba(59,130,246,0.15)', color: '#60a5fa' },
+      'Delivery Delayed': { background: 'rgba(234,179,8,0.15)', color: '#facc15' },
+      'Wrong Contact Number': { background: 'rgba(234,179,8,0.15)', color: '#facc15' },
+      'Address Not Found': { background: 'rgba(249,115,22,0.15)', color: '#f97316' },
+      'Incorrect Address': { background: 'rgba(239,68,68,0.15)', color: '#f87171' }
     };
-    return reasonColors[reason] || { background: '#f5f5f5', color: '#333' };
+    return reasonColors[reason] || { background: 'rgba(148,163,184,0.15)', color: '#8896b0' };
   };
 
   const getCourierIcon = (courier) => {

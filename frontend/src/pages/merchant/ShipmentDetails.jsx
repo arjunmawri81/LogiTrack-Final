@@ -86,7 +86,7 @@ const ShipmentDetails = () => {
 
   if (loading) {
     return (
-      <div style={{ display: "flex", minHeight: "100vh", background: "#f1f5f9" }}>
+      <div style={{ display: "flex", minHeight: "100vh", background: "#111827" }}>
         <div style={{ width: "280px", flexShrink: 0 }}>
           <Sidebar />
         </div>
@@ -101,7 +101,7 @@ const ShipmentDetails = () => {
               animation: "spin 1s linear infinite",
               margin: "0 auto 20px"
             }} />
-            <h2 style={{ color: "#0f172a" }}>Loading Shipment...</h2>
+            <h2 style={{ color: "#f1f5f9" }}>Loading Shipment...</h2>
           </div>
         </div>
       </div>
@@ -110,19 +110,20 @@ const ShipmentDetails = () => {
 
   if (!shipment) {
     return (
-      <div style={{ display: "flex", minHeight: "100vh", background: "#f1f5f9" }}>
+      <div style={{ display: "flex", minHeight: "100vh", background: "#111827" }}>
         <div style={{ width: "280px", flexShrink: 0 }}>
           <Sidebar />
         </div>
         <div style={{ flex: 1, padding: "40px" }}>
           <div style={{
-            background: "#fff",
+            background: "#1c2333",
             padding: "40px",
             borderRadius: "16px",
             textAlign: "center",
-            border: "1px solid #e2e8f0"
+            border: "1px solid #2a3a52",
+            boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
           }}>
-            <h2 style={{ color: "#0f172a" }}>Shipment Not Found</h2>
+            <h2 style={{ color: "#f1f5f9" }}>Shipment Not Found</h2>
             <button
               onClick={() => navigate("/merchant/shipments")}
               style={{
@@ -151,7 +152,7 @@ const ShipmentDetails = () => {
       style={{
         display: "flex",
         minHeight: "100vh",
-        background: "#f1f5f9",
+        background: "#111827",
       }}
     >
       <div
@@ -176,7 +177,7 @@ const ShipmentDetails = () => {
             style={{
               fontSize: "28px",
               fontWeight: "700",
-              color: "#0f172a",
+              color: "#f1f5f9",
               marginBottom: "6px",
             }}
           >
@@ -185,11 +186,11 @@ const ShipmentDetails = () => {
           <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
             <p
               style={{
-                color: "#64748b",
+                color: "#94a3b8",
                 margin: 0,
               }}
             >
-              AWB: <strong style={{ color: "#0f172a" }}>{shipment.awb}</strong>
+              AWB: <strong style={{ color: "#f1f5f9" }}>{shipment.awb}</strong>
             </p>
             <span
               style={{
@@ -600,13 +601,12 @@ const ShipmentDetails = () => {
   );
 };
 
-// Styles matching the create shipment theme
 const card = {
-  background: "#fff",
-  border: "1px solid #e2e8f0",
+  background: "#1c2333",
+  border: "1px solid #2a3a52",
   borderRadius: "16px",
   overflow: "hidden",
-  boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+  boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
 };
 
 const cardHeader = {
@@ -614,8 +614,8 @@ const cardHeader = {
   alignItems: "center",
   gap: "10px",
   padding: "16px 20px",
-  borderBottom: "1px solid #f1f5f9",
-  background: "#fafbfc",
+  borderBottom: "1px solid #2a3a52",
+  background: "#1e2640",
 };
 
 const cardIcon = {
@@ -626,7 +626,7 @@ const cardTitle = {
   margin: 0,
   fontSize: "16px",
   fontWeight: "600",
-  color: "#0f172a",
+  color: "#f1f5f9",
 };
 
 const cardContent = {
@@ -637,17 +637,17 @@ const detailRow = {
   display: "flex",
   justifyContent: "space-between",
   padding: "8px 0",
-  borderBottom: "1px solid #f8fafc",
+  borderBottom: "1px solid #1e2a3a",
 };
 
 const detailLabel = {
-  color: "#64748b",
+  color: "#8896b0",
   fontSize: "13px",
   fontWeight: "500",
 };
 
 const detailValue = {
-  color: "#0f172a",
+  color: "#f1f5f9",
   fontSize: "13px",
   fontWeight: "500",
   textAlign: "right",

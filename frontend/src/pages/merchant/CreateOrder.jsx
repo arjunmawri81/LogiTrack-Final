@@ -104,7 +104,7 @@ const CreateOrder = () => {
       style={{
         display: "flex",
         minHeight: "100vh",
-        background: "#f1f5f9",
+        background: "#111827",
       }}
     >
       <div
@@ -128,7 +128,7 @@ const CreateOrder = () => {
             style={{
               fontSize: "28px",
               fontWeight: "700",
-              color: "#0f172a",
+              color: "#f1f5f9",
               marginBottom: "6px",
             }}
           >
@@ -136,7 +136,7 @@ const CreateOrder = () => {
           </h1>
           <p
             style={{
-              color: "#64748b",
+              color: "#94a3b8",
               margin: 0,
             }}
           >
@@ -147,11 +147,11 @@ const CreateOrder = () => {
         <form
           onSubmit={handleSubmit}
           style={{
-            background: "#fff",
+            background: "#1c2333",
             padding: "30px",
             borderRadius: "16px",
-            border: "1px solid #e2e8f0",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+            border: "1px solid #2a3a52",
+            boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
           }}
         >
           <div style={gridStyles}>
@@ -169,9 +169,10 @@ const CreateOrder = () => {
                 required
                 style={{
                   ...inputStyle,
-                  background: "#f8fafc",
+                  background: "#151c2c",
                   fontWeight: "600",
-                  borderColor: "#cbd5e1"
+                  borderColor: "#2a3a52",
+                  color: "#e8edf5"
                 }}
               >
                 <option value="">-- Select Pickup Warehouse --</option>
@@ -405,8 +406,8 @@ const CreateOrder = () => {
                 }}
               >
                 <div>
-                  <span>📱 Send Instant WhatsApp & SMS Delivery Tracking Updates</span>
-                  <div style={{ fontSize: "12px", color: "#64748b", fontWeight: "normal" }}>
+                  <span style={{ color: "#f1f5f9" }}>📱 Send Instant WhatsApp & SMS Delivery Tracking Updates</span>
+                  <div style={{ fontSize: "12px", color: "#8896b0", fontWeight: "normal" }}>
                     Sends live tracking link and delivery status updates to customer automatically.
                   </div>
                 </div>
@@ -469,7 +470,7 @@ const CreateOrder = () => {
 
 const sectionTitle = { 
   fontSize: "16px", 
-  color: "#1e293b", 
+  color: "#f1f5f9", 
   margin: "12px 0 6px 0",
   fontWeight: "700",
 };
@@ -477,7 +478,7 @@ const sectionTitle = {
 const labelStyle = {
   fontSize: "13px",
   fontWeight: "600",
-  color: "#475569",
+  color: "#94a3b8",
   marginBottom: "6px",
   display: "block",
 };
@@ -486,10 +487,12 @@ const inputStyle = {
   width: "100%", 
   padding: "12px", 
   borderRadius: "10px", 
-  border: "1px solid #e2e8f0", 
+  border: "1px solid #2a3a52", 
   fontSize: "14px",
   boxSizing: "border-box",
   transition: "border-color 0.3s ease",
+  background: "#151c2c",
+  color: "#e8edf5",
 };
 
 export default CreateOrder;

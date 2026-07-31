@@ -1,14 +1,14 @@
-/* Serviceability.css - Complete */
+/* Serviceability.css - Premium Dark Theme */
 
-/* ============================================ */
-/* CONTAINER */
-/* ============================================ */
-
+/* ============================================================
+   CONTAINER & LAYOUT
+   ============================================================ */
 .serviceability-container {
   display: flex;
-  background: #f8fafc;
   min-height: 100vh;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #111827;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #f1f5f9;
   overflow-x: hidden;
 }
 
@@ -19,398 +19,490 @@
   position: sticky;
   top: 0;
   overflow-y: auto;
-  background: #fff;
-  border-right: 1px solid #e2e8f0;
+  background: #0c101a;
+  border-right: 1px solid #1e2a3a;
   z-index: 50;
 }
 
 .serviceability-main {
   flex: 1;
-  padding: 30px 40px;
+  padding: 32px 40px;
   overflow-x: hidden;
   min-width: 0;
   width: 100%;
+  box-sizing: border-box;
 }
 
-/* ============================================ */
-/* HEADER */
-/* ============================================ */
+.serviceability-wrapper {
+  max-width: 960px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.serviceability-header {
+  margin-bottom: 24px;
+}
 
 .serviceability-title {
-  font-size: 28px;
-  font-weight: 700;
-  color: #0f172a;
-  margin: 0 0 20px 0;
+  font-size: 26px;
+  font-weight: 800;
+  color: #f1f5f9;
+  margin: 0 0 6px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
   letter-spacing: -0.5px;
 }
 
-/* ============================================ */
-/* CARD */
-/* ============================================ */
-
-.serviceability-card {
-  background: #ffffff;
-  padding: 30px;
-  border-radius: 16px;
-  border: 1px solid #e2e8f0;
-  max-width: 600px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+.header-icon-orange {
+  color: #f97316;
 }
 
-/* ============================================ */
-/* INPUT */
-/* ============================================ */
+.serviceability-subtitle {
+  font-size: 14px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+/* ============================================================
+   CHECKER FORM CARD
+   ============================================================ */
+.serviceability-card {
+  background: #1c2333;
+  border-radius: 18px;
+  padding: 28px;
+  border: 1px solid #2a3a52;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+  margin-bottom: 24px;
+}
+
+.card-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 22px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #2a3a52;
+}
+
+.card-top-bar h3 {
+  font-size: 17px;
+  font-weight: 700;
+  color: #f1f5f9;
+  margin: 0;
+}
+
+.live-indicator {
+  font-size: 12px;
+  font-weight: 600;
+  color: #4ade80;
+  background: rgba(34, 197, 94, 0.12);
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+/* PINCODE INPUT ROW */
+.pincode-input-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.pincode-field-group {
+  flex: 1;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+}
+
+.pincode-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #a0aec0;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.req-star {
+  color: #ef4444;
+}
 
 .serviceability-input {
-  padding: 12px 16px;
-  border-radius: 8px;
-  border: 1px solid #cbd5e1;
   width: 100%;
-  margin-bottom: 15px;
+  padding: 13px 16px;
+  background: #151c2c;
+  border: 1.5px solid #2a3a52;
+  border-radius: 12px;
   font-size: 14px;
-  font-family: inherit;
+  font-weight: 600;
+  color: #e8edf5;
   outline: none;
+  transition: all 0.2s ease;
   box-sizing: border-box;
-  transition: border-color 0.2s ease;
-  color: #0f172a;
+  letter-spacing: 0.5px;
 }
 
 .serviceability-input:focus {
   border-color: #f97316;
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+  background: #192236;
 }
 
 .serviceability-input::placeholder {
-  color: #94a3b8;
+  color: #4f6080;
+  font-weight: 400;
 }
 
-/* ============================================ */
-/* BUTTON */
-/* ============================================ */
-
-.serviceability-btn {
-  background: #f97316;
-  color: white;
-  padding: 12px 24px;
-  border-radius: 8px;
-  border: none;
-  font-weight: 600;
+.swap-pincodes-btn {
+  background: #151c2c;
+  border: 1px solid #2a3a52;
+  color: #f97316;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  width: 100%;
   font-size: 15px;
   transition: all 0.2s ease;
-  font-family: inherit;
+  margin-bottom: 1px;
+  flex-shrink: 0;
 }
 
-.serviceability-btn:hover {
-  background: #ea580c;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+.swap-pincodes-btn:hover {
+  background: #1e2640;
+  border-color: #f97316;
+  transform: rotate(180deg);
 }
 
-.serviceability-btn:active {
-  transform: translateY(0);
+/* PRESET CHIPS */
+.preset-pincodes-section {
+  margin-bottom: 24px;
+  padding: 14px 16px;
+  background: #151c2c;
+  border-radius: 12px;
+  border: 1px solid #2a3a52;
 }
 
-/* ============================================ */
-/* RESULT */
-/* ============================================ */
-
-.serviceability-result {
-  background: #ffffff;
-  padding: 24px 30px;
-  border-radius: 16px;
-  border: 1px solid #e2e8f0;
-  max-width: 600px;
-  margin-top: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-}
-
-.serviceability-result-title {
-  margin: 0 0 10px 0;
-  font-size: 18px;
-  font-weight: 700;
-  color: #0f172a;
-}
-
-.serviceability-result-text {
-  color: #475569;
-  font-size: 15px;
-  margin: 0 0 16px 0;
-}
-
-.serviceability-result-text strong {
-  color: #0f172a;
-}
-
-.serviceability-courier-title {
-  margin: 0 0 10px 0;
-  font-size: 14px;
+.preset-title {
+  font-size: 12px;
   font-weight: 600;
-  color: #0f172a;
+  color: #8896b0;
+  display: block;
+  margin-bottom: 10px;
 }
 
-.serviceability-couriers {
+.preset-chips-list {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
-.serviceability-courier-badge {
-  background: #f1f5f9;
-  padding: 6px 14px;
-  border-radius: 6px;
+.preset-chip {
+  background: #1c2333;
+  border: 1px solid #2a3a52;
+  color: #a0aec0;
+  padding: 6px 12px;
+  border-radius: 8px;
   font-size: 12px;
   font-weight: 600;
-  color: #334155;
+  cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.serviceability-courier-badge:hover {
-  background: #e2e8f0;
+.preset-chip:hover {
+  border-color: #f97316;
+  color: #f1f5f9;
+  background: #1e2640;
+}
+
+/* SUBMIT BUTTON */
+.serviceability-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  color: #ffffff;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 4px 14px rgba(249, 115, 22, 0.35);
+  transition: all 0.2s ease;
+}
+
+.serviceability-btn:hover:not(:disabled) {
   transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(249, 115, 22, 0.45);
 }
 
-/* ============================================ */
-/* RESPONSIVE - LAPTOP (1025px+) */
-/* ============================================ */
-
-@media (min-width: 1025px) {
-  .serviceability-container {
-    flex-direction: row;
-  }
-
-  .serviceability-sidebar {
-    width: 280px;
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    flex-shrink: 0;
-  }
-
-  .serviceability-main {
-    flex: 1;
-    padding: 30px 40px;
-    width: calc(100% - 280px);
-    max-width: calc(100% - 280px);
-  }
-
-  .serviceability-card {
-    max-width: 600px;
-  }
-
-  .serviceability-result {
-    max-width: 600px;
-  }
+.btn-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 }
 
-/* ============================================ */
-/* RESPONSIVE - TABLET (769px - 1024px) */
-/* ============================================ */
-
-@media (max-width: 1024px) and (min-width: 769px) {
-  .serviceability-container {
-    flex-direction: row;
-  }
-
-  .serviceability-sidebar {
-    width: 72px;
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    flex-shrink: 0;
-    overflow: hidden;
-  }
-
-  .serviceability-main {
-    flex: 1;
-    padding: 24px 24px;
-    width: calc(100% - 72px);
-    max-width: calc(100% - 72px);
-  }
-
-  .serviceability-title {
-    font-size: 24px;
-  }
-
-  .serviceability-card {
-    max-width: 500px;
-    padding: 24px;
-  }
-
-  .serviceability-result {
-    max-width: 500px;
-    padding: 20px 24px;
-  }
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
-/* ============================================ */
-/* RESPONSIVE - MOBILE (768px and below) */
-/* ============================================ */
+.serviceability-error-banner {
+  margin-top: 18px;
+  padding: 14px 18px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 10px;
+  color: #f87171;
+  font-size: 13.5px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
+/* ============================================================
+   RESULTS CARDS
+   ============================================================ */
+.serviceability-results-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* STATUS BANNER */
+.result-status-banner {
+  padding: 24px 28px;
+  border-radius: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.banner-success {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(22, 163, 74, 0.08) 100%);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+}
+
+.banner-fail {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.08) 100%);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.status-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.banner-success .status-banner-icon { color: #4ade80; }
+.banner-fail .status-banner-icon { color: #f87171; }
+
+.status-banner-title {
+  font-size: 20px;
+  font-weight: 800;
+  margin: 0 0 4px 0;
+  letter-spacing: -0.3px;
+}
+
+.banner-success .status-banner-title { color: #4ade80; }
+.banner-fail .status-banner-title { color: #f87171; }
+
+.status-banner-sub {
+  font-size: 13.5px;
+  color: #a0aec0;
+  margin: 0;
+}
+
+.eta-badge-card {
+  background: #151c2c;
+  border: 1px solid #2a3a52;
+  padding: 10px 18px;
+  border-radius: 12px;
+  text-align: right;
+}
+
+.eta-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #8896b0;
+  letter-spacing: 0.5px;
+}
+
+.eta-value {
+  font-size: 20px;
+  font-weight: 800;
+  color: #4ade80;
+  margin: 2px 0 0 0;
+}
+
+/* COURIER PARTNERS CARD */
+.available-couriers-card {
+  background: #1c2333;
+  border-radius: 18px;
+  border: 1px solid #2a3a52;
+  padding: 24px 28px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.couriers-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #2a3a52;
+}
+
+.header-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-title-group h3 {
+  font-size: 17px;
+  font-weight: 700;
+  color: #f1f5f9;
+  margin: 0;
+}
+
+.cod-badge {
+  font-size: 12px;
+  font-weight: 700;
+  color: #f97316;
+  background: rgba(249, 115, 22, 0.12);
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+.couriers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.courier-item-card {
+  background: #151c2c;
+  border: 1px solid #2a3a52;
+  border-radius: 14px;
+  padding: 16px;
+  transition: all 0.2s ease;
+}
+
+.courier-item-card:hover {
+  border-color: #f97316;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.courier-card-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.courier-icon-wrapper {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #1c2333;
+  border: 1px solid #2a3a52;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.courier-card-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #f1f5f9;
+  margin: 0 0 2px 0;
+}
+
+.courier-mode-tag {
+  font-size: 11px;
+  color: #8896b0;
+  font-weight: 600;
+}
+
+.courier-card-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 10px;
+  border-top: 1px dashed #2a3a52;
+}
+
+.eta-pill {
+  font-size: 12px;
+  font-weight: 600;
+  color: #4ade80;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.active-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #4ade80;
+  background: rgba(34, 197, 94, 0.15);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
 @media (max-width: 768px) {
-  .serviceability-container {
+  .serviceability-main {
+    padding: 20px 16px;
+  }
+
+  .pincode-input-row {
     flex-direction: column;
+    align-items: stretch;
   }
 
-  .serviceability-sidebar {
-    width: 100% !important;
-    height: auto !important;
-    position: relative !important;
-    top: 0 !important;
-    border-right: none !important;
-    border-bottom: 1px solid #e2e8f0 !important;
-    overflow-y: visible !important;
-    flex-shrink: 0 !important;
-    z-index: 50 !important;
-  }
-
-  .serviceability-main {
-    padding: 70px 14px 20px 14px !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    flex: 1 !important;
-  }
-
-  .serviceability-title {
-    font-size: 22px;
-  }
-
-  .serviceability-card {
-    padding: 20px;
-    max-width: 100%;
-    border-radius: 14px;
-  }
-
-  .serviceability-input {
-    padding: 10px 14px;
-    font-size: 13px;
-  }
-
-  .serviceability-btn {
-    padding: 10px 20px;
-    font-size: 14px;
-  }
-
-  .serviceability-result {
-    padding: 18px 20px;
-    max-width: 100%;
-    border-radius: 14px;
-  }
-
-  .serviceability-result-title {
-    font-size: 16px;
-  }
-
-  .serviceability-result-text {
-    font-size: 14px;
-  }
-
-  .serviceability-couriers {
-    gap: 8px;
-  }
-
-  .serviceability-courier-badge {
-    padding: 5px 12px;
-    font-size: 11px;
-  }
-}
-
-/* ============================================ */
-/* RESPONSIVE - SMALL MOBILE (480px and below) */
-/* ============================================ */
-
-@media (max-width: 480px) {
-  .serviceability-main {
-    padding: 60px 10px 16px 10px !important;
-  }
-
-  .serviceability-title {
-    font-size: 18px;
-  }
-
-  .serviceability-card {
-    padding: 16px;
-    border-radius: 12px;
-  }
-
-  .serviceability-input {
-    padding: 8px 12px;
-    font-size: 12px;
+  .swap-pincodes-btn {
+    align-self: center;
     margin-bottom: 10px;
   }
 
-  .serviceability-btn {
-    padding: 8px 16px;
-    font-size: 13px;
-    border-radius: 6px;
+  .result-status-banner {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
-  .serviceability-result {
-    padding: 14px 16px;
-    border-radius: 12px;
-  }
-
-  .serviceability-result-title {
-    font-size: 14px;
-  }
-
-  .serviceability-result-text {
-    font-size: 13px;
-  }
-
-  .serviceability-courier-title {
-    font-size: 13px;
-  }
-
-  .serviceability-courier-badge {
-    padding: 4px 10px;
-    font-size: 10px;
-  }
-}
-
-/* ============================================ */
-/* RESPONSIVE - VERY SMALL (360px and below) */
-/* ============================================ */
-
-@media (max-width: 360px) {
-  .serviceability-main {
-    padding: 56px 8px 14px 8px !important;
-  }
-
-  .serviceability-title {
-    font-size: 16px;
-  }
-
-  .serviceability-card {
-    padding: 14px;
-    border-radius: 10px;
-  }
-
-  .serviceability-input {
-    padding: 6px 10px;
-    font-size: 11px;
-  }
-
-  .serviceability-btn {
-    padding: 6px 14px;
-    font-size: 12px;
-  }
-
-  .serviceability-result {
-    padding: 12px 14px;
-  }
-
-  .serviceability-result-title {
-    font-size: 13px;
-  }
-
-  .serviceability-result-text {
-    font-size: 12px;
-  }
-
-  .serviceability-courier-badge {
-    padding: 3px 8px;
-    font-size: 9px;
+  .eta-badge-card {
+    text-align: left;
+    width: 100%;
   }
 }

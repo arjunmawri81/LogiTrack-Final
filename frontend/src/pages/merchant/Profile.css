@@ -3,7 +3,7 @@
   margin-left: 280px;
   padding: 30px;
   min-height: 100vh;
-  background: #f8fafc;
+  background: #111827;
   flex: 1;
   width: calc(100% - 280px);
   box-sizing: border-box;
@@ -12,18 +12,18 @@
 .profile-container h1 {
   font-size: 32px;
   font-weight: 700;
-  color: #0f172a;
+  color: #f1f5f9;
   margin-bottom: 25px;
 }
 
 .profile-card {
   width: 100%;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: #1c2333;
+  border: 1px solid #2a3a52;
   border-radius: 18px;
   padding: 30px;
   box-sizing: border-box;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
 .profile-header {
@@ -32,7 +32,7 @@
   gap: 20px;
   padding-bottom: 25px;
   margin-bottom: 25px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #2a3a52;
 }
 
 .avatar {
@@ -56,30 +56,30 @@
 
 .profile-header h2 {
   margin: 0;
-  color: #0f172a;
+  color: #f1f5f9;
   font-size: 30px;
   font-weight: 700;
 }
 
 .profile-header p {
   margin-top: 6px;
-  color: #64748b;
+  color: #94a3b8;
   font-size: 15px;
 }
 
 /* Profile Stats */
 .profile-stat {
-  background: white;
+  background: #1a2235;
   padding: 15px 20px;
   border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  border: 1px solid #e2e8f0;
+  box-shadow: none;
+  border: 1px solid #2a3a52;
 }
 
 .profile-stat h4 {
   margin: 0 0 5px 0;
   font-size: 14px;
-  color: #64748b;
+  color: #94a3b8;
   font-weight: 500;
 }
 
@@ -87,7 +87,7 @@
   margin: 0;
   font-size: 16px;
   font-weight: 600;
-  color: #1e293b;
+  color: #f1f5f9;
 }
 
 /* Profile Form - 2 Column Grid */
@@ -101,11 +101,11 @@
 .profile-form textarea {
   width: 100%;
   padding: 14px 16px;
-  border: 1px solid #d1d5db;
+  border: 1px solid #2a3a52;
   border-radius: 12px;
   font-size: 14px;
-  color: #0f172a;
-  background: #fff;
+  color: #e8edf5;
+  background: #151c2c;
   box-sizing: border-box;
   transition: 0.25s;
 }
@@ -118,7 +118,8 @@
 }
 
 .profile-form input:read-only {
-  background: #f8fafc;
+  background: #1a2235;
+  color: #8896b0;
   cursor: default;
 }
 
@@ -129,7 +130,8 @@
 }
 
 .profile-form textarea:read-only {
-  background: #f8fafc;
+  background: #1a2235;
+  color: #8896b0;
   cursor: default;
 }
 

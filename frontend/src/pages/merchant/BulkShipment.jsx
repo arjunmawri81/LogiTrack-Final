@@ -140,7 +140,7 @@ const BulkShipment = () => {
 
   if (loading) {
     return (
-      <div style={{ display: "flex", minHeight: "100vh", background: "#f1f5f9" }}>
+      <div style={{ display: "flex", minHeight: "100vh", background: "#111827" }}>
         <div style={{ width: "280px", flexShrink: 0 }}>
           <Sidebar />
         </div>
@@ -155,7 +155,7 @@ const BulkShipment = () => {
     <div style={{
       display: "flex",
       minHeight: "100vh",
-      background: "#f1f5f9",
+      background: "#111827",
       fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif"
     }}>
       <div style={{ width: "280px", flexShrink: 0 }}>
@@ -172,7 +172,7 @@ const BulkShipment = () => {
                 style={{
                   background: "transparent",
                   border: "none",
-                  color: "#64748b",
+                  color: "#94a3b8",
                   cursor: "pointer",
                   fontSize: "14px",
                   display: "flex",
@@ -180,25 +180,25 @@ const BulkShipment = () => {
                   gap: "8px",
                   marginBottom: "8px"
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.color = "#0f172a"}
-                onMouseLeave={(e) => e.currentTarget.style.color = "#64748b"}
+                onMouseEnter={(e) => e.currentTarget.style.color = "#f1f5f9"}
+                onMouseLeave={(e) => e.currentTarget.style.color = "#94a3b8"}
               >
                 <FaArrowLeft /> Back to Orders
               </button>
               <h1 style={{
                 fontSize: "28px",
                 fontWeight: "700",
-                color: "#0f172a",
+                color: "#f1f5f9",
                 margin: "0 0 6px 0",
                 display: "flex",
                 alignItems: "center",
                 gap: "12px"
               }}>
-                <FaTruck style={{ color: "#2563eb" }} />
+                <FaTruck style={{ color: "#f97316" }} />
                 Bulk Shipment
               </h1>
               <p style={{
-                color: "#64748b",
+                color: "#94a3b8",
                 margin: 0,
                 fontSize: "14px"
               }}>
@@ -206,7 +206,7 @@ const BulkShipment = () => {
               </p>
             </div>
             <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-              <label style={{ display: "flex", alignItems: "center", gap: "8px", background: "#f0fdf4", border: "1px solid #bbf7d0", padding: "8px 14px", borderRadius: "10px", cursor: "pointer", fontSize: "13px", color: "#166534", fontWeight: "500" }}>
+              <label style={{ display: "flex", alignItems: "center", gap: "8px", background: "rgba(34,197,94,0.15)", border: "1px solid rgba(34,197,94,0.3)", padding: "8px 14px", borderRadius: "10px", cursor: "pointer", fontSize: "13px", color: "#4ade80", fontWeight: "500" }}>
                 <input 
                   type="checkbox" 
                   checked={sendWhatsAppNotification} 
@@ -326,31 +326,34 @@ const BulkShipment = () => {
           marginBottom: "24px"
         }}>
           <div style={{
-            background: "white",
+            background: "#1c2333",
             padding: "20px",
             borderRadius: "16px",
-            border: "1px solid #e2e8f0"
+            border: "1px solid #2a3a52",
+            boxShadow: "0 2px 10px rgba(0,0,0,0.3)"
           }}>
-            <p style={{ fontSize: "12px", color: "#64748b", margin: "0 0 8px 0" }}>Total Orders</p>
-            <h3 style={{ fontSize: "24px", fontWeight: "700", color: "#0f172a", margin: 0 }}>{orders.length}</h3>
+            <p style={{ fontSize: "12px", color: "#8896b0", margin: "0 0 8px 0" }}>Total Orders</p>
+            <h3 style={{ fontSize: "24px", fontWeight: "700", color: "#f1f5f9", margin: 0 }}>{orders.length}</h3>
           </div>
           <div style={{
-            background: "white",
+            background: "#1c2333",
             padding: "20px",
             borderRadius: "16px",
-            border: "1px solid #e2e8f0"
+            border: "1px solid #2a3a52",
+            boxShadow: "0 2px 10px rgba(0,0,0,0.3)"
           }}>
-            <p style={{ fontSize: "12px", color: "#64748b", margin: "0 0 8px 0" }}>Selected for Shipment</p>
-            <h3 style={{ fontSize: "24px", fontWeight: "700", color: "#2563eb", margin: 0 }}>{selectedOrders.length}</h3>
+            <p style={{ fontSize: "12px", color: "#8896b0", margin: "0 0 8px 0" }}>Selected for Shipment</p>
+            <h3 style={{ fontSize: "24px", fontWeight: "700", color: "#f97316", margin: 0 }}>{selectedOrders.length}</h3>
           </div>
           <div style={{
-            background: "white",
+            background: "#1c2333",
             padding: "20px",
             borderRadius: "16px",
-            border: "1px solid #e2e8f0"
+            border: "1px solid #2a3a52",
+            boxShadow: "0 2px 10px rgba(0,0,0,0.3)"
           }}>
-            <p style={{ fontSize: "12px", color: "#64748b", margin: "0 0 8px 0" }}>Total Amount</p>
-            <h3 style={{ fontSize: "24px", fontWeight: "700", color: "#0f172a", margin: 0 }}>
+            <p style={{ fontSize: "12px", color: "#8896b0", margin: "0 0 8px 0" }}>Total Amount</p>
+            <h3 style={{ fontSize: "24px", fontWeight: "700", color: "#f1f5f9", margin: 0 }}>
               ₹{orders.reduce((sum, order) => sum + (order.amount || 0), 0).toFixed(2)}
             </h3>
           </div>
@@ -358,23 +361,23 @@ const BulkShipment = () => {
 
         {/* Orders Table */}
         <div style={{
-          background: "white",
+          background: "#1c2333",
           borderRadius: "16px",
           overflow: "hidden",
-          border: "1px solid #e2e8f0",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.08)"
+          border: "1px solid #2a3a52",
+          boxShadow: "0 2px 10px rgba(0,0,0,0.3)"
         }}>
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "700px" }}>
               <thead>
                 <tr style={{
-                  background: "#ffffff",
-                  borderBottom: "1px solid #e2e8f0"
+                  background: "#1e2640",
+                  borderBottom: "1px solid #2a3a52"
                 }}>
                   <th style={{
                     textAlign: "left",
                     padding: "16px 20px",
-                    color: "#2f2f2f",
+                    color: "#8896b0",
                     fontSize: "12px",
                     fontWeight: "600",
                     textTransform: "uppercase",
@@ -389,7 +392,7 @@ const BulkShipment = () => {
                   <th style={{
                     textAlign: "left",
                     padding: "16px 20px",
-                    color: "#2f2f2f",
+                    color: "#8896b0",
                     fontSize: "12px",
                     fontWeight: "600",
                     textTransform: "uppercase",
@@ -398,7 +401,7 @@ const BulkShipment = () => {
                   <th style={{
                     textAlign: "left",
                     padding: "16px 20px",
-                    color: "#2f2f2f",
+                    color: "#8896b0",
                     fontSize: "12px",
                     fontWeight: "600",
                     textTransform: "uppercase",
@@ -407,7 +410,7 @@ const BulkShipment = () => {
                   <th style={{
                     textAlign: "left",
                     padding: "16px 20px",
-                    color: "#2f2f2f",
+                    color: "#8896b0",
                     fontSize: "12px",
                     fontWeight: "600",
                     textTransform: "uppercase",
@@ -416,7 +419,7 @@ const BulkShipment = () => {
                   <th style={{
                     textAlign: "left",
                     padding: "16px 20px",
-                    color: "#2f2f2f",
+                    color: "#8896b0",
                     fontSize: "12px",
                     fontWeight: "600",
                     textTransform: "uppercase",
@@ -430,15 +433,15 @@ const BulkShipment = () => {
                     <tr
                       key={order._id}
                       style={{
-                        borderBottom: "1px solid #f1f5f9",
+                        borderBottom: "1px solid #1e2a3a",
                         transition: "background 0.2s",
-                        background: selectedOrders.includes(order._id) ? "#eff6ff" : "#ffffff"
+                        background: selectedOrders.includes(order._id) ? "#243049" : "#1c2333"
                       }}
                       onMouseEnter={(e) =>
-                        (e.currentTarget.style.background = selectedOrders.includes(order._id) ? "#dbeafe" : "#f8fafc")
+                        (e.currentTarget.style.background = selectedOrders.includes(order._id) ? "#2d3f5e" : "#243049")
                       }
                       onMouseLeave={(e) =>
-                        (e.currentTarget.style.background = selectedOrders.includes(order._id) ? "#eff6ff" : "#ffffff")
+                        (e.currentTarget.style.background = selectedOrders.includes(order._id) ? "#243049" : "#1c2333")
                       }
                     >
                       <td style={{

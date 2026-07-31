@@ -2,7 +2,7 @@
 
 .reports-container {
   display: flex;
-  background: #f8fafc;
+  background: #111827;
   min-height: 100vh;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   overflow-x: hidden;
@@ -15,8 +15,8 @@
   position: sticky;
   top: 0;
   overflow-y: auto;
-  background: #fff;
-  border-right: 1px solid #e2e8f0;
+  background: #0c101a;
+  border-right: 1px solid #1e2a3a;
   z-index: 50;
 }
 
@@ -42,13 +42,13 @@
 .reports-title {
   font-size: 28px;
   font-weight: 800;
-  color: #0f172a;
+  color: #f1f5f9;
   margin: 0 0 4px 0;
   letter-spacing: -0.5px;
 }
 
 .reports-subtitle {
-  color: #64748b;
+  color: #94a3b8;
   font-size: 14px;
   margin: 0;
 }
@@ -59,9 +59,9 @@
 }
 
 .btn-refresh {
-  background: #ffffff;
-  color: #334155;
-  border: 1px solid #cbd5e1;
+  background: #1c2333;
+  color: #a0aec0;
+  border: 1px solid #2a3a52;
   padding: 9px 16px;
   border-radius: 8px;
   font-weight: 600;
@@ -74,8 +74,9 @@
 }
 
 .btn-refresh:hover {
-  background: #f1f5f9;
-  border-color: #94a3b8;
+  background: #243049;
+  border-color: #f97316;
+  color: #f1f5f9;
 }
 
 .btn-export {
@@ -100,8 +101,8 @@
 
 /* DATE FILTER BAR */
 .date-filter-bar {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: #1c2333;
+  border: 1px solid #2a3a52;
   border-radius: 12px;
   padding: 14px 20px;
   display: flex;
@@ -109,13 +110,13 @@
   gap: 16px;
   flex-wrap: wrap;
   margin-bottom: 28px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .filter-label {
   font-size: 13px;
   font-weight: 700;
-  color: #475569;
+  color: #94a3b8;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -128,9 +129,9 @@
 }
 
 .pill-btn {
-  background: #f1f5f9;
-  color: #475569;
-  border: none;
+  background: #1a2235;
+  color: #94a3b8;
+  border: 1px solid #2a3a52;
   padding: 6px 14px;
   border-radius: 20px;
   font-size: 13px;
@@ -140,12 +141,14 @@
 }
 
 .pill-btn:hover {
-  background: #e2e8f0;
+  background: #243049;
+  color: #f1f5f9;
 }
 
 .pill-btn.active {
-  background: #0f172a;
+  background: #f97316;
   color: #ffffff;
+  border-color: #f97316;
 }
 
 .custom-date-inputs {
@@ -156,11 +159,13 @@
 
 .date-picker {
   padding: 6px 10px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #2a3a52;
   border-radius: 6px;
   font-size: 13px;
   outline: none;
   font-family: inherit;
+  background: #151c2c;
+  color: #e8edf5;
 }
 
 /* TOP METRICS GRID */
@@ -172,15 +177,15 @@
 }
 
 .metric-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: #1c2333;
+  border: 1px solid #2a3a52;
   border-radius: 14px;
   padding: 16px 18px;
   display: flex;
   align-items: center;
   gap: 12px;
   min-width: 0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
@@ -205,40 +210,17 @@
   flex-shrink: 0;
 }
 
-.metric-icon.blue {
-  background: #eff6ff;
-  color: #2563eb;
-}
-
-.metric-icon.purple {
-  background: #f3e8ff;
-  color: #9333ea;
-}
-
-.metric-icon.green {
-  background: #f0fdf4;
-  color: #16a34a;
-}
-
-.metric-icon.yellow {
-  background: #fefce8;
-  color: #ca8a04;
-}
-
-.metric-icon.red {
-  background: #fef2f2;
-  color: #dc2626;
-}
-
-.metric-icon.emerald {
-  background: #ecfdf5;
-  color: #059669;
-}
+.metric-icon.blue   { background: rgba(59,130,246,0.15); color: #60a5fa; }
+.metric-icon.purple { background: rgba(139,92,246,0.15); color: #a78bfa; }
+.metric-icon.green  { background: rgba(34,197,94,0.15);  color: #4ade80; }
+.metric-icon.yellow { background: rgba(234,179,8,0.15);  color: #facc15; }
+.metric-icon.red    { background: rgba(239,68,68,0.15);  color: #f87171; }
+.metric-icon.emerald{ background: rgba(16,185,129,0.15); color: #34d399; }
 
 .metric-title {
   font-size: 12px;
   font-weight: 600;
-  color: #64748b;
+  color: #8896b0;
   display: block;
   white-space: nowrap;
   overflow: hidden;
@@ -248,7 +230,7 @@
 .metric-value {
   font-size: clamp(16px, 1.3vw, 20px);
   font-weight: 800;
-  color: #0f172a;
+  color: #f1f5f9;
   margin: 2px 0 0 0;
   white-space: nowrap;
   overflow: hidden;
@@ -264,17 +246,17 @@
 }
 
 .details-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: #1c2333;
+  border: 1px solid #2a3a52;
   border-radius: 14px;
   padding: 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .details-card h3 {
   font-size: 16px;
   font-weight: 700;
-  color: #0f172a;
+  color: #f1f5f9;
   margin: 0 0 20px 0;
   display: flex;
   align-items: center;
@@ -292,13 +274,13 @@
   justify-content: space-between;
   align-items: center;
   padding: 10px 14px;
-  background: #f8fafc;
+  background: #1a2235;
   border-radius: 8px;
   font-size: 14px;
 }
 
 .status-name {
-  color: #475569;
+  color: #94a3b8;
   font-weight: 500;
   display: flex;
   align-items: center;
@@ -306,7 +288,7 @@
 }
 
 .status-item strong {
-  color: #0f172a;
+  color: #f1f5f9;
   font-weight: 700;
 }
 
@@ -365,29 +347,29 @@
 }
 
 .reports-table th {
-  background: #f8fafc;
+  background: #1e2640;
   padding: 12px 16px;
   text-align: left;
   font-size: 12px;
   font-weight: 700;
-  color: #64748b;
+  color: #8896b0;
   text-transform: uppercase;
-  border-bottom: 2px solid #e2e8f0;
+  border-bottom: 2px solid #2a3a52;
 }
 
 .reports-table td {
   padding: 14px 16px;
-  border-bottom: 1px solid #f1f5f9;
-  color: #334155;
+  border-bottom: 1px solid #1e2a3a;
+  color: #a0aec0;
 }
 
 .reports-table tr:hover td {
-  background: #fafafa;
+  background: #243049;
 }
 
 .font-bold {
   font-weight: 700;
-  color: #0f172a;
+  color: #f1f5f9;
 }
 
 .rate-badge {
@@ -397,20 +379,9 @@
   border-radius: 20px;
 }
 
-.rate-badge.high {
-  background: #dcfce7;
-  color: #166534;
-}
-
-.rate-badge.med {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-.rate-badge.low {
-  background: #fee2e2;
-  color: #991b1b;
-}
+.rate-badge.high { background: rgba(34,197,94,0.15);  color: #4ade80; }
+.rate-badge.med  { background: rgba(234,179,8,0.15);  color: #facc15; }
+.rate-badge.low  { background: rgba(239,68,68,0.15);  color: #f87171; }
 
 .no-data {
   padding: 30px;

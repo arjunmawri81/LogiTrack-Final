@@ -30,7 +30,7 @@ const OrderDetails = () => {
 
   if (loading) {
     return (
-      <div style={{ padding: "40px" }}>
+      <div style={{ padding: "40px", background: "#111827", minHeight: "100vh", color: "#f1f5f9" }}>
         <h2>Loading Order...</h2>
       </div>
     );
@@ -38,7 +38,7 @@ const OrderDetails = () => {
 
   if (!order) {
     return (
-      <div style={{ padding: "40px" }}>
+      <div style={{ padding: "40px", background: "#111827", minHeight: "100vh", color: "#f1f5f9" }}>
         <h2>No Order Found</h2>
       </div>
     );
@@ -49,7 +49,7 @@ const OrderDetails = () => {
       style={{
         display: "flex",
         minHeight: "100vh",
-        background: "#f8fafc",
+        background: "#111827",
       }}
     >
       <div style={{ width: "280px", flexShrink: 0 }}>
@@ -75,7 +75,7 @@ const OrderDetails = () => {
             style={{
               fontSize: "30px",
               fontWeight: "700",
-              color: "#0f172a",
+              color: "#f1f5f9",
             }}
           >
             Order Details
@@ -84,9 +84,9 @@ const OrderDetails = () => {
           <button
             onClick={() => navigate("/merchant/orders")}
             style={{
-              background: "#0f172a",
-              color: "#fff",
-              border: "none",
+              background: "#1c2333",
+              color: "#f1f5f9",
+              border: "1px solid #2a3a52",
               padding: "10px 18px",
               borderRadius: "8px",
               cursor: "pointer",
@@ -180,16 +180,16 @@ const OrderDetails = () => {
             style={{
               background:
                 order.status === "DELIVERED"
-                  ? "#dcfce7"
+                  ? "rgba(34,197,94,0.15)"
                   : order.status === "CANCELLED"
-                  ? "#fee2e2"
-                  : "#fef3c7",
+                  ? "rgba(239,68,68,0.15)"
+                  : "rgba(234,179,8,0.15)",
               color:
                 order.status === "DELIVERED"
-                  ? "#166534"
+                  ? "#4ade80"
                   : order.status === "CANCELLED"
-                  ? "#991b1b"
-                  : "#92400e",
+                  ? "#f87171"
+                  : "#facc15",
               padding: "8px 14px",
               borderRadius: "8px",
               fontWeight: "600",
@@ -224,20 +224,22 @@ const OrderDetails = () => {
 };
 
 const card = {
-  background: "#ffffff",
+  background: "#1c2333",
   padding: "20px",
   borderRadius: "12px",
-  border: "1px solid #e2e8f0",
+  border: "1px solid #2a3a52",
   marginBottom: "20px",
+  boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
 };
 
 const title = {
   marginBottom: "15px",
-  color: "#0f172a",
+  color: "#f1f5f9",
+  fontSize: "18px",
 };
 
 const text = {
-  color: "#111827",
+  color: "#a0aec0",
   fontSize: "15px",
   marginBottom: "8px",
 };

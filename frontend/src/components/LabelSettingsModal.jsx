@@ -503,7 +503,7 @@ const modalOverlay = {
   left: 0,
   right: 0,
   bottom: 0,
-  background: 'rgba(0, 0, 0, 0.5)',
+  background: 'rgba(5, 8, 18, 0.75)',
   backdropFilter: 'blur(4px)',
   display: 'flex',
   justifyContent: 'center',
@@ -512,13 +512,15 @@ const modalOverlay = {
 };
 
 const modalContainer = {
-  background: '#fff',
+  background: '#1c2333',
+  border: '1px solid #2a3a52',
   borderRadius: '16px',
   maxWidth: '600px',
   width: '90%',
   maxHeight: '90vh',
   overflowY: 'auto',
-  boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+  boxShadow: '0 24px 60px rgba(0,0,0,0.6)',
+  color: '#f1f5f9',
 };
 
 const headerStyles = {
@@ -527,17 +529,17 @@ const headerStyles = {
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: '20px 24px',
-    borderBottom: '1px solid #e2e8f0',
+    borderBottom: '1px solid #2a3a52',
     position: 'sticky',
     top: 0,
-    background: '#fff',
+    background: '#1e2640',
     zIndex: 10,
     borderRadius: '16px 16px 0 0',
   },
   title: {
     fontSize: '18px',
     fontWeight: '600',
-    color: '#0f172a',
+    color: '#f1f5f9',
     margin: 0,
   },
   closeButton: {
@@ -564,12 +566,12 @@ const sectionStyles = {
   container: {
     marginBottom: '24px',
     paddingBottom: '24px',
-    borderBottom: '1px solid #f1f5f9',
+    borderBottom: '1px solid #2a3a52',
   },
   title: {
     fontSize: '14px',
     fontWeight: '600',
-    color: '#0f172a',
+    color: '#f1f5f9',
     marginBottom: '12px',
   },
   options: {
@@ -585,7 +587,8 @@ const radioStyles = {
     alignItems: 'center',
     padding: '8px 12px',
     borderRadius: '8px',
-    border: '1px solid #e2e8f0',
+    border: '1px solid #2a3a52',
+    background: '#151c2c',
     cursor: 'pointer',
     transition: 'all 0.2s',
   },
@@ -598,7 +601,7 @@ const radioStyles = {
   },
   label: {
     fontSize: '14px',
-    color: '#0f172a',
+    color: '#f1f5f9',
     cursor: 'pointer',
   },
 };
@@ -616,8 +619,8 @@ const logoStyles = {
     marginTop: '6px',
   },
   uploadBox: {
-    background: '#f8fafc',
-    border: '1px dashed #cbd5e1',
+    background: '#151c2c',
+    border: '1px dashed #2a3a52',
     borderRadius: '12px',
     padding: '12px',
     display: 'flex',
@@ -627,16 +630,16 @@ const logoStyles = {
   boxTitle: {
     fontSize: '13px',
     fontWeight: '600',
-    color: '#334155',
+    color: '#f1f5f9',
   },
   boxDesc: {
     fontSize: '11px',
-    color: '#64748b',
+    color: '#8896b0',
     margin: 0,
   },
   uploadButton: {
-    background: '#ffffff',
-    color: '#475569',
+    background: '#1a2235',
+    color: '#a0aec0',
     padding: '8px 14px',
     borderRadius: '8px',
     fontSize: '12px',
@@ -646,9 +649,8 @@ const logoStyles = {
     alignItems: 'center',
     justifyContent: 'center',
     transition: 'all 0.2s',
-    border: '1px solid #cbd5e1',
+    border: '1px solid #2a3a52',
     marginTop: '4px',
-    boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
   },
   previewContainer: {
     position: 'relative',
@@ -670,18 +672,18 @@ const logoStyles = {
     width: '64px',
     height: '64px',
     objectFit: 'contain',
-    border: '1px solid #e2e8f0',
+    border: '1px solid #2a3a52',
     borderRadius: '8px',
     padding: '4px',
-    background: '#fff',
+    background: '#151c2c',
     display: 'block',
   },
   removeButton: {
     position: 'absolute',
     top: '18px',
     right: '-6px',
-    background: '#fee2e2',
-    color: '#dc2626',
+    background: '#7f1d1d',
+    color: '#fca5a5',
     border: 'none',
     borderRadius: '50%',
     width: '20px',
@@ -705,7 +707,7 @@ const toggleStyles = {
   label: {
     fontSize: '13px',
     fontWeight: '500',
-    color: '#475569',
+    color: '#a0aec0',
   },
   track: {
     width: '40px',
@@ -746,7 +748,7 @@ const checkboxStyles = {
   },
   label: {
     fontSize: '13px',
-    color: '#0f172a',
+    color: '#f1f5f9',
     cursor: 'pointer',
   },
 };
@@ -764,15 +766,15 @@ const footerStyles = {
     display: 'flex',
     gap: '12px',
     padding: '16px 24px',
-    borderTop: '1px solid #e2e8f0',
+    borderTop: '1px solid #2a3a52',
     justifyContent: 'flex-end',
-    background: '#fafafa',
+    background: '#1e2640',
     borderRadius: '0 0 16px 16px',
   },
   cancelButton: {
-    background: '#f1f5f9',
-    color: '#475569',
-    border: 'none',
+    background: '#1a2235',
+    color: '#94a3b8',
+    border: '1px solid #2a3a52',
     padding: '10px 20px',
     borderRadius: '8px',
     fontSize: '14px',
