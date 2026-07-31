@@ -3,19 +3,20 @@
    ============================================ */
 
 /* ---------- CONTAINER ---------- */
-.ndr-container {
+.admin-scope .ndr-container {
   display: flex;
   min-height: 100vh;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
 }
 
-.ndr-content {
+.admin-scope .ndr-content {
   flex: 1;
   margin-left: 280px;
   padding: 20px 30px;
   min-width: 0;
   width: calc(100% - 280px);
   box-sizing: border-box;
+  background: transparent !important;
 }
 
 /* ---------- TOAST ---------- */

@@ -1,6 +1,6 @@
 /* Reports.css - Complete & Responsive */
 
-.reports-container {
+.merchant-scope .reports-container {
   display: flex;
   background: #111827;
   min-height: 100vh;
@@ -8,7 +8,7 @@
   overflow-x: hidden;
 }
 
-.reports-sidebar {
+.merchant-scope .reports-sidebar {
   width: 280px;
   flex-shrink: 0;
   height: 100vh;
@@ -20,7 +20,7 @@
   z-index: 50;
 }
 
-.reports-main {
+.merchant-scope .reports-main {
   flex: 1;
   padding: 30px 40px;
   overflow-x: hidden;

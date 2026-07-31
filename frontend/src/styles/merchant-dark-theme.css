@@ -577,6 +577,7 @@
 }
 
 .merchant-scope td {
+  background: transparent !important;
   color: var(--m-text-muted) !important;
   border-bottom: 1px solid var(--m-border-2) !important;
 }
@@ -672,4 +673,293 @@
 
 .merchant-scope .hamburger-btn:hover {
   background: var(--m-bg-hover) !important;
+}
+
+/* ============================================================
+   MERCHANT NDR PAGE
+   ============================================================ */
+
+.merchant-scope .ndr-container {
+  background: var(--m-bg-base) !important;
+}
+
+.merchant-scope .ndr-main {
+  background: var(--m-bg-base) !important;
+}
+
+.merchant-scope .ndr-title {
+  color: var(--m-text) !important;
+}
+
+.merchant-scope .ndr-subtitle {
+  color: var(--m-text-muted) !important;
+}
+
+.merchant-scope .ndr-stat-card {
+  background: var(--m-bg-card) !important;
+  border: 1px solid var(--m-border) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+.merchant-scope .ndr-stat-card:hover {
+  background: var(--m-bg-hover) !important;
+  border-color: var(--m-accent) !important;
+}
+
+.merchant-scope .ndr-stat-value {
+  color: var(--m-text) !important;
+}
+
+.merchant-scope .ndr-stat-label {
+  color: var(--m-text-muted) !important;
+}
+
+.merchant-scope .ndr-search-wrapper {
+  background: var(--m-bg-card) !important;
+  border: 1px solid var(--m-border) !important;
+}
+
+.merchant-scope .ndr-search-input {
+  color: var(--m-text) !important;
+  background: transparent !important;
+}
+
+.merchant-scope .ndr-search-input::placeholder {
+  color: var(--m-text-muted) !important;
+}
+
+.merchant-scope .ndr-filter-select {
+  background: var(--m-bg-input) !important;
+  border: 1px solid var(--m-border) !important;
+  color: var(--m-text) !important;
+}
+
+.merchant-scope .ndr-table-card {
+  background: var(--m-bg-card) !important;
+  border: 1px solid var(--m-border) !important;
+}
+
+.merchant-scope .ndr-table-header {
+  background: var(--m-bg-card-2) !important;
+  border-bottom: 1px solid var(--m-border) !important;
+}
+
+.merchant-scope .ndr-table-title {
+  color: var(--m-text) !important;
+}
+
+.merchant-scope .ndr-table-count {
+  color: var(--m-text-muted) !important;
+}
+
+.merchant-scope .ndr-table-head {
+  background: var(--m-bg-card-2) !important;
+  border-bottom: 1px solid var(--m-border) !important;
+}
+
+.merchant-scope .ndr-th {
+  color: var(--m-text-muted) !important;
+}
+
+.merchant-scope .ndr-row {
+  background: var(--m-bg-card) !important;
+  border-bottom: 1px solid var(--m-border-2) !important;
+}
+
+.merchant-scope .ndr-row:hover {
+  background: var(--m-bg-hover) !important;
+}
+
+.merchant-scope .ndr-td {
+  color: var(--m-text-muted) !important;
+  background: transparent !important;
+}
+
+.merchant-scope .ndr-customer-name {
+  color: var(--m-text) !important;
+}
+
+.merchant-scope .ndr-empty-title {
+  color: var(--m-text) !important;
+}
+
+.merchant-scope .ndr-modal-content {
+  background: var(--m-bg-card) !important;
+  border: 1px solid var(--m-border) !important;
+  color: var(--m-text) !important;
+}
+
+.merchant-scope .ndr-modal-header {
+  background: var(--m-bg-card-2) !important;
+  border-bottom: 1px solid var(--m-border) !important;
+}
+
+.merchant-scope .ndr-modal-title {
+  color: var(--m-text) !important;
+}
+
+.merchant-scope .ndr-detail-row {
+  border-bottom: 1px solid var(--m-border-2) !important;
+}
+
+.merchant-scope .ndr-detail-label {
+  color: var(--m-text-muted) !important;
+}
+
+.merchant-scope .ndr-detail-value {
+  color: var(--m-text) !important;
+}
+
+.merchant-scope .ndr-section-title {
+  color: var(--m-text) !important;
+  border-bottom: 2px solid var(--m-border) !important;
+}
+
+/* ============================================================
+   MERCHANT RTO PAGE
+   ============================================================ */
+
+.merchant-scope .rto-container {
+  background: var(--m-bg-base) !important;
+}
+
+.merchant-scope .rto-main {
+  background: var(--m-bg-base) !important;
+}
+
+.merchant-scope .rto-title {
+  color: var(--m-text) !important;
+}
+
+.merchant-scope .rto-subtitle {
+  color: var(--m-text-muted) !important;
+}
+
+.merchant-scope .rto-stat-card {
+  background: var(--m-bg-card) !important;
+  border: 1px solid var(--m-border) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+.merchant-scope .rto-stat-card:hover {
+  background: var(--m-bg-hover) !important;
+  border-color: var(--m-accent) !important;
+}
+
+.merchant-scope .rto-stat-value {
+  color: var(--m-text) !important;
+}
+
+.merchant-scope .rto-stat-label {
+  color: var(--m-text-muted) !important;
+}
+
+.merchant-scope .rto-search-wrapper {
+  background: var(--m-bg-card) !important;
+  border: 1px solid var(--m-border) !important;
+}
+
+.merchant-scope .rto-search-input {
+  color: var(--m-text) !important;
+  background: transparent !important;
+}
+
+.merchant-scope .rto-search-input::placeholder {
+  color: var(--m-text-muted) !important;
+}
+
+.merchant-scope .rto-filter-select {
+  background: var(--m-bg-input) !important;
+  border: 1px solid var(--m-border) !important;
+  color: var(--m-text) !important;
+}
+
+.merchant-scope .rto-table-card {
+  background: var(--m-bg-card) !important;
+  border: 1px solid var(--m-border) !important;
+}
+
+.merchant-scope .rto-table-header {
+  background: var(--m-bg-card-2) !important;
+  border-bottom: 1px solid var(--m-border) !important;
+}
+
+.merchant-scope .rto-table-title {
+  color: var(--m-text) !important;
+}
+
+.merchant-scope .rto-table-count {
+  color: var(--m-text-muted) !important;
+}
+
+.merchant-scope .rto-table-head {
+  background: var(--m-bg-card-2) !important;
+  border-bottom: 1px solid var(--m-border) !important;
+}
+
+.merchant-scope .rto-th {
+  color: var(--m-text-muted) !important;
+}
+
+.merchant-scope .rto-row {
+  background: var(--m-bg-card) !important;
+  border-bottom: 1px solid var(--m-border-2) !important;
+}
+
+.merchant-scope .rto-row:hover {
+  background: var(--m-bg-hover) !important;
+}
+
+.merchant-scope .rto-td {
+  color: var(--m-text-muted) !important;
+  background: transparent !important;
+}
+
+.merchant-scope .rto-customer-name {
+  color: var(--m-text) !important;
+}
+
+.merchant-scope .rto-created-date {
+  color: var(--m-text) !important;
+}
+
+.merchant-scope .rto-empty-title {
+  color: var(--m-text) !important;
+}
+
+.merchant-scope .rto-modal-content {
+  background: var(--m-bg-card) !important;
+  border: 1px solid var(--m-border) !important;
+  color: var(--m-text) !important;
+}
+
+.merchant-scope .rto-modal-header {
+  background: var(--m-bg-card-2) !important;
+  border-bottom: 1px solid var(--m-border) !important;
+}
+
+.merchant-scope .rto-modal-title {
+  color: var(--m-text) !important;
+}
+
+.merchant-scope .rto-detail-row {
+  border-bottom: 1px solid var(--m-border-2) !important;
+}
+
+.merchant-scope .rto-detail-label {
+  color: var(--m-text-muted) !important;
+}
+
+.merchant-scope .rto-detail-value {
+  color: var(--m-text) !important;
+}
+
+.merchant-scope .rto-section-title {
+  color: var(--m-text) !important;
+  border-bottom: 2px solid var(--m-border) !important;
+}
+
+.merchant-scope .rto-timeline-inactive {
+  background: var(--m-bg-input) !important;
+  color: var(--m-text-muted) !important;
 }

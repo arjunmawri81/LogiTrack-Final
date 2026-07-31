@@ -19,9 +19,13 @@ const AdminRoute = ({ children }) => {
 
     const role = decoded.role;
 
-    return role === "ADMIN" || role === "SUPER_ADMIN"
-      ? children
-      : <Navigate to="/login" />;
+    return role === "ADMIN" || role === "SUPER_ADMIN" ? (
+      <div className="admin-scope" style={{ width: "100%", minHeight: "100vh" }}>
+        {children}
+      </div>
+    ) : (
+      <Navigate to="/login" />
+    );
   } catch (error) {
     localStorage.removeItem("token");
     localStorage.removeItem("user");

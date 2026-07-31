@@ -1,7 +1,7 @@
 /* Wallet.css - Aligned with Project Slate/Blue Theme */
 
 /* CONTAINER */
-.wallet-container {
+.merchant-scope .wallet-container {
   display: flex;
   background: #111827;
   min-height: 100vh;
@@ -9,7 +9,7 @@
   overflow-x: hidden;
 }
 
-.wallet-sidebar-wrapper {
+.merchant-scope .wallet-sidebar-wrapper {
   width: 280px;
   flex-shrink: 0;
   height: 100vh;
@@ -21,7 +21,7 @@
   z-index: 50;
 }
 
-.wallet-main {
+.merchant-scope .wallet-main {
   flex: 1;
   padding: 30px 40px;
   overflow-x: hidden;
@@ -212,6 +212,7 @@
   width: 100%;
   border-collapse: collapse;
   min-width: 600px;
+  background: #1c2333;
 }
 
 .wallet-table-head {
@@ -225,6 +226,7 @@
   font-size: 12px;
   font-weight: 700;
   color: #8896b0;
+  background: #1e2640;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -234,6 +236,7 @@
   border-bottom: 1px solid #1e2a3a;
   font-size: 14px;
   color: #a0aec0;
+  background: transparent;
 }
 
 .wallet-amount {
@@ -242,7 +245,7 @@
 }
 
 .wallet-description {
-  color: #475569;
+  color: #8896b0;
 }
 
 /* TYPE BADGE */

@@ -4,13 +4,13 @@
 /* LOADING */
 /* ============================================ */
 
-.orders-loading-container {
+.merchant-scope .orders-loading-container {
   display: flex;
   min-height: 100vh;
   background: #111827;
 }
 
-.orders-sidebar {
+.merchant-scope .orders-sidebar {
   width: 280px;
   flex-shrink: 0;
   position: fixed;
@@ -23,7 +23,7 @@
   z-index: 50;
 }
 
-.orders-loading-spinner {
+.merchant-scope .orders-loading-spinner {
   flex: 1;
   margin-left: 280px;
   display: flex;
@@ -36,7 +36,7 @@
 /* MAIN CONTAINER */
 /* ============================================ */
 
-.orders-container {
+.merchant-scope .orders-container {
   display: flex;
   background: #111827;
   min-height: 100vh;
@@ -44,7 +44,7 @@
   overflow-x: hidden;
 }
 
-.orders-main {
+.merchant-scope .orders-main {
   flex: 1;
   margin-left: 280px;
   padding: 24px 40px;

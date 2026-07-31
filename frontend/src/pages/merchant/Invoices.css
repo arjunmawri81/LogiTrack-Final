@@ -1,7 +1,7 @@
 /* Invoices.css — Dark Theme matching Reports page */
 
 /* CONTAINER */
-.invoices-container {
+.merchant-scope .invoices-container {
   display: flex;
   min-height: 100vh;
   background: #111827;
@@ -9,7 +9,7 @@
   overflow-x: hidden;
 }
 
-.invoices-sidebar {
+.merchant-scope .invoices-sidebar {
   width: 280px;
   flex-shrink: 0;
   height: 100vh;
@@ -21,7 +21,7 @@
   z-index: 50;
 }
 
-.invoices-main {
+.merchant-scope .invoices-main {
   flex: 1;
   padding: 30px 40px;
   overflow-x: hidden;

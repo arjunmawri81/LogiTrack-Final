@@ -4,7 +4,7 @@
 /* CONTAINER */
 /* ============================================ */
 
-.billing-container {
+.merchant-scope .billing-container {
   display: flex;
   min-height: 100vh;
   background: #111827;
@@ -12,7 +12,7 @@
   overflow-x: hidden;
 }
 
-.billing-sidebar {
+.merchant-scope .billing-sidebar {
   width: 280px;
   flex-shrink: 0;
   height: 100vh;
@@ -24,7 +24,7 @@
   z-index: 50;
 }
 
-.billing-content {
+.merchant-scope .billing-content {
   flex: 1;
   padding: 30px 40px;
   overflow-x: hidden;
@@ -263,6 +263,7 @@
   width: 100%;
   border-collapse: collapse;
   min-width: 900px;
+  background: #1c2333;
 }
 
 .billing-th {
@@ -278,6 +279,7 @@
 }
 
 .billing-row {
+  background: #1c2333;
   border-bottom: 1px solid #1e2a3a;
   transition: background 0.2s ease;
 }
@@ -290,7 +292,7 @@
   padding: 14px 16px;
   font-size: 14px;
   color: #a0aec0;
-  background: inherit;
+  background: transparent;
 }
 
 /* ============================================ */

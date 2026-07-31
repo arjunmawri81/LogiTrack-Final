@@ -2,35 +2,36 @@
    SHIPMENTS MANAGEMENT STYLES
    ============================================ */
 
-/* ---------- CONTAINER ---------- */
-.shipments-container {
-  display: flex;
-  background: #f8fafc;
-  min-height: 100vh;
-  font-family: 'Inter', sans-serif;
-}
+.admin-scope {
+  /* ---------- CONTAINER ---------- */
+  .shipments-container {
+    display: flex;
+    background: #f8fafc;
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+  }
 
-/* ---------- SIDEBAR WRAPPER ---------- */
-.shipments-sidebar-wrapper {
-  width: 280px;
-  flex-shrink: 0;
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100vh;
-  z-index: 50;
-}
+  /* ---------- SIDEBAR WRAPPER ---------- */
+  .shipments-sidebar-wrapper {
+    width: 280px;
+    flex-shrink: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 50;
+  }
 
-/* ---------- CONTENT ---------- */
-.shipments-content {
-  flex: 1;
-  margin-left: 280px;
-  min-height: 100vh;
-  background: #f8fafc;
-  box-sizing: border-box;
-  min-width: 0;
-  width: calc(100% - 280px);
-}
+  /* ---------- CONTENT ---------- */
+  .shipments-content {
+    flex: 1;
+    margin-left: 280px;
+    min-height: 100vh;
+    background: #f8fafc;
+    box-sizing: border-box;
+    min-width: 0;
+    width: calc(100% - 280px);
+  }
 
 /* ---------- HEADER ---------- */
 .shipments-header {
@@ -956,4 +957,5 @@
     font-size: 9px;
     padding: 2px 8px;
   }
+}
 }

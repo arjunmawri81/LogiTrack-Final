@@ -19,9 +19,13 @@ const MerchantRoute = ({ children }) => {
 
     const role = decoded.role;
 
-    return role === "MERCHANT"
-      ? children
-      : <Navigate to="/login" />;
+    return role === "MERCHANT" ? (
+      <div className="merchant-scope" style={{ width: "100%", minHeight: "100vh" }}>
+        {children}
+      </div>
+    ) : (
+      <Navigate to="/login" />
+    );
   } catch (error) {
     localStorage.removeItem("token");
     localStorage.removeItem("user");

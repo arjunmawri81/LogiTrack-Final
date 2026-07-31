@@ -3,19 +3,20 @@
    ============================================ */
 
 /* ---------- CONTAINER ---------- */
-.rto-container {
+.admin-scope .rto-container {
   display: flex;
   min-height: 100vh;
-  background: #f0f4f8;
+  background: #f0f4f8 !important;
 }
 
-.rto-content {
+.admin-scope .rto-content {
   flex: 1;
   margin-left: 280px;
   padding: 24px 32px;
   min-width: 0;
   width: calc(100% - 280px);
   box-sizing: border-box;
+  background: transparent !important;
 }
 
 /* ---------- HEADER ---------- */

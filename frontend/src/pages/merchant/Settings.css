@@ -1,6 +1,6 @@
 /* Settings.css - Premium Dark Theme */
 
-.settings-page-container {
+.merchant-scope .settings-page-container {
   display: flex;
   min-height: 100vh;
   background: #111827;
@@ -9,7 +9,7 @@
   overflow-x: hidden;
 }
 
-.sidebar-wrapper {
+.merchant-scope .sidebar-wrapper {
   width: 280px;
   flex-shrink: 0;
   height: 100vh;
@@ -21,7 +21,7 @@
   z-index: 50;
 }
 
-.settings-main-content {
+.merchant-scope .settings-main-content {
   flex: 1;
   padding: 32px 40px;
   overflow-x: hidden;

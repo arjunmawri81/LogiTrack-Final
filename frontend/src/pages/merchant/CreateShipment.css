@@ -1,12 +1,115 @@
 /* CreateShipment.css */
 
-/* Container */
+/* Container & Table Overrides for Light Theme */
+.merchant-scope .create-shipment-container,
 .create-shipment-container {
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
   min-height: 100vh;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #0f172a !important;
+}
+
+/* Force light tables on Create Shipment page */
+.merchant-scope .create-shipment-container table,
+.merchant-scope .create-shipment-container .comparison-table {
+  background: transparent !important;
+}
+
+.merchant-scope .create-shipment-container th,
+.merchant-scope .create-shipment-container .comparison-th,
+.merchant-scope .create-shipment-container .comparison-th-center,
+.merchant-scope .create-shipment-container .comparison-th-right {
+  background: transparent !important;
+  color: #0f172a !important;
+  border-bottom: 2px solid #e2e8f0 !important;
+}
+
+.merchant-scope .create-shipment-container tr,
+.merchant-scope .create-shipment-container .comparison-row {
+  background: transparent !important;
+}
+
+.merchant-scope .create-shipment-container tr.cheapest-row,
+.merchant-scope .create-shipment-container .comparison-row.cheapest-row {
+  background: #f0fdf4 !important;
+}
+
+.merchant-scope .create-shipment-container td,
+.merchant-scope .create-shipment-container .comparison-td,
+.merchant-scope .create-shipment-container .comparison-td-center,
+.merchant-scope .create-shipment-container .comparison-td-right {
+  background: transparent !important;
+  color: #0f172a !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+.merchant-scope .create-shipment-container tr:hover td {
+  background: rgba(248, 250, 252, 0.8) !important;
+}
+
+.merchant-scope .create-shipment-container input,
+.merchant-scope .create-shipment-container select,
+.merchant-scope .create-shipment-container textarea {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Card & Wallet Overrides for Light Theme */
+.merchant-scope .create-shipment-container .wallet-card {
+  background: #ecfdf5 !important;
+  border: 1px solid #bbf7d0 !important;
+  border-radius: 14px !important;
+}
+
+.merchant-scope .create-shipment-container .wallet-row {
+  color: #065f46 !important;
+}
+
+.merchant-scope .create-shipment-container .wallet-balance {
+  color: #065f46 !important;
+  font-weight: 600 !important;
+}
+
+.merchant-scope .create-shipment-container .wallet-required {
+  color: #0f172a !important;
+  font-weight: 600 !important;
+}
+
+.merchant-scope .create-shipment-container .wallet-after {
+  font-weight: 600 !important;
+}
+
+.merchant-scope .create-shipment-container .wallet-sufficient {
+  color: #065f46 !important;
+}
+
+.merchant-scope .create-shipment-container .wallet-insufficient {
+  color: #dc2626 !important;
+}
+
+.merchant-scope .create-shipment-container .selected-order-card {
+  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%) !important;
+  border: 1px solid #fed7aa !important;
+}
+
+.merchant-scope .create-shipment-container .bulk-card {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%) !important;
+  border: 1px solid #86efac !important;
+}
+
+.merchant-scope .create-shipment-container .recommended-card {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%) !important;
+  border: 2px solid #86efac !important;
+}
+
+.merchant-scope .create-shipment-container .comparison-card,
+.merchant-scope .create-shipment-container .cost-preview-card,
+.merchant-scope .create-shipment-container .insurance-toggle {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
 }
 
 .sidebar-wrapper {
@@ -30,7 +133,7 @@
   background: #ffffff;
   border-radius: 24px;
   border: 1px solid rgba(226, 232, 240, 0.8);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.01);
+  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.05), 0 10px 10px -5px rgba(0,0,0,0.01);
   width: 100%;
   max-width: 1200px;
   overflow: hidden;
@@ -46,7 +149,7 @@
 .header-icon {
   width: 56px;
   height: 56px;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255,255,255,0.2);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -66,7 +169,7 @@
 
 .header-subtitle {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255,255,255,0.85);
   margin: 0;
 }
 
@@ -308,7 +411,7 @@
   border-radius: 20px;
   font-size: 11px;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3);
+  box-shadow: 0 2px 8px rgba(249,115,22,0.3);
 }
 
 .recommended-title {
@@ -670,7 +773,7 @@
   top: 2px;
   left: 2px;
   transition: all 0.3s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 
 .knob-active {
@@ -733,11 +836,9 @@
   .create-shipment-container {
     flex-direction: row !important;
   }
-
   .sidebar-wrapper {
     width: 280px !important;
   }
-
   .create-shipment-main {
     padding: 32px 40px !important;
   }
@@ -747,196 +848,14 @@
   .create-shipment-main {
     padding: 16px !important;
   }
-
-  .create-shipment-main>div {
+  .create-shipment-main > div {
     max-width: 100% !important;
     border-radius: 16px !important;
   }
-
-  .create-shipment-main>div>div:first-child {
+  .create-shipment-main > div > div:first-child {
     padding: 20px 16px !important;
   }
-}
-
-/* Custom Order Select Dropdown (Strictly Opens Downwards below input) */
-.custom-order-select-container {
-  position: relative;
-  z-index: 100;
-}
-
-.custom-order-trigger {
-  width: 100%;
-  padding: 12px 16px;
-  font-size: 14px;
-  border-radius: 12px;
-  border: 1.5px solid #e2e8f0;
-  background: #ffffff;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  transition: all 0.2s ease;
-  box-sizing: border-box;
-  color: #0f172a;
-  font-weight: 500;
-}
-
-.custom-order-trigger:hover,
-.custom-order-trigger.open {
-  border-color: #f97316;
-  box-shadow: 0 0 0 3.5px rgba(249, 115, 22, 0.12);
-}
-
-.custom-order-trigger .placeholder-text {
-  color: #94a3b8;
-}
-
-.custom-order-trigger .selected-text {
-  color: #0f172a;
-  font-weight: 600;
-}
-
-.custom-order-trigger .chevron-icon {
-  color: #94a3b8;
-  font-size: 14px;
-  transition: transform 0.2s ease;
-}
-
-.custom-order-trigger .chevron-icon.rotate {
-  transform: rotate(180deg);
-  color: #f97316;
-}
-
-/* Custom Dropdown Popup - Strictly Opens DOWNWARDS */
-.custom-order-menu {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  right: 0;
-  z-index: 99999;
-  background: #ffffff;
-  border: 1.5px solid #fed7aa;
-  border-radius: 14px;
-  box-shadow: 0 14px 35px -4px rgba(15, 23, 42, 0.18);
-  overflow: hidden;
-  animation: dropdownSlideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes dropdownSlideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
+  .create-shipment-main > div > div:last-child {
+    padding: 20px 16px !important;
   }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.custom-order-search-box {
-  position: relative;
-  padding: 10px 12px;
-  background: #fff7ed;
-  border-bottom: 1px solid #fed7aa;
-  display: flex;
-  align-items: center;
-}
-
-.custom-order-search-box .search-icon {
-  position: absolute;
-  left: 22px;
-  color: #ea580c;
-  font-size: 13px;
-}
-
-.custom-order-search-input {
-  width: 100%;
-  padding: 8px 12px 8px 34px;
-  border-radius: 8px;
-  border: 1px solid #fed7aa;
-  outline: none;
-  font-size: 13px;
-  font-weight: 500;
-  background: #ffffff;
-  color: #0f172a;
-  box-sizing: border-box;
-}
-
-.custom-order-search-input:focus {
-  border-color: #ea580c;
-  box-shadow: 0 0 0 2px rgba(234, 88, 12, 0.15);
-}
-
-.custom-order-options-list {
-  max-height: 230px;
-  overflow-y: auto;
-  padding: 4px 0;
-}
-
-/* Custom Scrollbar */
-.custom-order-options-list::-webkit-scrollbar {
-  width: 6px;
-}
-
-.custom-order-options-list::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
-}
-
-.custom-order-option {
-  padding: 10px 16px;
-  font-size: 13.5px;
-  color: #334155;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  transition: background 0.15s ease;
-  border-bottom: 1px solid #f8fafc;
-}
-
-.custom-order-option:last-child {
-  border-bottom: none;
-}
-
-.custom-order-option:hover {
-  background: #fff7ed;
-  color: #c2410c;
-}
-
-.custom-order-option.selected {
-  background: #ffedd5;
-  color: #c2410c;
-  font-weight: 700;
-}
-
-.option-main-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.option-order-num {
-  font-weight: 700;
-  color: #0f172a;
-}
-
-.option-cust-name {
-  color: #64748b;
-  font-weight: 500;
-}
-
-.option-amount {
-  font-weight: 700;
-  color: #16a34a;
-  font-size: 12.5px;
-}
-
-.custom-order-no-results {
-  padding: 16px;
-  text-align: center;
-  color: #94a3b8;
-  font-size: 13px;
-  font-weight: 500;
 }

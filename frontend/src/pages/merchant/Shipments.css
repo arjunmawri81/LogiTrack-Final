@@ -1,33 +1,34 @@
 /* Shipments.css - Complete */
 
-/* ===== CONTAINER ===== */
-.shipments-container {
-  display: flex;
-  min-height: 100vh;
-  background: #111827;
-  font-family: 'Inter', sans-serif;
-  overflow-x: hidden;
-}
+.merchant-scope {
+  /* ===== CONTAINER ===== */
+  .shipments-container {
+    display: flex;
+    min-height: 100vh;
+    background: #111827;
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+  }
 
-.sidebar-wrapper {
-  width: 280px;
-  flex-shrink: 0;
-  height: 100vh;
-  position: sticky;
-  top: 0;
-  overflow-y: auto;
-  background: #0c101a;
-  border-right: 1px solid #1e2a3a;
-  z-index: 50;
-}
+  .sidebar-wrapper {
+    width: 280px;
+    flex-shrink: 0;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    overflow-y: auto;
+    background: #0c101a;
+    border-right: 1px solid #1e2a3a;
+    z-index: 50;
+  }
 
-.shipments-main {
-  flex: 1;
-  padding: 30px 40px;
-  overflow-x: hidden;
-  min-width: 0;
-  width: 100%;
-}
+  .shipments-main {
+    flex: 1;
+    padding: 30px 40px;
+    overflow-x: hidden;
+    min-width: 0;
+    width: 100%;
+  }
 
 /* ===== TITLE ===== */
 .shipments-title {
@@ -832,4 +833,5 @@
     padding: 3px 6px;
     font-size: 9px;
   }
+}
 }
