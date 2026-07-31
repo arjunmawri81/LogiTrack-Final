@@ -21,7 +21,7 @@ const determineZone = (pickupPincode, deliveryPincode) => {
   if (!pickupPincode || !deliveryPincode) return "national";
   const p1 = pickupPincode.toString().trim();
   const p2 = deliveryPincode.toString().trim();
-  
+
   if (p1.slice(0, 3) === p2.slice(0, 3)) {
     return "local";
   }
@@ -51,7 +51,7 @@ const calculateShippingRates = (rateCard, params) => {
 
   const deadWeight = Number(weight || 0);
   const volumetricDivisor = rateCard.volumetricDivisor || 5000;
-  
+
   let volumetricWeight = 0;
   if (length > 0 && breadth > 0 && height > 0) {
     volumetricWeight = (length * breadth * height) / volumetricDivisor;
@@ -168,8 +168,8 @@ const saveRateCard = async (req, res) => {
   try {
     const {
       merchantId,
-      courierId,        
-      courierPartner,   
+      courierId,
+      courierPartner,
       forwardRates,
       zoneRates,
       codCharge,
@@ -184,7 +184,7 @@ const saveRateCard = async (req, res) => {
       volumetricDivisor,
       reversePickup,
       fuelCharge,
-      enabled,          
+      enabled,
       isActive,
       serviceability,
       serviceType,
@@ -245,10 +245,10 @@ const saveRateCard = async (req, res) => {
     // Support courierPartner during migration
     if (courierPartner) {
       const normalizedName = courierPartner.trim().toUpperCase();
-      const existingCourier = await Courier.findOne({ 
-        name: { $regex: new RegExp(`^${normalizedName}$`, 'i') } 
+      const existingCourier = await Courier.findOne({
+        name: { $regex: new RegExp(`^${normalizedName}$`, 'i') }
       });
-      
+
       if (existingCourier && existingCourier._id.toString() !== courierId) {
         return res.status(409).json({
           success: false,
@@ -294,18 +294,18 @@ const saveRateCard = async (req, res) => {
       rateCard.volumetricDivisor = volumetricDivisor !== undefined ? Number(volumetricDivisor) : rateCard.volumetricDivisor;
       rateCard.reversePickup = reversePickup !== undefined ? Number(reversePickup) : rateCard.reversePickup;
       rateCard.fuelCharge = fuelCharge !== undefined ? Number(fuelCharge) : rateCard.fuelCharge;
-      
+
       // Update service type specific fields
       rateCard.gst = gst !== undefined ? gst : rateCard.gst;
       rateCard.odaCharge = odaCharge !== undefined ? odaCharge : rateCard.odaCharge;
       rateCard.handlingCharge = handlingCharge !== undefined ? handlingCharge : rateCard.handlingCharge;
       rateCard.effectiveFrom = effectiveFrom !== undefined ? effectiveFrom : rateCard.effectiveFrom;
       rateCard.effectiveTo = effectiveTo !== undefined ? effectiveTo : rateCard.effectiveTo;
-      
+
       // Added enabled field update
       rateCard.enabled = enabled !== undefined ? enabled : rateCard.enabled;
       rateCard.isActive = isActive !== undefined ? isActive : true;
-      
+
       if (serviceability) {
         rateCard.serviceability = serviceability;
       }
@@ -340,7 +340,7 @@ const saveRateCard = async (req, res) => {
       volumetricDivisor: volumetricDivisor || 5000,
       reversePickup: reversePickup || 0,
       fuelCharge: fuelCharge || 0,
-      
+
       // Service type specific fields
       serviceType: targetServiceType,
       gst: gst !== undefined ? gst : 18,
@@ -348,7 +348,7 @@ const saveRateCard = async (req, res) => {
       handlingCharge: handlingCharge || 0,
       effectiveFrom,
       effectiveTo,
-      
+
       // Added enabled field for new rate card
       enabled: enabled !== undefined ? enabled : false,
       isActive: isActive !== undefined ? isActive : true,
@@ -595,8 +595,8 @@ const getRateCardByCourierName = async (req, res) => {
     const normalizedName = courierName.trim().toUpperCase();
     const selectedServiceType = serviceType || "Surface";
 
-    const courier = await Courier.findOne({ 
-      name: { $regex: new RegExp(`^${normalizedName}$`, 'i') } 
+    const courier = await Courier.findOne({
+      name: { $regex: new RegExp(`^${normalizedName}$`, 'i') }
     });
 
     if (!courier) {
@@ -768,17 +768,17 @@ const reactivateRateCard = async (req, res) => {
 // ================================
 const getRecommendedCouriers = async (req, res) => {
   try {
-    const { 
-      merchantId, 
-      weight = 0.5, 
-      serviceType, 
-      pickup, 
-      destination, 
-      length, 
-      breadth, 
-      height, 
-      amount, 
-      paymentMode 
+    const {
+      merchantId,
+      weight = 0.5,
+      serviceType,
+      pickup,
+      destination,
+      length,
+      breadth,
+      height,
+      amount,
+      paymentMode
     } = req.query;
 
     let targetMerchantId = merchantId;
@@ -848,24 +848,24 @@ const getRecommendedCouriers = async (req, res) => {
 
     const zone = determineZone(pickup, destination);
 
-const sanitizeDetailsForMerchant = (details, userRole) => {
-  if (!details) return null;
-  if (userRole === "SUPER_ADMIN" || userRole === "ADMIN") {
-    return details;
-  }
-  const {
-    buyRate,
-    codBuyCharge,
-    codBuyPercentage,
-    codMarginEarned,
-    rtoBuyCharge,
-    rtoMarginEarned,
-    marginEarned,
-    totalNetProfit,
-    ...merchantSafeDetails
-  } = details;
-  return merchantSafeDetails;
-};
+    const sanitizeDetailsForMerchant = (details, userRole) => {
+      if (!details) return null;
+      if (userRole === "SUPER_ADMIN" || userRole === "ADMIN") {
+        return details;
+      }
+      const {
+        buyRate,
+        codBuyCharge,
+        codBuyPercentage,
+        codMarginEarned,
+        rtoBuyCharge,
+        rtoMarginEarned,
+        marginEarned,
+        totalNetProfit,
+        ...merchantSafeDetails
+      } = details;
+      return merchantSafeDetails;
+    };
 
     const couriersWithRates = allCouriers.map((courier) => {
       const rateCard = rateCardMap.get(courier._id.toString());
@@ -903,7 +903,7 @@ const sanitizeDetailsForMerchant = (details, userRole) => {
         logo: courier.logo || null,
         estimatedDays: courier.estimatedDays || 3,
         isCourierActive: courier.isActive,
-        
+
         hasRate: hasRate,
         forwardRate: forwardRate,
         codCharge: codCharge,
@@ -955,14 +955,14 @@ const sanitizeDetailsForMerchant = (details, userRole) => {
 // ================================
 const calculatePricing = async (req, res) => {
   try {
-    let { 
-      orderId, 
-      courierId, 
-      serviceType, 
-      shippingMode, 
-      weight, 
-      pickup, 
-      destination, 
+    let {
+      orderId,
+      courierId,
+      serviceType,
+      shippingMode,
+      weight,
+      pickup,
+      destination,
       paymentMode,
       insuranceEnabled,
       amount
@@ -1007,7 +1007,7 @@ const calculatePricing = async (req, res) => {
       amount = order.amount;
       merchantId = order.merchantId;
       destination = order.customerPincode;
-      
+
       if (order.warehouseId || req.body.warehouseId) {
         const Warehouse = require("../models/Warehouse");
         const warehouse = await Warehouse.findById(order.warehouseId || req.body.warehouseId);
