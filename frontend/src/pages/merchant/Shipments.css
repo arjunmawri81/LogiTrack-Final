@@ -375,6 +375,37 @@
   background: #ea580c;
 }
 
+.shipments-btn-pickup {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(249, 115, 22, 0.25);
+  white-space: nowrap;
+}
+
+.shipments-btn-pickup:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%) !important;
+  box-shadow: 0 4px 10px rgba(249, 115, 22, 0.35);
+}
+
+.shipments-btn-pickup:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.shipments-pickup-scheduled-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+  white-space: nowrap;
+}
+
 /* ===== MODAL ===== */
 .shipments-modal-overlay {
   position: fixed;

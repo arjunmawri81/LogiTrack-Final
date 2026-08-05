@@ -1394,35 +1394,20 @@ const createShipment = async (req, res) => {
     order.status = ORDER_STATUS_MAP[createdShipment.status] || "READY_FOR_PICKUP";
     await order.save({ session });
 
-    // ── Shipmozo Auto Schedule Pickup check ──
-    if (courierResponse.pickupsAutomaticallyScheduled === "NO") {
-      try {
-        logger.info("[Shipmozo] pickups_automatically_scheduled is NO — Triggering auto pickup schedule API", { awb: createdShipment.awb });
-        const pickupResult = await CourierService.schedulePickup(courier, createdShipment._id);
-        const pResp = pickupResult?.response || {};
-        createdShipment.pickupRequestId = pResp.pickup_request_id || createdShipment.pickupRequestId || `PICK${Date.now()}`;
-        createdShipment.lrNumber = pResp.lr_number || pResp.lrNumber || createdShipment.lrNumber || `LR${Date.now()}`;
-        createdShipment.pickupStatus = "SCHEDULED";
-        createdShipment.status = "PICKUP_SCHEDULED";
-        createdShipment.pickupDate = new Date();
-        createdShipment.tracking.push({
-          status: "PICKUP_SCHEDULED",
-          location: courier.name,
-          remarks: `Pickup Scheduled Automatically (LR: ${createdShipment.lrNumber})`,
-          eventTime: new Date(),
-        });
-        await createdShipment.save({ session });
-        order.status = "READY_FOR_PICKUP";
-        await order.save({ session });
-      } catch (pErr) {
-        logger.error("[Shipmozo] Auto schedule pickup error:", { error: pErr.message });
-      }
-    } else {
-      createdShipment.pickupStatus = "AUTO_SCHEDULED";
-      createdShipment.status = "PICKUP_SCHEDULED";
-      createdShipment.pickupDate = new Date();
-      await createdShipment.save({ session });
-    }
+    // Shipment created in READY_FOR_PICKUP state (Merchant manually triggers pickup schedule button)
+    createdShipment.pickupStatus = "PENDING";
+    createdShipment.status = "READY_FOR_PICKUP";
+    createdShipment.pickupDate = null;
+    createdShipment.tracking.push({
+      status: "READY_FOR_PICKUP",
+      location: courier?.name || "Warehouse",
+      remarks: "Shipment Created - Ready for Pickup",
+      eventTime: new Date(),
+    });
+    await createdShipment.save({ session });
+
+    order.status = "READY_FOR_PICKUP";
+    await order.save({ session });
 
     if (session) await session.commitTransaction();
 
@@ -1794,35 +1779,20 @@ const createBulkShipments = async (req, res) => {
         order.serviceType = selectedServiceType;
         await order.save({ session });
 
-        // ── Shipmozo Auto Schedule Pickup check (Bulk) ──
-        if (courierResponse.pickupsAutomaticallyScheduled === "NO") {
-          try {
-            logger.info("[Shipmozo] Bulk pickups_automatically_scheduled is NO — Triggering auto pickup schedule", { awb: createdShipment.awb });
-            const pickupResult = await CourierService.schedulePickup(courier, createdShipment._id);
-            const pResp = pickupResult?.response || {};
-            createdShipment.pickupRequestId = pResp.pickup_request_id || createdShipment.pickupRequestId || `PICK${Date.now()}`;
-            createdShipment.lrNumber = pResp.lr_number || pResp.lrNumber || createdShipment.lrNumber || `LR${Date.now()}`;
-            createdShipment.pickupStatus = "SCHEDULED";
-            createdShipment.status = "PICKUP_SCHEDULED";
-            createdShipment.pickupDate = new Date();
-            createdShipment.tracking.push({
-              status: "PICKUP_SCHEDULED",
-              location: courier.name,
-              remarks: `Pickup Scheduled Automatically (LR: ${createdShipment.lrNumber})`,
-              eventTime: new Date(),
-            });
-            await createdShipment.save({ session });
-            order.status = "READY_FOR_PICKUP";
-            await order.save({ session });
-          } catch (pErr) {
-            logger.error("[Shipmozo] Bulk auto schedule pickup error:", { error: pErr.message });
-          }
-        } else {
-          createdShipment.pickupStatus = "AUTO_SCHEDULED";
-          createdShipment.status = "PICKUP_SCHEDULED";
-          createdShipment.pickupDate = new Date();
-          await createdShipment.save({ session });
-        }
+        // Bulk Shipment created in READY_FOR_PICKUP state (Merchant manually triggers pickup schedule button)
+        createdShipment.pickupStatus = "PENDING";
+        createdShipment.status = "READY_FOR_PICKUP";
+        createdShipment.pickupDate = null;
+        createdShipment.tracking.push({
+          status: "READY_FOR_PICKUP",
+          location: courier?.name || "Warehouse",
+          remarks: "Bulk Shipment Created - Ready for Pickup",
+          eventTime: new Date(),
+        });
+        await createdShipment.save({ session });
+
+        order.status = "READY_FOR_PICKUP";
+        await order.save({ session });
 
         shipments.push(createdShipment);
 
@@ -2237,18 +2207,20 @@ const schedulePickup = async (req, res) => {
 
     shipment.pickupDate = new Date();
     shipment.pickupStatus = "SCHEDULED";
+    shipment.status = "PICKUP_SCHEDULED";
     if (pResp.pickup_request_id) shipment.pickupRequestId = pResp.pickup_request_id;
     if (pResp.lr_number || pResp.lrNumber) shipment.lrNumber = pResp.lr_number || pResp.lrNumber;
 
     await shipment.addTrackingEvent(
       "PICKUP_SCHEDULED",
-      "Admin Panel",
-      `Pickup Scheduled (LR: ${shipment.lrNumber || "N/A"})`
+      shipment.courier || "Courier Partner",
+      `Pickup Scheduled with courier (LR: ${shipment.lrNumber || "N/A"})`
     );
+    await shipment.save();
 
     const order = await Order.findById(shipment.orderId);
     if (order) {
-      order.status = ORDER_STATUS_MAP["PICKUP_SCHEDULED"] || "READY_FOR_PICKUP";
+      order.status = "READY_FOR_PICKUP";
       await order.save();
     }
 

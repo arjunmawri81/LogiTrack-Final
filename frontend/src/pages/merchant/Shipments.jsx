@@ -26,6 +26,21 @@ const Shipments = () => {
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [showModal, setShowModal] = useState(false);
   const [selectedTimeline, setSelectedTimeline] = useState([]);
+  const [schedulingId, setSchedulingId] = useState(null);
+
+  const handleSchedulePickup = async (shipmentId) => {
+    try {
+      setSchedulingId(shipmentId);
+      const res = await api.post(`/shipments/${shipmentId}/pickup`);
+      alert(res.data.message || "Pickup Scheduled Successfully");
+      fetchShipments();
+    } catch (error) {
+      console.error("Schedule pickup error:", error);
+      alert(error.response?.data?.message || "Failed to schedule pickup.");
+    } finally {
+      setSchedulingId(null);
+    }
+  };
 
   useEffect(() => {
     fetchShipments();
@@ -56,8 +71,9 @@ const Shipments = () => {
       case "IN_TRANSIT": return { background: "#dbeafe", color: "#1d4ed8" };
       case "OUT_FOR_DELIVERY": return { background: "#dbeafe", color: "#1d4ed8" };
       case "PICKED_UP": return { background: "#e0e7ff", color: "#4338ca" };
-      case "PICKUP_PENDING": return { background: "#fef3c7", color: "#92400e" };
-      case "PICKUP_SCHEDULED": return { background: "#fef3c7", color: "#92400e" };
+      case "READY_FOR_PICKUP": return { background: "#ffedd5", color: "#c2410c" };
+      case "PICKUP_PENDING": return { background: "#ffedd5", color: "#c2410c" };
+      case "PICKUP_SCHEDULED": return { background: "#dcfce7", color: "#15803d" };
       case "CANCELLED": return { background: "#fee2e2", color: "#991b1b" };
       default: return { background: "#f1f5f9", color: "#475569" };
     }
@@ -224,7 +240,7 @@ const Shipments = () => {
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
                 <option value="ALL">All Status</option>
-                <option value="PICKUP_PENDING">Pickup Pending</option>
+                <option value="READY_FOR_PICKUP">Ready For Pickup</option>
                 <option value="PICKUP_SCHEDULED">Pickup Scheduled</option>
                 <option value="PICKED_UP">Picked Up</option>
                 <option value="IN_TRANSIT">In Transit</option>
@@ -260,6 +276,7 @@ const Shipments = () => {
                         "COURIER",
                         "STATUS",
                         "DATE",
+                        "SCHEDULE PICKUP",
                         "DETAILS",
                         "INVOICE",
                         "LABEL",
@@ -303,6 +320,25 @@ const Shipments = () => {
                               <span className="shipments-date">
                                 {new Date(shipment.createdAt).toLocaleDateString('en-GB')}
                               </span>
+                            </td>
+                            
+                            <td className="shipments-td">
+                              {shipment.status === "READY_FOR_PICKUP" || shipment.status === "PICKUP_PENDING" || shipment.pickupStatus === "PENDING" ? (
+                                <button
+                                  onClick={() => handleSchedulePickup(shipment._id)}
+                                  disabled={schedulingId === shipment._id}
+                                  className="shipments-btn shipments-btn-pickup"
+                                >
+                                  <FaTruck size={11} />
+                                  {schedulingId === shipment._id ? "Scheduling..." : "Schedule Pickup"}
+                                </button>
+                              ) : shipment.status === "PICKUP_SCHEDULED" || shipment.pickupStatus === "SCHEDULED" ? (
+                                <span className="shipments-pickup-scheduled-tag">
+                                  <FaCheckCircle size={10} /> Scheduled
+                                </span>
+                              ) : (
+                                <span style={{ fontSize: "11px", color: "#64748b" }}>—</span>
+                              )}
                             </td>
                             
                             <td className="shipments-td">
@@ -356,7 +392,7 @@ const Shipments = () => {
                       })
                     ) : (
                       <tr>
-                        <td colSpan="9" className="shipments-empty">
+                        <td colSpan="10" className="shipments-empty">
                           {search || statusFilter !== "ALL" ? "No matching shipments found" : "No Shipments Found"}
                         </td>
                       </tr>
