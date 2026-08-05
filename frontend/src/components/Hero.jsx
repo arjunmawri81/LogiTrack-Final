@@ -7,7 +7,7 @@ function Hero() {
 
   return (
     <section className="hero">
-      <img src={hero} alt="LogiTrack Hero" className="hero-bg" />
+      <img src={hero} alt="MyParcelPoint Hero" className="hero-bg" />
 
       <div className="hero-overlay">
         <div className="hero-content">

@@ -58,7 +58,7 @@ const Contact = () => {
 
               <div>
                 <strong>Email</strong>
-                <p>support@logitrack.com</p>
+                <p>support@myparcelpoint.com</p>
               </div>
 
               <div>

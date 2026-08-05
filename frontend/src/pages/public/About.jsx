@@ -10,7 +10,7 @@ const About = () => {
 
       <section className="about-hero">
         <div className="about-container">
-          <span>ABOUT LOGITRACK</span>
+          <span>ABOUT MYPARCELPOINT</span>
 
           <h1>
             Simplifying Logistics
@@ -19,7 +19,7 @@ const About = () => {
           </h1>
 
           <p>
-            LogiTrack is a multi-courier shipping platform that helps
+            MyParcelPoint is a multi-courier shipping platform that helps
             businesses manage orders, create shipments, track deliveries,
             automate logistics operations and improve customer experience.
           </p>
@@ -33,7 +33,7 @@ const About = () => {
             <h2>Who We Are</h2>
 
             <p>
-              LogiTrack provides businesses with a centralized logistics
+              MyParcelPoint provides businesses with a centralized logistics
               management platform. From order creation to shipment delivery,
               we help merchants streamline operations using automation and
               real-time shipment visibility.

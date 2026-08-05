@@ -8,7 +8,7 @@ function Footer() {
 
         {/* Company */}
         <div className="footer-col">
-          <h2>LogiTrack</h2>
+          <h2>MyParcelPoint</h2>
 
           <p>
             Multi-Courier Shipping Aggregator Platform helping
@@ -47,7 +47,7 @@ function Footer() {
 
           <p>📍 Noida, Uttar Pradesh, India</p>
           <p>📞 +91 1800-111-0928</p>
-          <p>📧 support@logitrack.com</p>
+          <p>📧 support@myparcelpoint.com</p>
           <p>🕒 Mon - Sat | 9 AM - 7 PM</p>
         </div>
 
@@ -55,7 +55,7 @@ function Footer() {
 
       <div className="footer-bottom">
         <p>
-          © 2026 LogiTrack Shipping Aggregator Platform.
+          © 2026 MyParcelPoint Shipping Aggregator Platform.
           All Rights Reserved.
         </p>
       </div>

@@ -78,7 +78,7 @@ const Reports = () => {
 
   const exportCSV = () => {
     const rows = [
-      ["LOGITRACK MERCHANT PERFORMANCE REPORT"],
+      ["MYPARCELPOINT MERCHANT PERFORMANCE REPORT"],
       ["Generated At", new Date().toLocaleString()],
       ["Filter Period", dateFilter],
       [""],
@@ -100,7 +100,7 @@ const Reports = () => {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `LogiTrack_Report_${dateFilter}_${Date.now()}.csv`);
+    link.setAttribute("download", `MyParcelPoint_Report_${dateFilter}_${Date.now()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

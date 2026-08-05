@@ -75,7 +75,7 @@ const Settings = () => {
             <tbody>
               <tr>
                 <td style={{ fontWeight: "600", color: "#475569" }}>Platform Name</td>
-                <td style={{ fontWeight: "700", color: "#0f172a" }}>LogiTrack</td>
+                <td style={{ fontWeight: "700", color: "#0f172a" }}>MyParcelPoint</td>
               </tr>
 
               <tr>

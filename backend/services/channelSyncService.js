@@ -50,11 +50,11 @@ async function syncFulfillmentToShopify(order, shipment, channel) {
       domain = `${domain}.myshopify.com`;
     }
 
-    const trackingUrl = `https://logitrack.app/tracking/${shipment.awb}`;
+    const trackingUrl = `https://myparcelpoint.com/tracking/${shipment.awb}`;
     const fulfillmentPayload = {
       fulfillment: {
         tracking_number: shipment.awb,
-        tracking_company: shipment.courier || "LogiTrack",
+        tracking_company: shipment.courier || "MyParcelPoint",
         tracking_url: trackingUrl,
         notify_customer: true,
         line_items: [], // empty = fulfil all items
@@ -84,7 +84,7 @@ async function syncFulfillmentToShopify(order, shipment, channel) {
       response: response.data,
     });
 
-    console.log(`[TwoWaySync] ✅ Shopify fulfillment pushed for order ${order.orderNumber}`);
+    console.log(`[TwoWaySync]  Shopify fulfillment pushed for order ${order.orderNumber}`);
     return { success: true, channelOrderId: shopifyOrderNum };
   } catch (err) {
     const errMsg = err?.response?.data
@@ -170,7 +170,7 @@ async function syncFulfillmentToWooCommerce(order, shipment, channel, event = "S
       await axios.post(
         `${domain}/wp-json/wc/v3/orders/${wooOrderNum}/shipment-trackings`,
         {
-          tracking_provider: shipment.courier || "LogiTrack",
+          tracking_provider: shipment.courier || "MyParcelPoint",
           tracking_number: shipment.awb,
           date_shipped: new Date().toISOString().split("T")[0],
         },

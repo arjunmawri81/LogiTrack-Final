@@ -26,7 +26,7 @@ const SuperAdminSidebar = () => {
     <div className="sidebar">
       {/* BRAND HEADER CONTAINER */}
       <div className="sidebar-header">
-        <h2 className="logo">LogiTrack</h2>
+        <h2 className="logo">MyParcelPoint</h2>
         <span className="logo-subtitle">Super Admin Panel</span>
       </div>
 

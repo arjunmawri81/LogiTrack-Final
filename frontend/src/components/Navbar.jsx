@@ -43,7 +43,7 @@ const Navbar = () => {
             <span className="logo-icon">📦</span>
 
             <span className="logo-text">
-              Logi<span>Track</span>
+              MyParcel<span>Point</span>
             </span>
           </Link>
         </div>

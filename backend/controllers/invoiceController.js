@@ -56,7 +56,7 @@ const downloadInvoice = async (req, res) => {
       .fillColor("#ffffff")
       .font(boldFont)
       .fontSize(22)
-      .text("LOGITRACK", 40, 22, { align: "left" });
+      .text("MYPARCELPOINT", 40, 22, { align: "left" });
 
     doc
       .fillColor("#f97316")
@@ -358,7 +358,7 @@ const downloadInvoice = async (req, res) => {
       .font(regularFont)
       .fontSize(8)
       .text(
-        "Thank you for shipping with LogiTrack • Computer Generated Tax Invoice",
+        "Thank you for shipping with MyParcelPoint • Computer Generated Tax Invoice",
         40,
         footerY + 12,
         { width: 515, align: "center" }

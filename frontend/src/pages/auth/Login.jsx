@@ -275,7 +275,7 @@ const Login = () => {
         <div style={styles.brandContent}>
           <div style={styles.brandLogo}>
             <span style={styles.logoIcon}>📦</span>
-            <h1 style={styles.brandTitle}>Logi<span style={styles.brandSpan}>Track</span></h1>
+            <h1 style={styles.brandTitle}>MyParcel<span style={styles.brandSpan}>Point</span></h1>
           </div>
           <p style={styles.brandTagline}>India's Most Trusted Logistics Platform</p>
 

@@ -23,7 +23,7 @@ function Fleet() {
 
         <p>
           Whether you're a growing eCommerce seller or an enterprise
-          business, LogiTrack helps streamline logistics operations
+          business, MyParcelPoint helps streamline logistics operations
           with real-time visibility, automated shipping workflows,
           and centralized logistics management.
         </p>
@@ -32,7 +32,7 @@ function Fleet() {
       <div className="fleet-image">
         <img
           src={fleet}
-          alt="LogiTrack Shipping Platform"
+          alt="MyParcelPoint Shipping Platform"
         />
       </div>
     </section>

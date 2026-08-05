@@ -11,7 +11,7 @@ function About() {
       </div>
 
       <div className="about-content">
-        <span>ABOUT LOGITRACK</span>
+        <span>ABOUT MYPARCELPOINT</span>
 
         <h2>
           Delivering Excellence In

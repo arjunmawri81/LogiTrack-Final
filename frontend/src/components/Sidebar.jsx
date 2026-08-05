@@ -71,7 +71,7 @@ const Sidebar = () => {
       {/* ===== SIDEBAR ===== */}
       <aside className={`sidebar ${isOpen ? "open" : ""}`}>
         <div className="sidebar-header">
-          <h2 className="logo">LogiTrack</h2>
+          <h2 className="logo">MyParcelPoint</h2>
           <span className="logo-subtitle">
             {role === "ADMIN" ? "ADMIN PANEL" : "MERCHANT PANEL"}
           </span>

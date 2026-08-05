@@ -89,7 +89,7 @@ app.use(express.urlencoded({ limit: "2mb", extended: true }));
 app.get("/", (req, res) => {
   res.json({
     success: true,
-    message: "LogiTrack Backend Running ",
+    message: "MyParcelPoint Backend Running ",
   });
 });
 

@@ -835,7 +835,7 @@ async function renderLabelV2(doc, shipment, settings = {}, labelWidth = null, la
   doc.font(boldFont)
      .fontSize(7.5)
      .fillColor('#000000')
-     .text(shipment.merchantId?.companyName || 'LogiTrack', leftFromX, companyY, {
+     .text(shipment.merchantId?.companyName || 'MyParcelPoint', leftFromX, companyY, {
        width: leftFromWidth,
        align: 'left',
      });

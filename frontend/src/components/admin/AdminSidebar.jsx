@@ -30,7 +30,7 @@ const AdminSidebar = () => {
     <div className="sidebar">
       {/* Header */}
       <div className="sidebar-header">
-        <h2 className="logo">LogiTrack</h2>
+        <h2 className="logo">MyParcelPoint</h2>
         <span className="logo-subtitle">ADMIN PANEL</span>
       </div>
 

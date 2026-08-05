@@ -262,7 +262,7 @@ const Reports = () => {
 
       doc.setFontSize(18);
       doc.setTextColor(15, 23, 42);
-      doc.text("LogiTrack - Business Report", 14, 20);
+      doc.text("MyParcelPoint - Business Report", 14, 20);
 
       doc.setFontSize(14);
       doc.setTextColor(37, 99, 235);
@@ -287,7 +287,7 @@ const Reports = () => {
       doc.line(14, 94, 196, 94);
       doc.setFontSize(9);
       doc.setTextColor(148, 163, 184);
-      doc.text("Generated automatically by LogiTrack Logistics Platform Management System.", 14, 104);
+      doc.text("Generated automatically by MyParcelPoint Logistics Platform Management System.", 14, 104);
 
       const filename = `${report.name.replace(/[^a-zA-Z0-9]/g, "_")}_${Date.now()}.pdf`;
       doc.save(filename);

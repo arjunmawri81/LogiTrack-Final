@@ -33,7 +33,7 @@ async function sendShipmentNotification({
   trackingUrl,
 }) {
   const formattedPhone = formatPhoneNumber(customerPhone);
-  const trackLink = trackingUrl || `https://logitrack.com/track/${awb}`;
+  const trackLink = trackingUrl || `https://myparcelpoint.com/track/${awb}`;
   const messageText = `Hello *${customerName || "Customer"}*, your order *#${orderNumber || ""}* has been shipped via *${courierName || "Courier"}*! 🚚\n\n*AWB Tracking No:* ${awb}\n*Track Package:* ${trackLink}\n\nThank you for shopping with us!`;
 
   const isEnabled = process.env.WHATSAPP_ENABLED === "true";

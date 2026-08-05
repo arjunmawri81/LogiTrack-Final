@@ -53,7 +53,7 @@ const CHANNEL_TYPES = [
   {
     id: "CUSTOM",
     name: "Custom Webhook / API",
-    description: "Connect custom website via Webhooks & LogiTrack REST API.",
+    description: "Connect custom website via Webhooks & MyParcelPoint REST API.",
     icon: <FaPlug className="channel-type-icon custom" />,
     color: "#2563eb",
     badge: "Flexible",
@@ -290,7 +290,7 @@ const ChannelIntegrations = () => {
             <div className="empty-state">
               <FaShoppingBag className="empty-icon" />
               <h3>No Stores Connected Yet</h3>
-              <p>Connect your first e-commerce store below to start auto-importing orders into LogiTrack.</p>
+              <p>Connect your first e-commerce store below to start auto-importing orders into MyParcelPoint.</p>
             </div>
           )}
         </section>
