@@ -99,7 +99,7 @@ async function syncFulfillmentToShopify(order, shipment, channel) {
       status: "FAILED",
       errorMessage: errMsg,
       retryCount: 0,
-      nextRetryAt: new Date(Date.now() + 5 * 60 * 1000), // retry in 5 min
+      nextRetryAt: new Date(Date.now() + 5 * 60 * 1000), 
     });
 
     console.error(`[TwoWaySync] ❌ Shopify sync failed for ${order.orderNumber}:`, errMsg);
@@ -123,7 +123,7 @@ async function syncDeliveryToShopify(order, shipment, channel) {
     status: "SUCCESS",
     response: { note: "Shopify fulfillment already marked success on AWB creation" },
   });
-  console.log(`[TwoWaySync] ✅ Shopify delivery noted (no extra API needed) for ${order.orderNumber}`);
+  console.log(`[TwoWaySync] Shopify delivery noted (no extra API needed) for ${order.orderNumber}`);
   return { success: true };
 }
 
@@ -197,7 +197,7 @@ async function syncFulfillmentToWooCommerce(order, shipment, channel, event = "S
       response: { id: response.data?.id, status: response.data?.status },
     });
 
-    console.log(`[TwoWaySync] ✅ WooCommerce ${event} status pushed for order ${order.orderNumber}`);
+    console.log(`[TwoWaySync] WooCommerce ${event} status pushed for order ${order.orderNumber}`);
     return { success: true, channelOrderId: wooOrderNum };
   } catch (err) {
     const errMsg = err?.response?.data

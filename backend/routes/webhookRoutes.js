@@ -146,7 +146,7 @@ router.post(
       const orderData = mapShopifyOrder(sOrder, channel.merchantId);
       await Order.create(orderData);
 
-      console.log(`[Webhook] ✅ Shopify order ${orderNum} saved for merchant ${channel.merchantId}`);
+      console.log(`[Webhook] Shopify order ${orderNum} saved for merchant ${channel.merchantId}`);
       return res.status(200).json({ success: true, message: `Order ${orderNum} imported` });
     } catch (err) {
       console.error("[Webhook] Shopify orders-create error:", err.message);
@@ -189,7 +189,7 @@ router.post("/woocommerce/orders-create", express.json(), async (req, res) => {
     const orderData = mapWooOrder(wOrder, channel.merchantId);
     await Order.create(orderData);
 
-    console.log(`[Webhook] ✅ WooCommerce order ${orderNum} saved for merchant ${channel.merchantId}`);
+    console.log(`[Webhook] WooCommerce order ${orderNum} saved for merchant ${channel.merchantId}`);
     return res.status(200).json({ success: true, message: `Order ${orderNum} imported` });
   } catch (err) {
     console.error("[Webhook] WooCommerce orders-create error:", err.message);

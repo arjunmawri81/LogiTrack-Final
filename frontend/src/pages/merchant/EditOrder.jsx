@@ -113,7 +113,7 @@ const EditOrder = () => {
 
       await api.put(`/orders/${id}`, payload);
 
-      setSuccess("✅ Order updated successfully!");
+      setSuccess("Order updated successfully!");
       
       // Redirect after 2 seconds
       setTimeout(() => {

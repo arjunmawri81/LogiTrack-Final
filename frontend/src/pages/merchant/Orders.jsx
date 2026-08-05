@@ -55,9 +55,9 @@ const Orders = () => {
       setRetryingOrderId(orderId);
       await api.post(`/channels/retry-sync/${orderId}`);
       await fetchSyncStatus();
-      alert("✅ Sync retry triggered successfully!");
+      alert("Sync retry triggered successfully!");
     } catch (err) {
-      alert(err?.response?.data?.message || "❌ Retry failed.");
+      alert(err?.response?.data?.message || "Retry failed.");
     } finally {
       setRetryingOrderId(null);
     }
@@ -275,10 +275,10 @@ const Orders = () => {
       const date = new Date().toISOString().split('T')[0];
       XLSX.writeFile(wb, `Orders_${date}.xlsx`);
 
-      alert(`✅ Exported ${exportData.length} orders successfully!`);
+      alert(`Exported ${exportData.length} orders successfully!`);
     } catch (error) {
       console.error('Export error:', error);
-      alert('❌ Failed to export orders. Please try again.');
+      alert('Failed to export orders. Please try again.');
     } finally {
       setExporting(false);
     }
@@ -441,13 +441,13 @@ const Orders = () => {
         orderIds: selectedOrders
       });
 
-      alert(`✅ ${selectedOrders.length} order(s) cancelled successfully.`);
+      alert(`${selectedOrders.length} order(s) cancelled successfully.`);
       setSelectedOrders([]);
       setShowBulkDropdown(false);
       fetchOrders();
     } catch (error) {
       console.error('Bulk cancel error:', error);
-      alert('❌ Failed to cancel orders.');
+      alert('Failed to cancel orders.');
     }
   };
 
@@ -484,12 +484,12 @@ const Orders = () => {
 
     try {
       await api.patch(`/orders/${orderId}/cancel`);
-      alert('✅ Order cancelled successfully.');
+      alert('Order cancelled successfully.');
       fetchOrders();
       setOpenMenuId(null);
     } catch (error) {
       console.error('Cancel order error:', error);
-      alert('❌ Failed to cancel order.');
+      alert('Failed to cancel order.');
     }
   };
 
@@ -509,11 +509,11 @@ const Orders = () => {
       formData.append("file", file);
 
       await api.post("/orders/upload-csv", formData);
-      alert("✅ CSV Uploaded Successfully");
+      alert("CSV Uploaded Successfully");
       fetchOrders();
     } catch (error) {
       console.error('CSV Upload error:', error);
-      alert(error.response?.data?.message || "❌ CSV Upload Failed. Please try again.");
+      alert(error.response?.data?.message || "CSV Upload Failed. Please try again.");
     } finally {
       setUploading(false);
       e.target.value = '';
@@ -536,11 +536,11 @@ const Orders = () => {
       formData.append("file", file);
 
       await api.post("/orders/upload-excel", formData);
-      alert("✅ Excel Uploaded Successfully");
+      alert("Excel Uploaded Successfully");
       fetchOrders();
     } catch (error) {
       console.error('Excel Upload error:', error);
-      alert(error.response?.data?.message || "❌ Excel Upload Failed. Please try again.");
+      alert(error.response?.data?.message || "Excel Upload Failed. Please try again.");
     } finally {
       setUploading(false);
       e.target.value = '';

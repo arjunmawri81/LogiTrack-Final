@@ -120,7 +120,7 @@ const RateCardManagement = () => {
         await api.post("/ratecard/save", payload);
       }
 
-      alert("✅ Rate Cards Saved Successfully!");
+      alert("Rate Cards Saved Successfully!");
       
       // Refresh to show updated data
       await fetchRateCards();
@@ -297,7 +297,7 @@ const RateCardManagement = () => {
                   {courier.charAt(0).toUpperCase() + courier.slice(1)}
                 </h3>
                 {hasValues && (
-                  <span style={styles.statusBadge}>✅ Configured</span>
+                  <span style={styles.statusBadge}>Configured</span>
                 )}
               </div>
 

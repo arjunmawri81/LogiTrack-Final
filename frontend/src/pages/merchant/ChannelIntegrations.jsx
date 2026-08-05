@@ -161,7 +161,7 @@ const ChannelIntegrations = () => {
     try {
       setSyncingId(id);
       const res = await api.post(`/channels/${id}/sync`);
-      alert(`✅ ${res.data.message}`);
+      alert(res.data.message);
       fetchChannels();
     } catch (err) {
       alert(err?.response?.data?.message || "Failed to sync orders");

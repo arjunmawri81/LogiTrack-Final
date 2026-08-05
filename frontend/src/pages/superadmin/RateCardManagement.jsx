@@ -305,7 +305,7 @@ const LiveMarginPreview = ({ formData, courierName, activeTab }) => {
           {totalMargin >= 0 ? `+₹${totalMargin}` : `-₹${Math.abs(totalMargin)}`}
         </p>
         <span className="rcm-margin-hero-sub">
-          {isLoss ? "⚠️ Warning: Selling rates are below buying costs!" : "✅ Healthy profit margin locked"}
+          {isLoss ? "Warning: Selling rates are below buying costs!" : "Healthy profit margin locked"}
         </span>
       </div>
 

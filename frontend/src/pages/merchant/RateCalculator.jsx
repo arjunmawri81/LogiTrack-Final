@@ -102,7 +102,7 @@ const CourierRow = ({ courier, rank, paymentType, serviceType }) => {
               {getZoneLabel(d.zone)}
             </span>
             <span style={{ fontSize: "12px", color: courier.serviceability?.codEnabled !== false ? "#4ade80" : "#4a5c78", fontWeight: "600" }}>
-              {courier.serviceability?.codEnabled !== false ? "✅ COD" : "❌ No COD"}
+              {courier.serviceability?.codEnabled !== false ? "COD" : "No COD"}
             </span>
             {paymentType === "COD" && d.codCharge > 0 && (
               <span style={{ fontSize: "12px", color: "#facc15" }}>

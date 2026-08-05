@@ -79,7 +79,7 @@ async function pollShopifyChannel(channel) {
     }
 
     if (newCount > 0) {
-      console.log(`[AutoPoll] ✅ Shopify '${channel.storeName}': ${newCount} new order(s) imported`);
+      console.log(`[AutoPoll] Shopify '${channel.storeName}': ${newCount} new order(s) imported`);
     }
 
     // Update lastSyncedAt
@@ -140,7 +140,7 @@ async function pollWooCommerceChannel(channel) {
     }
 
     if (newCount > 0) {
-      console.log(`[AutoPoll] ✅ WooCommerce '${channel.storeName}': ${newCount} new order(s) imported`);
+      console.log(`[AutoPoll] WooCommerce '${channel.storeName}': ${newCount} new order(s) imported`);
     }
 
     await Channel.findByIdAndUpdate(channel._id, { lastSyncedAt: new Date() });
@@ -195,7 +195,7 @@ function startChannelPolling() {
     retryFailedSyncs().catch(err => console.error("[Cron] retryFailedSyncs error:", err.message));
   });
 
-  console.log("[Cron] ✅ Channel polling cron jobs started (15-min poll + 1-hr retry)");
+  console.log("[Cron] Channel polling cron jobs started (15-min poll + 1-hr retry)");
 }
 
 module.exports = { startChannelPolling, runPollingCycle };

@@ -98,7 +98,7 @@ const Dashboard = () => {
     try {
       setApprovingId(merchantId);
       await api.put(`/admin/merchants/${merchantId}/approve`);
-      alert("✅ Merchant Approved Successfully");
+      alert("Merchant Approved Successfully");
       fetchDashboardData();
     } catch (err) {
       alert(err?.response?.data?.message || "Failed to approve merchant");

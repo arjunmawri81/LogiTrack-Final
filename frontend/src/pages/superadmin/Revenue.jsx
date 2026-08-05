@@ -457,7 +457,7 @@ const Revenue = () => {
                                   border: "1px solid #86efac",
                                 }}
                               >
-                                ✅ Actual Data
+                                Actual Data
                               </span>
                               <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "3px" }}>
                                 {merchant.trackedPercentage || 100}% tracked ({merchant.trackedShipments || merchant.shipments}/{merchant.shipments})

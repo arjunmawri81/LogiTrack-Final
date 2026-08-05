@@ -1028,7 +1028,7 @@ const MerchantNDR = () => {
       {/* Toast Notification */}
       {toast.visible && (
         <div className={`ndr-toast ndr-toast-${toast.type}`}>
-          {toast.type === 'success' ? '✅' : '❌'} {toast.message}
+          {toast.message}
         </div>
       )}
     </>

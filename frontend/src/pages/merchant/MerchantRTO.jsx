@@ -719,7 +719,7 @@ const MerchantRTO = () => {
                 if (isActive || (isPast && !isCompleted)) {
                   statusIcon = '🟢';
                 } else if (isCompleted && item === 'COMPLETED') {
-                  statusIcon = '✅';
+                  statusIcon = '●';
                 }
                 
                 return (
@@ -761,7 +761,7 @@ const MerchantRTO = () => {
       {/* Toast Notification */}
       {toast.visible && (
         <div className={`rto-toast rto-toast-${toast.type}`}>
-          {toast.type === 'success' ? '✅' : '❌'} {toast.message}
+          {toast.message}
         </div>
       )}
     </>

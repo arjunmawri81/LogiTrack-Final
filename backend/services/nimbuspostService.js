@@ -30,7 +30,7 @@ async function getAuthHeader() {
       const response = await axios.post(`${NIMBUSPOST_BASE_URL}/users/login`, { email, password }, { timeout: 10000 });
       if (response.data && response.data.status && response.data.data) {
         cachedToken = response.data.data;
-        tokenExpiresAt = Date.now() + 23 * 60 * 60 * 1000; // Cache 23 hours
+        tokenExpiresAt = Date.now() + 23 * 60 * 60 * 1000; 
         console.log("[NimbusPost] Login successful, Bearer token cached.");
         return { Authorization: `Bearer ${cachedToken}` };
       }

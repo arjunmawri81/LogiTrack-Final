@@ -102,7 +102,7 @@ const BulkShipment = () => {
 
       const response = await api.post("/shipments/bulk", payload);
 
-      setSuccess(`✅ ${response.data.shipments?.length || selectedOrders.length} shipments created successfully!`);
+      setSuccess(`${response.data.shipments?.length || selectedOrders.length} shipments created successfully!`);
       
       // Redirect to shipments page after 2 seconds
       setTimeout(() => {
