@@ -152,11 +152,11 @@ const LabelSettingsModal = ({
           logoFile: null,
         }));
 
-        alert("✅ Permanent merchant logo updated successfully!");
+        alert("Permanent merchant logo updated successfully!");
       }
     } catch (error) {
       console.error("Permanent logo upload error:", error);
-      alert(error.response?.data?.message || "❌ Failed to upload permanent logo.");
+      alert(error.response?.data?.message || "Failed to upload permanent logo.");
     } finally {
       setIsUploadingPermanentLogo(false);
       e.target.value = '';

@@ -252,7 +252,7 @@ const NDR = () => {
         className: 'ndr-status-reattempt-requested'
       },
       REATTEMPT: {
-        icon: '✅',
+        icon: '',
         label: 'Approved',
         className: 'ndr-status-reattempt'
       },
@@ -319,7 +319,7 @@ const NDR = () => {
         {/* Toast Notification */}
         {toast.visible && (
           <div className={`ndr-toast ${toast.type === 'success' ? 'ndr-toast-success' : 'ndr-toast-error'}`}>
-            {toast.type === 'success' ? '✅' : '❌'} {toast.message}
+            {toast.message}
           </div>
         )}
 

@@ -64,10 +64,10 @@ const Merchants = () => {
     try {
       await api.put(`/admin/merchants/${id}/approve`);
       fetchMerchants();
-      alert("✅ Merchant Approved Successfully");
+      alert("Merchant Approved Successfully");
     } catch (error) {
       console.error("Approval Error:", error);
-      alert("❌ Approval Failed. Please try again.");
+      alert("Approval Failed. Please try again.");
     }
   };
 
@@ -75,10 +75,10 @@ const Merchants = () => {
     try {
       await api.put(`/admin/merchants/${id}/reject`);
       fetchMerchants();
-      alert("❌ Merchant Rejected Successfully");
+      alert("Merchant Rejected Successfully");
     } catch (error) {
       console.error("Reject Error:", error);
-      alert("❌ Rejection Failed. Please try again.");
+      alert("Rejection Failed. Please try again.");
     }
   };
 
@@ -86,10 +86,10 @@ const Merchants = () => {
     try {
       await api.put(`/admin/merchants/${id}/block`);
       fetchMerchants();
-      alert("🔒 Merchant Blocked Successfully");
+      alert("Merchant Blocked Successfully");
     } catch (error) {
       console.error("Block Error:", error);
-      alert("❌ Block Failed. Please try again.");
+      alert("Block Failed. Please try again.");
     }
   };
 
@@ -97,10 +97,10 @@ const Merchants = () => {
     try {
       await api.put(`/admin/merchants/${id}/unblock`);
       fetchMerchants();
-      alert("✅ Merchant Unblocked Successfully");
+      alert("Merchant Unblocked Successfully");
     } catch (error) {
       console.error("Unblock Error:", error);
-      alert("❌ Unblock Failed. Please try again.");
+      alert("Unblock Failed. Please try again.");
     }
   };
 

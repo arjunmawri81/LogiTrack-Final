@@ -60,7 +60,7 @@ const RTO = () => {
     },
     COMPLETED: {
       className: "rto-status-completed",
-      icon: "✅"
+      icon: "•"
     }
   };
 
@@ -358,7 +358,7 @@ const RTO = () => {
                 <h2 className="rto-stat-value rto-stat-value-green">{completed}</h2>
               </div>
               <div className="rto-stat-icon rto-stat-icon-green">
-                ✅
+                Completed
               </div>
             </div>
           </div>
@@ -398,7 +398,7 @@ const RTO = () => {
                 <option value="PICKED_UP">📦 Picked Up</option>
                 <option value="IN_TRANSIT">🚚 In Transit</option>
                 <option value="RECEIVED_AT_WAREHOUSE">🏢 Warehouse</option>
-                <option value="COMPLETED">✅ Completed</option>
+                <option value="COMPLETED">Completed</option>
               </select>
               <FaChevronDown className="rto-select-arrow" />
             </div>
@@ -534,13 +534,13 @@ const RTO = () => {
                                 disabled={actionLoading}
                                 className="rto-action-btn rto-action-complete"
                               >
-                                ✅ Complete
+                                Complete
                               </button>
                             )}
 
                             {status === "COMPLETED" && (
                               <span className="rto-action-completed-text">
-                                ✅ Completed
+                                Completed
                               </span>
                             )}
                           </div>
@@ -690,7 +690,7 @@ const RTO = () => {
                 return (
                   <div key={step} className={`rto-modal-timeline-item ${isCompleted ? 'rto-modal-timeline-item-completed' : 'rto-modal-timeline-item-pending'}`}>
                     <span className="rto-modal-timeline-icon">
-                      {isCompleted ? "✅" : "⏳"}
+                      {isCompleted ? "●" : "○"}
                     </span>
                     <span className={`rto-modal-timeline-label ${isCompleted ? 'rto-modal-timeline-label-completed' : 'rto-modal-timeline-label-pending'}`}>
                       {statusDisplayNames[step] || step}
@@ -795,7 +795,7 @@ const RTO = () => {
                   disabled={actionLoading}
                   className="rto-modal-action-btn rto-modal-action-complete"
                 >
-                  ✅ Complete
+                  Complete
                 </button>
               )}
             </div>

@@ -93,11 +93,11 @@ const EditOrder = () => {
 
     try {
       await api.put(`/admin/orders/${id}`, formData);
-      alert("✅ Order Updated Successfully");
+      alert("Order Updated Successfully");
       navigate("/admin/orders");
     } catch (error) {
       console.log(error);
-      alert("❌ Update Failed");
+      alert("Update Failed");
     } finally {
       setLoading(false);
     }

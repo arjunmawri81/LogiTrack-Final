@@ -247,17 +247,17 @@ const Reports = () => {
       const filename = `${report.name.replace(/[^a-zA-Z0-9]/g, "_")}_${Date.now()}.xlsx`;
       XLSX.writeFile(wb, filename);
 
-      showNotification(`✅ Exported ${filename} successfully!`);
+      showNotification(`Exported ${filename} successfully!`);
     } catch (error) {
       console.error("Excel download error:", error);
-      showNotification("⚠️ Failed to generate Excel report. Please try again.");
+      showNotification("Failed to generate Excel report. Please try again.");
     }
   };
 
   // Handle PDF Download (.pdf) with Real Summary
   const handleDownloadPDF = async (report) => {
     try {
-      showNotification(`⌛ Generating PDF for ${report.name}...`);
+      showNotification(`Generating PDF for ${report.name}...`);
       const doc = new jsPDF();
 
       doc.setFontSize(18);
@@ -292,10 +292,10 @@ const Reports = () => {
       const filename = `${report.name.replace(/[^a-zA-Z0-9]/g, "_")}_${Date.now()}.pdf`;
       doc.save(filename);
 
-      showNotification(`✅ Downloaded ${filename} successfully!`);
+      showNotification(`Downloaded ${filename} successfully!`);
     } catch (err) {
       console.error("PDF generation error:", err);
-      showNotification("⚠️ Failed to generate PDF. Please try again.");
+      showNotification("Failed to generate PDF. Please try again.");
     }
   };
 
