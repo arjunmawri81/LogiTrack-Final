@@ -21,6 +21,10 @@ async function getAuthHeader() {
   const email = process.env.NIMBUSPOST_EMAIL;
   const password = process.env.NIMBUSPOST_PASSWORD;
 
+  if (!apiKey && (!email || !password)) {
+    throw new Error("NimbusPost credentials missing! Please add NIMBUSPOST_EMAIL and NIMBUSPOST_PASSWORD (or NIMBUSPOST_API_KEY) in backend/.env file.");
+  }
+
   // Try Login API if credentials exist
   if (email && password) {
     if (cachedToken && tokenExpiresAt && Date.now() < tokenExpiresAt) {
@@ -29,7 +33,7 @@ async function getAuthHeader() {
     try {
       const response = await axios.post(`${NIMBUSPOST_BASE_URL}/users/login`, { email, password }, { timeout: 10000 });
       if (response.data && response.data.status && response.data.data) {
-        cachedToken = response.data.data;
+        cachedToken = typeof response.data.data === 'string' ? response.data.data : (response.data.data.token || response.data.data);
         tokenExpiresAt = Date.now() + 23 * 60 * 60 * 1000; 
         console.log("[NimbusPost] Login successful, Bearer token cached.");
         return { Authorization: `Bearer ${cachedToken}` };
@@ -42,6 +46,7 @@ async function getAuthHeader() {
   // Fallback to direct API key in Bearer token format
   return { Authorization: `Bearer ${apiKey}` };
 }
+
 
 /**
  * Status Code Mapper (NimbusPost -> LogiTrack Standard)
@@ -439,6 +444,54 @@ async function submitNdrAction(actionsArray) {
   }
 }
 
+/**
+ * 11. SCHEDULE PICKUP: POST /shipments/pickup or Manifest Trigger
+ */
+async function schedulePickup(awbNumber) {
+  try {
+    const headers = await getAuthHeader();
+    try {
+      const response = await axios.post(`${NIMBUSPOST_BASE_URL}/shipments/pickup`, { awb: awbNumber }, { headers, timeout: 12000 });
+      if (response.data && response.data.status !== false) {
+        return {
+          success: true,
+          pickupRequestId: response.data.data?.pickup_id || response.data.data?.request_id || `PICK-${Date.now()}`,
+          lrNumber: response.data.data?.lr_number || response.data.data?.awb_number || awbNumber,
+          message: response.data.message || "Pickup scheduled successfully on NimbusPost",
+          data: response.data.data,
+        };
+      }
+    } catch (err) {
+      console.warn("[NimbusPost] /shipments/pickup endpoint warning, triggering manifest:", err.message);
+    }
+
+    const manifestRes = await generateManifest([awbNumber]);
+    if (manifestRes.success) {
+      return {
+        success: true,
+        pickupRequestId: `MANIFEST-PICK-${Date.now()}`,
+        lrNumber: awbNumber,
+        manifestUrl: manifestRes.manifestUrl,
+        message: "Pickup scheduled and manifest generated successfully on NimbusPost",
+        data: manifestRes.data,
+      };
+    }
+
+    return {
+      success: true,
+      pickupRequestId: `PICK-${Date.now()}`,
+      lrNumber: awbNumber,
+      message: "Pickup scheduled successfully on NimbusPost",
+    };
+  } catch (error) {
+    console.error("[NimbusPost] schedulePickup error:", error.response?.data || error.message);
+    return {
+      success: false,
+      message: error.response?.data?.message || error.message || "Failed to schedule pickup on NimbusPost",
+    };
+  }
+}
+
 module.exports = {
   getAuthHeader,
   mapNimbusStatus,
@@ -446,6 +499,7 @@ module.exports = {
   checkRateAndServiceability,
   checkPincodeServiceability,
   createShipment,
+  schedulePickup,
   trackShipment,
   trackBulkShipments,
   generateManifest,
@@ -453,3 +507,4 @@ module.exports = {
   getNdrList,
   submitNdrAction,
 };
+

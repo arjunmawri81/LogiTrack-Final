@@ -160,23 +160,7 @@ const Sidebar = () => {
               </li>
               <li>
                 <NavLink to="/merchant/create-shipment" className={({ isActive }) => isActive ? "active" : ""} onClick={closeSidebar}>
-                  <FaBox /> <span>Create Shipment</span>
-                </NavLink>
-              </li>
-              {/* Warehouse Menu Item - Added after Create Shipment */}
-              <li>
-                <NavLink
-                  to="/merchant/warehouses"
-                  className={({ isActive }) => (isActive ? "active" : "")}
-                  onClick={closeSidebar}
-                >
-                  <FaWarehouse />
-                  <span>Warehouses</span>
-                </NavLink>
-              </li>
-              <li>
-                <NavLink to="/merchant/integrations" className={({ isActive }) => isActive ? "active" : ""} onClick={closeSidebar}>
-                  <FaPlug /> <span>Integrations</span>
+                  <FaBox /> <span>Ship order</span>
                 </NavLink>
               </li>
               <li>
@@ -197,6 +181,11 @@ const Sidebar = () => {
               <li>
                 <NavLink to="/merchant/rto" className={({ isActive }) => isActive ? "active" : ""} onClick={closeSidebar}>
                   <FaUndoAlt /> <span>RTO</span>
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/merchant/integrations" className={({ isActive }) => isActive ? "active" : ""} onClick={closeSidebar}>
+                  <FaPlug /> <span>Integrations</span>
                 </NavLink>
               </li>
               <li>
@@ -237,6 +226,16 @@ const Sidebar = () => {
               <li>
                 <NavLink to="/merchant/tickets" className={({ isActive }) => isActive ? "active" : ""} onClick={closeSidebar}>
                   <FaTicketAlt /> <span>Support Tickets</span>
+                </NavLink>
+              </li>
+              <li>
+                <NavLink
+                  to="/merchant/warehouses"
+                  className={({ isActive }) => (isActive ? "active" : "")}
+                  onClick={closeSidebar}
+                >
+                  <FaWarehouse />
+                  <span>Warehouses</span>
                 </NavLink>
               </li>
               <li>

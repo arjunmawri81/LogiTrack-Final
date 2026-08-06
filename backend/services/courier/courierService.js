@@ -117,8 +117,110 @@ const requestRTOApi = async ({ courierCode, awb, reason }) => {
   };
 };
 
+/**
+ * Schedule Pickup via Courier API (NimbusPost or Fallback)
+ */
+const schedulePickup = async (courier, awbNumber, shipmentData = {}) => {
+  const code = (courier?.code || courier?.name || "").toUpperCase();
+  console.log(`[COURIER API] Scheduling Pickup via ${code} for AWB: ${awbNumber}...`);
+
+  if (code.includes("NIMBUS")) {
+    const res = await nimbuspostService.schedulePickup(awbNumber);
+    if (!res.success) {
+      throw new Error(res.message || "NimbusPost Schedule Pickup failed");
+    }
+    return {
+      success: true,
+      provider: "NIMBUSPOST",
+      response: {
+        pickup_request_id: res.pickupRequestId || `PICK-${Date.now()}`,
+        shipment_id: awbNumber,
+        awb_number: awbNumber,
+        lr_number: res.lrNumber || awbNumber,
+        manifest_url: res.manifestUrl || "",
+        status: "SCHEDULED",
+        scheduled_date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        message: res.message || "Pickup scheduled successfully via NimbusPost API"
+      }
+    };
+  }
+
+  const timestamp = Date.now();
+  const random = Math.floor(Math.random() * 1000);
+  return {
+    success: true,
+    provider: (courier?.code || "COURIER").toUpperCase(),
+    response: {
+      pickup_request_id: `PICK${timestamp}`,
+      shipment_id: shipmentData._id || awbNumber,
+      awb_number: awbNumber,
+      lr_number: `LR${timestamp}${random}`,
+      status: "SCHEDULED",
+      scheduled_date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      message: "Pickup scheduled successfully"
+    }
+  };
+};
+
+/**
+ * Live Track Shipment via Courier API
+ */
+const trackShipment = async (courier, awbNumber) => {
+  const code = (courier?.code || courier?.name || "").toUpperCase();
+  console.log(`[COURIER API] Tracking Shipment via ${code} for AWB: ${awbNumber}...`);
+
+  if (code.includes("NIMBUS")) {
+    const res = await nimbuspostService.trackShipment(awbNumber);
+    if (res.success) {
+      return {
+        success: true,
+        provider: "NIMBUSPOST",
+        response: {
+          awb: res.awb,
+          status: res.status,
+          rawStatus: res.rawStatus,
+          history: res.history,
+          rawResponse: res.data
+        }
+      };
+    }
+  }
+
+  return null;
+};
+
+/**
+ * Cancel Shipment via Courier API
+ */
+const cancelShipment = async (courier, awbNumber) => {
+  const code = (courier?.code || courier?.name || "").toUpperCase();
+  console.log(`[COURIER API] Cancelling Shipment via ${code} for AWB: ${awbNumber}...`);
+
+  if (code.includes("NIMBUS")) {
+    const res = await nimbuspostService.cancelShipment(awbNumber);
+    if (!res.success) {
+      throw new Error(res.message || "NimbusPost Cancellation failed");
+    }
+    return {
+      success: true,
+      provider: "NIMBUSPOST",
+      response: {
+        awb: awbNumber,
+        status: "CANCELLED",
+        message: res.message,
+        cancelled_at: new Date().toISOString()
+      }
+    };
+  }
+
+  return null;
+};
+
 module.exports = {
   createShipment,
+  schedulePickup,
+  trackShipment,
+  cancelShipment,
   requestReattemptApi,
   requestRTOApi
 };

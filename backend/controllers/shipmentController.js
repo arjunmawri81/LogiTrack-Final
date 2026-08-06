@@ -157,17 +157,83 @@ const PROVIDER_REGISTRY = {
   // Aliases (for backward compatibility / different codes)
   XPB: FakeXpressbees,
   XB: FakeXpressbees,
-  // NimbusPost Integration
-  NIMBUSPOST: async function(order, shipmentData) {
-    return await nimbuspostService.createShipment(shipmentData);
+  // NimbusPost Integration (Production Ready)
+  NIMBUSPOST: async function(order, warehouse, courier) {
+    const payload = buildNimbusShipmentPayload(order, warehouse, courier);
+    const res = await nimbuspostService.createShipment(payload);
+    if (!res.success) {
+      throw new Error(res.message || "NimbusPost Shipment Creation Failed");
+    }
+    return {
+      success: true,
+      provider: "NIMBUSPOST",
+      response: {
+        shipment_id: res.shipmentId || res.orderId,
+        tracking_id: res.awb,
+        awb: res.awb,
+        status: res.status || "MANIFESTED",
+        label_url: res.label,
+        manifest_url: "",
+        tracking_url: `https://nimbuspost.com/tracking?awb=${res.awb}`,
+        estimated_delivery: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+        rawResponse: res.rawResponse
+      }
+    };
   },
-  NIMBUS: async function(order, shipmentData) {
-    return await nimbuspostService.createShipment(shipmentData);
+  NIMBUS: async function(order, warehouse, courier) {
+    return await PROVIDER_REGISTRY.NIMBUSPOST(order, warehouse, courier);
   },
-  NIMBUS_POST: async function(order, shipmentData) {
-    return await nimbuspostService.createShipment(shipmentData);
+  NIMBUS_POST: async function(order, warehouse, courier) {
+    return await PROVIDER_REGISTRY.NIMBUSPOST(order, warehouse, courier);
   },
 };
+
+/**
+ * Helper to build live NimbusPost shipment payload from LogiTrack Order & Warehouse
+ */
+function buildNimbusShipmentPayload(order, warehouse, courier) {
+  return {
+    orderNumber: order.orderId || order.orderNumber || String(order._id),
+    shippingCharges: Number(order.shippingCharge || 0),
+    discount: Number(order.discount || 0),
+    codCharges: Number(order.codCharge || 0),
+    paymentType: order.paymentMode === "COD" ? "cod" : "prepaid",
+    orderAmount: Number(order.amount || 0),
+    weight: Number(order.weight || 0.5),
+    length: Number(order.dimensions?.length || order.length || 10),
+    breadth: Number(order.dimensions?.breadth || order.breadth || 10),
+    height: Number(order.dimensions?.height || order.height || 10),
+    request_auto_pickup: "yes",
+    courierId: courier?.nimbusCourierId || courier?.courierId || undefined,
+    consigneeName: order.customerName,
+    consigneeAddress: order.customerAddress || order.address,
+    consigneeAddress2: order.customerAddress2 || "",
+    consigneeCity: order.customerCity || order.city,
+    consigneeState: order.customerState || order.state,
+    consigneePincode: String(order.customerPincode || order.pincode),
+    consigneePhone: String(order.customerPhone || order.phone),
+    pickupWarehouseName: warehouse?.warehouseName || "Primary Warehouse",
+    pickupName: warehouse?.contactPerson || warehouse?.warehouseName || "Warehouse Contact",
+    pickupAddress: warehouse?.addressLine1 || "",
+    pickupAddress2: warehouse?.addressLine2 || "",
+    pickupCity: warehouse?.city || "",
+    pickupState: warehouse?.state || "",
+    pickupPincode: String(warehouse?.pincode || ""),
+    pickupPhone: String(warehouse?.phone || ""),
+    productName: order.productName || order.items?.[0]?.name || "Package",
+    quantity: Number(order.quantity || order.items?.[0]?.quantity || 1),
+    sku: order.sku || order.items?.[0]?.sku || "SKU-DEFAULT",
+    items: (order.items && order.items.length > 0)
+      ? order.items.map(item => ({
+          name: item.name || "Product",
+          qty: Number(item.quantity || 1),
+          price: Number(item.price || order.amount || 100),
+          sku: item.sku || "SKU-DEFAULT"
+        }))
+      : undefined
+  };
+}
+
 
 // ===============================
 // GENERIC TRACKING RESPONSE FACTORY
@@ -326,18 +392,44 @@ function createCancelResponse(providerName, shipmentId) {
   };
 }
 
+/**
+ * Helper to determine if a courier partner should route via NimbusPost API
+ */
+function isNimbusCourier(courier) {
+  if (!courier) return false;
+  const code = (courier.code || "").toUpperCase();
+  const name = (courier.name || "").toUpperCase();
+  const apiProvider = (courier.apiProvider || "").toUpperCase();
+
+  if (code.includes("NIMBUS") || apiProvider.includes("NIMBUS") || name.includes("NIMBUS")) {
+    return true;
+  }
+
+  const hasNimbusCreds = !!(process.env.NIMBUSPOST_API_KEY || (process.env.NIMBUSPOST_EMAIL && process.env.NIMBUSPOST_PASSWORD));
+  if (hasNimbusCreds && (apiProvider === "NIMBUSPOST" || apiProvider === "NIMBUS" || apiProvider === "" || courier.apiIntegrated === true)) {
+    return true;
+  }
+
+  return false;
+}
+
 // ===============================
 // COURIER SERVICE (PROVIDER SWITCH - FIXED)
 // ===============================
 const CourierService = {
-  async createShipment(courier, order) {
+  async createShipment(courier, order, warehouse) {
     logger.info(`Creating shipment for courier: ${courier.code}`, { 
       orderId: order._id,
       courierCode: courier.code 
     });
 
-    const provider = PROVIDER_REGISTRY[courier.code?.toUpperCase()];
+    const providerKey = courier.code?.toUpperCase();
+    let provider = PROVIDER_REGISTRY[providerKey];
     
+    if (isNimbusCourier(courier)) {
+      provider = PROVIDER_REGISTRY.NIMBUSPOST;
+    }
+
     if (!provider) {
       logger.error(`Unsupported courier: ${courier.code}`, { 
         courierCode: courier.code,
@@ -346,7 +438,7 @@ const CourierService = {
       throw new Error(`Courier ${courier.code} is not supported`);
     }
 
-    const result = await provider(order);
+    const result = await provider(order, warehouse, courier);
 
     logger.info(`Shipment created successfully`, { 
       awb: result.response.awb,
@@ -371,12 +463,30 @@ const CourierService = {
     };
   },
 
-  async cancelShipment(courier, shipmentId) {
-    logger.info(`Cancelling shipment for courier: ${courier.code}`, { shipmentId });
+  async cancelShipment(courier, shipmentId, awb) {
+    logger.info(`Cancelling shipment for courier: ${courier.code}`, { shipmentId, awb });
+
+    if (isNimbusCourier(courier)) {
+      const targetAwb = awb || shipmentId;
+      const res = await nimbuspostService.cancelShipment(targetAwb);
+      if (!res.success) {
+        throw new Error(res.message || "NimbusPost Cancellation failed");
+      }
+      return {
+        success: true,
+        provider: "NIMBUSPOST",
+        response: {
+          shipment_id: shipmentId,
+          awb: targetAwb,
+          status: "CANCELLED",
+          message: res.message,
+          cancelled_at: new Date().toISOString()
+        }
+      };
+    }
 
     await new Promise(resolve => setTimeout(resolve, 100));
-
-    const providerKey = courier.code?.toUpperCase();
+    const providerKey = courier.code?.toUpperCase() || "";
     const providerName = Object.keys(PROVIDER_REGISTRY).find(key => key === providerKey) || courier.code;
     
     if (!PROVIDER_REGISTRY[providerKey]) {
@@ -385,7 +495,6 @@ const CourierService = {
     }
 
     const result = createCancelResponse(providerName, shipmentId);
-
     logger.info(`Shipment cancelled successfully`, { shipmentId });
     return result;
   },
@@ -393,10 +502,25 @@ const CourierService = {
   async trackShipment(courier, awb) {
     logger.info(`Tracking shipment for courier: ${courier.code}`, { awb });
 
-    await new Promise(resolve => setTimeout(resolve, 100));
+    if (isNimbusCourier(courier)) {
+      const res = await nimbuspostService.trackShipment(awb);
+      if (res.success) {
+        return {
+          success: true,
+          provider: "NIMBUSPOST",
+          response: {
+            awb: res.awb,
+            status: res.status,
+            rawStatus: res.rawStatus,
+            history: res.history,
+            rawResponse: res.data
+          }
+        };
+      }
+    }
 
-    const providerKey = courier.code?.toUpperCase();
-    
+    await new Promise(resolve => setTimeout(resolve, 100));
+    const providerKey = courier.code?.toUpperCase() || "";
     if (!PROVIDER_REGISTRY[providerKey]) {
       logger.error(`Unsupported courier for tracking: ${courier.code}`);
       throw new Error(`Courier ${courier.code} is not supported`);
@@ -416,7 +540,6 @@ const CourierService = {
     const providerName = Object.keys(PROVIDER_REGISTRY).find(key => key === providerKey) || courier.code;
     
     const result = createTrackingResponse(providerName, awb, deliveryDays);
-
     logger.info(`Tracking retrieved successfully`, { awb, status: result.response.status });
     return result;
   },
@@ -466,13 +589,33 @@ const CourierService = {
     return result;
   },
 
-  async schedulePickup(courier, shipmentId) {
+  async schedulePickup(courier, shipmentId, shipmentObj) {
     logger.info(`Scheduling pickup for courier: ${courier.code}`, { shipmentId });
 
-    await new Promise(resolve => setTimeout(resolve, 100));
+    if (isNimbusCourier(courier)) {
+      const awb = shipmentObj?.awb || shipmentId;
+      const liveRes = await nimbuspostService.schedulePickup(awb);
+      if (!liveRes.success) {
+        throw new Error(liveRes.message || "NimbusPost schedule pickup failed");
+      }
+      return {
+        success: true,
+        provider: "NIMBUSPOST",
+        response: {
+          pickup_request_id: liveRes.pickupRequestId || `PICK-${Date.now()}`,
+          shipment_id: shipmentId,
+          awb_number: awb,
+          lr_number: liveRes.lrNumber || awb,
+          manifest_url: liveRes.manifestUrl || "",
+          status: "SCHEDULED",
+          scheduled_date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          message: liveRes.message || "Pickup scheduled successfully on NimbusPost"
+        }
+      };
+    }
 
-    const providerKey = courier.code?.toUpperCase();
-    
+    await new Promise(resolve => setTimeout(resolve, 100));
+    const providerKey = courier.code?.toUpperCase() || "";
     if (!PROVIDER_REGISTRY[providerKey]) {
       logger.error(`Unsupported courier for pickup: ${courier.code}`);
       throw new Error(`Courier ${courier.code} is not supported`);
@@ -1287,7 +1430,8 @@ const createShipment = async (req, res) => {
 
     const courierResponse = await CourierService.createShipment(
       courier,
-      order
+      order,
+      warehouse
     );
 
     const awb = courierResponse.awb;
@@ -2202,7 +2346,7 @@ const schedulePickup = async (req, res) => {
     }
 
     const courier = await Courier.findById(shipment.courierId);
-    const pickupResult = await CourierService.schedulePickup(courier, shipment._id);
+    const pickupResult = await CourierService.schedulePickup(courier, shipment._id, shipment);
     const pResp = pickupResult?.response || {};
 
     shipment.pickupDate = new Date();
@@ -2210,6 +2354,7 @@ const schedulePickup = async (req, res) => {
     shipment.status = "PICKUP_SCHEDULED";
     if (pResp.pickup_request_id) shipment.pickupRequestId = pResp.pickup_request_id;
     if (pResp.lr_number || pResp.lrNumber) shipment.lrNumber = pResp.lr_number || pResp.lrNumber;
+    if (pResp.manifest_url || pResp.manifestUrl) shipment.manifestUrl = pResp.manifest_url || pResp.manifestUrl;
 
     await shipment.addTrackingEvent(
       "PICKUP_SCHEDULED",
@@ -2722,7 +2867,7 @@ const bulkSchedulePickup = async (req, res) => {
         }
 
         const courier = await Courier.findById(shipment.courierId);
-        const pickupResult = await CourierService.schedulePickup(courier, shipment._id);
+        const pickupResult = await CourierService.schedulePickup(courier, shipment._id, shipment);
         const pResp = pickupResult?.response || {};
 
         shipment.pickupDate = new Date();
@@ -2730,6 +2875,7 @@ const bulkSchedulePickup = async (req, res) => {
         shipment.status = "PICKUP_SCHEDULED";
         if (pResp.pickup_request_id) shipment.pickupRequestId = pResp.pickup_request_id;
         if (pResp.lr_number || pResp.lrNumber) shipment.lrNumber = pResp.lr_number || pResp.lrNumber;
+        if (pResp.manifest_url || pResp.manifestUrl) shipment.manifestUrl = pResp.manifest_url || pResp.manifestUrl;
 
         await shipment.addTrackingEvent(
           "PICKUP_SCHEDULED",
