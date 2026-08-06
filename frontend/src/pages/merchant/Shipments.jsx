@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import api from "../../services/api";
@@ -29,20 +29,36 @@ const Shipments = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedTimeline, setSelectedTimeline] = useState([]);
   const [schedulingId, setSchedulingId] = useState(null);
+  const [toast, setToast] = useState(null); // { message, type: 'success'|'error' }
 
   // Bulk Selection State
   const [selectedIds, setSelectedIds] = useState([]);
   const [bulkLoading, setBulkLoading] = useState(false);
 
+  // Show toast for 3 seconds
+  const showToast = useCallback((message, type = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  }, []);
+
   const handleSchedulePickup = async (shipmentId) => {
     try {
       setSchedulingId(shipmentId);
       const res = await api.post(`/shipments/${shipmentId}/pickup`);
-      alert(res.data.message || "Pickup Scheduled Successfully");
-      fetchShipments();
+
+      // Sirf is ek shipment ko update karo — pura list reload nahi hoga
+      setShipments((prev) =>
+        prev.map((s) =>
+          s._id === shipmentId
+            ? { ...s, status: "PICKUP_SCHEDULED", pickupStatus: "SCHEDULED" }
+            : s
+        )
+      );
+
+      showToast(res.data.message || "Pickup Scheduled Successfully", "success");
     } catch (error) {
       console.error("Schedule pickup error:", error);
-      alert(error.response?.data?.message || "Failed to schedule pickup.");
+      showToast(error.response?.data?.message || "Failed to schedule pickup.", "error");
     } finally {
       setSchedulingId(null);
     }
@@ -87,11 +103,20 @@ const Shipments = () => {
     try {
       setBulkLoading(true);
       const res = await api.post("/shipments/bulk-pickup", { shipmentIds: selectedIds });
-      alert(res.data.message || "Bulk Pickup Scheduled!");
+
+      // Bulk mein bhi sirf selected ones update karo
+      setShipments((prev) =>
+        prev.map((s) =>
+          selectedIds.includes(s._id)
+            ? { ...s, status: "PICKUP_SCHEDULED", pickupStatus: "SCHEDULED" }
+            : s
+        )
+      );
+
       setSelectedIds([]);
-      fetchShipments();
+      showToast(res.data.message || "Bulk Pickup Scheduled!", "success");
     } catch (error) {
-      alert(error.response?.data?.message || "Bulk pickup failed");
+      showToast(error.response?.data?.message || "Bulk pickup failed", "error");
     } finally {
       setBulkLoading(false);
     }
@@ -406,6 +431,14 @@ const Shipments = () => {
           </div>
         </main>
       </div>
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`shipment-toast shipment-toast-${toast.type}`}>
+          {toast.type === "success" ? <FaCheckCircle size={15} /> : <FaTimes size={15} />}
+          {toast.message}
+        </div>
+      )}
 
       {selectedIds.length > 0 && (
         <div className="bulk-action-bar">
