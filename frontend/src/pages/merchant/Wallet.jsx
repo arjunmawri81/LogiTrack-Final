@@ -46,27 +46,98 @@ const Wallet = () => {
     }
   };
 
+  // Razorpay script dynamically load karo
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (document.getElementById("razorpay-script")) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement("script");
+      script.id = "razorpay-script";
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
   const rechargeWallet = async () => {
     if (!amount || Number(amount) <= 0) {
-      alert("Enter valid amount");
+      alert("Valid amount enter karein");
+      return;
+    }
+
+    // 1. Razorpay script load karo
+    const scriptLoaded = await loadRazorpayScript();
+    if (!scriptLoaded) {
+      alert("Razorpay load nahi hua. Internet check karein.");
       return;
     }
 
     try {
-      await api.post("/wallet/recharge", {
+      // 2. Backend se Razorpay order create karo
+      const { data } = await api.post("/wallet/create-order", {
         amount: Number(amount),
       });
 
-      alert("Wallet Recharged Successfully");
+      if (!data.success) {
+        alert("Order create karne mein problem hui.");
+        return;
+      }
 
-      setAmount("");
+      // 3. Razorpay Checkout popup open karo
+      const options = {
+        key: data.keyId,
+        amount: data.amount,
+        currency: data.currency,
+        name: "My Parcel Point",
+        description: "Wallet Recharge",
+        order_id: data.orderId,
+        handler: async (response) => {
+          // 4. Payment success hone par backend se verify karo
+          try {
+            const verifyRes = await api.post("/wallet/verify-payment", {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              amount: data.amount,
+            });
 
-      fetchWallet();
-      fetchSummary();
+            if (verifyRes.data.success) {
+              alert("✅ Wallet Successfully Recharged!");
+              setAmount("");
+              fetchWallet();
+              fetchSummary();
+            } else {
+              alert("Payment verify nahi hua.");
+            }
+          } catch (err) {
+            alert(
+              err?.response?.data?.message || "Verification failed"
+            );
+          }
+        },
+        prefill: {
+          name: "",
+          email: "",
+          contact: "",
+        },
+        theme: {
+          color: "#6366f1",
+        },
+        modal: {
+          ondismiss: () => {
+            console.log("Razorpay popup closed");
+          },
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
     } catch (error) {
       alert(
-        error?.response?.data?.message ||
-          "Recharge Failed"
+        error?.response?.data?.message || "Recharge Failed"
       );
     }
   };
@@ -139,7 +210,7 @@ const Wallet = () => {
           <div className="wallet-input-wrapper">
             <input
               type="number"
-              placeholder="Enter Amount"
+              placeholder="Enter Amount (₹)"
               value={amount}
               onChange={(e) =>
                 setAmount(e.target.value)

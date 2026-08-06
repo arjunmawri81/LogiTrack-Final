@@ -9,6 +9,8 @@ const {
   getTransactions,
   debitWallet,
   getWalletSummary,
+  createRazorpayOrder,
+  verifyRazorpayPayment,
 } = require("../controllers/walletController");
 
 // ================================
@@ -54,6 +56,24 @@ router.get(
   "/summary",
   authMiddleware,
   getWalletSummary
+);
+
+// ================================
+// RAZORPAY - CREATE ORDER
+// ================================
+router.post(
+  "/create-order",
+  authMiddleware,
+  createRazorpayOrder
+);
+
+// ================================
+// RAZORPAY - VERIFY PAYMENT
+// ================================
+router.post(
+  "/verify-payment",
+  authMiddleware,
+  verifyRazorpayPayment
 );
 
 module.exports = router;

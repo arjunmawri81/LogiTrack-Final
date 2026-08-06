@@ -12,6 +12,8 @@ const {
   trackShipment,
   updateShipmentStatus,
   schedulePickup,
+  bulkSchedulePickup,
+  generateManifest,
   generateShipmentQR,
   getTrackingTimeline,
   generateLabel,
@@ -85,5 +87,15 @@ router.get("/:id/qr", authMiddleware, generateShipmentQR);
 // GET TRACKING TIMELINE
 // ===============================
 router.get("/:id/timeline", authMiddleware, getTrackingTimeline);
+
+// ===============================
+// BULK SCHEDULE PICKUP
+// ===============================
+router.post("/bulk-pickup", authMiddleware, bulkSchedulePickup);
+
+// ===============================
+// GENERATE MANIFEST
+// ===============================
+router.post("/manifest", authMiddleware, generateManifest);
 
 module.exports = router;

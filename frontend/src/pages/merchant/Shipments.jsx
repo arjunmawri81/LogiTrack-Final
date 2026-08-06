@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import api from "../../services/api";
@@ -15,6 +15,8 @@ import {
   FaExclamationTriangle,
   FaUndo,
   FaFilter,
+  FaFileAlt,
+  FaCheckSquare,
 } from "react-icons/fa";
 import "./Shipments.css"; 
 
@@ -27,6 +29,10 @@ const Shipments = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedTimeline, setSelectedTimeline] = useState([]);
   const [schedulingId, setSchedulingId] = useState(null);
+
+  // Bulk Selection State
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [bulkLoading, setBulkLoading] = useState(false);
 
   const handleSchedulePickup = async (shipmentId) => {
     try {
@@ -49,17 +55,63 @@ const Shipments = () => {
   const fetchShipments = async () => {
     try {
       setLoading(true);
-      
       const res = await api.get("/shipments");
-      
-      console.log("SHIPMENTS =>", res.data.shipments);
-      console.log("FIRST SHIPMENT =>", res.data.shipments[0]);
-      
       setShipments(res.data.shipments || []);
     } catch (error) {
       console.error("Error fetching shipments:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const toggleSelectOne = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = (filteredList) => {
+    if (selectedIds.length === filteredList.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filteredList.map((s) => s._id));
+    }
+  };
+
+  const clearSelection = () => setSelectedIds([]);
+
+  const handleBulkPickup = async () => {
+    if (selectedIds.length === 0) return;
+    const ok = window.confirm(`${selectedIds.length} shipments ke liye pickup schedule karna hai?`);
+    if (!ok) return;
+    try {
+      setBulkLoading(true);
+      const res = await api.post("/shipments/bulk-pickup", { shipmentIds: selectedIds });
+      alert(res.data.message || "Bulk Pickup Scheduled!");
+      setSelectedIds([]);
+      fetchShipments();
+    } catch (error) {
+      alert(error.response?.data?.message || "Bulk pickup failed");
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
+  const handleGenerateManifest = async () => {
+    if (selectedIds.length === 0) return;
+    try {
+      setBulkLoading(true);
+      const res = await api.post("/shipments/manifest", { shipmentIds: selectedIds });
+      if (res.data.manifestUrl) {
+        window.open(res.data.manifestUrl, "_blank");
+      } else {
+        alert("Manifest generate hua lekin URL nahi mila.");
+      }
+      setSelectedIds([]);
+    } catch (error) {
+      alert(error.response?.data?.message || "Manifest generation failed");
+    } finally {
+      setBulkLoading(false);
     }
   };
 
@@ -100,46 +152,26 @@ const Shipments = () => {
   const downloadInvoice = async (shipment) => {
     try {
       let invoiceId = null;
-
       if (shipment.invoiceId?._id) {
         invoiceId = shipment.invoiceId._id;
       } else if (typeof shipment.invoiceId === "string") {
         invoiceId = shipment.invoiceId;
       }
-
-      if (!invoiceId) {
-        alert("Invoice not generated");
-        return;
-      }
-
+      if (!invoiceId) { alert("Invoice not generated"); return; }
       const token = localStorage.getItem("token");
-
       const baseUrl = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : "/api";
-      const response = await fetch(
-        `${baseUrl}/invoices/${invoiceId}/download`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Invoice download failed");
-      }
-
+      const response = await fetch(`${baseUrl}/invoices/${invoiceId}/download`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) throw new Error("Invoice download failed");
       const blob = await response.blob();
-
       const url = window.URL.createObjectURL(blob);
-
       const a = document.createElement("a");
       a.href = url;
       a.download = `invoice-${invoiceId}.pdf`;
-
       document.body.appendChild(a);
       a.click();
       a.remove();
-
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error(error);
@@ -147,35 +179,23 @@ const Shipments = () => {
     }
   };
 
-  // Statistics Calculations
   const totalShipments = shipments.length;
   const delivered = shipments.filter(s => s.status === "DELIVERED").length;
-  const inTransit = shipments.filter(s => 
-    s.status === "IN_TRANSIT" || 
-    s.status === "OUT_FOR_DELIVERY"
-  ).length;
-  const pending = shipments.filter(s => 
-    s.status === "PICKUP_PENDING" || 
-    s.status === "PICKUP_SCHEDULED"
-  ).length;
+  const inTransit = shipments.filter(s => s.status === "IN_TRANSIT" || s.status === "OUT_FOR_DELIVERY").length;
+  const pending = shipments.filter(s => s.status === "PICKUP_PENDING" || s.status === "PICKUP_SCHEDULED").length;
   const ndr = shipments.filter(s => s.status === "NDR").length;
   const rto = shipments.filter(s => s.status === "RTO").length;
 
-  // Filter with status
   const filtered = shipments.filter((s) => {
     const matchesSearch =
       s.awb?.toLowerCase().includes(search.toLowerCase()) ||
-      (s.orderId?.customerName || "")
-        .toLowerCase()
-        .includes(search.toLowerCase());
-
-    const matchesStatus =
-      statusFilter === "ALL"
-        ? true
-        : s.status === statusFilter;
-
+      (s.orderId?.customerName || "").toLowerCase().includes(search.toLowerCase());
+    const matchesStatus = statusFilter === "ALL" ? true : s.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  const allSelected = filtered.length > 0 && selectedIds.length === filtered.length;
+  const someSelected = selectedIds.length > 0 && selectedIds.length < filtered.length;
 
   return (
     <>
@@ -188,7 +208,6 @@ const Shipments = () => {
           <h1 className="shipments-title">Shipments Management</h1>
           <p className="shipments-subtitle">Manage and track all your shipments</p>
 
-          {/* Statistics Cards */}
           <div className="shipments-stats-grid">
             <div className="stat-card stat-card-blue">
               <FaBox className="stat-icon stat-icon-blue" />
@@ -222,7 +241,6 @@ const Shipments = () => {
             </div>
           </div>
 
-          {/* Search + Status Filter */}
           <div className="shipments-search-wrapper">
             <FaSearch className="search-icon" />
             <input 
@@ -231,7 +249,6 @@ const Shipments = () => {
               className="shipments-search-input"
               onChange={(e) => setSearch(e.target.value)} 
             />
-            
             <div className="filter-wrapper">
               <FaFilter className="filter-icon" />
               <select
@@ -257,10 +274,14 @@ const Shipments = () => {
             <div className="shipments-table-header">
               <h3 className="shipments-table-title">
                 Shipment Records
-                <span className="shipments-count">
-                  ({filtered.length} shipments)
-                </span>
+                <span className="shipments-count">({filtered.length} shipments)</span>
               </h3>
+              {selectedIds.length > 0 && (
+                <span className="bulk-selected-info">
+                  <FaCheckSquare size={13} />
+                  {selectedIds.length} selected
+                </span>
+              )}
             </div>
             
             <div className="shipments-table-wrapper">
@@ -270,18 +291,17 @@ const Shipments = () => {
                 <table className="shipments-table">
                   <thead>
                     <tr className="shipments-table-head">
-                      {[
-                        "AWB",
-                        "CUSTOMER",
-                        "COURIER",
-                        "STATUS",
-                        "DATE",
-                        "SCHEDULE PICKUP",
-                        "DETAILS",
-                        "INVOICE",
-                        "LABEL",
-                        "TIMELINE"
-                      ].map((h) => (
+                      <th className="shipments-th shipments-th-checkbox">
+                        <input
+                          type="checkbox"
+                          className="bulk-checkbox"
+                          checked={allSelected}
+                          ref={(el) => { if (el) el.indeterminate = someSelected; }}
+                          onChange={() => toggleSelectAll(filtered)}
+                          title="Select All"
+                        />
+                      </th>
+                      {["AWB","CUSTOMER","COURIER","STATUS","DATE","SCHEDULE PICKUP","DETAILS","INVOICE","LABEL","TIMELINE"].map((h) => (
                         <th key={h} className="shipments-th">{h}</th>
                       ))}
                     </tr>
@@ -290,29 +310,28 @@ const Shipments = () => {
                     {filtered.length > 0 ? (
                       filtered.map((shipment) => {
                         const statusStyle = getStatusStyle(shipment.status);
+                        const isSelected = selectedIds.includes(shipment._id);
                         return (
-                          <tr key={shipment._id} className="shipments-row">
+                          <tr key={shipment._id} className={`shipments-row${isSelected ? " shipments-row-selected" : ""}`}>
+                            <td className="shipments-td shipments-td-checkbox">
+                              <input
+                                type="checkbox"
+                                className="bulk-checkbox"
+                                checked={isSelected}
+                                onChange={() => toggleSelectOne(shipment._id)}
+                              />
+                            </td>
                             <td className="shipments-td">
                               <b className="shipments-awb">{shipment.awb}</b>
                             </td>
                             <td className="shipments-td">
-                              <span className="shipments-customer">
-                                {shipment.orderId?.customerName || "N/A"}
-                              </span>
+                              <span className="shipments-customer">{shipment.orderId?.customerName || "N/A"}</span>
                             </td>
                             <td className="shipments-td">
-                              <span className="shipments-courier">
-                                {shipment.courier}
-                              </span>
+                              <span className="shipments-courier">{shipment.courier}</span>
                             </td>
                             <td className="shipments-td">
-                              <span 
-                                className="shipments-status-badge"
-                                style={{
-                                  background: statusStyle.background,
-                                  color: statusStyle.color,
-                                }}
-                              >
+                              <span className="shipments-status-badge" style={{ background: statusStyle.background, color: statusStyle.color }}>
                                 {shipment.status}
                               </span>
                             </td>
@@ -321,7 +340,6 @@ const Shipments = () => {
                                 {new Date(shipment.createdAt).toLocaleDateString('en-GB')}
                               </span>
                             </td>
-                            
                             <td className="shipments-td">
                               {shipment.status === "READY_FOR_PICKUP" || shipment.status === "PICKUP_PENDING" || shipment.pickupStatus === "PENDING" ? (
                                 <button
@@ -337,40 +355,24 @@ const Shipments = () => {
                                   <FaCheckCircle size={10} /> Scheduled
                                 </span>
                               ) : (
-                                <span style={{ fontSize: "11px", color: "#64748b" }}>—</span>
+                                <span style={{ fontSize: "11px", color: "#64748b" }}>-</span>
                               )}
                             </td>
-                            
                             <td className="shipments-td">
-                              <button
-                                onClick={() =>
-                                  navigate(`/merchant/shipments/${shipment._id}`)
-                                }
-                                className="shipments-btn shipments-btn-details"
-                              >
+                              <button onClick={() => navigate(`/merchant/shipments/${shipment._id}`)} className="shipments-btn shipments-btn-details">
                                 <FaEye size={11} /> Details
                               </button>
                             </td>
-                            
                             <td className="shipments-td">
-                              <button
-                                onClick={() => downloadInvoice(shipment)}
-                                className="shipments-btn shipments-btn-invoice"
-                              >
-                                <FaFileInvoice size={11} />
-                                Invoice
+                              <button onClick={() => downloadInvoice(shipment)} className="shipments-btn shipments-btn-invoice">
+                                <FaFileInvoice size={11} /> Invoice
                               </button>
                             </td>
-                            
                             <td className="shipments-td">
-                              <button 
-                                onClick={() => downloadLabel(shipment._id, shipment.awb)} 
-                                className="shipments-btn shipments-btn-label"
-                              >
+                              <button onClick={() => downloadLabel(shipment._id, shipment.awb)} className="shipments-btn shipments-btn-label">
                                 <FaDownload size={11} /> Label
                               </button>
                             </td>
-                            
                             <td className="shipments-td">
                               <button 
                                 onClick={async () => { 
@@ -392,7 +394,7 @@ const Shipments = () => {
                       })
                     ) : (
                       <tr>
-                        <td colSpan="10" className="shipments-empty">
+                        <td colSpan="11" className="shipments-empty">
                           {search || statusFilter !== "ALL" ? "No matching shipments found" : "No Shipments Found"}
                         </td>
                       </tr>
@@ -405,7 +407,30 @@ const Shipments = () => {
         </main>
       </div>
 
-      {/* Timeline Modal */}
+      {selectedIds.length > 0 && (
+        <div className="bulk-action-bar">
+          <div className="bulk-action-left">
+            <FaCheckSquare size={16} className="bulk-action-icon" />
+            <span className="bulk-action-count">
+              <strong>{selectedIds.length}</strong> shipment{selectedIds.length > 1 ? "s" : ""} selected
+            </span>
+          </div>
+          <div className="bulk-action-buttons">
+            <button className="bulk-btn bulk-btn-pickup" onClick={handleBulkPickup} disabled={bulkLoading}>
+              <FaTruck size={13} />
+              {bulkLoading ? "Processing..." : `Schedule Pickup (${selectedIds.length})`}
+            </button>
+            <button className="bulk-btn bulk-btn-manifest" onClick={handleGenerateManifest} disabled={bulkLoading}>
+              <FaFileAlt size={13} />
+              {bulkLoading ? "Processing..." : `Manifest (${selectedIds.length})`}
+            </button>
+            <button className="bulk-btn bulk-btn-clear" onClick={clearSelection} disabled={bulkLoading}>
+              <FaTimes size={13} /> Clear
+            </button>
+          </div>
+        </div>
+      )}
+
       {showModal && (
         <div className="shipments-modal-overlay" onClick={() => setShowModal(false)}>
           <div className="shipments-modal-content" onClick={(e) => e.stopPropagation()}>
@@ -422,7 +447,7 @@ const Shipments = () => {
                   <div className="shipments-timeline-remark">{item.remark}</div>
                   <div className="shipments-timeline-meta">
                     {item.location && `📍 ${item.location}`} 
-                    {item.location && item.createdAt && " • "}
+                    {item.location && item.createdAt && " - "}
                     {item.createdAt && new Date(item.createdAt).toLocaleString()}
                   </div>
                 </div>

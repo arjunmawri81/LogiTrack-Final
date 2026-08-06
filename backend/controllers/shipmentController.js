@@ -2693,8 +2693,131 @@ const getTrackingTimeline = async (req, res) => {
 };
 
 // ===============================
-// EXPORTS
+// BULK SCHEDULE PICKUP
 // ===============================
+const bulkSchedulePickup = async (req, res) => {
+  try {
+    const { shipmentIds } = req.body;
+
+    if (!shipmentIds || !Array.isArray(shipmentIds) || shipmentIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No shipment IDs provided",
+      });
+    }
+
+    const results = [];
+    const errors = [];
+
+    for (const shipmentId of shipmentIds) {
+      try {
+        const shipment = await Shipment.findOne({
+          _id: shipmentId,
+          merchantId: req.user.id,
+        });
+
+        if (!shipment) {
+          errors.push({ shipmentId, message: "Not found or unauthorized" });
+          continue;
+        }
+
+        const courier = await Courier.findById(shipment.courierId);
+        const pickupResult = await CourierService.schedulePickup(courier, shipment._id);
+        const pResp = pickupResult?.response || {};
+
+        shipment.pickupDate = new Date();
+        shipment.pickupStatus = "SCHEDULED";
+        shipment.status = "PICKUP_SCHEDULED";
+        if (pResp.pickup_request_id) shipment.pickupRequestId = pResp.pickup_request_id;
+        if (pResp.lr_number || pResp.lrNumber) shipment.lrNumber = pResp.lr_number || pResp.lrNumber;
+
+        await shipment.addTrackingEvent(
+          "PICKUP_SCHEDULED",
+          shipment.courier || "Courier Partner",
+          `Pickup Scheduled (LR: ${shipment.lrNumber || "N/A"})`
+        );
+        await shipment.save();
+
+        const order = await Order.findById(shipment.orderId);
+        if (order) {
+          order.status = "READY_FOR_PICKUP";
+          await order.save();
+        }
+
+        results.push({ shipmentId, awb: shipment.awb, status: "success" });
+      } catch (err) {
+        errors.push({ shipmentId, message: err.message });
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `${results.length} pickup(s) scheduled, ${errors.length} failed`,
+      results,
+      errors,
+    });
+  } catch (error) {
+    logger.error("Bulk schedule pickup failed", { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ===============================
+// GENERATE MANIFEST
+// ===============================
+const generateManifest = async (req, res) => {
+  try {
+    const { shipmentIds } = req.body;
+
+    if (!shipmentIds || !Array.isArray(shipmentIds) || shipmentIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No shipment IDs provided",
+      });
+    }
+
+    // Selected shipments ke AWBs fetch karo
+    const shipments = await Shipment.find({
+      _id: { $in: shipmentIds },
+      merchantId: req.user.id,
+    }).select("awb");
+
+    if (!shipments.length) {
+      return res.status(404).json({
+        success: false,
+        message: "No shipments found",
+      });
+    }
+
+    const awbArray = shipments.map((s) => s.awb).filter(Boolean);
+
+    if (!awbArray.length) {
+      return res.status(400).json({
+        success: false,
+        message: "No AWBs found for selected shipments",
+      });
+    }
+
+    const manifestResult = await nimbuspostService.generateManifest(awbArray);
+
+    res.status(200).json({
+      success: true,
+      manifestUrl: manifestResult.manifestUrl,
+      awbs: awbArray,
+    });
+  } catch (error) {
+    logger.error("Generate manifest failed", { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
 module.exports = {
   createShipment,
   createBulkShipments, 
@@ -2703,6 +2826,8 @@ module.exports = {
   trackShipment,
   updateShipmentStatus,
   schedulePickup,
+  bulkSchedulePickup,
+  generateManifest,
   generateShipmentQR,
   getTrackingTimeline,
   generateLabel,
