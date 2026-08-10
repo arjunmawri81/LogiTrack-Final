@@ -30,7 +30,7 @@ const getWallet = async (req, res) => {
 };
 
 // ================================
-// CREATE RAZORPAY ORDER
+// CREATE RAZORPAY ORDER (PURE RAZORPAY INTEGRATION)
 // ================================
 const createRazorpayOrder = async (req, res) => {
   try {
@@ -44,19 +44,27 @@ const createRazorpayOrder = async (req, res) => {
       });
     }
 
-    // Razorpay instance yahan banao (env sure se load hogi)
+    const keyId = process.env.RAZORPAY_KEY_ID;
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+
+    if (!keyId || !keySecret) {
+      return res.status(400).json({
+        success: false,
+        message: "Razorpay Key ID or Secret is missing in backend/.env file",
+      });
+    }
+
     const razorpay = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID,
-      key_secret: process.env.RAZORPAY_KEY_SECRET,
+      key_id: keyId,
+      key_secret: keySecret,
     });
 
-    // Razorpay amount paise mein hoti hai (multiply by 100)
     const shortId = String(req.user.id).slice(-8);
     const shortTs = String(Date.now()).slice(-8);
     const options = {
-      amount: Math.round(rechargeAmount * 100),
+      amount: Math.round(rechargeAmount * 100), // Razorpay expects amount in paise
       currency: "INR",
-      receipt: `wlt_${shortId}_${shortTs}`,  // max ~21 chars
+      receipt: `wlt_${shortId}_${shortTs}`,
     };
 
     const order = await razorpay.orders.create(options);
@@ -66,40 +74,46 @@ const createRazorpayOrder = async (req, res) => {
       orderId: order.id,
       amount: order.amount,
       currency: order.currency,
-      keyId: process.env.RAZORPAY_KEY_ID,
+      keyId: keyId,
     });
   } catch (error) {
     console.error("Razorpay Order Error:", error);
     res.status(500).json({
       success: false,
-      message: error?.error?.description || error.message,
+      message: error?.error?.description || error.message || "Failed to create Razorpay order",
     });
   }
 };
 
-
 // ================================
-// VERIFY RAZORPAY PAYMENT & RECHARGE WALLET
+// VERIFY RAZORPAY PAYMENT & RECHARGE WALLET (PURE RAZORPAY INTEGRATION)
 // ================================
 const verifyRazorpayPayment = async (req, res) => {
   try {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature, amount } = req.body;
 
-    // Signature verify karo (security ke liye)
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing Razorpay verification parameters",
+      });
+    }
+
+    // Verify signature using HMAC-SHA256
     const body = razorpay_order_id + "|" + razorpay_payment_id;
     const expectedSignature = crypto
-      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET || "")
       .update(body)
       .digest("hex");
 
     if (expectedSignature !== razorpay_signature) {
       return res.status(400).json({
         success: false,
-        message: "Payment verification failed. Invalid signature.",
+        message: "Payment verification failed. Invalid Razorpay signature.",
       });
     }
 
-    const rechargeAmount = Number(amount) / 100; // paise se rupee
+    const rechargeAmount = Number(amount || 0) / 100; // convert paise to rupees
 
     const wallet = await Wallet.findOneAndUpdate(
       { merchantId: req.user.id },
@@ -123,9 +137,10 @@ const verifyRazorpayPayment = async (req, res) => {
       wallet,
     });
   } catch (error) {
+    console.error("Razorpay Verification Error:", error);
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: error.message || "Failed to verify Razorpay payment",
     });
   }
 };

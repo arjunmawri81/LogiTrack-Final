@@ -162,6 +162,12 @@ const PROVIDER_REGISTRY = {
     const payload = buildNimbusShipmentPayload(order, warehouse, courier);
     const res = await nimbuspostService.createShipment(payload);
     if (!res.success) {
+      const fallbackCode = (courier?.code || "").toUpperCase();
+      const fallbackProvider = PROVIDER_REGISTRY[fallbackCode];
+      if (process.env.NODE_ENV !== "production" && fallbackProvider && fallbackProvider !== PROVIDER_REGISTRY.NIMBUSPOST) {
+        logger.warn(`[NimbusPost] Live creation failed (${res.message}). Falling back to simulated provider for ${fallbackCode}`);
+        return await fallbackProvider(order, warehouse, courier);
+      }
       throw new Error(res.message || "NimbusPost Shipment Creation Failed");
     }
     return {

@@ -16,10 +16,15 @@ let tokenExpiresAt = null;
  * Get Authentication Header
  * Checks if email/password login is available or falls back to API Key.
  */
-async function getAuthHeader() {
+async function getAuthHeader(forceRefresh = false) {
   const apiKey = process.env.NIMBUSPOST_API_KEY;
   const email = process.env.NIMBUSPOST_EMAIL;
   const password = process.env.NIMBUSPOST_PASSWORD;
+
+  if (forceRefresh) {
+    cachedToken = null;
+    tokenExpiresAt = null;
+  }
 
   if (!apiKey && (!email || !password)) {
     throw new Error("NimbusPost credentials missing! Please add NIMBUSPOST_EMAIL and NIMBUSPOST_PASSWORD (or NIMBUSPOST_API_KEY) in backend/.env file.");
@@ -37,14 +42,21 @@ async function getAuthHeader() {
         tokenExpiresAt = Date.now() + 23 * 60 * 60 * 1000; 
         console.log("[NimbusPost] Login successful, Bearer token cached.");
         return { Authorization: `Bearer ${cachedToken}` };
+      } else {
+        console.warn("[NimbusPost] Login failed with provided credentials:", response.data?.message || "Invalid email or password");
       }
     } catch (err) {
-      console.warn("[NimbusPost] Login attempt failed, falling back to API key authorization header:", err.message);
+      console.warn("[NimbusPost] Login attempt failed, falling back to API key authorization header:", err.response?.data || err.message);
     }
   }
 
   // Fallback to direct API key in Bearer token format
-  return { Authorization: `Bearer ${apiKey}` };
+  if (apiKey) {
+    const cleanKey = apiKey.startsWith("Bearer ") ? apiKey : `Bearer ${apiKey}`;
+    return { Authorization: cleanKey };
+  }
+
+  throw new Error("NimbusPost authentication failed: Invalid email/password and no API key available.");
 }
 
 
@@ -256,6 +268,11 @@ async function createShipment(shipmentData) {
       rawResponse: response.data,
     };
   } catch (error) {
+    const errorMsg = error.response?.data?.message || error.message;
+    if (errorMsg && (errorMsg.includes("Token") || errorMsg.includes("token"))) {
+      cachedToken = null;
+      tokenExpiresAt = null;
+    }
     console.error("[NimbusPost] createShipment error:", error.response?.data || error.message);
     return {
       success: false,

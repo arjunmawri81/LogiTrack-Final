@@ -36,6 +36,26 @@ const determineZone = (pickupPincode, deliveryPincode) => {
 // ====================================
 const roundMoney = (val) => Math.ceil(val * 100) / 100;
 
+const sanitizeDetailsForMerchant = (details, userRole) => {
+  if (!details) return null;
+  if (userRole === "SUPER_ADMIN" || userRole === "ADMIN") {
+    return details;
+  }
+  const {
+    buyRate,
+    codBuyCharge,
+    codBuyPercentage,
+    codMarginEarned,
+    rtoBuyCharge,
+    rtoMarginEarned,
+    marginEarned,
+    totalNetProfit,
+    ...merchantSafeDetails
+  } = details;
+  return merchantSafeDetails;
+};
+
+
 const calculateShippingRates = (rateCard, params) => {
   const {
     weight,
@@ -847,25 +867,6 @@ const getRecommendedCouriers = async (req, res) => {
     });
 
     const zone = determineZone(pickup, destination);
-
-    const sanitizeDetailsForMerchant = (details, userRole) => {
-      if (!details) return null;
-      if (userRole === "SUPER_ADMIN" || userRole === "ADMIN") {
-        return details;
-      }
-      const {
-        buyRate,
-        codBuyCharge,
-        codBuyPercentage,
-        codMarginEarned,
-        rtoBuyCharge,
-        rtoMarginEarned,
-        marginEarned,
-        totalNetProfit,
-        ...merchantSafeDetails
-      } = details;
-      return merchantSafeDetails;
-    };
 
     const couriersWithRates = allCouriers.map((courier) => {
       const rateCard = rateCardMap.get(courier._id.toString());

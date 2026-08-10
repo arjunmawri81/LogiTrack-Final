@@ -82,7 +82,7 @@ const Wallet = () => {
       });
 
       if (!data.success) {
-        alert("Order create karne mein problem hui.");
+        alert(data.message || "Order create karne mein problem hui.");
         return;
       }
 
