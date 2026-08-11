@@ -35,6 +35,7 @@ const Login = () => {
 
       const { token, user } = response.data;
 
+      sessionStorage.removeItem("merchant_profile_is_completed");
       localStorage.setItem("token", token);
       localStorage.setItem("role", user.role);
       localStorage.setItem("user", JSON.stringify(user));

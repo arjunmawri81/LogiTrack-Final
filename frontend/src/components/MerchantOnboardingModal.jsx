@@ -3,7 +3,7 @@ import api from "../services/api";
 import { 
   FaBuilding, FaFileInvoice, FaRegIdCard, 
   FaMapMarkerAlt, FaUniversity, FaCheckCircle, 
-  FaExclamationTriangle, FaArrowLeft, FaSignOutAlt 
+  FaArrowLeft, FaSignOutAlt 
 } from "react-icons/fa";
 import "./MerchantOnboardingModal.css";
 
@@ -38,23 +38,31 @@ const MerchantOnboardingModal = () => {
       const isMerchantRole = role === "MERCHANT" || (userStr && JSON.parse(userStr)?.role?.toUpperCase() === "MERCHANT");
       if (!isMerchantRole) return;
 
-      // 1. Initial check from localStorage user object
+      // FAST PATH: If already verified complete in this session, don't show or flash modal
+      if (sessionStorage.getItem("merchant_profile_is_completed") === "true") {
+        setShowModal(false);
+        return;
+      }
+
+      // Check localStorage user object first (fast check)
       if (userStr) {
         try {
           const u = JSON.parse(userStr);
-          const hasLocalAddress = u.address && u.address.trim() !== "";
-          const hasLocalPincode = u.pincode && u.pincode.trim() !== "";
-          const hasLocalBank = (u.accountNumber && u.accountNumber.trim() !== "") || (u.bankAccount && u.bankAccount.trim() !== "");
+          const hasAddress = u.address && u.address.trim() !== "";
+          const hasPincode = u.pincode && u.pincode.trim() !== "";
+          const hasBank = (u.accountNumber && u.accountNumber.trim() !== "") || (u.bankAccount && u.bankAccount.trim() !== "");
           
-          if (!hasLocalAddress || !hasLocalPincode || !hasLocalBank) {
-            setShowModal(true);
+          if (hasAddress && hasPincode && hasBank) {
+            sessionStorage.setItem("merchant_profile_is_completed", "true");
+            setShowModal(false);
+            return;
           }
         } catch (e) {
           console.error("LocalUser Parse Error:", e);
         }
       }
 
-      // 2. Fetch fresh profile from API
+      // Fetch fresh profile from API only if profile is not verified complete yet
       const res = await api.get("/merchant/profile");
       if (res.data.success) {
         const m = res.data.merchant || {};
@@ -69,7 +77,7 @@ const MerchantOnboardingModal = () => {
         const city = u.city || m.city || "";
         const state = u.state || m.state || "";
         const pincode = u.pincode || m.pincode || "";
-        const bankAccount = m.bankAccount || u.accountNumber || "";
+        const bankAccount = m.bankAccount || u.accountNumber || u.bankAccount || "";
         const ifscCode = m.ifscCode || u.ifscCode || "";
         const bankName = m.bankName || u.bankName || "";
 
@@ -88,23 +96,28 @@ const MerchantOnboardingModal = () => {
           bankName,
         });
 
-        // Mandatory check: If address, pincode, bank account or city/state are empty -> MUST show modal!
+        // Mandatory check: If address, city, pincode or bank account are missing -> MUST show modal
         const isIncomplete = !address.trim() || !city.trim() || !pincode.trim() || !bankAccount.trim();
         if (isIncomplete) {
           setShowModal(true);
         } else {
+          sessionStorage.setItem("merchant_profile_is_completed", "true");
           setShowModal(false);
         }
       }
     } catch (err) {
       console.log("Check Profile Completion Error:", err);
-      // Fallback if API fails
       const userStr = localStorage.getItem("user");
       if (userStr) {
-        const u = JSON.parse(userStr);
-        if (!u.address || !u.pincode || (!u.accountNumber && !u.bankAccount)) {
-          setShowModal(true);
-        }
+        try {
+          const u = JSON.parse(userStr);
+          if (!u.address || !u.pincode || (!u.accountNumber && !u.bankAccount)) {
+            setShowModal(true);
+          } else {
+            sessionStorage.setItem("merchant_profile_is_completed", "true");
+            setShowModal(false);
+          }
+        } catch (e) {}
       }
     }
   };
@@ -137,6 +150,7 @@ const MerchantOnboardingModal = () => {
         window.dispatchEvent(new Event("userUpdated"));
       }
 
+      sessionStorage.setItem("merchant_profile_is_completed", "true");
       alert("Profile Details Saved Successfully! You can now use all dashboard features.");
       setShowModal(false);
     } catch (error) {
@@ -147,6 +161,7 @@ const MerchantOnboardingModal = () => {
   };
 
   const handleLogout = () => {
+    sessionStorage.removeItem("merchant_profile_is_completed");
     localStorage.removeItem("user");
     localStorage.removeItem("token");
     localStorage.removeItem("role");
