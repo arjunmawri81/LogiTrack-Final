@@ -3,7 +3,7 @@ import api from "../services/api";
 import { 
   FaBuilding, FaFileInvoice, FaRegIdCard, 
   FaMapMarkerAlt, FaUniversity, FaCheckCircle, 
-  FaTimes, FaRocket, FaShieldAlt 
+  FaExclamationTriangle, FaArrowLeft, FaSignOutAlt 
 } from "react-icons/fa";
 import "./MerchantOnboardingModal.css";
 
@@ -31,14 +31,30 @@ const MerchantOnboardingModal = () => {
 
   const checkProfileCompletion = async () => {
     try {
-      const role = localStorage.getItem("role");
-      if (role !== "MERCHANT") return;
+      const userStr = localStorage.getItem("user");
+      const role = (localStorage.getItem("role") || "").toUpperCase();
+      
+      // Check if user is a merchant
+      const isMerchantRole = role === "MERCHANT" || (userStr && JSON.parse(userStr)?.role?.toUpperCase() === "MERCHANT");
+      if (!isMerchantRole) return;
 
-      // Check if user already skipped for this browser session
-      if (sessionStorage.getItem("merchant_onboarding_dismissed")) {
-        return;
+      // 1. Initial check from localStorage user object
+      if (userStr) {
+        try {
+          const u = JSON.parse(userStr);
+          const hasLocalAddress = u.address && u.address.trim() !== "";
+          const hasLocalPincode = u.pincode && u.pincode.trim() !== "";
+          const hasLocalBank = (u.accountNumber && u.accountNumber.trim() !== "") || (u.bankAccount && u.bankAccount.trim() !== "");
+          
+          if (!hasLocalAddress || !hasLocalPincode || !hasLocalBank) {
+            setShowModal(true);
+          }
+        } catch (e) {
+          console.error("LocalUser Parse Error:", e);
+        }
       }
 
+      // 2. Fetch fresh profile from API
       const res = await api.get("/merchant/profile");
       if (res.data.success) {
         const m = res.data.merchant || {};
@@ -50,9 +66,9 @@ const MerchantOnboardingModal = () => {
         const gstNumber = m.gstNumber || u.gstNumber || "";
         const panNumber = m.panNumber || u.panNumber || "";
         const address = m.address || u.address || "";
-        const city = u.city || "";
-        const state = u.state || "";
-        const pincode = u.pincode || "";
+        const city = u.city || m.city || "";
+        const state = u.state || m.state || "";
+        const pincode = u.pincode || m.pincode || "";
         const bankAccount = m.bankAccount || u.accountNumber || "";
         const ifscCode = m.ifscCode || u.ifscCode || "";
         const bankName = m.bankName || u.bankName || "";
@@ -72,14 +88,24 @@ const MerchantOnboardingModal = () => {
           bankName,
         });
 
-        // Trigger popup if address, bank details or GST/PAN are missing
-        const isIncomplete = !address || !pincode || !bankAccount || !gstNumber;
+        // Mandatory check: If address, pincode, bank account or city/state are empty -> MUST show modal!
+        const isIncomplete = !address.trim() || !city.trim() || !pincode.trim() || !bankAccount.trim();
         if (isIncomplete) {
           setShowModal(true);
+        } else {
+          setShowModal(false);
         }
       }
     } catch (err) {
       console.log("Check Profile Completion Error:", err);
+      // Fallback if API fails
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        const u = JSON.parse(userStr);
+        if (!u.address || !u.pincode || (!u.accountNumber && !u.bankAccount)) {
+          setShowModal(true);
+        }
+      }
     }
   };
 
@@ -92,6 +118,15 @@ const MerchantOnboardingModal = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!formData.address.trim() || !formData.city.trim() || !formData.pincode.trim()) {
+      return alert("Please fill in your full address, city, and pincode.");
+    }
+
+    if (!formData.bankAccount.trim() || !formData.ifscCode.trim() || !formData.bankName.trim()) {
+      return alert("Please fill in your bank account details for COD remittance.");
+    }
+
     setLoading(true);
 
     try {
@@ -102,7 +137,7 @@ const MerchantOnboardingModal = () => {
         window.dispatchEvent(new Event("userUpdated"));
       }
 
-      alert("Profile Details Saved Successfully!");
+      alert("Profile Details Saved Successfully! You can now use all dashboard features.");
       setShowModal(false);
     } catch (error) {
       alert(error?.response?.data?.message || "Failed to save profile details");
@@ -111,9 +146,11 @@ const MerchantOnboardingModal = () => {
     }
   };
 
-  const handleDismiss = () => {
-    sessionStorage.setItem("merchant_onboarding_dismissed", "true");
-    setShowModal(false);
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    window.location.href = "/login";
   };
 
   if (!showModal) return null;
@@ -121,23 +158,34 @@ const MerchantOnboardingModal = () => {
   const statesList = [
     "Maharashtra", "Delhi", "Karnataka", "Tamil Nadu", 
     "Gujarat", "Uttar Pradesh", "West Bengal", "Rajasthan", 
-    "Punjab", "Haryana", "Telangana", "Kerala", "Madhya Pradesh"
+    "Punjab", "Haryana", "Telangana", "Kerala", "Madhya Pradesh",
+    "Andhra Pradesh", "Bihar", "Chhattisgarh", "Goa", "Himachal Pradesh",
+    "Jharkhand", "Odisha", "Uttarakhand"
   ];
 
   return (
     <div className="onboarding-backdrop">
       <div className="onboarding-modal-card">
-        {/* MODAL HEADER */}
+        {/* MANDATORY MODAL HEADER */}
         <div className="onboarding-header">
-          <div className="header-badge">
-            <FaRocket className="rocket-icon" /> Welcome to MyParcelPoint
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div className="header-badge">
+              Mandatory Profile Setup
+            </div>
+
+            <button 
+              type="button" 
+              className="modal-logout-btn" 
+              onClick={handleLogout}
+              title="Logout and back to login"
+            >
+              <FaArrowLeft /> Back to Login
+            </button>
           </div>
-          <button className="dismiss-btn" onClick={handleDismiss} title="Complete Later">
-            <FaTimes />
-          </button>
-          <h2 className="modal-title">Complete Your Business Profile</h2>
+
+          <h2 className="modal-title" style={{ marginTop: "8px" }}>Action Required: Complete Your Business Profile</h2>
           <p className="modal-subtitle">
-            Fill in your business, registered address, and bank details to start booking shipments effortlessly.
+            To start creating shipments and accessing your dashboard features, please complete your business and bank details below.
           </p>
         </div>
 
@@ -158,7 +206,7 @@ const MerchantOnboardingModal = () => {
                   <input
                     type="text"
                     name="companyName"
-                    placeholder="Company Name"
+                    placeholder="Company / Business Name"
                     value={formData.companyName}
                     onChange={handleChange}
                   />
@@ -167,7 +215,7 @@ const MerchantOnboardingModal = () => {
 
               <div className="input-row-2">
                 <div className="input-field-group">
-                  <label>GST Number</label>
+                  <label>GST Number (Optional)</label>
                   <div className="input-with-icon">
                     <FaFileInvoice className="field-icon" />
                     <input
@@ -181,7 +229,7 @@ const MerchantOnboardingModal = () => {
                 </div>
 
                 <div className="input-field-group">
-                  <label>PAN Number</label>
+                  <label>PAN Number (Optional)</label>
                   <div className="input-with-icon">
                     <FaRegIdCard className="field-icon" />
                     <input
@@ -199,7 +247,7 @@ const MerchantOnboardingModal = () => {
             {/* SECTION 2: ADDRESS & LOCATION */}
             <div className="form-section">
               <h3 className="section-heading">
-                <FaMapMarkerAlt className="section-icon" /> Business & Registered Address
+                <FaMapMarkerAlt className="section-icon" /> Business & Registered Address *
               </h3>
 
               <div className="input-field-group">
@@ -262,7 +310,7 @@ const MerchantOnboardingModal = () => {
             {/* SECTION 3: BANK DETAILS FOR REMITTANCE */}
             <div className="form-section">
               <h3 className="section-heading">
-                <FaUniversity className="section-icon" /> Bank Details (For COD Remittance)
+                <FaUniversity className="section-icon" /> Bank Account Details (For COD Remittance) *
               </h3>
 
               <div className="input-row-3">
@@ -306,18 +354,28 @@ const MerchantOnboardingModal = () => {
 
           </div>
 
-          {/* ACTIONS */}
-          <div className="onboarding-actions">
-            <button type="button" className="later-btn" onClick={handleDismiss}>
-              Skip / Complete Later
+          {/* MANDATORY ACTION BUTTONS */}
+          <div className="onboarding-actions" style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+            <button 
+              type="button" 
+              className="later-btn" 
+              onClick={handleLogout}
+              style={{ padding: "12px 20px", display: "flex", alignItems: "center", gap: "6px" }}
+            >
+              <FaArrowLeft /> Back to Login
             </button>
 
-            <button type="submit" className="save-onboarding-btn" disabled={loading}>
+            <button 
+              type="submit" 
+              className="save-onboarding-btn" 
+              disabled={loading} 
+              style={{ flex: 1, justifyContent: "center", height: "48px", fontSize: "15px" }}
+            >
               {loading ? (
-                "Saving Profile..."
+                "Saving Profile Details..."
               ) : (
                 <>
-                  <FaCheckCircle /> Save Profile & Continue
+                  <FaCheckCircle /> Save Profile Details & Unlock Dashboard
                 </>
               )}
             </button>
