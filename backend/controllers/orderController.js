@@ -347,8 +347,44 @@ const searchOrders = async (req, res) => {
   }
 };
 
+// ====================================
+// FLEXIBLE ROW NORMALIZATION HELPER
+// ====================================
+const normalizeOrderRow = (row) => {
+  if (!row) return {};
+  const getVal = (...keys) => {
+    for (const k of keys) {
+      if (row[k] !== undefined && row[k] !== null && String(row[k]).trim() !== "") {
+        return String(row[k]).trim();
+      }
+    }
+    return "";
+  };
+
+  return {
+    customerName: getVal("customerName", "Customer Name", "customer_name", "name", "Name"),
+    customerPhone: getVal("customerPhone", "Customer Phone", "customer_phone", "phone", "Phone", "contact", "Contact"),
+    customerEmail: getVal("customerEmail", "Customer Email", "customer_email", "email", "Email"),
+    customerAddress: getVal("customerAddress", "Customer Address", "customer_address", "address", "Address"),
+    customerCity: getVal("customerCity", "Customer City", "customer_city", "city", "City"),
+    customerState: getVal("customerState", "Customer State", "customer_state", "state", "State"),
+    customerPincode: getVal("customerPincode", "Customer Pincode", "customer_pincode", "pincode", "Pincode", "zip", "Zip"),
+    productName: getVal("productName", "Product Name", "product_name", "product", "Product") || "General Cargo",
+    quantity: Number(getVal("quantity", "Quantity", "qty", "Qty")) || 1,
+    weight: Number(getVal("weight", "Weight", "weight_kg")) || 0.5,
+    length: Number(getVal("length", "Length", "len")) || 10,
+    breadth: Number(getVal("breadth", "Breadth", "width", "Width")) || 10,
+    height: Number(getVal("height", "Height", "hgt")) || 10,
+    amount: Number(getVal("amount", "Amount", "price", "Price", "order_amount")) || 0,
+    paymentMode: getVal("paymentMode", "Payment Mode", "payment_mode", "payment_type") || "COD",
+    serviceType: getVal("serviceType", "Service Type", "shippingMode", "service_type") || "Surface",
+    sku: getVal("sku", "SKU", "sku_code") || "",
+    notes: getVal("notes", "Notes", "remark", "Remark") || "",
+  };
+};
+
 // ================================
-// UPLOAD CSV ORDERS (FIXED)
+// UPLOAD CSV ORDERS
 // ================================
 const uploadCSVOrders = async (req, res) => {
   try {
@@ -361,6 +397,7 @@ const uploadCSVOrders = async (req, res) => {
 
     const results = [];
     const errors = [];
+    let rowCount = 0;
 
     fs.createReadStream(req.file.path)
       .on("error", (err) => {
@@ -384,54 +421,30 @@ const uploadCSVOrders = async (req, res) => {
           });
         }
       })
-      .on("data", (data) => {
-              // Validate required fields
+      .on("data", (rawRow) => {
+        rowCount++;
+        const data = normalizeOrderRow(rawRow);
+
         if (!data.customerName || !data.customerPhone || !data.customerAddress) {
+          const missing = [];
+          if (!data.customerName) missing.push("customerName");
+          if (!data.customerPhone) missing.push("customerPhone");
+          if (!data.customerAddress) missing.push("customerAddress");
           errors.push({
-            row: results.length + 1,
-            message: "Missing required fields: customerName, customerPhone, customerAddress",
+            row: rowCount,
+            message: `Missing required fields: ${missing.join(", ")}`,
           });
           return;
         }
 
-        // Validate required address fields (mapped from CSV columns)
-        const city = data.customerCity || data.city;
-        const state = data.customerState || data.state;
-        const pincode = data.customerPincode || data.pincode;
-        if (!city || !state || !pincode) {
+        if (!data.customerCity || !data.customerState || !data.customerPincode) {
           const missing = [];
-          if (!city) missing.push("city");
-          if (!state) missing.push("state");
-          if (!pincode) missing.push("pincode");
+          if (!data.customerCity) missing.push("customerCity");
+          if (!data.customerState) missing.push("customerState");
+          if (!data.customerPincode) missing.push("customerPincode");
           errors.push({
-            row: results.length + 1,
+            row: rowCount,
             message: `Missing required address fields: ${missing.join(", ")}`,
-          });
-          return;
-        }
-
-        // Validate package dimensions (length, breadth, height) and weight
-        const len = Number(data.length);
-        const brd = Number(data.breadth);
-        const hgt = Number(data.height);
-        const wgt = Number(data.weight);
-
-        if (!len || len <= 0 || !brd || brd <= 0 || !hgt || hgt <= 0) {
-          const missing = [];
-          if (!len || len <= 0) missing.push("length");
-          if (!brd || brd <= 0) missing.push("breadth");
-          if (!hgt || hgt <= 0) missing.push("height");
-          errors.push({
-            row: results.length + 1,
-            message: `Missing or invalid dimensions: ${missing.join(", ")} (must be > 0)`,
-          });
-          return;
-        }
-
-        if (!wgt || wgt <= 0) {
-          errors.push({
-            row: results.length + 1,
-            message: "Missing or invalid weight (must be > 0)",
           });
           return;
         }
@@ -439,13 +452,12 @@ const uploadCSVOrders = async (req, res) => {
         results.push(data);
       })
       .on("end", async () => {
-        // Delete the temporary file
-        fs.unlinkSync(req.file.path);
+        if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
 
         if (errors.length > 0) {
           return res.status(400).json({
             success: false,
-            message: "CSV validation failed",
+            message: `Validation failed for ${errors.length} rows`,
             errors,
           });
         }
@@ -453,40 +465,32 @@ const uploadCSVOrders = async (req, res) => {
         if (results.length === 0) {
           return res.status(400).json({
             success: false,
-            message: "No valid data found in CSV",
+            message: "No valid data found in CSV file",
           });
         }
 
-                const orders = results.map((row) => ({
+        const orders = results.map((row) => ({
           merchantId: req.user.id,
           orderNumber: generateOrderNumber(),
-
-          // Customer Details
           customerName: row.customerName,
           customerPhone: row.customerPhone,
           customerAddress: row.customerAddress,
-          customerEmail: row.customerEmail || "",
-          customerCity: row.customerCity || row.city || "",
-          customerState: row.customerState || row.state || "",
-          customerPincode: row.customerPincode || row.pincode || "",
-
-          // Product Details
-          productName: row.productName || "",
-          quantity: Number(row.quantity) || 1,
-          weight: Number(row.weight) || 0,
-          sku: row.sku || row.SKU || "",
-
-          // Order Details
-          amount: Number(row.amount) || 0,
-          paymentMode: row.paymentMode || "COD",
-          insuranceEnabled:
-            row.insuranceEnabled === "true" || row.insurance === "true" || false,
-          serviceType: row.serviceType || row.shippingMode || "Surface",
-
-          // Notes
-          notes: row.notes || "",
-
-          // Status
+          customerEmail: row.customerEmail,
+          customerCity: row.customerCity,
+          customerState: row.customerState,
+          customerPincode: row.customerPincode,
+          productName: row.productName,
+          quantity: row.quantity,
+          weight: row.weight,
+          length: row.length,
+          breadth: row.breadth,
+          height: row.height,
+          sku: row.sku,
+          amount: row.amount,
+          paymentMode: row.paymentMode.toUpperCase() === "PREPAID" ? "PREPAID" : "COD",
+          insuranceEnabled: false,
+          serviceType: row.serviceType,
+          notes: row.notes,
           status: "NEW",
         }));
 
@@ -500,13 +504,8 @@ const uploadCSVOrders = async (req, res) => {
         });
       });
   } catch (error) {
-    // Clean up file if exists
-    if (req.file && req.file.path) {
-      try {
-        fs.unlinkSync(req.file.path);
-      } catch (err) {
-        console.log("Error deleting file:", err);
-      }
+    if (req.file && req.file.path && fs.existsSync(req.file.path)) {
+      try { fs.unlinkSync(req.file.path); } catch (err) {}
     }
     res.status(500).json({
       success: false,
@@ -516,7 +515,7 @@ const uploadCSVOrders = async (req, res) => {
 };
 
 // ================================
-// UPLOAD EXCEL ORDERS (FIXED)
+// UPLOAD EXCEL ORDERS
 // ================================
 const uploadExcelOrders = async (req, res) => {
   try {
@@ -529,40 +528,40 @@ const uploadExcelOrders = async (req, res) => {
 
     const workbook = XLSX.readFile(req.file.path);
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const data = XLSX.utils.sheet_to_json(sheet);
+    const rawData = XLSX.utils.sheet_to_json(sheet);
 
-    // Delete the temporary file
-    fs.unlinkSync(req.file.path);
+    if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
 
-    if (data.length === 0) {
+    if (rawData.length === 0) {
       return res.status(400).json({
         success: false,
         message: "No data found in Excel file",
       });
     }
 
-    // Validate and map all fields
     const errors = [];
     const validData = [];
 
-        data.forEach((row, index) => {
+    rawData.forEach((rawRow, index) => {
+      const row = normalizeOrderRow(rawRow);
+
       if (!row.customerName || !row.customerPhone || !row.customerAddress) {
+        const missing = [];
+        if (!row.customerName) missing.push("customerName");
+        if (!row.customerPhone) missing.push("customerPhone");
+        if (!row.customerAddress) missing.push("customerAddress");
         errors.push({
           row: index + 1,
-          message: "Missing required fields: customerName, customerPhone, customerAddress",
+          message: `Missing required fields: ${missing.join(", ")}`,
         });
         return;
       }
 
-      // Validate required address fields
-      const city = row.customerCity || row.city;
-      const state = row.customerState || row.state;
-      const pincode = row.customerPincode || row.pincode;
-      if (!city || !state || !pincode) {
+      if (!row.customerCity || !row.customerState || !row.customerPincode) {
         const missing = [];
-        if (!city) missing.push("city");
-        if (!state) missing.push("state");
-        if (!pincode) missing.push("pincode");
+        if (!row.customerCity) missing.push("customerCity");
+        if (!row.customerState) missing.push("customerState");
+        if (!row.customerPincode) missing.push("customerPincode");
         errors.push({
           row: index + 1,
           message: `Missing required address fields: ${missing.join(", ")}`,
@@ -576,40 +575,33 @@ const uploadExcelOrders = async (req, res) => {
     if (errors.length > 0) {
       return res.status(400).json({
         success: false,
-        message: "Excel validation failed",
+        message: `Validation failed for ${errors.length} rows`,
         errors,
       });
     }
 
-        const orders = validData.map((row) => ({
+    const orders = validData.map((row) => ({
       merchantId: req.user.id,
       orderNumber: generateOrderNumber(),
-
-      // Customer Details
       customerName: row.customerName,
       customerPhone: row.customerPhone,
       customerAddress: row.customerAddress,
-      customerEmail: row.customerEmail || "",
-      customerCity: row.customerCity || row.city || "",
-      customerState: row.customerState || row.state || "",
-      customerPincode: row.customerPincode || row.pincode || "",
-
-      // Product Details
-      productName: row.productName || "",
-      quantity: Number(row.quantity) || 1,
-      weight: Number(row.weight) || 0,
-      sku: row.sku || row.SKU || "",
-
-      // Order Details
-      amount: Number(row.amount) || 0,
-      paymentMode: row.paymentMode || "COD",
-      insuranceEnabled:
-        row.insuranceEnabled === "true" || row.insurance === "true" || false,
-
-      // Notes
-      notes: row.notes || "",
-
-      // Status
+      customerEmail: row.customerEmail,
+      customerCity: row.customerCity,
+      customerState: row.customerState,
+      customerPincode: row.customerPincode,
+      productName: row.productName,
+      quantity: row.quantity,
+      weight: row.weight,
+      length: row.length,
+      breadth: row.breadth,
+      height: row.height,
+      sku: row.sku,
+      amount: row.amount,
+      paymentMode: row.paymentMode.toUpperCase() === "PREPAID" ? "PREPAID" : "COD",
+      insuranceEnabled: false,
+      serviceType: row.serviceType,
+      notes: row.notes,
       status: "NEW",
     }));
 
@@ -622,13 +614,8 @@ const uploadExcelOrders = async (req, res) => {
       orders: insertedOrders,
     });
   } catch (error) {
-    // Clean up file if exists
-    if (req.file && req.file.path) {
-      try {
-        fs.unlinkSync(req.file.path);
-      } catch (err) {
-        console.log("Error deleting file:", err);
-      }
+    if (req.file && req.file.path && fs.existsSync(req.file.path)) {
+      try { fs.unlinkSync(req.file.path); } catch (err) {}
     }
     res.status(500).json({
       success: false,

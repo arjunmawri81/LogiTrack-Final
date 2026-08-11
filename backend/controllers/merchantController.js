@@ -37,12 +37,17 @@ const updateProfile = async (req, res) => {
   try {
     const {
       companyName,
+      name,
+      phone,
       gstNumber,
       panNumber,
       bankAccount,
       ifscCode,
       bankName,
       address,
+      city,
+      state,
+      pincode,
     } = req.body;
 
     // Production validation: Company Name is required
@@ -80,6 +85,12 @@ const updateProfile = async (req, res) => {
     // Update user fields that are common
     const userUpdateData = {};
     
+    if (name !== undefined)
+      userUpdateData.name = name?.trim();
+
+    if (phone !== undefined)
+      userUpdateData.phone = phone?.trim();
+
     if (companyName !== undefined) 
       userUpdateData.companyName = companyName?.trim();
     
@@ -100,6 +111,15 @@ const updateProfile = async (req, res) => {
 
     if (address !== undefined) 
       userUpdateData.address = address?.trim();
+
+    if (city !== undefined)
+      userUpdateData.city = city?.trim();
+
+    if (state !== undefined)
+      userUpdateData.state = state?.trim();
+
+    if (pincode !== undefined)
+      userUpdateData.pincode = pincode?.trim();
 
     let user = null;
     if (Object.keys(userUpdateData).length > 0) {

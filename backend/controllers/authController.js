@@ -104,6 +104,19 @@ const registerUser = async (req, res) => {
     // KYC Status Management
     const userKycStatus = "PENDING";
 
+    // Handle KYC Document Uploads
+    let gstDocPath = "";
+    let panDocPath = "";
+
+    if (req.files) {
+      if (req.files.gstCertificate && req.files.gstCertificate[0]) {
+        gstDocPath = `/uploads/kyc/${req.files.gstCertificate[0].filename}`;
+      }
+      if (req.files.panCard && req.files.panCard[0]) {
+        panDocPath = `/uploads/kyc/${req.files.panCard[0].filename}`;
+      }
+    }
+
     // Create User
     const user = await User.create({
       name: name.trim(),
@@ -134,6 +147,11 @@ const registerUser = async (req, res) => {
       isBlocked: false,
       isActive: true,
       walletBalance: 0,
+      kycDocuments: {
+        gstCertificate: gstDocPath,
+        panCard: panDocPath,
+        addressProof: "",
+      },
     });
 
     // Response

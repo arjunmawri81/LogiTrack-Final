@@ -9,12 +9,17 @@ const Profile = () => {
 
   const [profile, setProfile] = useState({
     companyName: "",
+    name: "",
+    phone: "",
     gstNumber: "",
     panNumber: "",
     bankAccount: "",
     ifscCode: "",
     bankName: "",
     address: "",
+    city: "",
+    state: "",
+    pincode: "",
   });
 
   useEffect(() => {
@@ -26,13 +31,18 @@ const Profile = () => {
       const res = await api.get("/merchant/profile");
 
       setProfile({
-        companyName: res.data.merchant?.companyName || "",
-        gstNumber: res.data.merchant?.gstNumber || "",
-        panNumber: res.data.merchant?.panNumber || "",
+        companyName: res.data.merchant?.companyName || res.data.user?.companyName || "",
+        name: res.data.user?.name || "",
+        phone: res.data.user?.phone || "",
+        gstNumber: res.data.merchant?.gstNumber || res.data.user?.gstNumber || "",
+        panNumber: res.data.merchant?.panNumber || res.data.user?.panNumber || "",
         bankAccount: res.data.merchant?.bankAccount || res.data.user?.accountNumber || "",
         ifscCode: res.data.merchant?.ifscCode || res.data.user?.ifscCode || "",
         bankName: res.data.merchant?.bankName || res.data.user?.bankName || "",
-        address: res.data.merchant?.address || "",
+        address: res.data.merchant?.address || res.data.user?.address || "",
+        city: res.data.user?.city || "",
+        state: res.data.user?.state || "",
+        pincode: res.data.user?.pincode || "",
       });
 
       // Sync user data in localStorage on initial load
@@ -238,6 +248,26 @@ const Profile = () => {
 
               <input
                 type="text"
+                name="name"
+                placeholder="Owner Name"
+                value={profile.name}
+                onChange={handleChange}
+                readOnly={!editMode}
+                className={!editMode ? "readonly-input" : ""}
+              />
+
+              <input
+                type="text"
+                name="phone"
+                placeholder="Mobile Number"
+                value={profile.phone}
+                onChange={handleChange}
+                readOnly={!editMode}
+                className={!editMode ? "readonly-input" : ""}
+              />
+
+              <input
+                type="text"
                 name="gstNumber"
                 placeholder="GST Number"
                 value={profile.gstNumber}
@@ -281,6 +311,36 @@ const Profile = () => {
                 name="bankName"
                 placeholder="Bank Name & Branch"
                 value={profile.bankName}
+                onChange={handleChange}
+                readOnly={!editMode}
+                className={!editMode ? "readonly-input" : ""}
+              />
+
+              <input
+                type="text"
+                name="city"
+                placeholder="City"
+                value={profile.city}
+                onChange={handleChange}
+                readOnly={!editMode}
+                className={!editMode ? "readonly-input" : ""}
+              />
+
+              <input
+                type="text"
+                name="state"
+                placeholder="State"
+                value={profile.state}
+                onChange={handleChange}
+                readOnly={!editMode}
+                className={!editMode ? "readonly-input" : ""}
+              />
+
+              <input
+                type="text"
+                name="pincode"
+                placeholder="Pincode"
+                value={profile.pincode}
                 onChange={handleChange}
                 readOnly={!editMode}
                 className={!editMode ? "readonly-input" : ""}

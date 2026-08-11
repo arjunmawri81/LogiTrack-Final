@@ -12,6 +12,7 @@ import {
   FaArrowRight
 } from "react-icons/fa";
 import Sidebar from "../../components/Sidebar";
+import BulkUploadModal from "../../components/BulkUploadModal";
 import api from "../../services/api";
 import "./Dashboard.css";
 
@@ -32,6 +33,7 @@ const Dashboard = () => {
 
   const [recentShipments, setRecentShipments] = useState([]);
   const [loadingRecent, setLoadingRecent] = useState(true);
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
 
@@ -187,7 +189,7 @@ const Dashboard = () => {
           </button>
 
           <button
-            onClick={() => navigate("/merchant/bulk-shipment")}
+            onClick={() => setIsBulkModalOpen(true)}
             style={{
               display: "flex",
               alignItems: "center",
@@ -513,6 +515,15 @@ const Dashboard = () => {
         </div>
 
       </main>
+
+      <BulkUploadModal
+        isOpen={isBulkModalOpen}
+        onClose={() => setIsBulkModalOpen(false)}
+        onSuccess={() => {
+          fetchDashboardData();
+          fetchRecentShipments();
+        }}
+      />
     </div>
   );
 };

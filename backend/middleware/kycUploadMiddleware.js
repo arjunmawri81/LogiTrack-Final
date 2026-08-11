@@ -1,40 +1,46 @@
 const multer = require("multer");
 const path = require("path");
-const os = require("os");
+const fs = require("fs");
 
+// Ensure uploads/kyc directory exists
+const kycDir = path.join(__dirname, "../uploads/kyc");
+if (!fs.existsSync(kycDir)) {
+  fs.mkdirSync(kycDir, { recursive: true });
+}
+
+// Storage Configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, os.tmpdir());
+    cb(null, kycDir);
   },
-
   filename: (req, file, cb) => {
-    cb(
-      null,
-      Date.now() +
-        "-" +
-        Math.round(Math.random() * 1e9) +
-        path.extname(file.originalname)
-    );
+    const ext = path.extname(file.originalname).toLowerCase();
+    const prefix = file.fieldname === "gstCertificate" ? "gst" : file.fieldname === "panCard" ? "pan" : "doc";
+    const uniqueName = `${prefix}_${Date.now()}_${Math.round(Math.random() * 1e6)}${ext}`;
+    cb(null, uniqueName);
   },
 });
 
+// File Filter for KYC Documents (PDF, JPG, PNG)
 const fileFilter = (req, file, cb) => {
-  const allowedMimes = ["image/png", "image/jpeg", "image/jpg", "application/pdf"];
-  const allowedExts = [".png", ".jpg", ".jpeg", ".pdf"];
+  const allowedExts = [".pdf", ".jpg", ".jpeg", ".png"];
+  const allowedMimes = ["application/pdf", "image/jpeg", "image/png", "image/jpg"];
 
   const ext = path.extname(file.originalname).toLowerCase();
 
-  if (allowedMimes.includes(file.mimetype) && allowedExts.includes(ext)) {
+  if (allowedExts.includes(ext) || allowedMimes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error("Only PDF, PNG, and JPG files are allowed"), false);
+    cb(new Error("Only PDF, JPG, JPEG, and PNG files are allowed for KYC documents."), false);
   }
 };
 
-module.exports = multer({
+const kycUpload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024,
+    fileSize: 5 * 1024 * 1024, // 5MB per file
   },
 });
+
+module.exports = kycUpload;

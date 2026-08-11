@@ -706,6 +706,68 @@ const MerchantManagement = () => {
                         </span>
                       </div>
                     </div>
+
+                    {/* Uploaded KYC Documents Section */}
+                    <div style={{ ...infoCardStyle, gridColumn: "1 / -1", background: "#f8fafc" }}>
+                      <div style={{ fontSize: "11px", fontWeight: "600", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px" }}>
+                        Uploaded KYC Documents
+                      </div>
+                      <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                        {selectedMerchant?.merchant?.kycDocuments?.gstCertificate ? (
+                          <a
+                            href={`http://localhost:5000${selectedMerchant.merchant.kycDocuments.gstCertificate}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "6px",
+                              padding: "8px 14px",
+                              background: "#eff6ff",
+                              color: "#2563eb",
+                              border: "1px solid #bfdbfe",
+                              borderRadius: "6px",
+                              fontSize: "12.5px",
+                              fontWeight: "600",
+                              textDecoration: "none"
+                            }}
+                          >
+                            📄 View GST Certificate
+                          </a>
+                        ) : (
+                          <span style={{ fontSize: "12px", color: "#94a3b8", fontStyle: "italic" }}>
+                            No GST Certificate attached
+                          </span>
+                        )}
+
+                        {selectedMerchant?.merchant?.kycDocuments?.panCard ? (
+                          <a
+                            href={`http://localhost:5000${selectedMerchant.merchant.kycDocuments.panCard}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "6px",
+                              padding: "8px 14px",
+                              background: "#f0fdf4",
+                              color: "#16a34a",
+                              border: "1px solid #bbf7d0",
+                              borderRadius: "6px",
+                              fontSize: "12.5px",
+                              fontWeight: "600",
+                              textDecoration: "none"
+                            }}
+                          >
+                            🪪 View PAN Card Document
+                          </a>
+                        ) : (
+                          <span style={{ fontSize: "12px", color: "#94a3b8", fontStyle: "italic" }}>
+                            No PAN Card document attached
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
 

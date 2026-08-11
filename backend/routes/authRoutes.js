@@ -28,10 +28,19 @@ const registerLimiter = rateLimit({
   },
 });
 
+const kycUpload = require("../middleware/kycUploadMiddleware");
+
 // ====================================
 // PUBLIC ROUTES
 // ====================================
-router.post("/register", registerUser);
+router.post(
+  "/register",
+  kycUpload.fields([
+    { name: "gstCertificate", maxCount: 1 },
+    { name: "panCard", maxCount: 1 },
+  ]),
+  registerUser
+);
 router.post("/login", loginUser);
 
 module.exports = router;

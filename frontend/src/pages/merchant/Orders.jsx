@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import LabelSettingsModal from "../../components/LabelSettingsModal";
+import BulkUploadModal from "../../components/BulkUploadModal";
 import api from "../../services/api";
 import * as XLSX from 'xlsx';
 import { FaSearch, FaEye, FaSpinner, FaEdit, FaTruck, FaFileExcel, FaUpload, FaDownload, FaFileInvoice, FaBox, FaTag, FaFilter, FaCalendarAlt, FaTimes, FaChevronDown, FaEllipsisV, FaBan, FaCheckCircle, FaExclamationTriangle, FaClock, FaRedo } from "react-icons/fa";
@@ -20,6 +21,7 @@ const Orders = () => {
   const [uploading, setUploading] = useState(false);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [menuPos, setMenuPos] = useState(null);
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
 
   const [downloadingLabel, setDownloadingLabel] = useState(false);
 
@@ -584,27 +586,13 @@ const Orders = () => {
               <p className="orders-subtitle">Manage and track all customer orders</p>
             </div>
             <div className="orders-header-actions">
-              <label className="orders-upload-btn orders-upload-csv">
-                <FaUpload /> {uploading ? 'Uploading...' : 'Upload CSV'}
-                <input
-                  type="file"
-                  accept=".csv"
-                  hidden
-                  onChange={handleCSVUpload}
-                  disabled={uploading}
-                />
-              </label>
-
-              <label className="orders-upload-btn orders-upload-excel">
-                <FaUpload /> {uploading ? 'Uploading...' : 'Upload Excel'}
-                <input
-                  type="file"
-                  accept=".xlsx,.xls"
-                  hidden
-                  onChange={handleExcelUpload}
-                  disabled={uploading}
-                />
-              </label>
+              <button
+                className="orders-upload-btn orders-upload-csv"
+                onClick={() => setIsBulkModalOpen(true)}
+                style={{ cursor: "pointer" }}
+              >
+                <FaUpload /> Bulk Upload
+              </button>
 
               <button
                 onClick={exportToExcel}
@@ -1073,6 +1061,12 @@ const Orders = () => {
             downloadSingleLabel(settings);
           }
         }}
+      />
+
+      <BulkUploadModal
+        isOpen={isBulkModalOpen}
+        onClose={() => setIsBulkModalOpen(false)}
+        onSuccess={fetchOrders}
       />
     </div>
   );

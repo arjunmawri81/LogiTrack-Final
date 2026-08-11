@@ -4,16 +4,13 @@ import api from "../../services/api";
 import { 
   FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash, 
   FaBuilding, FaMobile, FaCheckCircle, FaTruck,
-  FaShieldAlt, FaHeadset, FaFileInvoice, FaUniversity,
-  FaMapMarkerAlt, FaIdCard, FaArrowRight, FaStore,
-  FaRegIdCard, FaHandshake, FaClock, FaGlobe
+  FaShieldAlt, FaHeadset, FaClock
 } from "react-icons/fa";
 import "./Auth.css";
 
 const Register = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
@@ -22,15 +19,8 @@ const Register = () => {
   const [mobileOtpSent, setMobileOtpSent] = useState(false);
   const [emailVerified, setEmailVerified] = useState(false);
   const [mobileVerified, setMobileVerified] = useState(false);
-  const [emailOtpLoading, setEmailOtpLoading] = useState(false);
-  const [mobileOtpLoading, setMobileOtpLoading] = useState(false);
-  
-  // KYC States
-  const [gstVerified, setGstVerified] = useState(false);
-  const [panVerified, setPanVerified] = useState(false);
   
   const [formData, setFormData] = useState({
-    // Step 1: Basic Registration
     companyName: "",
     ownerName: "",
     email: "",
@@ -39,34 +29,6 @@ const Register = () => {
     mobileOtp: "",
     password: "",
     confirmPassword: "",
-    
-    // Step 2: GST Details
-    gstNumber: "",
-    panNumber: "",
-    businessType: "",
-    businessCategory: "",
-    yearOfEstablishment: "",
-    website: "",
-    
-    // Step 3: Company Details
-    address: "",
-    city: "",
-    state: "",
-    pincode: "",
-    landmark: "",
-    
-    // Step 4: KYC & Bank Details
-    accountHolderName: "",
-    accountNumber: "",
-    confirmAccountNumber: "",
-    ifscCode: "",
-    bankName: "",
-    branchName: "",
-    upiId: "",
-    
-    // Terms
-    agreeTerms: false,
-    agreeKYC: false,
   });
   
   const [errors, setErrors] = useState({});
@@ -79,13 +41,6 @@ const Register = () => {
     if (errors[e.target.name]) {
       setErrors({ ...errors, [e.target.name]: "" });
     }
-  };
-
-  const handleCheckbox = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.checked,
-    });
   };
 
   // Email OTP Functions - Temporarily disabled
@@ -108,18 +63,7 @@ const Register = () => {
     alert("Mobile verified successfully!");
   };
 
-  // GST & PAN Verification - Temporarily disabled
-  const verifyGST = () => {
-    setGstVerified(true);
-    alert("GST verified successfully!");
-  };
-
-  const verifyPAN = () => {
-    setPanVerified(true);
-    alert("PAN verified successfully!");
-  };
-
-  const validateStep1 = () => {
+  const validate = () => {
     const newErrors = {};
     if (!formData.companyName) newErrors.companyName = "Company name is required";
     if (!formData.ownerName) newErrors.ownerName = "Owner name is required";
@@ -134,97 +78,26 @@ const Register = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const validateStep2 = () => {
-    const newErrors = {};
-    if (!formData.gstNumber) newErrors.gstNumber = "GST number is required";
-    if (!formData.panNumber) newErrors.panNumber = "PAN number is required";
-    if (!formData.businessType) newErrors.businessType = "Business type is required";
-    if (!formData.businessCategory) newErrors.businessCategory = "Business category is required";
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const validateStep3 = () => {
-    const newErrors = {};
-    if (!formData.address) newErrors.address = "Address is required";
-    if (!formData.city) newErrors.city = "City is required";
-    if (!formData.state) newErrors.state = "State is required";
-    if (!formData.pincode) newErrors.pincode = "Pincode is required";
-    else if (!/^\d{6}$/.test(formData.pincode)) newErrors.pincode = "Pincode must be 6 digits";
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const validateStep4 = () => {
-    const newErrors = {};
-    if (!formData.accountHolderName) newErrors.accountHolderName = "Account holder name is required";
-    if (!formData.accountNumber) newErrors.accountNumber = "Account number is required";
-    if (formData.accountNumber !== formData.confirmAccountNumber) {
-      newErrors.confirmAccountNumber = "Account numbers do not match";
-    }
-    if (!formData.ifscCode) newErrors.ifscCode = "IFSC code is required";
-    if (!formData.bankName) newErrors.bankName = "Bank name is required";
-    if (!formData.agreeTerms) newErrors.agreeTerms = "You must agree to Terms & Conditions";
-    if (!formData.agreeKYC) newErrors.agreeKYC = "You must agree to KYC verification";
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleNext = () => {
-    if (currentStep === 1 && validateStep1()) {
-      setCurrentStep(2);
-    } else if (currentStep === 2 && validateStep2()) {
-      setCurrentStep(3);
-    } else if (currentStep === 3 && validateStep3()) {
-      setCurrentStep(4);
-    }
-  };
-
-  const handlePrevious = () => {
-    setCurrentStep(currentStep - 1);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validateStep4()) return;
+    if (!validate()) return;
 
     setLoading(true);
 
     try {
-      await api.post("/auth/register", {
+      const payload = {
         companyName: formData.companyName,
         name: formData.ownerName,
         phone: formData.mobile,
         email: formData.email,
         password: formData.password,
-
-        gstNumber: formData.gstNumber,
-        panNumber: formData.panNumber,
-        businessType: formData.businessType,
-        businessCategory: formData.businessCategory,
-        yearOfEstablishment: formData.yearOfEstablishment,
-        website: formData.website,
-
-        address: formData.address,
-        city: formData.city,
-        state: formData.state,
-        pincode: formData.pincode,
-        landmark: formData.landmark,
-
-        accountHolderName: formData.accountHolderName,
-        accountNumber: formData.accountNumber,
-        ifscCode: formData.ifscCode,
-        bankName: formData.bankName,
-        branchName: formData.branchName,
-        upiId: formData.upiId,
-
         role: "MERCHANT",
-        kycStatus: "PENDING",
-      });
+      };
+
+      await api.post("/auth/register", payload);
 
       alert("Registration Successful. Please Login.");
-
       navigate("/login");
     } catch (error) {
       alert(error?.response?.data?.message || "Registration Failed");
@@ -232,10 +105,6 @@ const Register = () => {
       setLoading(false);
     }
   };
-
-  const businessTypes = ["Proprietorship", "Partnership", "Private Limited", "Public Limited", "LLP", "Trust", "Society"];
-  const businessCategories = ["Logistics", "E-commerce", "Manufacturing", "Trading", "Services", "Others"];
-  const states = ["Maharashtra", "Delhi", "Karnataka", "Tamil Nadu", "Gujarat", "Uttar Pradesh", "West Bengal", "Rajasthan", "Punjab", "Haryana"];
 
   const styles = {
     container: { display: "flex", minHeight: "100vh", background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)" },
@@ -259,26 +128,18 @@ const Register = () => {
     formHeader: { textAlign: "center", marginBottom: "30px" },
     formTitle: { fontSize: "28px", fontWeight: "700", color: "#0f172a", margin: "0 0 8px 0" },
     formSubtitle: { fontSize: "14px", color: "#64748b", margin: 0 },
-    progressBar: { display: "flex", gap: "8px", marginBottom: "30px", justifyContent: "center" },
-    progressStep: (active) => ({ width: "70px", height: "4px", borderRadius: "2px", background: active ? "#f97316" : "#e2e8f0", transition: "all 0.3s" }),
     form: { display: "flex", flexDirection: "column", gap: "16px" },
-    row2: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" },
     inputGroup: { position: "relative", display: "flex", alignItems: "center" },
     inputIcon: { position: "absolute", left: "16px", color: "#94a3b8", fontSize: "16px" },
     input: { width: "100%", padding: "14px 16px 14px 48px", border: "1px solid #e2e8f0", borderRadius: "12px", fontSize: "14px", background: "#f8fafc", outline: "none" },
-    select: { width: "100%", padding: "14px 16px 14px 48px", border: "1px solid #e2e8f0", borderRadius: "12px", fontSize: "14px", background: "#f8fafc", outline: "none" },
     passwordToggle: { position: "absolute", right: "16px", background: "none", border: "none", cursor: "pointer", color: "#94a3b8" },
     otpGroup: { display: "flex", gap: "12px", alignItems: "center" },
     otpInput: { flex: 1 },
-    otpBtn: { padding: "14px 20px", background: "#f1f5f9", border: "none", borderRadius: "12px", cursor: "pointer", fontSize: "13px", fontWeight: "500", whiteSpace: "nowrap" },
+    otpBtn: { padding: "14px 20px", background: "#f1f5f9", color: "#1e293b", border: "1px solid #cbd5e1", borderRadius: "12px", cursor: "pointer", fontSize: "13px", fontWeight: "600", whiteSpace: "nowrap" },
     verifyBtn: { padding: "14px 20px", background: "#f97316", color: "white", border: "none", borderRadius: "12px", cursor: "pointer", fontSize: "13px", fontWeight: "500", whiteSpace: "nowrap" },
     verifiedBadge: { position: "absolute", right: "16px", color: "#10b981" },
     errorText: { fontSize: "11px", color: "#ef4444", marginTop: "4px", marginLeft: "12px" },
-    checkboxGroup: { display: "flex", alignItems: "center", gap: "12px", marginTop: "10px" },
-    checkbox: { width: "18px", height: "18px", cursor: "pointer", accentColor: "#f97316" },
     buttonGroup: { display: "flex", gap: "12px", marginTop: "20px" },
-    nextBtn: { flex: 1, padding: "14px", background: "linear-gradient(135deg, #f97316, #ea580c)", border: "none", borderRadius: "12px", color: "white", fontSize: "16px", fontWeight: "600", cursor: "pointer" },
-    backBtn: { padding: "14px 24px", background: "#f1f5f9", border: "none", borderRadius: "12px", fontSize: "16px", fontWeight: "600", cursor: "pointer" },
     submitBtn: { flex: 1, padding: "14px", background: "linear-gradient(135deg, #f97316, #ea580c)", border: "none", borderRadius: "12px", color: "white", fontSize: "16px", fontWeight: "600", cursor: "pointer" },
     formFooter: { textAlign: "center", marginTop: "25px" },
     footerText: { fontSize: "14px", color: "#64748b" },
@@ -315,249 +176,85 @@ const Register = () => {
             <p style={styles.formSubtitle}>Register your company</p>
           </div>
 
-          <div style={styles.progressBar}>
-            <div className="progress-step-responsive" style={styles.progressStep(currentStep >= 1)}></div>
-            <div className="progress-step-responsive" style={styles.progressStep(currentStep >= 2)}></div>
-            <div className="progress-step-responsive" style={styles.progressStep(currentStep >= 3)}></div>
-            <div className="progress-step-responsive" style={styles.progressStep(currentStep >= 4)}></div>
-          </div>
-
           <form onSubmit={handleSubmit} style={styles.form}>
-            {currentStep === 1 && (
-              <>
-                <div style={styles.inputGroup}>
-                  <FaBuilding style={styles.inputIcon} />
-                  <input type="text" name="companyName" placeholder="Company Name" value={formData.companyName} onChange={handleChange} className="auth-input" style={styles.input} />
+            <div style={styles.inputGroup}>
+              <FaBuilding style={styles.inputIcon} />
+              <input type="text" name="companyName" placeholder="Company Name" value={formData.companyName} onChange={handleChange} className="auth-input" style={styles.input} />
+            </div>
+            {errors.companyName && <span style={styles.errorText}>{errors.companyName}</span>}
+
+            <div style={styles.inputGroup}>
+              <FaUser style={styles.inputIcon} />
+              <input type="text" name="ownerName" placeholder="Owner Name" value={formData.ownerName} onChange={handleChange} className="auth-input" style={styles.input} />
+            </div>
+            {errors.ownerName && <span style={styles.errorText}>{errors.ownerName}</span>}
+
+            <div className="otp-group-responsive" style={styles.otpGroup}>
+              <div style={{ ...styles.inputGroup, ...styles.otpInput }}>
+                <FaEnvelope style={styles.inputIcon} />
+                <input type="email" name="email" placeholder="Email Address" value={formData.email} onChange={handleChange} className="auth-input" style={styles.input} disabled={emailVerified} />
+                {emailVerified && <FaCheckCircle style={styles.verifiedBadge} />}
+              </div>
+              <button type="button" style={styles.otpBtn} onClick={sendEmailOtp} disabled={emailVerified}>
+                {emailVerified ? "Verified" : "Send OTP"}
+              </button>
+            </div>
+            {errors.email && <span style={styles.errorText}>{errors.email}</span>}
+
+            {emailOtpSent && !emailVerified && (
+              <div className="otp-group-responsive" style={styles.otpGroup}>
+                <div style={{ ...styles.inputGroup, ...styles.otpInput }}>
+                  <FaClock style={styles.inputIcon} />
+                  <input type="text" name="emailOtp" placeholder="Enter Email OTP" value={formData.emailOtp} onChange={handleChange} className="auth-input" style={styles.input} />
                 </div>
-                {errors.companyName && <span style={styles.errorText}>{errors.companyName}</span>}
-
-                <div style={styles.inputGroup}>
-                  <FaUser style={styles.inputIcon} />
-                  <input type="text" name="ownerName" placeholder="Owner Name" value={formData.ownerName} onChange={handleChange} className="auth-input" style={styles.input} />
-                </div>
-                {errors.ownerName && <span style={styles.errorText}>{errors.ownerName}</span>}
-
-                <div className="otp-group-responsive" style={styles.otpGroup}>
-                  <div style={{ ...styles.inputGroup, ...styles.otpInput }}>
-                    <FaEnvelope style={styles.inputIcon} />
-                    <input type="email" name="email" placeholder="Email Address" value={formData.email} onChange={handleChange} className="auth-input" style={styles.input} disabled={emailVerified} />
-                    {emailVerified && <FaCheckCircle style={styles.verifiedBadge} />}
-                  </div>
-                  <button type="button" style={styles.otpBtn} onClick={sendEmailOtp} disabled={emailVerified}>
-                    {emailVerified ? "Verified" : "Send OTP"}
-                  </button>
-                </div>
-                {errors.email && <span style={styles.errorText}>{errors.email}</span>}
-
-                {emailOtpSent && !emailVerified && (
-                  <div className="otp-group-responsive" style={styles.otpGroup}>
-                    <div style={{ ...styles.inputGroup, ...styles.otpInput }}>
-                      <FaClock style={styles.inputIcon} />
-                      <input type="text" name="emailOtp" placeholder="Enter Email OTP" value={formData.emailOtp} onChange={handleChange} className="auth-input" style={styles.input} />
-                    </div>
-                    <button type="button" style={styles.verifyBtn} onClick={verifyEmailOtp}>Verify</button>
-                  </div>
-                )}
-
-                <div className="otp-group-responsive" style={styles.otpGroup}>
-                  <div style={{ ...styles.inputGroup, ...styles.otpInput }}>
-                    <FaMobile style={styles.inputIcon} />
-                    <input type="tel" name="mobile" placeholder="Mobile Number" value={formData.mobile} onChange={handleChange} className="auth-input" style={styles.input} disabled={mobileVerified} />
-                    {mobileVerified && <FaCheckCircle style={styles.verifiedBadge} />}
-                  </div>
-                  <button type="button" style={styles.otpBtn} onClick={sendMobileOtp} disabled={mobileVerified}>
-                    {mobileVerified ? "Verified" : "Send OTP"}
-                  </button>
-                </div>
-                {errors.mobile && <span style={styles.errorText}>{errors.mobile}</span>}
-
-                {mobileOtpSent && !mobileVerified && (
-                  <div className="otp-group-responsive" style={styles.otpGroup}>
-                    <div style={{ ...styles.inputGroup, ...styles.otpInput }}>
-                      <FaClock style={styles.inputIcon} />
-                      <input type="text" name="mobileOtp" placeholder="Enter Mobile OTP" value={formData.mobileOtp} onChange={handleChange} className="auth-input" style={styles.input} />
-                    </div>
-                    <button type="button" style={styles.verifyBtn} onClick={verifyMobileOtp}>Verify</button>
-                  </div>
-                )}
-
-                <div style={styles.inputGroup}>
-                  <FaLock style={styles.inputIcon} />
-                  <input type={showPassword ? "text" : "password"} name="password" placeholder="Password" value={formData.password} onChange={handleChange} className="auth-input" style={styles.input} />
-                  <button type="button" style={styles.passwordToggle} onClick={() => setShowPassword(!showPassword)}>
-                    {showPassword ? <FaEyeSlash /> : <FaEye />}
-                  </button>
-                </div>
-                {errors.password && <span style={styles.errorText}>{errors.password}</span>}
-
-                <div style={styles.inputGroup}>
-                  <FaLock style={styles.inputIcon} />
-                  <input type={showConfirmPassword ? "text" : "password"} name="confirmPassword" placeholder="Confirm Password" value={formData.confirmPassword} onChange={handleChange} className="auth-input" style={styles.input} />
-                  <button type="button" style={styles.passwordToggle} onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-                    {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-                  </button>
-                </div>
-                {errors.confirmPassword && <span style={styles.errorText}>{errors.confirmPassword}</span>}
-              </>
+                <button type="button" style={styles.verifyBtn} onClick={verifyEmailOtp}>Verify</button>
+              </div>
             )}
 
-            {currentStep === 2 && (
-              <>
-                <div className="otp-group-responsive" style={styles.otpGroup}>
-                  <div style={{ ...styles.inputGroup, ...styles.otpInput }}>
-                    <FaFileInvoice style={styles.inputIcon} />
-                    <input type="text" name="gstNumber" placeholder="GST Number (15 digits)" value={formData.gstNumber} onChange={handleChange} className="auth-input" style={styles.input} disabled={gstVerified} />
-                    {gstVerified && <FaCheckCircle style={styles.verifiedBadge} />}
-                  </div>
-                  <button type="button" style={styles.verifyBtn} onClick={verifyGST} disabled={gstVerified}>Verify GST</button>
-                </div>
-                {errors.gstNumber && <span style={styles.errorText}>{errors.gstNumber}</span>}
+            <div className="otp-group-responsive" style={styles.otpGroup}>
+              <div style={{ ...styles.inputGroup, ...styles.otpInput }}>
+                <FaMobile style={styles.inputIcon} />
+                <input type="tel" name="mobile" placeholder="Mobile Number" value={formData.mobile} onChange={handleChange} className="auth-input" style={styles.input} disabled={mobileVerified} />
+                {mobileVerified && <FaCheckCircle style={styles.verifiedBadge} />}
+              </div>
+              <button type="button" style={styles.otpBtn} onClick={sendMobileOtp} disabled={mobileVerified}>
+                {mobileVerified ? "Verified" : "Send OTP"}
+              </button>
+            </div>
+            {errors.mobile && <span style={styles.errorText}>{errors.mobile}</span>}
 
-                <div className="otp-group-responsive" style={styles.otpGroup}>
-                  <div style={{ ...styles.inputGroup, ...styles.otpInput }}>
-                    <FaRegIdCard style={styles.inputIcon} />
-                    <input type="text" name="panNumber" placeholder="PAN Number (10 digits)" value={formData.panNumber} onChange={handleChange} className="auth-input" style={styles.input} disabled={panVerified} />
-                    {panVerified && <FaCheckCircle style={styles.verifiedBadge} />}
-                  </div>
-                  <button type="button" style={styles.verifyBtn} onClick={verifyPAN} disabled={panVerified}>Verify PAN</button>
+            {mobileOtpSent && !mobileVerified && (
+              <div className="otp-group-responsive" style={styles.otpGroup}>
+                <div style={{ ...styles.inputGroup, ...styles.otpInput }}>
+                  <FaClock style={styles.inputIcon} />
+                  <input type="text" name="mobileOtp" placeholder="Enter Mobile OTP" value={formData.mobileOtp} onChange={handleChange} className="auth-input" style={styles.input} />
                 </div>
-                {errors.panNumber && <span style={styles.errorText}>{errors.panNumber}</span>}
-
-                <div style={styles.inputGroup}>
-                  <FaHandshake style={styles.inputIcon} />
-                  <select name="businessType" value={formData.businessType} onChange={handleChange} className="auth-input" style={styles.select}>
-                    <option value="">Select Business Type</option>
-                    {businessTypes.map(type => <option key={type} value={type}>{type}</option>)}
-                  </select>
-                </div>
-                {errors.businessType && <span style={styles.errorText}>{errors.businessType}</span>}
-
-                <div style={styles.inputGroup}>
-                  <FaStore style={styles.inputIcon} />
-                  <select name="businessCategory" value={formData.businessCategory} onChange={handleChange} className="auth-input" style={styles.select}>
-                    <option value="">Select Business Category</option>
-                    {businessCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                  </select>
-                </div>
-                {errors.businessCategory && <span style={styles.errorText}>{errors.businessCategory}</span>}
-
-                <div className="row2-responsive" style={styles.row2}>
-                  <div style={styles.inputGroup}>
-                    <FaClock style={styles.inputIcon} />
-                    <input type="text" name="yearOfEstablishment" placeholder="Year of Establishment" value={formData.yearOfEstablishment} onChange={handleChange} className="auth-input" style={styles.input} />
-                  </div>
-                  <div style={styles.inputGroup}>
-                    <FaGlobe style={styles.inputIcon} />
-                    <input type="text" name="website" placeholder="Website (Optional)" value={formData.website} onChange={handleChange} className="auth-input" style={styles.input} />
-                  </div>
-                </div>
-              </>
+                <button type="button" style={styles.verifyBtn} onClick={verifyMobileOtp}>Verify</button>
+              </div>
             )}
 
-            {currentStep === 3 && (
-              <>
-                <div style={styles.inputGroup}>
-                  <FaMapMarkerAlt style={styles.inputIcon} />
-                  <textarea name="address" placeholder="Full Address" value={formData.address} onChange={handleChange} className="auth-input" style={{ ...styles.input, resize: "vertical", minHeight: "80px" }} />
-                </div>
-                {errors.address && <span style={styles.errorText}>{errors.address}</span>}
+            <div style={styles.inputGroup}>
+              <FaLock style={styles.inputIcon} />
+              <input type={showPassword ? "text" : "password"} name="password" placeholder="Password" value={formData.password} onChange={handleChange} className="auth-input" style={styles.input} />
+              <button type="button" style={styles.passwordToggle} onClick={() => setShowPassword(!showPassword)}>
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
+            {errors.password && <span style={styles.errorText}>{errors.password}</span>}
 
-                <div className="row2-responsive" style={styles.row2}>
-                  <div style={styles.inputGroup}>
-                    <FaBuilding style={styles.inputIcon} />
-                    <input type="text" name="city" placeholder="City" value={formData.city} onChange={handleChange} className="auth-input" style={styles.input} />
-                  </div>
-                  <div style={styles.inputGroup}>
-                    <FaMapMarkerAlt style={styles.inputIcon} />
-                    <select name="state" value={formData.state} onChange={handleChange} className="auth-input" style={styles.select}>
-                      <option value="">Select State</option>
-                      {states.map(state => <option key={state} value={state}>{state}</option>)}
-                    </select>
-                  </div>
-                </div>
-                {errors.city && <span style={styles.errorText}>{errors.city}</span>}
-                {errors.state && <span style={styles.errorText}>{errors.state}</span>}
-
-                <div className="row2-responsive" style={styles.row2}>
-                  <div style={styles.inputGroup}>
-                    <FaMapMarkerAlt style={styles.inputIcon} />
-                    <input type="text" name="pincode" placeholder="Pincode" value={formData.pincode} onChange={handleChange} className="auth-input" style={styles.input} />
-                  </div>
-                  <div style={styles.inputGroup}>
-                    <FaMapMarkerAlt style={styles.inputIcon} />
-                    <input type="text" name="landmark" placeholder="Landmark (Optional)" value={formData.landmark} onChange={handleChange} className="auth-input" style={styles.input} />
-                  </div>
-                </div>
-                {errors.pincode && <span style={styles.errorText}>{errors.pincode}</span>}
-              </>
-            )}
-
-            {currentStep === 4 && (
-              <>
-                <div style={styles.inputGroup}>
-                  <FaUser style={styles.inputIcon} />
-                  <input type="text" name="accountHolderName" placeholder="Account Holder Name" value={formData.accountHolderName} onChange={handleChange} className="auth-input" style={styles.input} />
-                </div>
-                {errors.accountHolderName && <span style={styles.errorText}>{errors.accountHolderName}</span>}
-
-                <div style={styles.inputGroup}>
-                  <FaUniversity style={styles.inputIcon} />
-                  <input type="text" name="accountNumber" placeholder="Account Number" value={formData.accountNumber} onChange={handleChange} className="auth-input" style={styles.input} />
-                </div>
-                {errors.accountNumber && <span style={styles.errorText}>{errors.accountNumber}</span>}
-
-                <div style={styles.inputGroup}>
-                  <FaUniversity style={styles.inputIcon} />
-                  <input type="text" name="confirmAccountNumber" placeholder="Confirm Account Number" value={formData.confirmAccountNumber} onChange={handleChange} className="auth-input" style={styles.input} />
-                </div>
-                {errors.confirmAccountNumber && <span style={styles.errorText}>{errors.confirmAccountNumber}</span>}
-
-                <div className="row2-responsive" style={styles.row2}>
-                  <div style={styles.inputGroup}>
-                    <FaIdCard style={styles.inputIcon} />
-                    <input type="text" name="ifscCode" placeholder="IFSC Code" value={formData.ifscCode} onChange={handleChange} className="auth-input" style={styles.input} />
-                  </div>
-                  <div style={styles.inputGroup}>
-                    <FaUniversity style={styles.inputIcon} />
-                    <input type="text" name="bankName" placeholder="Bank Name" value={formData.bankName} onChange={handleChange} className="auth-input" style={styles.input} />
-                  </div>
-                </div>
-                {errors.ifscCode && <span style={styles.errorText}>{errors.ifscCode}</span>}
-                {errors.bankName && <span style={styles.errorText}>{errors.bankName}</span>}
-
-                <div style={styles.inputGroup}>
-                  <FaUniversity style={styles.inputIcon} />
-                  <input type="text" name="branchName" placeholder="Branch Name" value={formData.branchName} onChange={handleChange} className="auth-input" style={styles.input} />
-                </div>
-
-                <div style={styles.inputGroup}>
-                  <FaMobile style={styles.inputIcon} />
-                  <input type="text" name="upiId" placeholder="UPI ID (Optional)" value={formData.upiId} onChange={handleChange} className="auth-input" style={styles.input} />
-                </div>
-
-                <div style={styles.checkboxGroup}>
-                  <input type="checkbox" name="agreeTerms" checked={formData.agreeTerms} onChange={handleCheckbox} style={styles.checkbox} />
-                  <span>I agree to the <Link to="/terms">Terms & Conditions</Link></span>
-                </div>
-                {errors.agreeTerms && <span style={styles.errorText}>{errors.agreeTerms}</span>}
-
-                <div style={styles.checkboxGroup}>
-                  <input type="checkbox" name="agreeKYC" checked={formData.agreeKYC} onChange={handleCheckbox} style={styles.checkbox} />
-                  <span>I consent to <Link to="/kyc">KYC verification</Link> process</span>
-                </div>
-                {errors.agreeKYC && <span style={styles.errorText}>{errors.agreeKYC}</span>}
-              </>
-            )}
+            <div style={styles.inputGroup}>
+              <FaLock style={styles.inputIcon} />
+              <input type={showConfirmPassword ? "text" : "password"} name="confirmPassword" placeholder="Confirm Password" value={formData.confirmPassword} onChange={handleChange} className="auth-input" style={styles.input} />
+              <button type="button" style={styles.passwordToggle} onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
+            {errors.confirmPassword && <span style={styles.errorText}>{errors.confirmPassword}</span>}
 
             <div style={styles.buttonGroup}>
-              {currentStep > 1 && <button type="button" style={styles.backBtn} onClick={handlePrevious}>Back</button>}
-              {currentStep < 4 ? (
-                <button type="button" style={styles.nextBtn} onClick={handleNext}>Next <FaArrowRight /></button>
-              ) : (
-                <button type="submit" style={styles.submitBtn} disabled={loading}>
-                  {loading ? <span style={styles.spinner}></span> : "Register"}
-                </button>
-              )}
+              <button type="submit" style={styles.submitBtn} disabled={loading}>
+                {loading ? <span style={styles.spinner}></span> : "Register"}
+              </button>
             </div>
           </form>
 

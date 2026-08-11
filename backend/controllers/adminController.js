@@ -315,6 +315,7 @@ const getMerchantDetails = async (req, res) => {
         pincode: merchant.pincode,
         kycStatus: merchant.kycStatus,
         status: merchant.isApproved ? "Approved" : "Pending",
+        kycDocuments: merchant.kycDocuments || {},
       },
       totalOrders,
       totalShipments,

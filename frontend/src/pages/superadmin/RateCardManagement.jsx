@@ -757,6 +757,7 @@ const RateCardManagement = () => {
         isApproved:     m.isApproved,
         kycStatus:      m.kycStatus,
         isBlocked:      m.isBlocked,
+        kycDocuments:   m.kycDocuments || {},
       });
     } catch {
       /* silently ignore */
@@ -1019,6 +1020,17 @@ const RateCardManagement = () => {
             <div className="rcm-merchant-item" style={{ background: "#f0fdf4", borderColor: "#bbf7d0" }}>
               <p className="rcm-merchant-item-label" style={{ color: "#166534" }}>Wallet Balance</p>
               <p className="rcm-merchant-item-value highlight-wallet">₹{merchantInfo.walletBalance || 0}</p>
+            </div>
+            <div className="rcm-merchant-item" style={{ gridColumn: "1 / -1", background: "#f8fafc" }}>
+              <p className="rcm-merchant-item-label">KYC Documents</p>
+              <div style={{ display: "flex", gap: "10px", marginTop: "6px", flexWrap: "wrap" }}>
+                {merchantInfo.kycDocuments?.gstCertificate ? (
+                  <a href={`http://localhost:5000${merchantInfo.kycDocuments.gstCertificate}`} target="_blank" rel="noopener noreferrer" style={{ padding: "6px 12px", background: "#eff6ff", color: "#2563eb", border: "1px solid #bfdbfe", borderRadius: "6px", fontSize: "12px", fontWeight: "600", textDecoration: "none" }}>📄 View GST Certificate</a>
+                ) : <span style={{ fontSize: "12px", color: "#94a3b8" }}>No GST Document</span>}
+                {merchantInfo.kycDocuments?.panCard ? (
+                  <a href={`http://localhost:5000${merchantInfo.kycDocuments.panCard}`} target="_blank" rel="noopener noreferrer" style={{ padding: "6px 12px", background: "#f0fdf4", color: "#16a34a", border: "1px solid #bbf7d0", borderRadius: "6px", fontSize: "12px", fontWeight: "600", textDecoration: "none" }}>🪪 View PAN Card Document</a>
+                ) : <span style={{ fontSize: "12px", color: "#94a3b8" }}>No PAN Document</span>}
+              </div>
             </div>
           </div>
         </div>
