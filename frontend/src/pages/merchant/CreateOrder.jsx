@@ -324,6 +324,70 @@ const CreateOrder = () => {
               step="any"
               style={{...inputStyle, ...fullWidthStyle}}
             />
+
+            {/* Live Dimensions & Volumetric Summary Card */}
+            {(() => {
+              const lVal = parseFloat(formData.length) || 0;
+              const bVal = parseFloat(formData.breadth) || 0;
+              const hVal = parseFloat(formData.height) || 0;
+              const wVal = parseFloat(formData.weight) || 0;
+              const totalVol = lVal * bVal * hVal;
+              const volWt = totalVol > 0 ? (totalVol / 5000) : 0;
+              const chargeableWt = Math.max(wVal, volWt);
+
+              return (
+                <div
+                  style={{
+                    ...fullWidthStyle,
+                    background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)",
+                    border: "1px solid #3b82f6",
+                    borderRadius: "12px",
+                    padding: "16px 20px",
+                    marginTop: "6px",
+                    boxShadow: "0 4px 12px rgba(59, 130, 246, 0.15)",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#60a5fa", fontWeight: "700", fontSize: "15px" }}>
+                      <span>📦 Package Dimensions & Volumetric Summary</span>
+                    </div>
+                    <span style={{ fontSize: "11px", background: "rgba(59, 130, 246, 0.2)", color: "#93c5fd", padding: "4px 10px", borderRadius: "6px", fontWeight: "600" }}>
+                      Standard Formula (L × B × H ÷ 5000)
+                    </span>
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "12px" }}>
+                    <div style={{ background: "rgba(255,255,255,0.05)", padding: "10px 14px", borderRadius: "8px" }}>
+                      <div style={{ fontSize: "11px", color: "#94a3b8", fontWeight: "600", textTransform: "uppercase" }}>Total Dimensions</div>
+                      <div style={{ fontSize: "15px", color: "#f8fafc", fontWeight: "700", marginTop: "3px" }}>
+                        {lVal > 0 && bVal > 0 && hVal > 0 ? `${lVal} × ${bVal} × ${hVal} cm` : "0 × 0 × 0 cm"}
+                      </div>
+                    </div>
+
+                    <div style={{ background: "rgba(255,255,255,0.05)", padding: "10px 14px", borderRadius: "8px" }}>
+                      <div style={{ fontSize: "11px", color: "#94a3b8", fontWeight: "600", textTransform: "uppercase" }}>Total Volume</div>
+                      <div style={{ fontSize: "15px", color: "#38bdf8", fontWeight: "700", marginTop: "3px" }}>
+                        {totalVol > 0 ? `${totalVol.toLocaleString()} cm³` : "0 cm³"}
+                      </div>
+                    </div>
+
+                    <div style={{ background: "rgba(255,255,255,0.05)", padding: "10px 14px", borderRadius: "8px" }}>
+                      <div style={{ fontSize: "11px", color: "#94a3b8", fontWeight: "600", textTransform: "uppercase" }}>Volumetric Weight</div>
+                      <div style={{ fontSize: "15px", color: "#fbbf24", fontWeight: "700", marginTop: "3px" }}>
+                        {volWt > 0 ? `${volWt.toFixed(2)} kg` : "0.00 kg"}
+                      </div>
+                    </div>
+
+                    <div style={{ background: "rgba(59, 130, 246, 0.15)", border: "1px solid rgba(59, 130, 246, 0.4)", padding: "10px 14px", borderRadius: "8px" }}>
+                      <div style={{ fontSize: "11px", color: "#93c5fd", fontWeight: "700", textTransform: "uppercase" }}>Chargeable Weight</div>
+                      <div style={{ fontSize: "15px", color: "#4ade80", fontWeight: "800", marginTop: "3px" }}>
+                        {chargeableWt > 0 ? `${chargeableWt.toFixed(2)} kg` : "0.00 kg"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
             
             {/* Payment Details Section */}
             <div style={fullWidthStyle}>

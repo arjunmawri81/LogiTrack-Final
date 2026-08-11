@@ -143,16 +143,47 @@ const OrderDetails = () => {
 
         {/* Package Details */}
         <div style={card}>
-          <h2 style={title}>Package Details</h2>
+          <h2 style={title}>Package & Volumetric Details</h2>
 
-          <p style={text}>
-            <b>Weight:</b> {order.weight} KG
-          </p>
+          {(() => {
+            const l = parseFloat(order.length) || 0;
+            const b = parseFloat(order.breadth) || 0;
+            const h = parseFloat(order.height) || 0;
+            const actWt = parseFloat(order.weight) || 0;
+            const vol = l * b * h;
+            const volWt = vol > 0 ? vol / 5000 : 0;
+            const billableWt = Math.max(actWt, volWt);
 
-          <p style={text}>
-            <b>Dimensions:</b>{" "}
-            {order.length} × {order.breadth} × {order.height} cm
-          </p>
+            return (
+              <>
+                <p style={text}>
+                  <b>Actual Weight:</b> {order.weight} KG
+                </p>
+
+                <p style={text}>
+                  <b>Dimensions (L × B × H):</b>{" "}
+                  {order.length && order.breadth && order.height
+                    ? `${order.length} × ${order.breadth} × ${order.height} cm`
+                    : "N/A"}
+                </p>
+
+                <p style={text}>
+                  <b>Total Volume:</b>{" "}
+                  {vol > 0 ? `${vol.toLocaleString()} cm³` : "N/A"}
+                </p>
+
+                <p style={text}>
+                  <b>Volumetric Weight:</b>{" "}
+                  {volWt > 0 ? `${volWt.toFixed(2)} KG (Formula: L × B × H ÷ 5000)` : "N/A"}
+                </p>
+
+                <p style={{ ...text, color: "#4ade80", fontWeight: "700" }}>
+                  <b>Billable / Chargeable Weight:</b>{" "}
+                  {billableWt > 0 ? `${billableWt.toFixed(2)} KG` : "N/A"}
+                </p>
+              </>
+            );
+          })()}
         </div>
 
         {/* Payment Details */}

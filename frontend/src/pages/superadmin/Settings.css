@@ -26,32 +26,6 @@
   font-weight: 500;
 }
 
-.commission-card {
-  width: 300px;
-  background: linear-gradient(135deg, #6d28d9, #9333ea);
-  border-radius: 16px;
-  padding: 24px;
-  color: #ffffff;
-  margin-bottom: 35px;
-  box-shadow: 0 10px 25px -5px rgba(124, 58, 237, 0.15), 0 8px 10px -6px rgba(124, 58, 237, 0.15);
-}
-
-.commission-label {
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #e9d5ff;
-  margin-bottom: 12px;
-}
-
-.commission-value {
-  font-size: 38px;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.03em;
-}
-
 .form-card {
   background: #ffffff;
   padding: 28px;
@@ -59,6 +33,25 @@
   margin-bottom: 35px;
   border: 1px solid #f1f5f9;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+  max-width: 650px;
+}
+
+.card-header-flex {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(37, 99, 235, 0.1);
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
 }
 
 .form-title {
@@ -67,6 +60,10 @@
   font-size: 18px;
   font-weight: 700;
   letter-spacing: -0.02em;
+}
+
+.input-group-custom {
+  margin-bottom: 20px;
 }
 
 .input-label {
@@ -79,10 +76,23 @@
   letter-spacing: 0.03em;
 }
 
-.number-input {
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.field-icon {
+  position: absolute;
+  left: 14px;
+  color: #94a3b8;
+  font-size: 16px;
+}
+
+.text-input {
   width: 100%;
   box-sizing: border-box;
-  padding: 12px 16px;
+  padding: 12px 42px 12px 42px;
   border-radius: 10px;
   border: 1px solid #cbd5e1;
   outline: none;
@@ -90,12 +100,31 @@
   font-weight: 500;
   color: #1e293b;
   background: #ffffff;
-  margin-bottom: 24px;
-  transition: border-color 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.number-input:focus {
+.text-input:focus {
   border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.eye-toggle-btn {
+  position: absolute;
+  right: 14px;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  transition: color 0.15s ease;
+}
+
+.eye-toggle-btn:hover {
+  color: #475569;
 }
 
 .save-btn {
@@ -111,8 +140,13 @@
   transition: background-color 0.15s ease;
 }
 
-.save-btn:hover {
+.save-btn:hover:not(:disabled) {
   background: #1d4ed8;
+}
+
+.save-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .table-card {
@@ -166,11 +200,10 @@
 }
 
 @media (max-width: 768px) {
-  .commission-card {
-    width: 100%;
-    box-sizing: border-box;
-  }
   .page-title {
     font-size: 24px;
+  }
+  .form-card {
+    max-width: 100%;
   }
 }

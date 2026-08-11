@@ -332,9 +332,9 @@ const Login = () => {
             <div style={styles.inputGroup}>
               <FaEnvelope style={styles.inputIcon} />
               <input
-                type="email"
+                type="text"
                 name="email"
-                placeholder="Email Address"
+                placeholder="Email Address or Mobile Number"
                 value={formData.email}
                 onChange={handleChange}
                 className="auth-input"

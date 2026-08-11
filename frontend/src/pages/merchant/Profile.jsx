@@ -129,8 +129,13 @@ const Profile = () => {
       alert("Please fill both old and new password");
       return;
     }
-    if (passwordData.newPassword.length < 6) {
-      alert("New password must be at least 6 characters long");
+    if (passwordData.newPassword.length < 8) {
+      alert("New password must be at least 8 characters long");
+      return;
+    }
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+    if (!passwordRegex.test(passwordData.newPassword)) {
+      alert("Password must contain at least 8 characters, one uppercase letter, one lowercase letter, and one number.");
       return;
     }
     if (passwordData.newPassword !== passwordData.confirmPassword) {

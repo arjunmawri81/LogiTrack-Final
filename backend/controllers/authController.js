@@ -197,23 +197,27 @@ const registerUser = async (req, res) => {
 // Login User
 const loginUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const loginInput = (req.body.email || req.body.phone || req.body.identifier || "").trim();
+    const { password } = req.body;
 
-    if (!email || !password) {
+    if (!loginInput || !password) {
       return res.status(400).json({
         success: false,
-        message: "Please provide email and password"
+        message: "Please provide email/mobile number and password"
       });
     }
 
     const user = await User.findOne({
-      email: email.toLowerCase(),
+      $or: [
+        { email: loginInput.toLowerCase() },
+        { phone: loginInput }
+      ]
     });
 
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: "Invalid Email or Password",
+        message: "Invalid Email/Mobile Number or Password",
       });
     }
 
@@ -243,7 +247,7 @@ const loginUser = async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({
         success: false,
-        message: "Invalid Email or Password",
+        message: "Invalid Email/Mobile Number or Password",
       });
     }
 
