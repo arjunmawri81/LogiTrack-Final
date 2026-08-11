@@ -21,6 +21,7 @@ import {
   FaTags,
 } from "react-icons/fa";
 import "./Sidebar.css";
+import MerchantOnboardingModal from "./MerchantOnboardingModal";
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -259,6 +260,9 @@ const Sidebar = () => {
           </a>
         </div>
       </aside>
+
+      {/* Profile Onboarding Popup Modal */}
+      <MerchantOnboardingModal />
     </div>
   );
 };

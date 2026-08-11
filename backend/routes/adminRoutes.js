@@ -126,6 +126,20 @@ router.get(
   getApprovedMerchants
 );
 
+router.get(
+  "/merchant/:id",
+  authMiddleware,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
+  getMerchantDetails
+);
+
+router.get(
+  "/merchants/:id",
+  authMiddleware,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
+  getMerchantDetails
+);
+
 router.put(
   "/merchants/:id/approve",
   authMiddleware,

@@ -118,14 +118,12 @@ const calculateShippingRates = (rateCard, params) => {
   // 4. Fuel Charge
   const fuelCharge = rateCard.fuelCharge || 0;
 
-  // 5. Insurance Charge
+  // 5. Insurance Charge (Global Standard: ₹50 per ₹1500 Order Value = Amount / 30)
   let insuranceCharge = 0;
   if (insuranceEnabled) {
-    if (rateCard.insuranceCharge) {
-      insuranceCharge = rateCard.insuranceCharge;
-    } else {
-      const insurancePercentage = Number(process.env.INSURANCE_PERCENTAGE || 2);
-      insuranceCharge = roundMoney((amount || 0) * (insurancePercentage / 100));
+    const orderAmt = Number(amount) || 0;
+    if (orderAmt > 0) {
+      insuranceCharge = roundMoney(orderAmt / 30);
     }
   }
 

@@ -421,13 +421,13 @@ const CreateOrder = () => {
             <div
               style={{
                 ...fullWidthStyle,
-                background: "#f8fafc",
-                border: "1px solid #e2e8f0",
+                background: "#151c2c",
+                border: "1px solid #2a3a52",
                 borderRadius: "12px",
-                padding: "16px",
+                padding: "18px 20px",
                 display: "flex",
                 flexDirection: "column",
-                gap: "14px",
+                gap: "16px",
               }}
             >
               <label
@@ -438,13 +438,19 @@ const CreateOrder = () => {
                   cursor: "pointer",
                   fontSize: "14px",
                   fontWeight: "600",
-                  color: "#1e293b",
                 }}
               >
                 <div>
-                  <span>🛡️ Enable Parcel Loss & Damage Insurance Cover (₹12)</span>
-                  <div style={{ fontSize: "12px", color: "#64748b", fontWeight: "normal" }}>
-                    Protects package against lost or damaged transit shipments up to ₹5,000.
+                  <span style={{ color: "#f8fafc", fontSize: "14px", fontWeight: "700" }}>
+                    🛡️ Enable Parcel Loss & Damage Insurance Cover
+                    {parseFloat(formData.amount) > 0 && (
+                      <span style={{ color: "#4ade80", marginLeft: "8px", fontWeight: "700" }}>
+                        (Charge: ₹{(parseFloat(formData.amount) / 30).toFixed(2)} for ₹{parseFloat(formData.amount).toLocaleString()} Order)
+                      </span>
+                    )}
+                  </span>
+                  <div style={{ fontSize: "12px", color: "#94a3b8", fontWeight: "normal", marginTop: "3px" }}>
+                    Protects package against lost or damaged transit shipments (Fixed Standard: ₹50 per ₹1,500 Order Value).
                   </div>
                 </div>
                 <input
@@ -452,11 +458,11 @@ const CreateOrder = () => {
                   name="insuranceEnabled"
                   checked={formData.insuranceEnabled}
                   onChange={handleChange}
-                  style={{ width: "20px", height: "20px", cursor: "pointer" }}
+                  style={{ width: "20px", height: "20px", cursor: "pointer", accentColor: "#f97316" }}
                 />
               </label>
 
-              <hr style={{ border: "none", borderTop: "1px solid #e2e8f0", margin: 0 }} />
+              <hr style={{ border: "none", borderTop: "1px solid #2a3a52", margin: 0 }} />
 
               <label
                 style={{
@@ -466,12 +472,11 @@ const CreateOrder = () => {
                   cursor: "pointer",
                   fontSize: "14px",
                   fontWeight: "600",
-                  color: "#1e293b",
                 }}
               >
                 <div>
-                  <span style={{ color: "#f1f5f9" }}>📱 Send Instant WhatsApp & SMS Delivery Tracking Updates</span>
-                  <div style={{ fontSize: "12px", color: "#8896b0", fontWeight: "normal" }}>
+                  <span style={{ color: "#f8fafc", fontSize: "14px", fontWeight: "700" }}>📱 Send Instant WhatsApp & SMS Delivery Tracking Updates</span>
+                  <div style={{ fontSize: "12px", color: "#94a3b8", fontWeight: "normal", marginTop: "3px" }}>
                     Sends live tracking link and delivery status updates to customer automatically.
                   </div>
                 </div>
@@ -480,7 +485,7 @@ const CreateOrder = () => {
                   name="sendWhatsAppNotification"
                   checked={formData.sendWhatsAppNotification}
                   onChange={handleChange}
-                  style={{ width: "20px", height: "20px", cursor: "pointer" }}
+                  style={{ width: "20px", height: "20px", cursor: "pointer", accentColor: "#f97316" }}
                 />
               </label>
             </div>

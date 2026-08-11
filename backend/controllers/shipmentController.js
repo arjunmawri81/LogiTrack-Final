@@ -337,7 +337,9 @@ function createRatesResponse(providerName, order) {
   }
 
   const isCOD = order.paymentMode === "COD";
-  const total = weightCharge + (isCOD ? rates.cod : 0) + rates.fuel + (order.insuranceEnabled ? rates.insurance : 0);
+  const orderAmt = Number(order.amount) || 0;
+  const calculatedInsurance = order.insuranceEnabled && orderAmt > 0 ? Number((orderAmt / 30).toFixed(2)) : 0;
+  const total = weightCharge + (isCOD ? rates.cod : 0) + rates.fuel + calculatedInsurance;
 
   return {
     success: true,
@@ -348,7 +350,7 @@ function createRatesResponse(providerName, order) {
         forward: Math.round(weightCharge),
         cod: isCOD ? rates.cod : 0,
         fuel: rates.fuel,
-        insurance: order.insuranceEnabled ? rates.insurance : 0,
+        insurance: calculatedInsurance,
         total: Math.round(total)
       },
       weight: weight,

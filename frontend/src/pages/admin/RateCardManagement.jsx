@@ -36,16 +36,16 @@ import "../superadmin/RateCardManagement.css";
 // ─────────────────────────────────────────────────────────────────
 
 const EMPTY_FORM = {
-  forwardRates: { rate500gm: "", rate1kg: "", rate2kg: "", rate5kg: "", additionalKg: "" },
-  zoneRates:    { local: "", regional: "", national: "" },
-  buyingRate:   { buyRate: "", internalCostPercent: "70" },
-  codCharges:   { codCharge: "", codPercentage: "", codBuyCharge: "", codBuyPercentage: "" },
-  rtoCharges:   { rtoCharge: "", rtoBuyCharge: "" },
-  additionalCharges: { reversePickup: "", fuelCharge: "", insuranceCharge: "", odaCharge: "", handlingCharge: "" },
+  forwardRates: { rate500gm: "0", rate1kg: "0", rate2kg: "0", rate5kg: "0", additionalKg: "0" },
+  zoneRates:    { local: "0", regional: "0", national: "0" },
+  buyingRate:   { buyRate: "0", internalCostPercent: "70" },
+  codCharges:   { codCharge: "40", codPercentage: "0", codBuyCharge: "0", codBuyPercentage: "0" },
+  rtoCharges:   { rtoCharge: "0", rtoBuyCharge: "0" },
+  additionalCharges: { reversePickup: "0", fuelCharge: "0", insuranceCharge: "3.33", odaCharge: "0", handlingCharge: "0" },
   volumetricDivisor: "5000",
   gst:          18,
-  effectiveFrom: "",
-  effectiveTo:   "",
+  effectiveFrom: new Date().toISOString().split('T')[0],
+  effectiveTo:   new Date(Date.now() + 365*24*60*60*1000).toISOString().split('T')[0],
   serviceability: { codEnabled: true, prepaidEnabled: true, rtoEnabled: true, reversePickup: true },
 };
 
@@ -54,42 +54,42 @@ const normalizeFromBackend = (data) => {
   const str = (v) => (v !== undefined && v !== null && v !== "" ? String(v) : "");
   return {
     forwardRates: {
-      rate500gm:    str(data.forwardRates?.rate500gm),
-      rate1kg:      str(data.forwardRates?.rate1kg),
-      rate2kg:      str(data.forwardRates?.rate2kg),
-      rate5kg:      str(data.forwardRates?.rate5kg),
-      additionalKg: str(data.forwardRates?.additionalKg),
+      rate500gm:    str(data.forwardRates?.rate500gm) || "0",
+      rate1kg:      str(data.forwardRates?.rate1kg) || "0",
+      rate2kg:      str(data.forwardRates?.rate2kg) || "0",
+      rate5kg:      str(data.forwardRates?.rate5kg) || "0",
+      additionalKg: str(data.forwardRates?.additionalKg) || "0",
     },
     zoneRates: {
-      local:    str(data.zoneRates?.local),
-      regional: str(data.zoneRates?.regional),
-      national: str(data.zoneRates?.national),
+      local:    str(data.zoneRates?.local) || "0",
+      regional: str(data.zoneRates?.regional) || "0",
+      national: str(data.zoneRates?.national) || "0",
     },
     buyingRate: {
-      buyRate:             str(data.buyRate),
+      buyRate:             str(data.buyRate) || "0",
       internalCostPercent: data.internalCostPercent !== undefined && data.internalCostPercent !== null ? String(data.internalCostPercent) : "70",
     },
     codCharges: {
-      codCharge:        str(data.codCharge),
-      codPercentage:    str(data.codPercentage),
-      codBuyCharge:     str(data.codBuyCharge),
-      codBuyPercentage: str(data.codBuyPercentage),
+      codCharge:        str(data.codCharge) || "40",
+      codPercentage:    str(data.codPercentage) || "0",
+      codBuyCharge:     str(data.codBuyCharge) || "0",
+      codBuyPercentage: str(data.codBuyPercentage) || "0",
     },
     rtoCharges: {
-      rtoCharge:    str(data.rtoCharge),
-      rtoBuyCharge: str(data.rtoBuyCharge),
+      rtoCharge:    str(data.rtoCharge) || "0",
+      rtoBuyCharge: str(data.rtoBuyCharge) || "0",
     },
     additionalCharges: {
-      reversePickup:   str(data.reversePickup),
-      fuelCharge:      str(data.fuelCharge),
-      insuranceCharge: str(data.insuranceCharge),
-      odaCharge:       str(data.odaCharge),
-      handlingCharge:  str(data.handlingCharge),
+      reversePickup:   str(data.reversePickup) || "0",
+      fuelCharge:      str(data.fuelCharge) || "0",
+      insuranceCharge: str(data.insuranceCharge) || "3.33",
+      odaCharge:       str(data.odaCharge) || "0",
+      handlingCharge:  str(data.handlingCharge) || "0",
     },
-    volumetricDivisor: data.volumetricDivisor ? String(data.volumetricDivisor) : "5000",
-    gst:           data.gst !== undefined && data.gst !== null ? Number(data.gst) : 18,
-    effectiveFrom: data.effectiveFrom ? data.effectiveFrom.split("T")[0] : "",
-    effectiveTo:   data.effectiveTo   ? data.effectiveTo.split("T")[0]   : "",
+    volumetricDivisor: str(data.volumetricDivisor) || "5000",
+    gst:          data.gst !== undefined ? data.gst : 18,
+    effectiveFrom: data.effectiveFrom ? new Date(data.effectiveFrom).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+    effectiveTo:   data.effectiveTo ? new Date(data.effectiveTo).toISOString().split('T')[0] : new Date(Date.now() + 365*24*60*60*1000).toISOString().split('T')[0],
     serviceability: {
       codEnabled:     data.serviceability?.codEnabled     !== false,
       prepaidEnabled: data.serviceability?.prepaidEnabled !== false,
@@ -108,11 +108,6 @@ const validateForm = (formData) => {
 
   if (formData.gst === "" || formData.gst === null || formData.gst === undefined)
     return "GST percentage is required.";
-  if (!formData.forwardRates.rate500gm) return "500gm Forward Rate is required.";
-  if (formData.codCharges.codCharge === "" || formData.codCharges.codCharge === null)
-    return "Selling COD Charge is required.";
-  if (!formData.effectiveFrom) return "Effective From date is required.";
-  if (!formData.effectiveTo)   return "Effective To date is required.";
 
   const gst = num(formData.gst);
   if (gst !== null && (gst < 0 || gst > 100)) return "GST percentage must be between 0% and 100%.";
@@ -520,11 +515,13 @@ const RateForm = ({ formData, onChange, onSave, onReset, onBack, saving, activeT
               <FormInput label="Handling Charge" value={additionalCharges.handlingCharge} onChange={(v) => field("additionalCharges","handlingCharge",v)} />
               <FormInput 
                 label="Insurance (%)" 
-                value={additionalCharges.insuranceCharge} 
-                onChange={(v) => field("additionalCharges","insuranceCharge",v)} 
+                value="3.33 (Fixed Global)" 
+                onChange={() => {}} 
+                disabled={true}
+                type="text"
                 prefix="%" 
-                placeholder="2"
-                helperText="Per-ratecard insurance % override (Default 2%)"
+                placeholder="3.33"
+                helperText="Global Fixed Policy: ₹50 per ₹1,500 Order Value (Amount ÷ 30)"
               />
               <FormInput label="Reverse Pickup"  value={additionalCharges.reversePickup}  onChange={(v) => field("additionalCharges","reversePickup",v)} />
             </div>
