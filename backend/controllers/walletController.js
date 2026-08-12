@@ -265,7 +265,6 @@ const verifyRazorpayPayment = async (req, res) => {
 
       rechargeAmount = order.amount / 100; // Authoritative Razorpay order amount in paise -> divide by 100
     } catch (orderErr) {
-      if (orderErr.status === 403) return; // already handled
       console.error("[RAZORPAY_RECHARGE_AUDIT] ORDER_FETCH_FAILED:", orderErr.message);
       return res.status(400).json({
         success: false,
