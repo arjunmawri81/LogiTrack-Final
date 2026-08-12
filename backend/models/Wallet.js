@@ -16,6 +16,16 @@ const walletSchema = new mongoose.Schema(
 
     transactions: [
       {
+        razorpayPaymentId: {
+          type: String,
+          default: null,
+        },
+
+        razorpayOrderId: {
+          type: String,
+          default: null,
+        },
+
         amount: Number,
 
         type: {
@@ -36,5 +46,7 @@ const walletSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+walletSchema.index({ "transactions.razorpayPaymentId": 1 });
 
 module.exports = mongoose.models.Wallet || mongoose.model("Wallet", walletSchema);

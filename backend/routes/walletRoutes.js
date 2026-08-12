@@ -11,6 +11,7 @@ const {
   getWalletSummary,
   createRazorpayOrder,
   verifyRazorpayPayment,
+  handleRazorpayWebhook,
 } = require("../controllers/walletController");
 
 // ================================
@@ -23,13 +24,10 @@ router.get(
 );
 
 // ================================
-// RECHARGE WALLET
+// RECHARGE WALLET (DISABLED FOR SECURITY - MUST USE RAZORPAY)
 // ================================
-router.post(
-  "/recharge",
-  authMiddleware,
-  rechargeWallet
-);
+// Unverified direct credit disabled to prevent unauthorized wallet manipulation
+// router.post("/recharge", authMiddleware, rechargeWallet);
 
 // ================================
 // DEBIT WALLET
@@ -74,6 +72,14 @@ router.post(
   "/verify-payment",
   authMiddleware,
   verifyRazorpayPayment
+);
+
+// ================================
+// RAZORPAY - WEBHOOK FALLBACK
+// ================================
+router.post(
+  "/webhook",
+  handleRazorpayWebhook
 );
 
 module.exports = router;

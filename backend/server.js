@@ -73,7 +73,7 @@ if (process.env.NODE_ENV !== "production") {
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 
 app.use(
-  "/api/couriers/webhook",
+  ["/api/couriers/webhook", "/api/wallet/webhook"],
   express.json({
     verify: (req, res, buf) => {
       req.rawBody = buf;

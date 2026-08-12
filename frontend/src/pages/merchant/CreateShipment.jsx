@@ -585,18 +585,18 @@ const CreateShipment = () => {
                   <div className="form-group" style={{ marginBottom: "16px" }}>
                     <div style={{
                       padding: "10px 14px",
-                      background: "#f8fafc",
-                      border: "1px solid #e2e8f0",
+                      background: "#141c2e",
+                      border: "1px solid #2a3a52",
                       borderRadius: "10px",
                       fontSize: "13px",
-                      color: "#334155",
+                      color: "#94a3b8",
                       display: "flex",
                       alignItems: "center",
                       gap: "8px"
                     }}>
                       <span style={{ fontSize: "16px" }}>🏭</span>
                       <div>
-                        <strong style={{ color: "#0f172a" }}>Pickup Warehouse: </strong>
+                        <strong style={{ color: "#f8fafc" }}>Pickup Warehouse: </strong>
                         {warehouses.find(w => w._id === formData.warehouseId)?.name || 'Default Warehouse'}
                         {warehouses.find(w => w._id === formData.warehouseId)?.city && ` (${warehouses.find(w => w._id === formData.warehouseId)?.city})`}
                       </div>
@@ -606,7 +606,7 @@ const CreateShipment = () => {
 
                 {/* Surface / Air Tab Switcher */}
                 {!recommendationLoading && (surfaceRates.length > 0 || airRates.length > 0) && (
-                  <div style={{ display: "flex", gap: "6px", marginBottom: "20px", background: "#f1f5f9", borderRadius: "10px", padding: "4px" }}>
+                  <div style={{ display: "flex", gap: "6px", marginBottom: "20px", background: "#141c2e", border: "1px solid #2a3a52", borderRadius: "10px", padding: "4px" }}>
                     {["Surface", "Air"].map((tab) => {
                       const isActive = activeTab === tab;
                       const count = tab === "Surface" ? surfaceRates.length : airRates.length;
@@ -630,15 +630,15 @@ const CreateShipment = () => {
                           }}
                           style={{
                             flex: 1,
-                            padding: "8px 16px",
+                            padding: "10px 16px",
                             borderRadius: "8px",
                             border: "none",
                             cursor: "pointer",
-                            background: isActive ? "#fff" : "transparent",
-                            color: isActive ? "#0f172a" : "#64748b",
+                            background: isActive ? "#f97316" : "transparent",
+                            color: isActive ? "#ffffff" : "#94a3b8",
                             fontWeight: isActive ? "700" : "500",
                             fontSize: "13px",
-                            boxShadow: isActive ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
+                            boxShadow: isActive ? "0 2px 8px rgba(249, 115, 22, 0.4)" : "none",
                             transition: "all 0.2s",
                           }}
                         >

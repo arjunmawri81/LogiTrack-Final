@@ -11,6 +11,7 @@ const Wallet = () => {
   });
 
   const [amount, setAmount] = useState("");
+  const [isRecharging, setIsRecharging] = useState(false);
 
   const [summary, setSummary] = useState({
     totalCredit: 0,
@@ -68,10 +69,14 @@ const Wallet = () => {
       return;
     }
 
+    if (isRecharging) return;
+    setIsRecharging(true);
+
     // 1. Razorpay script load karo
     const scriptLoaded = await loadRazorpayScript();
     if (!scriptLoaded) {
       alert("Razorpay load nahi hua. Internet check karein.");
+      setIsRecharging(false);
       return;
     }
 
@@ -83,8 +88,15 @@ const Wallet = () => {
 
       if (!data.success) {
         alert(data.message || "Order create karne mein problem hui.");
+        setIsRecharging(false);
         return;
       }
+
+      // User details for prefill & notes
+      let userObj = {};
+      try {
+        userObj = JSON.parse(localStorage.getItem("user") || "{}");
+      } catch (e) {}
 
       // 3. Razorpay Checkout popup open karo
       const options = {
@@ -110,25 +122,31 @@ const Wallet = () => {
               fetchWallet();
               fetchSummary();
             } else {
-              alert("Payment verify nahi hua.");
+              alert(verifyRes.data.message || "Payment verify nahi hua.");
             }
           } catch (err) {
             alert(
               err?.response?.data?.message || "Verification failed"
             );
+          } finally {
+            setIsRecharging(false);
           }
         },
         prefill: {
-          name: "",
-          email: "",
-          contact: "",
+          name: userObj.name || "",
+          email: userObj.email || "",
+          contact: userObj.phone || "",
+        },
+        notes: {
+          merchantId: userObj.id || userObj._id || "",
         },
         theme: {
-          color: "#6366f1",
+          color: "#ea580c",
         },
         modal: {
           ondismiss: () => {
             console.log("Razorpay popup closed");
+            setIsRecharging(false);
           },
         },
       };
@@ -139,6 +157,7 @@ const Wallet = () => {
       alert(
         error?.response?.data?.message || "Recharge Failed"
       );
+      setIsRecharging(false);
     }
   };
 
@@ -220,10 +239,17 @@ const Wallet = () => {
 
             <button
               onClick={rechargeWallet}
-              className="wallet-btn"
+              disabled={isRecharging}
+              className={`wallet-btn ${isRecharging ? 'wallet-btn-disabled' : ''}`}
             >
-              <FaPlus />
-              Recharge Now
+              {isRecharging ? (
+                <>⏳ Processing...</>
+              ) : (
+                <>
+                  <FaPlus />
+                  Recharge Now
+                </>
+              )}
             </button>
           </div>
         </div>
