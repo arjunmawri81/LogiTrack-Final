@@ -171,7 +171,7 @@ const registerUser = async (req, res) => {
     res.status(201).json({
       success: true,
       message: userRole === "MERCHANT" 
-        ? "Registration successful! Your account is pending admin approval." 
+        ? "Registration successful! Please login to your account to complete your profile setup." 
         : `${userRole} Registered Successfully`,
       user: userResponse
     });
@@ -232,14 +232,6 @@ const loginUser = async (req, res) => {
       return res.status(403).json({
         success: false,
         message: "Your account is inactive. Please contact admin.",
-      });
-    }
-
-    // Merchant Approval Check
-    if ((user.role === "MERCHANT" || user.role === "merchant") && user.isApproved !== true) {
-      return res.status(403).json({
-        success: false,
-        message: "Your merchant account is pending admin approval. Please wait for an admin to approve your account before logging in.",
       });
     }
 

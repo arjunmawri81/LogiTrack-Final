@@ -97,7 +97,7 @@ const Register = () => {
 
       await api.post("/auth/register", payload);
 
-      alert("Registration Successful. Please Login.");
+      alert("Registration Successful! Please login to your account to complete your profile setup.");
       navigate("/login");
     } catch (error) {
       alert(error?.response?.data?.message || "Registration Failed");
