@@ -1370,7 +1370,7 @@ const createShipment = async (req, res) => {
       }).session(session);
     }
 
-    if (!rateCard || rateCard.enabled === false || rateCard.isActive === false) {
+    if (!rateCard || rateCard.isActive === false) {
       if (session) await session.abortTransaction();
       return res.status(400).json({
         success: false,
@@ -1731,10 +1731,10 @@ const createBulkShipments = async (req, res) => {
     }
 
     // Ensure fallback is null if no rate card is configured
-    if (surfaceRateCard && (surfaceRateCard.enabled === false || surfaceRateCard.isActive === false)) {
+    if (surfaceRateCard && surfaceRateCard.isActive === false) {
       surfaceRateCard = null;
     }
-    if (airRateCard && (airRateCard.enabled === false || airRateCard.isActive === false)) {
+    if (airRateCard && airRateCard.isActive === false) {
       airRateCard = null;
     }
 

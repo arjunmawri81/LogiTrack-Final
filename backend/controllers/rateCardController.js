@@ -80,20 +80,31 @@ const calculateShippingRates = (rateCard, params) => {
   const billedWeight = Math.max(deadWeight, volumetricWeight);
   const w = billedWeight;
 
-  // 1. Forward Rate
+  // 1. Forward Rate Calculation with Fallback Slabs
+  const fw500 = rateCard.forwardRates?.rate500gm || 0;
+  const fw1k  = rateCard.forwardRates?.rate1kg || 0;
+  const fw2k  = rateCard.forwardRates?.rate2kg || 0;
+  const fw5k  = rateCard.forwardRates?.rate5kg || 0;
+  const fwAdd = rateCard.forwardRates?.additionalKg || 0;
+
+  // Fallback chain so 0 rate in higher slab doesn't zero-out forwardRate
+  const base1k = fw1k || fw500;
+  const base2k = fw2k || base1k;
+  const base5k = fw5k || base2k;
+
   let forwardRate = 0;
   if (w <= 0.5) {
-    forwardRate = rateCard.forwardRates?.rate500gm || 0;
+    forwardRate = fw500 || base1k;
   } else if (w <= 1) {
-    forwardRate = rateCard.forwardRates?.rate1kg || 0;
+    forwardRate = base1k;
   } else if (w <= 2) {
-    forwardRate = rateCard.forwardRates?.rate2kg || 0;
+    forwardRate = base2k;
   } else if (w <= 5) {
-    forwardRate = rateCard.forwardRates?.rate5kg || 0;
+    forwardRate = base5k;
   } else {
-    forwardRate =
-      (rateCard.forwardRates?.rate5kg || 0) +
-      Math.ceil(w - 5) * (rateCard.forwardRates?.additionalKg || 0);
+    // For weight > 5kg, if additionalKg is set use it, else base rate
+    const extraKg = Math.ceil(w - 5);
+    forwardRate = base5k + (fwAdd > 0 ? extraKg * fwAdd : 0);
   }
 
   // 2. Zone Rate
@@ -133,9 +144,9 @@ const calculateShippingRates = (rateCard, params) => {
   // 7. Handling Charge
   const handlingCharge = rateCard.handlingCharge || 0;
 
-  // 8. RTO Charge & RTO Buy Charge
-  const rtoCharge = isRtoApplicable ? (rateCard.rtoCharge || 60) : (rateCard.rtoCharge || 60);
-  const rtoBuyCharge = rateCard.rtoBuyCharge && rateCard.rtoBuyCharge > 0 ? rateCard.rtoBuyCharge : Math.round(rtoCharge * 0.60);
+  // 8. RTO Charge & RTO Buy Charge (Applicable only if RTO shipment)
+  const rtoCharge = isRtoApplicable ? (rateCard.rtoCharge || 60) : 0;
+  const rtoBuyCharge = isRtoApplicable ? (rateCard.rtoBuyCharge && rateCard.rtoBuyCharge > 0 ? rateCard.rtoBuyCharge : Math.round(rtoCharge * 0.60)) : 0;
   const rtoMarginEarned = roundMoney(rtoCharge - rtoBuyCharge);
 
   // Subtotal
@@ -805,19 +816,18 @@ const getRecommendedCouriers = async (req, res) => {
       amount,
       paymentMode
     } = req.query;
-
-    let targetMerchantId = merchantId;
+    let rawMerchantId = merchantId;
     if (req.user && req.user.role === "MERCHANT") {
-      targetMerchantId = req.user.id;
-    } else if (!targetMerchantId && req.user) {
-      targetMerchantId = req.user.id;
+      rawMerchantId = req.user.id;
+    } else if (!rawMerchantId && req.user) {
+      rawMerchantId = req.user.id;
     }
 
-    if (!targetMerchantId) {
-      return res.status(400).json({
-        success: false,
-        message: "Merchant ID is required",
-      });
+    let parsedMerchantId = null;
+    try {
+      parsedMerchantId = parseMerchantId(rawMerchantId);
+    } catch (e) {
+      parsedMerchantId = null;
     }
 
     const allCouriers = await Courier.find({ isActive: true });
@@ -830,56 +840,62 @@ const getRecommendedCouriers = async (req, res) => {
     }
 
     const selectedServiceType = serviceType || "Surface";
+    const serviceTypeRegex = new RegExp(`^${selectedServiceType.trim()}$`, 'i');
 
     const defaultCards = await RateCard.find({
       merchantId: null,
-      serviceType: selectedServiceType,
+      serviceType: serviceTypeRegex,
       isActive: true,
     }).populate('courierId');
 
-    const merchantCards = await RateCard.find({
-      merchantId: targetMerchantId,
-      serviceType: selectedServiceType,
-      isActive: true,
-    }).populate('courierId');
+    let merchantCards = [];
+    if (parsedMerchantId) {
+      merchantCards = await RateCard.find({
+        merchantId: parsedMerchantId,
+        serviceType: serviceTypeRegex,
+        isActive: true,
+      }).populate('courierId');
+    }
 
     const rateCardMap = new Map();
 
-    defaultCards.forEach((card) => {
-      if (card.courierId && card.enabled !== false && card.isActive !== false) {
-        const fw = card.forwardRates || {};
-        if ((fw.rate500gm || 0) > 0 || (fw.rate1kg || 0) > 0 || (fw.rate2kg || 0) > 0) {
-          const key = card.courierId._id.toString();
-          rateCardMap.set(key, {
-            ...card.toObject(),
-            pricingType: "DEFAULT",
-          });
-        }
-      }
-    });
+    const addCardToMap = (card, pricingType) => {
+      if (!card || card.isActive === false) return;
+      const fw = card.forwardRates || {};
+      const hasValidRates = (fw.rate500gm || 0) > 0 || (fw.rate1kg || 0) > 0 || (fw.rate2kg || 0) > 0 || (fw.rate5kg || 0) > 0;
+      if (!hasValidRates) return;
 
-    merchantCards.forEach((card) => {
+      const cardObj = {
+        ...card.toObject(),
+        pricingType,
+      };
+
+      // Key by courierId ObjectId if present
       if (card.courierId) {
-        const key = card.courierId._id.toString();
-        const fw = card.forwardRates || {};
-        const hasValidRates = (fw.rate500gm || 0) > 0 || (fw.rate1kg || 0) > 0 || (fw.rate2kg || 0) > 0 || (fw.rate5kg || 0) > 0;
-        if (card.enabled !== false && card.isActive !== false && hasValidRates) {
-          rateCardMap.set(key, {
-            ...card.toObject(),
-            pricingType: "MERCHANT",
-          });
-        } else {
-          // Explicitly delete key if merchant rate card is disabled or has 0 rates
-          rateCardMap.delete(key);
-        }
+        const cId = card.courierId._id ? card.courierId._id.toString() : card.courierId.toString();
+        rateCardMap.set(cId, cardObj);
       }
-    });
+      // Also key by courierPartner string (code / name) if present
+      if (card.courierPartner) {
+        rateCardMap.set(card.courierPartner.trim().toUpperCase(), cardObj);
+      }
+    };
+
+    // 1. Add Default Cards first
+    defaultCards.forEach((card) => addCardToMap(card, "DEFAULT"));
+
+    // 2. Merchant Cards override Default Cards
+    merchantCards.forEach((card) => addCardToMap(card, "MERCHANT"));
 
     const zone = determineZone(pickup, destination);
 
     const couriersWithRates = allCouriers.map((courier) => {
-      const rateCard = rateCardMap.get(courier._id.toString());
-      const hasRate = !!rateCard;
+      const cIdStr = courier._id ? courier._id.toString() : "";
+      const cCodeStr = courier.code ? courier.code.trim().toUpperCase() : "";
+      const cNameStr = courier.name ? courier.name.trim().toUpperCase() : "";
+
+      const rateCard = rateCardMap.get(cIdStr) || rateCardMap.get(cCodeStr) || rateCardMap.get(cNameStr);
+      let hasRate = !!rateCard;
 
       let forwardRate = 0;
       let codCharge = 0;
@@ -905,6 +921,10 @@ const getRecommendedCouriers = async (req, res) => {
         fuelCharge = details.fuelCharge;
         gstAmount = details.gstAmount;
         total = details.finalCharge;
+
+        if (total <= 0) {
+          hasRate = false;
+        }
       }
 
       return {
@@ -931,9 +951,20 @@ const getRecommendedCouriers = async (req, res) => {
     const availableCouriers = couriersWithRates.filter((c) => c.hasRate);
 
     if (availableCouriers.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "No pricing available for any courier. Please contact administrator.",
+      // Return success with empty array so frontend can show "No rates configured"
+      // instead of a hard error. This allows Surface/Air tabs to work independently.
+      return res.status(200).json({
+        success: true,
+        recommended: null,
+        couriers: [],
+        totalCouriers: 0,
+        message: `No ${selectedServiceType} rate cards configured. Please contact administrator.`,
+        summary: {
+          defaultRates: 0,
+          merchantRates: 0,
+          standardRates: 0,
+          total: 0,
+        },
       });
     }
 

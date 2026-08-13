@@ -10,7 +10,7 @@ const CreateShipment = () => {
   const location = useLocation();
   const selectedOrder = location.state?.order;
   
-  //   bulk shipment support
+  // bulk shipment support
   const bulkOrderIds = location.state?.orderIds || [];
   const isBulk = location.state?.isBulk || false;
 
@@ -26,6 +26,7 @@ const CreateShipment = () => {
   const [orderDropdownOpen, setOrderDropdownOpen] = useState(false);
   const [orderSearchTerm, setOrderSearchTerm] = useState("");
   const orderDropdownRef = useRef(null);
+  const calcTimeoutRef = useRef(null);
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -87,10 +88,9 @@ const CreateShipment = () => {
   const getMerchantId = () => {
     try {
       const user = JSON.parse(localStorage.getItem("user") || "{}");
-      return user?.id || user?.merchantId || null;
+      return user?.id || user?.merchantId || user?._id || "me";
     } catch (error) {
-      console.error("Error getting merchantId:", error);
-      return null;
+      return "me";
     }
   };
 
@@ -113,18 +113,22 @@ const CreateShipment = () => {
 
   useEffect(() => {
     if (formData.orderId && formData.courier) {
-      calculatePricing();
+      clearTimeout(calcTimeoutRef.current);
+      calcTimeoutRef.current = setTimeout(() => {
+        calculatePricing(activeTab);
+      }, 150);
     }
+    return () => clearTimeout(calcTimeoutRef.current);
   }, [formData.orderId, formData.courier, activeTab]);
 
-  // Fetch recommendations when order or warehouse is selected
+  // Fetch recommendations when order or warehouse is selected/loaded
   useEffect(() => {
-    if (formData.orderId) {
+    if (formData.orderId && currentOrder) {
       fetchRecommendations();
-    } else {
+    } else if (!formData.orderId) {
       fetchActiveCouriers();
     }
-  }, [formData.orderId, formData.warehouseId]);
+  }, [formData.orderId, formData.warehouseId, currentOrder, warehouses]);
 
   // Auto-sync warehouse, insurance, and notification options when order changes
   useEffect(() => {
@@ -149,16 +153,7 @@ const CreateShipment = () => {
     try {
       const res = await api.get("/couriers/active/list");
       if (res.data.success && res.data.couriers && res.data.couriers.length > 0) {
-        const mapped = res.data.couriers.map((c) => ({
-          courierId: c._id,
-          courierName: c.name,
-          total: 45,
-          forwardRate: 45,
-          codCharge: 0,
-          estimatedDays: c.estimatedDays || 3,
-        }));
-        setSurfaceRates((prev) => (prev.length === 0 ? mapped : prev));
-        setAirRates((prev) => (prev.length === 0 ? mapped : prev));
+        // Do not seed total: 0 placeholders if order is selected
       }
     } catch (err) {
       // Fallback silent handle
@@ -196,12 +191,13 @@ const CreateShipment = () => {
     }
   };
 
-  const calculatePricing = async () => {
+  const calculatePricing = async (serviceTypeOverride) => {
+    const resolvedServiceType = serviceTypeOverride ?? activeTab;
     try {
       const res = await api.post("/ratecards/calculate", {
         orderId: formData.orderId,
         courierId: formData.courier,
-        serviceType: activeTab,
+        serviceType: resolvedServiceType,
       });
       
       if (res.data.success) {
@@ -242,23 +238,20 @@ const CreateShipment = () => {
         return;
       }
 
-      const merchantId = getMerchantId();
+      const merchantId = getMerchantId() || "me";
 
-      if (!merchantId) {
-        setRecommendationLoading(false);
-        return;
-      }
-
-      const weight = currentOrder.weight || 0.5;
-      const selectedWarehouse = warehouses.find(w => w._id === formData.warehouseId);
+      const weight = currentOrder.weight || currentOrder.packageWeight || 0.5;
+      const selectedWarehouse = warehouses.find(w => w._id === formData.warehouseId) || (warehouses.length > 0 ? warehouses[0] : null);
       const pickup = selectedWarehouse ? selectedWarehouse.pincode : "";
-      const destination = currentOrder.customerPincode || "";
+      const destination = currentOrder.customerPincode || currentOrder.pincode || currentOrder.deliveryPincode || currentOrder.shippingAddress?.pincode || "";
+      const amount = currentOrder.amount || currentOrder.totalAmount || 0;
+      const paymentMode = currentOrder.paymentMode || currentOrder.paymentMethod || "PREPAID";
 
-      let surfaceUrl = `/ratecards/recommendation?merchantId=${merchantId}&weight=${weight}&serviceType=Surface`;
+      let surfaceUrl = `/ratecards/recommendation?merchantId=${merchantId}&weight=${weight}&serviceType=Surface&amount=${amount}&paymentMode=${paymentMode}`;
       if (pickup) surfaceUrl += `&pickup=${pickup}`;
       if (destination) surfaceUrl += `&destination=${destination}`;
 
-      let airUrl = `/ratecards/recommendation?merchantId=${merchantId}&weight=${weight}&serviceType=Air`;
+      let airUrl = `/ratecards/recommendation?merchantId=${merchantId}&weight=${weight}&serviceType=Air&amount=${amount}&paymentMode=${paymentMode}`;
       if (pickup) airUrl += `&pickup=${pickup}`;
       if (destination) airUrl += `&destination=${destination}`;
 
@@ -282,8 +275,12 @@ const CreateShipment = () => {
         recAir = airRes.value.data.recommended || null;
       }
 
-      setSurfaceRates(surfaceRatesList);
-      setAirRates(airRatesList);
+      if (surfaceRes.status === "fulfilled") {
+        setSurfaceRates(surfaceRatesList);
+      }
+      if (airRes.status === "fulfilled") {
+        setAirRates(airRatesList);
+      }
       setRecommendedSurface(recSurface);
       setRecommendedAir(recAir);
 
@@ -585,18 +582,18 @@ const CreateShipment = () => {
                   <div className="form-group" style={{ marginBottom: "16px" }}>
                     <div style={{
                       padding: "10px 14px",
-                      background: "#141c2e",
-                      border: "1px solid #2a3a52",
+                      background: "#f8fafc",
+                      border: "1px solid #e2e8f0",
                       borderRadius: "10px",
                       fontSize: "13px",
-                      color: "#94a3b8",
+                      color: "#334155",
                       display: "flex",
                       alignItems: "center",
                       gap: "8px"
                     }}>
                       <span style={{ fontSize: "16px" }}>🏭</span>
                       <div>
-                        <strong style={{ color: "#f8fafc" }}>Pickup Warehouse: </strong>
+                        <strong style={{ color: "#0f172a" }}>Pickup Warehouse: </strong>
                         {warehouses.find(w => w._id === formData.warehouseId)?.name || 'Default Warehouse'}
                         {warehouses.find(w => w._id === formData.warehouseId)?.city && ` (${warehouses.find(w => w._id === formData.warehouseId)?.city})`}
                       </div>
@@ -606,7 +603,7 @@ const CreateShipment = () => {
 
                 {/* Surface / Air Tab Switcher */}
                 {!recommendationLoading && (surfaceRates.length > 0 || airRates.length > 0) && (
-                  <div style={{ display: "flex", gap: "6px", marginBottom: "20px", background: "#141c2e", border: "1px solid #2a3a52", borderRadius: "10px", padding: "4px" }}>
+                  <div style={{ display: "flex", gap: "6px", marginBottom: "20px", background: "#f1f5f9", borderRadius: "10px", padding: "4px" }}>
                     {["Surface", "Air"].map((tab) => {
                       const isActive = activeTab === tab;
                       const count = tab === "Surface" ? surfaceRates.length : airRates.length;
@@ -630,15 +627,15 @@ const CreateShipment = () => {
                           }}
                           style={{
                             flex: 1,
-                            padding: "10px 16px",
+                            padding: "8px 16px",
                             borderRadius: "8px",
                             border: "none",
                             cursor: "pointer",
-                            background: isActive ? "#f97316" : "transparent",
-                            color: isActive ? "#ffffff" : "#94a3b8",
+                            background: isActive ? "#fff" : "transparent",
+                            color: isActive ? "#0f172a" : "#64748b",
                             fontWeight: isActive ? "700" : "500",
                             fontSize: "13px",
-                            boxShadow: isActive ? "0 2px 8px rgba(249, 115, 22, 0.4)" : "none",
+                            boxShadow: isActive ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
                             transition: "all 0.2s",
                           }}
                         >
