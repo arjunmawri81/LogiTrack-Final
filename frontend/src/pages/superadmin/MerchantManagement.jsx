@@ -596,7 +596,11 @@ const MerchantManagement = () => {
                         Wallet
                       </div>
                       <div style={{ fontSize: "24px", fontWeight: "700", color: "#0f172a" }}>
-                        ₹{selectedMerchant?.walletBalance || 0}
+                        ₹{(() => {
+                          const num = Number(selectedMerchant?.walletBalance);
+                          if (!selectedMerchant?.walletBalance || isNaN(num) || !isFinite(num) || num > 1e11 || num < -1e11) return "0.00";
+                          return num.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        })()}
                       </div>
                     </div>
                     <div style={{

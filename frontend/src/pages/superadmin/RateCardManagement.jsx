@@ -1017,7 +1017,13 @@ const RateCardManagement = () => {
             </div>
             <div className="rcm-merchant-item" style={{ background: "#f0fdf4", borderColor: "#bbf7d0" }}>
               <p className="rcm-merchant-item-label" style={{ color: "#166534" }}>Wallet Balance</p>
-              <p className="rcm-merchant-item-value highlight-wallet">₹{merchantInfo.walletBalance || 0}</p>
+              <p className="rcm-merchant-item-value highlight-wallet">
+                ₹{(() => {
+                  const num = Number(merchantInfo.walletBalance);
+                  if (!merchantInfo.walletBalance || isNaN(num) || !isFinite(num) || num > 1e11 || num < -1e11) return "0.00";
+                  return num.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                })()}
+              </p>
             </div>
             <div className="rcm-merchant-item" style={{ gridColumn: "1 / -1", background: "#f8fafc" }}>
               <p className="rcm-merchant-item-label">KYC Documents</p>

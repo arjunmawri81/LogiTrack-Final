@@ -115,7 +115,7 @@ app.use("/api/ndr", ndrRoutes);
 app.use("/api/rto", rtoRoutes);
 app.use("/api/ratecards", rateCardRoutes);
 app.use("/api/tickets", ticketRoutes);
-app.use("/api/warehouses", warehouseRoutes); 
+app.use("/api/warehouses", warehouseRoutes);
 app.use("/api/remittance", remittanceRoutes);
 app.use("/api/channels", channelRoutes);
 // Webhook receivers (Shopify & WooCommerce real-time order events)

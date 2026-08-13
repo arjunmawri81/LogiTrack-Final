@@ -491,7 +491,11 @@ const Merchants = () => {
                 <div className="merchants-modal-stats">
                   <div className="merchants-modal-stat-item">
                     <div className="merchants-modal-stat-number">
-                      ₹{selectedMerchant.walletBalance || 0}
+                      ₹{(() => {
+                        const num = Number(selectedMerchant.walletBalance);
+                        if (!selectedMerchant.walletBalance || isNaN(num) || !isFinite(num) || num > 1e11 || num < -1e11) return "0.00";
+                        return num.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                      })()}
                     </div>
                     <div className="merchants-modal-stat-label">
                       <FaMoneyBillWave />
