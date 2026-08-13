@@ -114,7 +114,7 @@
     color: #f97316;
   }
 
-  /* Active Link - General */
+  /* Active Link - General (All items use unified Orange theme) */
   .sidebar-menu a.active {
     background: linear-gradient(90deg, #f97316, #ea580c);
     color: white !important;
@@ -124,39 +124,6 @@
 
   .sidebar-menu a.active svg {
     color: white;
-  }
-
-  /* Support Tickets - Specific Active State */
-  .sidebar-menu a[href="/admin/tickets"].active {
-    background: linear-gradient(90deg, #8b5cf6, #7c3aed);
-    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
-  }
-
-  .sidebar-menu a[href="/admin/tickets"]:hover {
-    background: rgba(139, 92, 246, 0.1);
-    color: #a78bfa;
-  }
-
-  /* NDR - Specific Active State */
-  .sidebar-menu a[href="/admin/ndr"].active {
-    background: linear-gradient(90deg, #ef4444, #dc2626);
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-  }
-
-  .sidebar-menu a[href="/admin/ndr"]:hover {
-    background: rgba(239, 68, 68, 0.1);
-    color: #fca5a5;
-  }
-
-  /* RTO - Specific Active State */
-  .sidebar-menu a[href="/admin/rto"].active {
-    background: linear-gradient(90deg, #f59e0b, #d97706);
-    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-  }
-
-  .sidebar-menu a[href="/admin/rto"]:hover {
-    background: rgba(245, 158, 11, 0.1);
-    color: #fbbf24;
   }
 
   /* Logout */
