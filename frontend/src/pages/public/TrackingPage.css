@@ -308,3 +308,147 @@
     font-size: 16px;
   }
 }
+
+/* ===== LOADING & ERROR STATES ===== */
+.tracking-loading-box {
+  margin-top: 50px;
+  padding: 40px;
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid #eef2f7;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  color: #64748b;
+}
+
+.spin-icon {
+  animation: spin 1s linear infinite;
+  color: #f97316;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.tracking-error-box {
+  margin-top: 50px;
+  padding: 40px;
+  background: #fef2f2;
+  border-radius: 20px;
+  border: 1px solid #fee2e2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: #991b1b;
+}
+
+.tracking-error-box h3 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.tracking-error-box p {
+  margin: 0;
+  font-size: 15px;
+  color: #b91c1c;
+}
+
+/* ===== TIMELINE ===== */
+.tracking-timeline-wrapper {
+  margin-top: 40px;
+  padding-top: 30px;
+  border-top: 1px solid #e2e8f0;
+  text-align: left;
+}
+
+.timeline-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+}
+
+.public-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: relative;
+  padding-left: 20px;
+}
+
+.public-timeline::before {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: #e2e8f0;
+}
+
+.timeline-item {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.timeline-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #f97316;
+  border: 3px solid #ffffff;
+  box-shadow: 0 0 0 2px #f97316;
+  position: relative;
+  z-index: 1;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+.timeline-content {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px 18px;
+  flex: 1;
+}
+
+.timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.timeline-status-text {
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 15px;
+}
+
+.timeline-time {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.timeline-location {
+  font-size: 13px;
+  color: #3b82f6;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+}
+
+.timeline-remarks {
+  font-size: 13px;
+  color: #475569;
+  margin-top: 4px;
+}

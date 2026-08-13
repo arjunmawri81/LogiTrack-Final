@@ -2168,6 +2168,94 @@ const trackShipment = async (req, res) => {
 };
 
 // ===============================
+// PUBLIC TRACK SHIPMENT BY AWB (NO AUTH REQUIRED)
+// ===============================
+const publicTrackShipment = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id || !id.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide a valid AWB number",
+      });
+    }
+
+    const cleanId = id.trim();
+    const isObjectId = mongoose.Types.ObjectId.isValid(cleanId);
+    
+    const shipment = await Shipment.findOne({
+      $or: [
+        { awb: cleanId },
+        { trackingNumber: cleanId },
+        ...(isObjectId ? [{ _id: cleanId }] : [])
+      ]
+    })
+      .populate("courierId", "name code")
+      .populate("orderId")
+      .populate("warehouseId");
+
+    if (!shipment) {
+      return res.status(404).json({
+        success: false,
+        message: "Shipment not found with AWB: " + cleanId,
+      });
+    }
+
+    // Attempt to pull live tracking if courier service available
+    let timeline = shipment.tracking || [];
+    let liveStatus = shipment.status || "MANIFESTED";
+    let estDelivery = shipment.expectedDelivery || shipment.createdAt;
+
+    try {
+      if (shipment.courierId) {
+        const courier = await Courier.findById(shipment.courierId);
+        if (courier) {
+          const tracking = await CourierService.trackShipment(courier, shipment.awb);
+          if (tracking?.response) {
+            if (tracking.response.timeline && tracking.response.timeline.length > 0) {
+              timeline = tracking.response.timeline;
+            }
+            if (tracking.response.status) {
+              liveStatus = tracking.response.status;
+            }
+            if (tracking.response.estimated_delivery) {
+              estDelivery = tracking.response.estimated_delivery;
+            }
+          }
+        }
+      }
+    } catch (e) {
+      logger.warn("Live courier tracking fetch failed for public track", { awb: shipment.awb, error: e.message });
+    }
+
+    const courierName = shipment.courierName || shipment.courierId?.name || "Standard Courier";
+    const origin = shipment.pickupAddress?.city || shipment.warehouseId?.city || "Origin";
+    const destination = shipment.deliveryAddress?.city || shipment.orderId?.shippingAddress?.city || shipment.shippingAddress?.city || "Destination";
+
+    return res.status(200).json({
+      success: true,
+      shipment: {
+        awb: shipment.awb,
+        status: liveStatus,
+        courierName: courierName,
+        origin: origin,
+        destination: destination,
+        expectedDelivery: estDelivery,
+        createdAt: shipment.createdAt,
+        trackingHistory: timeline,
+      }
+    });
+  } catch (error) {
+    logger.error("Public track shipment failed", { error: error.message, awb: req.params.id });
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ===============================
 // UPDATE SHIPMENT STATUS
 // ===============================
 const updateShipmentStatus = async (req, res) => {
@@ -2987,4 +3075,5 @@ module.exports = {
   generateLabel,
   bulkLabels,
   cancelShipment,
+  publicTrackShipment,
 };

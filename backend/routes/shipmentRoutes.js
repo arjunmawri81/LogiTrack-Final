@@ -18,7 +18,13 @@ const {
   getTrackingTimeline,
   generateLabel,
   bulkLabels,
+  publicTrackShipment,
 } = require("../controllers/shipmentController");
+
+// ===============================
+// PUBLIC TRACK SHIPMENT BY AWB (NO AUTH REQUIRED)
+// ===============================
+router.get("/public-track/:id", publicTrackShipment);
 
 // ===============================
 // CREATE SHIPMENT
