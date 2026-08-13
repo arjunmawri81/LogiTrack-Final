@@ -556,6 +556,7 @@ const getCourierRateCard = async (req, res) => {
     const selectedServiceType = serviceType || "Surface";
 
     let rateCard = null;
+    let isMerchantCustom = false;
     if (targetMerchantId) {
       rateCard = await RateCard.findOne({
         merchantId: targetMerchantId,
@@ -563,9 +564,14 @@ const getCourierRateCard = async (req, res) => {
         serviceType: selectedServiceType,
         isActive: true,
       }).populate('courierId');
+      if (rateCard) {
+        isMerchantCustom = true;
+      }
     }
 
-    if (!rateCard) {
+    const isExactOnly = req.query.exactOnly === "true" || req.query.exact === "true";
+
+    if (!rateCard && !isExactOnly) {
       rateCard = await RateCard.findOne({
         merchantId: null,
         courierId,
@@ -585,6 +591,7 @@ const getCourierRateCard = async (req, res) => {
       success: true,
       rateCard,
       pricingType: rateCard.merchantId ? "MERCHANT" : "DEFAULT",
+      isCustom: isMerchantCustom,
     });
   } catch (error) {
     res.status(500).json({
@@ -852,14 +859,18 @@ const getRecommendedCouriers = async (req, res) => {
     });
 
     merchantCards.forEach((card) => {
-      if (card.courierId && card.enabled !== false && card.isActive !== false) {
+      if (card.courierId) {
+        const key = card.courierId._id.toString();
         const fw = card.forwardRates || {};
-        if ((fw.rate500gm || 0) > 0 || (fw.rate1kg || 0) > 0 || (fw.rate2kg || 0) > 0) {
-          const key = card.courierId._id.toString();
+        const hasValidRates = (fw.rate500gm || 0) > 0 || (fw.rate1kg || 0) > 0 || (fw.rate2kg || 0) > 0 || (fw.rate5kg || 0) > 0;
+        if (card.enabled !== false && card.isActive !== false && hasValidRates) {
           rateCardMap.set(key, {
             ...card.toObject(),
             pricingType: "MERCHANT",
           });
+        } else {
+          // Explicitly delete key if merchant rate card is disabled or has 0 rates
+          rateCardMap.delete(key);
         }
       }
     });

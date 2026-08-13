@@ -12,7 +12,7 @@ const warehouseSchema = new mongoose.Schema(
     warehouseCode: {
       type: String,
       unique: true,
-      sparse: true,          // Allows multiple null values without E11000
+      sparse: true,         
       uppercase: true,
       trim: true,
     },

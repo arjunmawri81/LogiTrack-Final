@@ -786,9 +786,9 @@ const RateCardManagement = () => {
     if (!courier) return;
     try {
       setLoading((p) => ({ ...p, rates: true }));
-      const res = await api.get(`/ratecards/merchant/${merchantId}/${courier._id}?serviceType=${serviceType}`);
+      const res = await api.get(`/ratecards/merchant/${merchantId}/${courier._id}?serviceType=${serviceType}&exactOnly=true`);
       const data = res.data?.rateCard || res.data;
-      if (data && data.forwardRates) {
+      if (data && data.forwardRates && res.data?.isCustom !== false) {
         const normalized = normalizeFromBackend(data);
         setFormData(normalized);
         setInitialData(normalized);
