@@ -361,25 +361,6 @@ const Dashboard = () => {
           </button>
 
           <button
-            onClick={() => navigate("/admin/rate-cards")}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              padding: "11px 18px",
-              background: "#ffffff",
-              color: "#334155",
-              border: "1.5px solid #cbd5e1",
-              borderRadius: "12px",
-              fontWeight: "600",
-              fontSize: "13px",
-              cursor: "pointer"
-            }}
-          >
-            <FaTags size={13} color="#64748b" /> Rate Cards
-          </button>
-
-          <button
             onClick={() => navigate("/admin/revenue")}
             style={{
               display: "flex",
