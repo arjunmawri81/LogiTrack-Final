@@ -317,20 +317,6 @@ const ChannelIntegrations = () => {
               </div>
             ))}
 
-            {/* Upcoming channels */}
-            {UPCOMING_CHANNELS.map((upc, i) => (
-              <div key={i} className="available-card upcoming">
-                <div className="available-card-top">
-                  {upc.icon}
-                  <span className="type-badge coming-soon">Coming Soon</span>
-                </div>
-                <h3>{upc.name}</h3>
-                <p>Native integration for {upc.name} is under development and launching soon.</p>
-                <button disabled className="btn-connect disabled">
-                  Coming Soon
-                </button>
-              </div>
-            ))}
           </div>
         </section>
 

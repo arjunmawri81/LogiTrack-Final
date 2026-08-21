@@ -327,7 +327,7 @@ const syncNimbusCouriers = async (req, res) => {
             description: `NimbusPost Integrated Logistics Partner (${courierName})`,
           },
         },
-        { upsert: true, new: true, runValidators: true }
+        { upsert: true, returnDocument: 'after', runValidators: true }
       );
 
       syncedCouriers.push(existingCourier);

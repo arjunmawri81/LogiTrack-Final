@@ -1317,25 +1317,43 @@ const getCommission = async (req, res) => {
 
 const getRevenue = async (req, res) => {
   try {
-    const { range = "month" } = req.query;
+    const { range = "all", startDate: reqStart, endDate: reqEnd } = req.query;
 
-    let startDate;
+    let dateFilter = {};
     const now = new Date();
+
     if (range === "today") {
-      startDate = new Date();
-      startDate.setHours(0, 0, 0, 0);
-    } else if (range === "week") {
-      startDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    } else if (range === "month") {
-      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-    } else if (range === "year") {
-      startDate = new Date(now.getFullYear(), 0, 1);
+      const start = new Date();
+      start.setHours(0, 0, 0, 0);
+      dateFilter = { createdAt: { $gte: start } };
+    } else if (range === "yesterday") {
+      const start = new Date();
+      start.setDate(start.getDate() - 1);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(start);
+      end.setHours(23, 59, 59, 999);
+      dateFilter = { createdAt: { $gte: start, $lte: end } };
+    } else if (range === "last7days" || range === "week") {
+      const start = new Date();
+      start.setDate(start.getDate() - 7);
+      dateFilter = { createdAt: { $gte: start } };
+    } else if (range === "last30days" || range === "month") {
+      const start = new Date();
+      start.setDate(start.getDate() - 30);
+      dateFilter = { createdAt: { $gte: start } };
+    } else if (range === "thismonth") {
+      const start = new Date(now.getFullYear(), now.getMonth(), 1);
+      dateFilter = { createdAt: { $gte: start } };
+    } else if (range === "custom" && reqStart && reqEnd) {
+      dateFilter = {
+        createdAt: {
+          $gte: new Date(reqStart),
+          $lte: new Date(new Date(reqEnd).setHours(23, 59, 59, 999)),
+        },
+      };
     }
 
-    const dateFilter = startDate ? { createdAt: { $gte: startDate } } : {};
-    const shipmentDateFilter = startDate
-      ? { status: { $ne: "CANCELLED" }, createdAt: { $gte: startDate } }
-      : { status: { $ne: "CANCELLED" } };
+    const shipmentDateFilter = { status: { $ne: "CANCELLED" }, ...dateFilter };
 
     // 1. Shipment Stats
     const shipmentStats = await Shipment.aggregate([

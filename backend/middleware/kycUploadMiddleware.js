@@ -15,7 +15,12 @@ const storage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
-    const prefix = file.fieldname === "gstCertificate" ? "gst" : file.fieldname === "panCard" ? "pan" : "doc";
+    let prefix = "doc";
+    if (file.fieldname === "gstCertificate") prefix = "gst";
+    else if (file.fieldname === "panCard") prefix = "pan";
+    else if (file.fieldname === "aadhaarFront") prefix = "aadhaar_front";
+    else if (file.fieldname === "aadhaarBack") prefix = "aadhaar_back";
+
     const uniqueName = `${prefix}_${Date.now()}_${Math.round(Math.random() * 1e6)}${ext}`;
     cb(null, uniqueName);
   },

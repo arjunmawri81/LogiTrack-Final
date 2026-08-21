@@ -767,8 +767,54 @@ const MerchantManagement = () => {
                           </a>
                         ) : (
                           <span style={{ fontSize: "12px", color: "#94a3b8", fontStyle: "italic" }}>
-                            No PAN Card document attached
+                            No PAN Card attached
                           </span>
+                        )}
+
+                        {selectedMerchant?.merchant?.kycDocuments?.aadhaarFront && (
+                          <a
+                            href={`http://localhost:5000${selectedMerchant.merchant.kycDocuments.aadhaarFront}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "6px",
+                              padding: "8px 14px",
+                              background: "#fef3c7",
+                              color: "#b45309",
+                              border: "1px solid #fde68a",
+                              borderRadius: "6px",
+                              fontSize: "12.5px",
+                              fontWeight: "600",
+                              textDecoration: "none"
+                            }}
+                          >
+                            🆔 View Aadhaar Front
+                          </a>
+                        )}
+
+                        {selectedMerchant?.merchant?.kycDocuments?.aadhaarBack && (
+                          <a
+                            href={`http://localhost:5000${selectedMerchant.merchant.kycDocuments.aadhaarBack}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "6px",
+                              padding: "8px 14px",
+                              background: "#fef3c7",
+                              color: "#b45309",
+                              border: "1px solid #fde68a",
+                              borderRadius: "6px",
+                              fontSize: "12.5px",
+                              fontWeight: "600",
+                              textDecoration: "none"
+                            }}
+                          >
+                            🆔 View Aadhaar Back
+                          </a>
                         )}
                       </div>
                     </div>

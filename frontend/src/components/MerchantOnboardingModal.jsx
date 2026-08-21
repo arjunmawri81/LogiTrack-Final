@@ -27,6 +27,19 @@ const MerchantOnboardingModal = () => {
     bankName: "",
   });
 
+  const [docFiles, setDocFiles] = useState({
+    panCard: null,
+    aadhaarFront: null,
+    aadhaarBack: null,
+  });
+
+  const handleFileChange = (e, field) => {
+    const file = e.target.files[0];
+    if (file) {
+      setDocFiles((prev) => ({ ...prev, [field]: file }));
+    }
+  };
+
   useEffect(() => {
     checkProfileCompletion();
   }, []);
@@ -139,16 +152,32 @@ const MerchantOnboardingModal = () => {
     try {
       const res = await api.put("/merchant/profile", formData);
 
-      if (res.data.user) {
+      // Upload KYC document files if provided
+      if (docFiles.panCard || docFiles.aadhaarFront || docFiles.aadhaarBack) {
+        const kycFormData = new FormData();
+        if (docFiles.panCard) kycFormData.append("panCard", docFiles.panCard);
+        if (docFiles.aadhaarFront) kycFormData.append("aadhaarFront", docFiles.aadhaarFront);
+        if (docFiles.aadhaarBack) kycFormData.append("aadhaarBack", docFiles.aadhaarBack);
+
+        await api.post("/merchant/kyc-upload", kycFormData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      }
+
+      const updatedUserRes = await api.get("/merchant/profile");
+      if (updatedUserRes.data?.user) {
+        localStorage.setItem("user", JSON.stringify(updatedUserRes.data.user));
+        window.dispatchEvent(new Event("userUpdated"));
+      } else if (res.data.user) {
         localStorage.setItem("user", JSON.stringify(res.data.user));
         window.dispatchEvent(new Event("userUpdated"));
       }
 
-      alert("Profile details saved successfully! Your account has been submitted for Admin Approval.");
+      alert("Profile details and KYC Documents saved successfully! Your account has been submitted for Admin Approval.");
       setIsPendingApproval(true);
       setShowModal(true);
     } catch (error) {
-      alert(error?.response?.data?.message || "Failed to save profile details");
+      alert(error?.response?.data?.message || "Failed to save profile details and KYC documents");
     } finally {
       setLoading(false);
     }
@@ -436,6 +465,70 @@ const MerchantOnboardingModal = () => {
                         onChange={handleChange}
                         required
                       />
+                    </div>
+                  </div>
+                </div>
+
+                {/* SECTION 4: MANDATORY IDENTITY KYC DOCUMENTS */}
+                <div className="form-section" style={{ background: "#1e293b", padding: "20px", borderRadius: "14px", border: "1px solid #334155" }}>
+                  <h3 className="section-heading" style={{ fontSize: "15px", fontWeight: "700", color: "#f8fafc", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
+                    <FaRegIdCard className="section-icon" color="#f97316" /> Identity & KYC Document Uploads *
+                  </h3>
+
+                  <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                    {/* 1. PAN Card Upload Card */}
+                    <div style={{ padding: "14px 18px", background: "#0f172a", borderRadius: "12px", border: "1px dashed #334155" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                        <span style={{ fontSize: "13px", fontWeight: "700", color: "#f1f5f9" }}>🪪 1. PAN Card Document *</span>
+                        <span style={{ fontSize: "11px", color: "#94a3b8" }}>PNG, JPG, PDF (Max 5MB)</span>
+                      </div>
+                      <input
+                        type="file"
+                        accept=".png,.jpg,.jpeg,.pdf"
+                        onChange={(e) => handleFileChange(e, "panCard")}
+                        required
+                        style={{ width: "100%", padding: "8px 12px", background: "#1e293b", borderRadius: "8px", border: "1px solid #475569", color: "#f8fafc", fontSize: "12.5px" }}
+                      />
+                      {docFiles.panCard && (
+                        <div style={{ marginTop: "6px", fontSize: "12px", color: "#4ade80", fontWeight: "600" }}>✓ Selected: {docFiles.panCard.name}</div>
+                      )}
+                    </div>
+
+                    {/* Aadhaar Cards Group (2 Columns) */}
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+                      {/* 2. Aadhaar Front */}
+                      <div style={{ padding: "14px 18px", background: "#0f172a", borderRadius: "12px", border: "1px dashed #334155" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                          <span style={{ fontSize: "13px", fontWeight: "700", color: "#f1f5f9" }}>🆔 2. Aadhaar (Front) *</span>
+                        </div>
+                        <input
+                          type="file"
+                          accept=".png,.jpg,.jpeg,.pdf"
+                          onChange={(e) => handleFileChange(e, "aadhaarFront")}
+                          required
+                          style={{ width: "100%", padding: "8px 12px", background: "#1e293b", borderRadius: "8px", border: "1px solid #475569", color: "#f8fafc", fontSize: "12.5px" }}
+                        />
+                        {docFiles.aadhaarFront && (
+                          <div style={{ marginTop: "6px", fontSize: "12px", color: "#4ade80", fontWeight: "600" }}>✓ Selected: {docFiles.aadhaarFront.name}</div>
+                        )}
+                      </div>
+
+                      {/* 3. Aadhaar Back */}
+                      <div style={{ padding: "14px 18px", background: "#0f172a", borderRadius: "12px", border: "1px dashed #334155" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                          <span style={{ fontSize: "13px", fontWeight: "700", color: "#f1f5f9" }}>🆔 3. Aadhaar (Back) *</span>
+                        </div>
+                        <input
+                          type="file"
+                          accept=".png,.jpg,.jpeg,.pdf"
+                          onChange={(e) => handleFileChange(e, "aadhaarBack")}
+                          required
+                          style={{ width: "100%", padding: "8px 12px", background: "#1e293b", borderRadius: "8px", border: "1px solid #475569", color: "#f8fafc", fontSize: "12.5px" }}
+                        />
+                        {docFiles.aadhaarBack && (
+                          <div style={{ marginTop: "6px", fontSize: "12px", color: "#4ade80", fontWeight: "600" }}>✓ Selected: {docFiles.aadhaarBack.name}</div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

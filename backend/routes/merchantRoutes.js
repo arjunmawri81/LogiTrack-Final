@@ -38,7 +38,13 @@ router.put(
 router.post(
   "/kyc-upload",
   authMiddleware,
-  kycUpload.single("document"),
+  kycUpload.fields([
+    { name: "panCard", maxCount: 1 },
+    { name: "aadhaarFront", maxCount: 1 },
+    { name: "aadhaarBack", maxCount: 1 },
+    { name: "gstCertificate", maxCount: 1 },
+    { name: "document", maxCount: 1 },
+  ]),
   uploadKYCDocument
 );
 

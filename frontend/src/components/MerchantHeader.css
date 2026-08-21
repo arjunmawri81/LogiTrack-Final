@@ -1,0 +1,245 @@
+.merchant-top-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+  position: relative;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.merchant-header-left {
+  flex: 1;
+  min-width: 250px;
+}
+
+.merchant-header-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: #f8fafc;
+  margin: 0 0 4px 0;
+  letter-spacing: -0.02em;
+}
+
+.merchant-header-subtitle {
+  font-size: 13.5px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.merchant-header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+}
+
+.live-wallet-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.live-wallet-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.live-wallet-amount {
+  font-size: 17px;
+  font-weight: 800;
+  color: #f43f5e;
+  font-family: monospace;
+}
+
+.recharge-pill-btn {
+  background: linear-gradient(135deg, #e11d48 0%, #f43f5e 100%);
+  color: #ffffff;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(225, 29, 72, 0.35);
+  transition: all 0.2s ease;
+}
+
+.recharge-pill-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(225, 29, 72, 0.45);
+}
+
+.profile-avatar-circle {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 2px solid #e11d48;
+  background: #111827;
+  color: #f8fafc;
+  font-size: 14px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  user-select: none;
+}
+
+.profile-avatar-circle:hover {
+  transform: scale(1.05);
+  border-color: #f43f5e;
+}
+
+/* PROFILE DROPDOWN CARD */
+.profile-dropdown-card {
+  position: absolute;
+  top: 52px;
+  right: 0;
+  width: 340px;
+  background: #111827;
+  border: 1px solid #1f293d;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(225, 29, 72, 0.15);
+  z-index: 1000;
+  padding: 20px;
+  animation: dropdownFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.profile-card-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.profile-logo-box {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #e11d48 0%, #f43f5e 100%);
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(225, 29, 72, 0.4);
+  flex-shrink: 0;
+}
+
+.profile-brand-details h3 {
+  font-size: 16px;
+  font-weight: 900;
+  color: #f8fafc;
+  margin: 0 0 2px 0;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.profile-brand-details p {
+  font-size: 12px;
+  font-weight: 700;
+  color: #94a3b8;
+  margin: 0 0 6px 0;
+  text-transform: uppercase;
+}
+
+.seller-id-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border: 1px solid #475569;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 800;
+  color: #f8fafc;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.profile-details-list {
+  border-top: 1px solid #1e293b;
+  border-bottom: 1px solid #1e293b;
+  padding: 12px 0;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.profile-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+}
+
+.profile-detail-row .label {
+  color: #94a3b8;
+}
+
+.profile-detail-row .value {
+  color: #f1f5f9;
+  font-weight: 600;
+  font-family: monospace;
+}
+
+.profile-action-btn {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  margin-bottom: 8px;
+}
+
+.profile-action-btn:last-child {
+  margin-bottom: 0;
+}
+
+.btn-direct-profile {
+  background: transparent;
+  color: #f43f5e;
+  border: 1px solid rgba(244, 63, 94, 0.2);
+}
+
+.btn-direct-profile:hover {
+  background: rgba(244, 63, 94, 0.1);
+  border-color: #f43f5e;
+}
+
+.btn-logout-session {
+  background: transparent;
+  color: #f43f5e;
+}
+
+.btn-logout-session:hover {
+  background: rgba(244, 63, 94, 0.15);
+}

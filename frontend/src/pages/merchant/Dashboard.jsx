@@ -13,6 +13,8 @@ import {
 } from "react-icons/fa";
 import Sidebar from "../../components/Sidebar";
 import BulkUploadModal from "../../components/BulkUploadModal";
+import MerchantHeader from "../../components/MerchantHeader";
+import DateFilterBar from "../../components/DateFilterBar";
 import api from "../../services/api";
 import "./Dashboard.css";
 
@@ -35,16 +37,21 @@ const Dashboard = () => {
   const [loadingRecent, setLoadingRecent] = useState(true);
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
 
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const [dateFilter, setDateFilter] = useState({ filter: "all", startDate: "", endDate: "" });
 
   useEffect(() => {
     fetchDashboardData();
     fetchRecentShipments();
   }, []);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = async (filterObj = dateFilter) => {
     try {
-      const { data } = await api.get("/reports/dashboard");
+      const params = new URLSearchParams();
+      if (filterObj.filter) params.append("filter", filterObj.filter);
+      if (filterObj.startDate) params.append("startDate", filterObj.startDate);
+      if (filterObj.endDate) params.append("endDate", filterObj.endDate);
+
+      const { data } = await api.get(`/reports/dashboard?${params.toString()}`);
       setStats({
         totalOrders: data.orders?.totalOrders || 0,
         pendingOrders: data.orders?.pendingOrders || 0,
@@ -54,8 +61,8 @@ const Dashboard = () => {
         totalNDR: data.ndr?.totalNDR || 0,
         totalRTO: data.rto?.totalRTO || 0,
         walletBalance: data.wallet?.balance || 0,
-        totalRevenue: data.revenue?.totalRevenue || 0,
-        codRevenue: data.revenue?.codRevenue || 0,
+        totalRevenue: data.revenue?.totalShippingCharges || data.revenue?.totalRevenue || 0,
+        codRevenue: data.revenue?.codTotalAmount || data.revenue?.codRevenue || 0,
       });
     } catch (error) {
       console.log("Error loading dashboard metrics:", error);
@@ -102,37 +109,7 @@ const Dashboard = () => {
 
       <main className="dashboard-main">
         {/* HEADER & WALLET */}
-        <div className="dashboard-header">
-          <div className="dashboard-title-group">
-            <h1 className="dashboard-title">
-              Welcome Back, {user?.name || "Merchant"} 👋
-            </h1>
-            <p className="dashboard-subtitle">
-              Here is your real-time shipping & order performance summary
-            </p>
-          </div>
-
-          <div className="dashboard-wallet">
-            <div className="dashboard-wallet-badge">
-              <div className="dashboard-wallet-icon-box">
-                <FaWallet className="dashboard-wallet-icon" />
-              </div>
-              <div className="dashboard-wallet-details">
-                <span className="dashboard-wallet-label">Available Balance</span>
-                <span className="dashboard-wallet-balance">
-                  ₹{formatCurrency(stats.walletBalance)}
-                </span>
-              </div>
-            </div>
-
-            <button
-              className="dashboard-wallet-btn"
-              onClick={() => navigate("/merchant/wallet")}
-            >
-              <FaPlusCircle className="btn-plus-icon" /> Recharge Wallet
-            </button>
-          </div>
-        </div>
+        <MerchantHeader walletBalance={stats.walletBalance} />
 
         {/* QUICK ACTIONS BAR */}
         <div style={{
@@ -270,8 +247,13 @@ const Dashboard = () => {
             }}
           >
             <FaTags size={13} color="#f97316" /> My Rate Cards
-          </button>
-        </div>
+        {/* DATE FILTER BAR */}
+        <DateFilterBar
+          onFilterChange={(f) => {
+            setDateFilter(f);
+            fetchDashboardData(f);
+          }}
+        />
 
         {/* CORE METRICS GRID (4 CARDS) */}
         <div style={{

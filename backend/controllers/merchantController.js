@@ -254,25 +254,67 @@ const changePassword = async (req, res) => {
   }
 };
 
-// Upload KYC Document
+// Upload KYC Document(s)
 const uploadKYCDocument = async (req, res) => {
   try {
-    const { docType } = req.body; // "gstCertificate" | "panCard" | "addressProof"
-    if (!["gstCertificate", "panCard", "addressProof"].includes(docType)) {
-      return res.status(400).json({ success: false, message: "Invalid document type" });
-    }
-    if (!req.file) {
-      return res.status(400).json({ success: false, message: "No file uploaded" });
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    const user = await User.findById(req.user.id);
     if (!user.kycDocuments) {
       user.kycDocuments = {};
     }
-    user.kycDocuments[docType] = req.file.path;
+
+    // Support req.files (multi-field upload via kycUpload.fields)
+    if (req.files) {
+      const fieldNames = ["panCard", "aadhaarFront", "aadhaarBack", "gstCertificate", "addressProof"];
+      let uploadedAny = false;
+
+      for (const field of fieldNames) {
+        if (req.files[field] && req.files[field][0]) {
+          const fileObj = req.files[field][0];
+          const relPath = fileObj.path.replace(/\\/g, "/").replace(/^.*\/uploads\//, "/uploads/");
+          user.kycDocuments[field] = relPath;
+          uploadedAny = true;
+        }
+      }
+
+      if (uploadedAny) {
+        user.kycStatus = "PENDING";
+        await user.save();
+
+        return res.status(200).json({
+          success: true,
+          message: "KYC Documents uploaded successfully! Admin will review your documents.",
+          kycStatus: user.kycStatus,
+          kycDocuments: user.kycDocuments,
+          user,
+        });
+      }
+    }
+
+    // Support single file req.file upload
+    const { docType } = req.body;
+    if (!["gstCertificate", "panCard", "aadhaarFront", "aadhaarBack", "addressProof"].includes(docType)) {
+      return res.status(400).json({ success: false, message: "Invalid document type" });
+    }
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No document files uploaded" });
+    }
+
+    const relPath = req.file.path.replace(/\\/g, "/").replace(/^.*\/uploads\//, "/uploads/");
+    user.kycDocuments[docType] = relPath;
+    user.kycStatus = "PENDING";
     await user.save();
 
-    res.status(200).json({ success: true, message: "Document uploaded", kycDocuments: user.kycDocuments });
+    res.status(200).json({
+      success: true,
+      message: "Document uploaded successfully",
+      kycStatus: user.kycStatus,
+      kycDocuments: user.kycDocuments,
+      user,
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

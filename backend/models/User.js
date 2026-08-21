@@ -170,6 +170,8 @@ const userSchema = new mongoose.Schema(
     kycDocuments: {
       gstCertificate: { type: String, default: "" },
       panCard: { type: String, default: "" },
+      aadhaarFront: { type: String, default: "" },
+      aadhaarBack: { type: String, default: "" },
       addressProof: { type: String, default: "" },
     },
 

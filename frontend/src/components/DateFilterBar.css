@@ -1,0 +1,88 @@
+.date-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #1c2333;
+  border: 1px solid #2a3a52;
+  border-radius: 14px;
+  padding: 10px 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.date-filter-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #f8fafc;
+  margin-right: 4px;
+  white-space: nowrap;
+}
+
+.date-preset-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.preset-pill-btn {
+  background: #131924;
+  border: 1px solid #2a3a52;
+  color: #94a3b8;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.preset-pill-btn:hover {
+  background: #243049;
+  color: #f1f5f9;
+  border-color: #3b82f6;
+}
+
+.preset-pill-btn.active {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #ffffff;
+  border-color: #3b82f6;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+}
+
+.custom-date-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #131924;
+  padding: 4px 10px;
+  border-radius: 10px;
+  border: 1px solid #2a3a52;
+}
+
+.custom-date-inputs input[type="date"] {
+  background: transparent;
+  border: none;
+  color: #f8fafc;
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+  cursor: pointer;
+}
+
+.custom-date-inputs input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+
+.custom-date-sep {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+}

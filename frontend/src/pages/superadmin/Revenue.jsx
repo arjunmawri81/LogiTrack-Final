@@ -16,10 +16,11 @@ import {
   FaCheckCircle,
   FaTruck,
 } from "react-icons/fa";
+import DateFilterBar from "../../components/DateFilterBar";
 import "./Revenue.css";
 
 const Revenue = () => {
-  const [range, setRange] = useState("all");
+  const [dateFilter, setDateFilter] = useState({ filter: "all", startDate: "", endDate: "" });
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState("");
@@ -42,7 +43,6 @@ const Revenue = () => {
     showEstimationWarning: false,
   });
 
-  // Search, Filter, Sort & Pagination
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [sortOption, setSortOption] = useState("netProfit-desc");
@@ -50,16 +50,21 @@ const Revenue = () => {
   const itemsPerPage = 10;
 
   useEffect(() => {
-    fetchRevenueData();
-  }, [range]);
+    fetchRevenueData(false, dateFilter);
+  }, [dateFilter]);
 
-  const fetchRevenueData = async (showRefresh = false) => {
+  const fetchRevenueData = async (showRefresh = false, filterObj = dateFilter) => {
     if (showRefresh) setIsRefreshing(true);
     else setLoading(true);
     setError("");
 
     try {
-      const res = await api.get(`/admin/revenue?range=${range}`);
+      const params = new URLSearchParams();
+      params.append("range", filterObj.filter || "all");
+      if (filterObj.startDate) params.append("startDate", filterObj.startDate);
+      if (filterObj.endDate) params.append("endDate", filterObj.endDate);
+
+      const res = await api.get(`/admin/revenue?${params.toString()}`);
       if (res.data && res.data.success) {
         setRevenueData({
           totalRevenue: res.data.totalRevenue || 0,
@@ -235,18 +240,6 @@ const Revenue = () => {
           </div>
 
           <div className="header-actions">
-            <select
-              value={range}
-              onChange={(e) => setRange(e.target.value)}
-              className="range-select"
-            >
-              <option value="all">All Time</option>
-              <option value="month">This Month</option>
-              <option value="week">Last 7 Days</option>
-              <option value="today">Today</option>
-              <option value="year">This Year</option>
-            </select>
-
             <button
               onClick={() => fetchRevenueData(true)}
               className="refresh-btn"
@@ -262,6 +255,12 @@ const Revenue = () => {
             </button>
           </div>
         </div>
+
+        {/* DATE FILTER BAR */}
+        <DateFilterBar
+          activeFilter={dateFilter.filter}
+          onFilterChange={(f) => setDateFilter(f)}
+        />
 
         {error && <div className="revenue-error">{error}</div>}
 
