@@ -13,6 +13,7 @@ import {
   FaUsers,
   FaUserSlash,
   FaPlane,
+  FaSync,
 } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -66,6 +67,22 @@ const Couriers = () => {
     } catch (err) {
       console.error("Error fetching couriers:", err);
       toast.error(err.response?.data?.message || "Failed to fetch couriers");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSyncNimbus = async () => {
+    try {
+      setLoading(true);
+      const res = await api.post("/couriers/sync-nimbus");
+      if (res.data.success) {
+        toast.success(res.data.message || "Synced couriers from NimbusPost successfully!");
+        fetchCouriers();
+      }
+    } catch (err) {
+      console.error("Sync Nimbus error:", err);
+      toast.error(err.response?.data?.message || "Failed to sync couriers from NimbusPost");
     } finally {
       setLoading(false);
     }
@@ -685,23 +702,45 @@ const Couriers = () => {
             <h1 style={styles.headerTitle}>🚚 Courier Management</h1>
             <p style={styles.headerSubtitle}>Manage all courier partners and their configurations</p>
           </div>
-          <button 
-            style={styles.addButton}
-            onClick={() => {
-              resetForm();
-              setShowAddModal(true);
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "translateY(-2px)";
-              e.currentTarget.style.boxShadow = "0 6px 20px rgba(245, 158, 11, 0.4)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 4px 12px rgba(245, 158, 11, 0.3)";
-            }}
-          >
-            <FaPlus size={14} /> Add Courier
-          </button>
+          <div style={{ display: "flex", gap: "10px" }}>
+            <button
+              style={{
+                ...styles.addButton,
+                background: "linear-gradient(135deg, #2563eb, #1d4ed8)",
+                boxShadow: "0 4px 12px rgba(37, 99, 235, 0.3)",
+              }}
+              onClick={handleSyncNimbus}
+              disabled={loading}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow = "0 6px 20px rgba(37, 99, 235, 0.4)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "0 4px 12px rgba(37, 99, 235, 0.3)";
+              }}
+            >
+              <FaSync size={14} className={loading ? "spin" : ""} /> Sync Nimbus Couriers
+            </button>
+
+            <button 
+              style={styles.addButton}
+              onClick={() => {
+                resetForm();
+                setShowAddModal(true);
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow = "0 6px 20px rgba(245, 158, 11, 0.4)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "0 4px 12px rgba(245, 158, 11, 0.3)";
+              }}
+            >
+              <FaPlus size={14} /> Add Courier
+            </button>
+          </div>
         </div>
 
         {/* Stats */}

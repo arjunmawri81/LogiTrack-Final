@@ -17,11 +17,20 @@ const {
   toggleCourierStatus,
   deleteCourier,
   handleWebhook,
+  syncNimbusCouriers,
 } = require("../controllers/courierController");
 
 // ========================================
 // SUPER ADMIN ROUTES
 // ========================================
+
+// Sync Couriers from NimbusPost
+router.post(
+  "/sync-nimbus",
+  authMiddleware,
+  authorizeRoles("SUPER_ADMIN"),
+  syncNimbusCouriers
+);
 
 // Create Courier
 router.post(
