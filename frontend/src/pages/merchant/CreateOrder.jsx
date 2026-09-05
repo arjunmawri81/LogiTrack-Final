@@ -101,6 +101,7 @@ const CreateOrder = () => {
 
   return (
     <div
+      className="merchant-page-container"
       style={{
         display: "flex",
         minHeight: "100vh",
@@ -108,6 +109,7 @@ const CreateOrder = () => {
       }}
     >
       <div
+        className="merchant-sidebar-container"
         style={{
           width: "280px",
           flexShrink: 0,
@@ -117,6 +119,7 @@ const CreateOrder = () => {
       </div>
 
       <div
+        className="merchant-main-container"
         style={{
           flex: 1,
           padding: "30px",

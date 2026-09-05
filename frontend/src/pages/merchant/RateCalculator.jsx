@@ -335,7 +335,7 @@ const RateCalculator = () => {
   // RENDER
   // ─────────────────────────────────────────────────────────────────
   return (
-    <div style={C.page}>
+    <div style={C.page} className="rate-container merchant-page-container">
       <style>{`
         @keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
         input:focus, select:focus { border-color: #f97316 !important; box-shadow: 0 0 0 3px rgba(249,115,22,0.15) !important; background: #1a2540 !important; }
@@ -345,10 +345,10 @@ const RateCalculator = () => {
       `}</style>
 
       {/* Sidebar */}
-      <div style={C.sidebar}><Sidebar /></div>
+      <div style={C.sidebar} className="rate-sidebar merchant-sidebar-container"><Sidebar /></div>
 
       {/* Main content */}
-      <div style={C.content}>
+      <div style={C.content} className="rate-content merchant-main-container">
 
         {/* ── Header ── */}
         <div style={{ marginBottom: "28px" }}>

@@ -67,14 +67,14 @@ const MyRateCard = () => {
   }, [rateCards]);
 
   return (
-    <div className="rate-container" style={{ display: "flex", minHeight: "100vh", background: "#111827", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
+    <div className="rate-container merchant-page-container" style={{ display: "flex", minHeight: "100vh", background: "#111827", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
       {/* SIDEBAR WRAPPER */}
-      <div style={{ width: "280px", flexShrink: 0 }}>
+      <div className="rate-sidebar merchant-sidebar-container" style={{ width: "280px", flexShrink: 0 }}>
         <Sidebar />
       </div>
 
       {/* MAIN CONTENT AREA */}
-      <div style={{ flex: 1, padding: "30px 36px", overflowX: "hidden", minWidth: 0 }}>
+      <div className="rate-content merchant-main-container" style={{ flex: 1, padding: "30px 36px", overflowX: "hidden", minWidth: 0 }}>
         {/* HEADER */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px", flexWrap: "wrap", gap: "16px" }}>
           <div>

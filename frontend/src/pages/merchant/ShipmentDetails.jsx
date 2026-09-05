@@ -86,11 +86,11 @@ const ShipmentDetails = () => {
 
   if (loading) {
     return (
-      <div style={{ display: "flex", minHeight: "100vh", background: "#111827" }}>
-        <div style={{ width: "280px", flexShrink: 0 }}>
+      <div className="merchant-page-container" style={{ display: "flex", minHeight: "100vh", background: "#111827" }}>
+        <div className="merchant-sidebar-container" style={{ width: "280px", flexShrink: 0 }}>
           <Sidebar />
         </div>
-        <div style={{ flex: 1, padding: "40px", display: "flex", justifyContent: "center", alignItems: "center" }}>
+        <div className="merchant-main-container" style={{ flex: 1, padding: "40px", display: "flex", justifyContent: "center", alignItems: "center" }}>
           <div style={{ textAlign: "center" }}>
             <div style={{
               width: "50px",
@@ -110,11 +110,11 @@ const ShipmentDetails = () => {
 
   if (!shipment) {
     return (
-      <div style={{ display: "flex", minHeight: "100vh", background: "#111827" }}>
-        <div style={{ width: "280px", flexShrink: 0 }}>
+      <div className="merchant-page-container" style={{ display: "flex", minHeight: "100vh", background: "#111827" }}>
+        <div className="merchant-sidebar-container" style={{ width: "280px", flexShrink: 0 }}>
           <Sidebar />
         </div>
-        <div style={{ flex: 1, padding: "40px" }}>
+        <div className="merchant-main-container" style={{ flex: 1, padding: "40px" }}>
           <div style={{
             background: "#1c2333",
             padding: "40px",
@@ -149,6 +149,7 @@ const ShipmentDetails = () => {
 
   return (
     <div
+      className="merchant-page-container"
       style={{
         display: "flex",
         minHeight: "100vh",
@@ -156,6 +157,7 @@ const ShipmentDetails = () => {
       }}
     >
       <div
+        className="merchant-sidebar-container"
         style={{
           width: "280px",
           flexShrink: 0,
@@ -165,6 +167,7 @@ const ShipmentDetails = () => {
       </div>
 
       <div
+        className="merchant-main-container"
         style={{
           flex: 1,
           padding: "30px",

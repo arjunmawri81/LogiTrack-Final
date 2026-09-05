@@ -46,17 +46,19 @@ const OrderDetails = () => {
 
   return (
     <div
+      className="merchant-page-container"
       style={{
         display: "flex",
         minHeight: "100vh",
         background: "#111827",
       }}
     >
-      <div style={{ width: "280px", flexShrink: 0 }}>
+      <div className="merchant-sidebar-container" style={{ width: "280px", flexShrink: 0 }}>
         <Sidebar />
       </div>
 
       <div
+        className="merchant-main-container"
         style={{
           flex: 1,
           padding: "30px",

@@ -1,5 +1,6 @@
-/* MERCHANT DARK THEME */
+/* MERCHANT DARK THEME & MOBILE RESPONSIVE SYSTEM */
 @import './styles/merchant-dark-theme.css';
+@import './styles/merchant-mobile.css';
 
 /* RESET */
 * {

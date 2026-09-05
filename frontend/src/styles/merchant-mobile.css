@@ -1,0 +1,385 @@
+/* ============================================================
+   MERCHANT MOBILE RESPONSIVE SYSTEM
+   Strictly active ONLY on mobile screens (max-width: 768px).
+   Zero impact on desktop (min-width: 769px) layout.
+   ============================================================ */
+
+@media (max-width: 768px) {
+  /* ===== 1. ROOT CONTAINERS ===== */
+  .merchant-scope,
+  .merchant-scope * {
+    box-sizing: border-box;
+  }
+
+  .merchant-scope .dashboard-page,
+  .merchant-scope .orders-container,
+  .merchant-scope .shipments-container,
+  .merchant-scope .warehouse-container,
+  .merchant-scope .wallet-container,
+  .merchant-scope .tracking-container,
+  .merchant-scope .tickets-container,
+  .merchant-scope .settings-page-container,
+  .merchant-scope .serviceability-container,
+  .merchant-scope .reports-container,
+  .merchant-scope .profile-container,
+  .merchant-scope .rate-container,
+  .merchant-scope .rto-container,
+  .merchant-scope .invoices-container,
+  .merchant-scope .ndr-container,
+  .merchant-scope .create-shipment-container,
+  .merchant-scope .channels-page-container,
+  .merchant-scope .billing-container,
+  .merchant-scope .orders-loading-container,
+  .merchant-scope .merchant-page-container,
+  .merchant-scope .merchant-layout-container {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    min-height: 100vh !important;
+    overflow-x: hidden !important;
+    position: relative !important;
+  }
+
+  /* ===== 2. COLLAPSE SIDEBAR WRAPPERS ON MOBILE ===== */
+  /* The <Sidebar /> inside is already fixed + hidden off-screen (translateX(-100%)).
+     Its parent wrapper must occupy 0 space so it doesn't push the page off-screen. */
+  .merchant-scope .dashboard-sidebar,
+  .merchant-scope .orders-sidebar,
+  .merchant-scope .sidebar-wrapper,
+  .merchant-scope .warehouse-sidebar,
+  .merchant-scope .wallet-sidebar-wrapper,
+  .merchant-scope .billing-sidebar,
+  .merchant-scope .rate-sidebar,
+  .merchant-scope .channels-sidebar,
+  .merchant-scope .serviceability-sidebar,
+  .merchant-scope .tickets-sidebar,
+  .merchant-scope .reports-sidebar,
+  .merchant-scope .invoices-sidebar,
+  .merchant-scope .merchant-sidebar-wrapper,
+  .merchant-scope .merchant-sidebar-container,
+  .merchant-scope div[style*="width: 280px"],
+  .merchant-scope div[style*="width:280px"] {
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    height: 0 !important;
+    position: static !important;
+    flex: 0 0 0% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    overflow: visible !important;
+  }
+
+  /* ===== 3. MAIN CONTENT: FULL WIDTH + TOP CLEARANCE FOR HAMBURGER ===== */
+  .merchant-scope .dashboard-main,
+  .merchant-scope .orders-main,
+  .merchant-scope .shipments-main,
+  .merchant-scope .warehouse-main,
+  .merchant-scope .wallet-main,
+  .merchant-scope .tracking-main,
+  .merchant-scope .tickets-content,
+  .merchant-scope .settings-page-content,
+  .merchant-scope .serviceability-main,
+  .merchant-scope .reports-main,
+  .merchant-scope .profile-main,
+  .merchant-scope .rate-content,
+  .merchant-scope .rto-main,
+  .merchant-scope .invoices-main,
+  .merchant-scope .ndr-main,
+  .merchant-scope .create-shipment-main,
+  .merchant-scope .channels-main-content,
+  .merchant-scope .billing-content,
+  .merchant-scope .orders-loading-spinner,
+  .merchant-scope .merchant-main-content,
+  .merchant-scope .merchant-main-container {
+    margin-left: 0 !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    padding: 68px 14px 28px !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+    min-width: 0 !important;
+    flex: 1 1 100% !important;
+  }
+
+  /* ===== 4. HAMBURGER BUTTON PERFECTION ===== */
+  .merchant-scope .hamburger-btn {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    position: fixed !important;
+    top: 12px !important;
+    left: 12px !important;
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 12px !important;
+    background: #181d2a !important;
+    border: 1.5px solid #2a3350 !important;
+    color: #f97316 !important;
+    font-size: 20px !important;
+    z-index: 2500 !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5) !important;
+    cursor: pointer !important;
+  }
+
+  /* ===== 5. MERCHANT TOP HEADER & PROFILE ===== */
+  .merchant-scope .merchant-top-header {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 14px !important;
+    margin-bottom: 20px !important;
+    width: 100% !important;
+  }
+
+  .merchant-scope .merchant-header-left {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .merchant-scope .merchant-header-title {
+    font-size: 20px !important;
+    line-height: 1.3 !important;
+    word-break: break-word !important;
+  }
+
+  .merchant-scope .merchant-header-subtitle {
+    font-size: 12.5px !important;
+    line-height: 1.4 !important;
+  }
+
+  .merchant-scope .merchant-header-right {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+    background: #181d2a !important;
+    padding: 10px 14px !important;
+    border-radius: 14px !important;
+    border: 1px solid #2a3350 !important;
+  }
+
+  .merchant-scope .live-wallet-box {
+    align-items: flex-start !important;
+  }
+
+  .merchant-scope .profile-dropdown-card {
+    position: fixed !important;
+    top: 70px !important;
+    right: 12px !important;
+    left: 12px !important;
+    width: auto !important;
+    max-width: calc(100vw - 24px) !important;
+    z-index: 3000 !important;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8) !important;
+  }
+
+  /* ===== 6. STATS & METRIC GRIDS (2 COLUMNS ON MOBILE) ===== */
+  .merchant-scope .dashboard-grid,
+  .merchant-scope .shipments-stats-grid,
+  .merchant-scope .billing-stats-grid,
+  .merchant-scope .ndr-stats-grid,
+  .merchant-scope .rto-stats-grid,
+  .merchant-scope .dashboard-summary-grid,
+  .merchant-scope [class*="-stats-grid"],
+  .merchant-scope [class*="-summary-grid"] {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    margin-bottom: 20px !important;
+    width: 100% !important;
+  }
+
+  .merchant-scope .dashboard-card,
+  .merchant-scope .stat-card,
+  .merchant-scope .dashboard-summary-card {
+    padding: 14px 12px !important;
+    border-radius: 14px !important;
+    min-width: 0 !important;
+  }
+
+  .merchant-scope .dashboard-card h1,
+  .merchant-scope .stat-value,
+  .merchant-scope .dashboard-summary-value {
+    font-size: 20px !important;
+  }
+
+  .merchant-scope .dashboard-card h4,
+  .merchant-scope .stat-label,
+  .merchant-scope .dashboard-summary-label {
+    font-size: 11px !important;
+  }
+
+  /* ===== 7. DATA TABLES: SMOOTH HORIZONTAL SWIPE ===== */
+  .merchant-scope .orders-table-container,
+  .merchant-scope .shipments-table-container,
+  .merchant-scope .billing-table-container,
+  .merchant-scope .invoices-table-container,
+  .merchant-scope .ndr-table-container,
+  .merchant-scope .rto-table-container,
+  .merchant-scope .warehouse-table-container,
+  .merchant-scope .tickets-table-container,
+  .merchant-scope .reports-table-container,
+  .merchant-scope [class*="-table-container"],
+  .merchant-scope .table-responsive {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    border-radius: 14px !important;
+    margin-bottom: 20px !important;
+    display: block !important;
+  }
+
+  .merchant-scope .orders-table-container table,
+  .merchant-scope .shipments-table-container table,
+  .merchant-scope .billing-table-container table,
+  .merchant-scope [class*="-table-container"] table,
+  .merchant-scope table {
+    min-width: 620px !important;
+    width: max-content !important;
+  }
+
+  /* ===== 8. TABS & HORIZONTAL FILTER SCROLLING ===== */
+  .merchant-scope .orders-tabs,
+  .merchant-scope .tabs-container,
+  .merchant-scope [class*="-tabs"] {
+    display: flex !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    white-space: nowrap !important;
+    padding-bottom: 8px !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .merchant-scope .orders-tabs::-webkit-scrollbar,
+  .merchant-scope [class*="-tabs"]::-webkit-scrollbar {
+    height: 3px !important;
+  }
+
+  /* ===== 9. HEADERS, SEARCH & ACTION BUTTONS ===== */
+  .merchant-scope .orders-header-top,
+  .merchant-scope .shipments-header-top,
+  .merchant-scope .ndr-header,
+  .merchant-scope .rto-header,
+  .merchant-scope .warehouse-header,
+  .merchant-scope .billing-header,
+  .merchant-scope .reports-header,
+  .merchant-scope .tickets-header,
+  .merchant-scope .invoices-header {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+
+  .merchant-scope .orders-header-actions,
+  .merchant-scope .ndr-header-actions,
+  .merchant-scope .rto-header-actions,
+  .merchant-scope .warehouse-header-actions {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .merchant-scope .orders-header-actions button,
+  .merchant-scope .ndr-header-actions button,
+  .merchant-scope .rto-header-actions button,
+  .merchant-scope .warehouse-header-actions button {
+    flex: 1 1 calc(50% - 8px) !important;
+    min-width: 120px !important;
+    justify-content: center !important;
+    font-size: 12px !important;
+    padding: 10px 12px !important;
+  }
+
+  .merchant-scope .date-filter-bar,
+  .merchant-scope [class*="date-filter"],
+  .merchant-scope [class*="DateFilter"] {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+
+  /* ===== 10. FORMS & INPUTS ===== */
+  .merchant-scope form,
+  .merchant-scope .shipment-form-container,
+  .merchant-scope [class*="-form-container"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 16px 14px !important;
+  }
+
+  .merchant-scope .form-grid,
+  .merchant-scope .grid-2,
+  .merchant-scope .grid-3,
+  .merchant-scope [class*="form-row"],
+  .merchant-scope [class*="grid-cols-2"],
+  .merchant-scope [class*="grid-cols-3"] {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  .merchant-scope input[type="text"],
+  .merchant-scope input[type="search"],
+  .merchant-scope input[type="number"],
+  .merchant-scope input[type="date"],
+  .merchant-scope select,
+  .merchant-scope textarea {
+    width: 100% !important;
+    max-width: 100% !important;
+    font-size: 14px !important;
+  }
+
+  /* ===== 11. MODALS & POPUPS ===== */
+  .merchant-scope .modal-container,
+  .merchant-scope .modal-content,
+  .merchant-scope [class*="-modal-content"],
+  .merchant-scope [class*="Modal"] {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+    margin: 10px auto !important;
+    padding: 16px !important;
+    border-radius: 16px !important;
+  }
+}
+
+/* ===== 12. EXTRA SMALL MOBILE (<= 480px) ===== */
+@media (max-width: 480px) {
+  .merchant-scope .dashboard-main,
+  .merchant-scope .orders-main,
+  .merchant-scope .shipments-main,
+  .merchant-scope [class*="-main"],
+  .merchant-scope .merchant-main-content,
+  .merchant-scope .merchant-main-container {
+    padding: 62px 10px 24px !important;
+  }
+
+  .merchant-scope .merchant-header-title,
+  .merchant-scope .orders-title,
+  .merchant-scope .shipments-title,
+  .merchant-scope [class*="-title"] {
+    font-size: 18px !important;
+  }
+
+  .merchant-scope .dashboard-grid,
+  .merchant-scope [class*="-stats-grid"] {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+
+  .merchant-scope .dashboard-card,
+  .merchant-scope .stat-card {
+    padding: 10px !important;
+  }
+}

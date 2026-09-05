@@ -140,11 +140,11 @@ const BulkShipment = () => {
 
   if (loading) {
     return (
-      <div style={{ display: "flex", minHeight: "100vh", background: "#111827" }}>
-        <div style={{ width: "280px", flexShrink: 0 }}>
+      <div className="merchant-page-container" style={{ display: "flex", minHeight: "100vh", background: "#111827" }}>
+        <div className="merchant-sidebar-container" style={{ width: "280px", flexShrink: 0 }}>
           <Sidebar />
         </div>
-        <div style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>
+        <div className="merchant-main-container" style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>
           <FaSpinner className="animate-spin" size={40} color="#f97316" />
         </div>
       </div>
@@ -152,17 +152,17 @@ const BulkShipment = () => {
   }
 
   return (
-    <div style={{
+    <div className="merchant-page-container" style={{
       display: "flex",
       minHeight: "100vh",
       background: "#111827",
       fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif"
     }}>
-      <div style={{ width: "280px", flexShrink: 0 }}>
+      <div className="merchant-sidebar-container" style={{ width: "280px", flexShrink: 0 }}>
         <Sidebar />
       </div>
 
-      <div style={{ flex: 1, padding: "24px 32px", overflowX: "hidden" }}>
+      <div className="merchant-main-container" style={{ flex: 1, padding: "24px 32px", overflowX: "hidden" }}>
         {/* Header */}
         <div style={{ marginBottom: "25px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
