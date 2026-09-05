@@ -1,4 +1,5 @@
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import {
   FaHome,
   FaUsers,
@@ -13,12 +14,20 @@ import {
   FaExclamationTriangle,
   FaUndo,
   FaTicketAlt,
+  FaBars,
+  FaTimes,
 } from "react-icons/fa";
 
 import "./AdminSidebar.css"; // Merchant wala CSS use karo
 
 const AdminSidebar = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setIsOpen(false);
+  }, [location.pathname]);
 
   const handleLogout = () => {
     localStorage.clear();
@@ -26,8 +35,25 @@ const AdminSidebar = () => {
   };
 
   return (
-    <div className="admin-scope">
-    <div className="sidebar">
+    <aside className="admin-sidebar-wrapper">
+      {/* Mobile Hamburger Button */}
+      <button
+        className="admin-hamburger-btn"
+        onClick={() => setIsOpen(!isOpen)}
+        aria-label="Toggle Admin Menu"
+      >
+        {isOpen ? <FaTimes /> : <FaBars />}
+      </button>
+
+      {/* Mobile Overlay */}
+      {isOpen && (
+        <div
+          className="admin-sidebar-overlay"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
+      <div className={`sidebar ${isOpen ? "open" : ""}`}>
       {/* Header */}
       <div className="sidebar-header">
         <h2 className="logo">MyParcelPoint</h2>
@@ -196,8 +222,8 @@ const AdminSidebar = () => {
           <span>Logout</span>
         </a>
       </div>
-    </div>
-    </div>
+      </div>
+    </aside>
   );
 };
 

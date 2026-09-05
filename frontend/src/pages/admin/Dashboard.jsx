@@ -130,9 +130,9 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="admin-dashboard-container" style={{ display: "flex", minHeight: "100vh", background: "#f8fafc", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
+    <div className="admin-dashboard-container">
       <AdminSidebar />
-      <div className="dashboard-main" style={{ flex: 1, marginLeft: "280px", padding: "30px 40px", minWidth: 0, boxSizing: "border-box" }}>
+      <div className="dashboard-main">
         
         {/* HEADER */}
         <div style={{ marginBottom: "20px" }}>

@@ -1,0 +1,539 @@
+/* ============================================================
+   ADMIN & SUPERADMIN RESPONSIVE SYSTEM
+   Provides seamless Mobile, Tablet/Desktop-Site, & Laptop Layouts.
+   Targets both scoped and direct container/main classes.
+   ============================================================ */
+
+/* ============================================================
+   1. MOBILE PHONES (max-width: 768px)
+   ============================================================ */
+@media (max-width: 768px) {
+  /* ===== ROOT CONTAINERS ===== */
+  .admin-scope,
+  .superadmin-scope {
+    width: 100% !important;
+    max-width: 100vw !important;
+    min-height: 100vh !important;
+    overflow-x: hidden !important;
+    position: relative !important;
+  }
+
+  /* All Admin & SuperAdmin page layouts stack vertically on mobile */
+  .admin-dashboard-container,
+  .users-container,
+  .merchants-container,
+  .orders-container,
+  .shipments-container,
+  .admin-dashboard,
+  .pricing-container,
+  .revenue-container,
+  .reports-container,
+  .settings-container,
+  .ndr-container,
+  .rto-container,
+  .cod-container,
+  .admin-tickets-container,
+  .tickets-container,
+  .rate-card-container,
+  .superadmin-layout {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    min-height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+    position: relative !important;
+  }
+
+  /* ===== SIDEBAR WRAPPERS (ZERO FLOW SPACE) ===== */
+  .admin-sidebar-wrapper,
+  .superadmin-sidebar-wrapper {
+    display: contents !important;
+  }
+
+  /* ===== MOBILE HAMBURGER BUTTONS ===== */
+  .admin-hamburger-btn,
+  .superadmin-hamburger-btn {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    position: fixed !important;
+    top: 12px !important;
+    left: 12px !important;
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 12px !important;
+    background: #0f172a !important;
+    border: 1.5px solid #1e293b !important;
+    font-size: 20px !important;
+    z-index: 2500 !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5) !important;
+    cursor: pointer !important;
+    transition: transform 0.2s ease, background 0.2s ease !important;
+  }
+
+  .admin-hamburger-btn {
+    color: #f97316 !important;
+  }
+
+  .superadmin-hamburger-btn {
+    color: #38bdf8 !important;
+  }
+
+  .admin-hamburger-btn:active,
+  .superadmin-hamburger-btn:active {
+    transform: scale(0.95) !important;
+  }
+
+  /* ===== BACKDROP OVERLAY ===== */
+  .admin-sidebar-overlay,
+  .superadmin-sidebar-overlay {
+    position: fixed !important;
+    inset: 0 !important;
+    background: rgba(0, 0, 0, 0.65) !important;
+    backdrop-filter: blur(3px) !important;
+    z-index: 2400 !important;
+  }
+
+  /* ===== SLIDE-IN SIDEBAR DRAWER ===== */
+  .admin-scope .sidebar,
+  .superadmin-scope .sidebar,
+  .admin-sidebar-wrapper .sidebar,
+  .superadmin-sidebar-wrapper .sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: min(300px, 85vw) !important;
+    height: 100vh !important;
+    transform: translateX(-100%) !important;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    z-index: 2450 !important;
+    border-radius: 0 16px 16px 0 !important;
+    box-shadow: 6px 0 30px rgba(0, 0, 0, 0.5) !important;
+    overflow-y: auto !important;
+    margin: 0 !important;
+  }
+
+  .admin-scope .sidebar.open,
+  .superadmin-scope .sidebar.open,
+  .admin-sidebar-wrapper .sidebar.open,
+  .superadmin-sidebar-wrapper .sidebar.open {
+    transform: translateX(0) !important;
+  }
+
+  .admin-scope .sidebar.open .logo,
+  .admin-scope .sidebar.open .logo-subtitle,
+  .admin-scope .sidebar.open .profile-info,
+  .admin-scope .sidebar.open .sidebar-menu a span,
+  .admin-scope .sidebar.open .logout-section a span,
+  .superadmin-scope .sidebar.open .logo,
+  .superadmin-scope .sidebar.open .logo-subtitle,
+  .superadmin-scope .sidebar.open .profile-info,
+  .superadmin-scope .sidebar.open .sidebar-menu a span,
+  .superadmin-scope .sidebar.open .logout-section span {
+    display: block !important;
+  }
+
+  .admin-scope .sidebar.open .sidebar-menu a,
+  .superadmin-scope .sidebar.open .sidebar-menu a {
+    justify-content: flex-start !important;
+    padding: 12px 16px !important;
+    gap: 12px !important;
+  }
+
+  /* ===== MAIN CONTENT AREAS (FULL WIDTH, NO MARGIN) ===== */
+  .dashboard-main,
+  .users-main,
+  .merchants-main,
+  .orders-main,
+  .shipments-content,
+  .admin-content,
+  .pricing-content,
+  .revenue-content,
+  .reports-content,
+  .reports-main,
+  .settings-content,
+  .settings-main,
+  .ndr-content,
+  .rto-content,
+  .rto-main,
+  .cod-content,
+  .tickets-content,
+  .admin-tickets-content,
+  .rate-card-main,
+  .superadmin-main,
+  .admin-scope [class*="-main"],
+  .admin-scope [class*="-content"],
+  .superadmin-scope [class*="-main"],
+  .superadmin-scope [class*="-content"] {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    padding: 68px 14px 28px !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+  }
+
+  .superadmin-inner {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+
+  /* ===== HEADER BLOCKS ===== */
+  .dashboard-header-block,
+  .users-header-block,
+  .merchants-header-block,
+  .shipments-header,
+  .pricing-header,
+  .revenue-header,
+  .reports-header,
+  .settings-header,
+  .cod-header,
+  .ndr-header,
+  [class*="-header"] {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+    width: 100% !important;
+    margin-bottom: 20px !important;
+  }
+
+  [class*="-header-title"],
+  .admin-scope h1,
+  .superadmin-scope h1 {
+    font-size: 22px !important;
+    line-height: 1.3 !important;
+    word-break: break-word !important;
+  }
+
+  [class*="-header-subtitle"],
+  .admin-scope p,
+  .superadmin-scope p {
+    font-size: 13px !important;
+    line-height: 1.4 !important;
+  }
+
+  /* ===== STATS / CARDS GRIDS (2 COLUMNS) ===== */
+  .courier-stats,
+  .admin-stats-grid,
+  .dashboard-cards-grid,
+  .users-stats-grid,
+  .merchants-stats-grid,
+  .shipments-stats-grid,
+  .revenue-stats-grid,
+  .stats-grid,
+  .superadmin-scope .stats-grid,
+  [class*="-stats-grid"],
+  [class*="-stat-grid"] {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    width: 100% !important;
+    margin-bottom: 20px !important;
+  }
+
+  /* Stat Card Sizing */
+  .dashboard-card,
+  .users-stat-card,
+  .merchants-stat-card,
+  .shipments-stat-card,
+  .revenue-stat-card,
+  .superadmin-scope .stat-card {
+    padding: 14px 12px !important;
+    border-radius: 12px !important;
+    min-width: 0 !important;
+  }
+
+  .dashboard-card-value,
+  [class*="-stat-value"],
+  .stat-value {
+    font-size: 22px !important;
+  }
+
+  .dashboard-card-label,
+  [class*="-stat-label"],
+  .stat-label {
+    font-size: 11px !important;
+  }
+
+  /* ===== HORIZONTAL SWIPEABLE TABLES ===== */
+  .admin-table-section,
+  .table-container,
+  .table-responsive,
+  .users-table-container,
+  .merchants-table-container,
+  .orders-table-container,
+  .shipments-table-container,
+  .ndr-table-container,
+  .rto-table-container,
+  .cod-table-container,
+  .reports-table-container,
+  .tickets-table-container,
+  [class*="-table-section"],
+  [class*="-table-container"],
+  [class*="-table-wrapper"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    border-radius: 12px !important;
+    margin-bottom: 20px !important;
+  }
+
+  .admin-scope table,
+  .superadmin-scope table {
+    min-width: 600px !important;
+    width: 100% !important;
+  }
+
+  /* Action buttons / Filters on Mobile */
+  .revenue-header-actions,
+  .pricing-header-actions,
+  .shipments-filter-section,
+  .orders-filter-container,
+  [class*="-filter-"] {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  /* Full-width inputs & selects */
+  .admin-scope input[type="text"],
+  .admin-scope input[type="search"],
+  .admin-scope select,
+  .superadmin-scope input[type="text"],
+  .superadmin-scope select {
+    max-width: 100% !important;
+    font-size: 14px !important;
+  }
+}
+
+/* Very Small Mobile (< 400px) */
+@media (max-width: 400px) {
+  .dashboard-cards-grid,
+  .users-stats-grid,
+  .merchants-stats-grid,
+  .shipments-stats-grid,
+  .revenue-stats-grid,
+  .stats-grid,
+  .superadmin-scope .stats-grid,
+  [class*="-stats-grid"],
+  [class*="-stat-grid"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ============================================================
+   2. TABLET & MOBILE DESKTOP SITE MODE (769px - 1024px)
+   ============================================================ */
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* Hide Mobile hamburger and overlay */
+  .admin-hamburger-btn,
+  .admin-sidebar-overlay,
+  .superadmin-hamburger-btn,
+  .superadmin-sidebar-overlay {
+    display: none !important;
+  }
+
+  .admin-sidebar-wrapper,
+  .superadmin-sidebar-wrapper {
+    display: contents !important;
+  }
+
+  /* Compact 72px Icon Sidebar */
+  .admin-scope .sidebar,
+  .superadmin-scope .sidebar,
+  .admin-sidebar-wrapper .sidebar,
+  .superadmin-sidebar-wrapper .sidebar {
+    width: 72px !important;
+    min-width: 72px !important;
+    max-width: 72px !important;
+    transform: translateX(0) !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    height: 100vh !important;
+    z-index: 100 !important;
+  }
+
+  /* Content area offset by 72px */
+  .dashboard-main,
+  .users-main,
+  .merchants-main,
+  .orders-main,
+  .shipments-content,
+  .admin-content,
+  .pricing-content,
+  .revenue-content,
+  .reports-content,
+  .reports-main,
+  .settings-content,
+  .settings-main,
+  .ndr-content,
+  .rto-content,
+  .rto-main,
+  .cod-content,
+  .tickets-content,
+  .admin-tickets-content,
+  .rate-card-main,
+  .superadmin-main,
+  .admin-scope [class*="-main"],
+  .admin-scope [class*="-content"],
+  .superadmin-scope [class*="-main"],
+  .superadmin-scope [class*="-content"] {
+    margin-left: 72px !important;
+    width: calc(100% - 72px) !important;
+    max-width: calc(100% - 72px) !important;
+    padding: 24px 20px !important;
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+  }
+
+  /* Page container flex row */
+  .admin-dashboard-container,
+  .users-container,
+  .merchants-container,
+  .orders-container,
+  .shipments-container,
+  .admin-dashboard,
+  .pricing-container,
+  .revenue-container,
+  .reports-container,
+  .settings-container,
+  .ndr-container,
+  .rto-container,
+  .cod-container,
+  .admin-tickets-container,
+  .tickets-container,
+  .rate-card-container,
+  .superadmin-layout {
+    display: flex !important;
+    flex-direction: row !important;
+    width: 100% !important;
+  }
+
+  /* Stats grid: 2 columns on tablet */
+  .dashboard-cards-grid,
+  .users-stats-grid,
+  .merchants-stats-grid,
+  .shipments-stats-grid,
+  .revenue-stats-grid,
+  .stats-grid,
+  .superadmin-scope .stats-grid,
+  [class*="-stats-grid"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 14px !important;
+  }
+
+  /* Swipeable tables */
+  .admin-table-section,
+  .table-container,
+  .table-responsive,
+  [class*="-table-container"],
+  [class*="-table-wrapper"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+}
+
+/* ============================================================
+   3. LAPTOP & FULL DESKTOP (1025px and wider)
+   ============================================================ */
+@media (min-width: 1025px) {
+  /* Hide Mobile hamburger and overlay */
+  .admin-hamburger-btn,
+  .admin-sidebar-overlay,
+  .superadmin-hamburger-btn,
+  .superadmin-sidebar-overlay {
+    display: none !important;
+  }
+
+  .admin-sidebar-wrapper,
+  .superadmin-sidebar-wrapper {
+    display: contents !important;
+  }
+
+  /* Full 280px Sidebar */
+  .admin-scope .sidebar,
+  .superadmin-scope .sidebar,
+  .admin-sidebar-wrapper .sidebar,
+  .superadmin-sidebar-wrapper .sidebar {
+    width: 280px !important;
+    min-width: 280px !important;
+    max-width: 280px !important;
+    transform: translateX(0) !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    height: 100vh !important;
+    z-index: 100 !important;
+  }
+
+  /* Full Desktop Content Offset */
+  .dashboard-main,
+  .users-main,
+  .merchants-main,
+  .orders-main,
+  .shipments-content,
+  .admin-content,
+  .pricing-content,
+  .revenue-content,
+  .reports-content,
+  .reports-main,
+  .settings-content,
+  .settings-main,
+  .ndr-content,
+  .rto-content,
+  .rto-main,
+  .cod-content,
+  .tickets-content,
+  .admin-tickets-content,
+  .rate-card-main,
+  .superadmin-main,
+  .admin-scope [class*="-main"],
+  .admin-scope [class*="-content"],
+  .superadmin-scope [class*="-main"],
+  .superadmin-scope [class*="-content"] {
+    margin-left: 280px !important;
+    width: calc(100% - 280px) !important;
+    max-width: calc(100% - 280px) !important;
+    padding: 30px 40px !important;
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+  }
+
+  .admin-dashboard-container,
+  .users-container,
+  .merchants-container,
+  .orders-container,
+  .shipments-container,
+  .admin-dashboard,
+  .pricing-container,
+  .revenue-container,
+  .reports-container,
+  .settings-container,
+  .ndr-container,
+  .rto-container,
+  .cod-container,
+  .admin-tickets-container,
+  .tickets-container,
+  .rate-card-container,
+  .superadmin-layout {
+    display: flex !important;
+    flex-direction: row !important;
+    width: 100% !important;
+  }
+}

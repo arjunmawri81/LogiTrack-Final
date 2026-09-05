@@ -1,4 +1,5 @@
-import { NavLink, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import "./SuperAdminSidebar.css";
 import {
   FaHome,
@@ -11,10 +12,18 @@ import {
   FaClipboardList,
   FaSignOutAlt,
   FaTruck,
+  FaBars,
+  FaTimes,
 } from "react-icons/fa";
 
 const SuperAdminSidebar = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setIsOpen(false);
+  }, [location.pathname]);
 
   const logout = () => {
     localStorage.clear();
@@ -22,8 +31,25 @@ const SuperAdminSidebar = () => {
   };
 
   return (
-    <div className="superadmin-scope">
-    <div className="sidebar">
+    <aside className="superadmin-sidebar-wrapper">
+      {/* Mobile Hamburger Button */}
+      <button
+        className="superadmin-hamburger-btn"
+        onClick={() => setIsOpen(!isOpen)}
+        aria-label="Toggle SuperAdmin Menu"
+      >
+        {isOpen ? <FaTimes /> : <FaBars />}
+      </button>
+
+      {/* Mobile Overlay */}
+      {isOpen && (
+        <div
+          className="superadmin-sidebar-overlay"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
+      <div className={`sidebar ${isOpen ? "open" : ""}`}>
       {/* BRAND HEADER CONTAINER */}
       <div className="sidebar-header">
         <h2 className="logo">MyParcelPoint</h2>
@@ -109,10 +135,9 @@ const SuperAdminSidebar = () => {
       {/* ACCOUNT SESSION TERMINATION */}
       <div className="logout-section" onClick={logout}>
         <FaSignOutAlt style={{ fontSize: "18px" }} />
-        <span>Logout</span>
       </div>
-    </div>
-    </div>
+      </div>
+    </aside>
   );
 };
 

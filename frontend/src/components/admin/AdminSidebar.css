@@ -1,4 +1,5 @@
-.admin-scope {
+.admin-scope,
+.admin-sidebar-wrapper {
   /* ===== ADMIN SIDEBAR ===== */
 
   .sidebar {
@@ -166,10 +167,44 @@
     background: transparent;
   }
 
-  /* Mobile */
+  /* Mobile (max-width: 768px) */
   @media (max-width: 768px) {
     .sidebar {
-      width: 70px;
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: min(300px, 85vw) !important;
+      height: 100vh !important;
+      transform: translateX(-100%) !important;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      z-index: 2450 !important;
+      box-shadow: 4px 0 30px rgba(0, 0, 0, 0.5) !important;
+      border-radius: 0 16px 16px 0 !important;
+    }
+
+    .sidebar.open {
+      transform: translateX(0) !important;
+    }
+
+    .sidebar.open .logo,
+    .sidebar.open .logo-subtitle,
+    .sidebar.open .profile-info,
+    .sidebar.open .sidebar-menu a span,
+    .sidebar.open .logout-section a span {
+      display: block !important;
+    }
+
+    .sidebar.open .sidebar-menu a {
+      justify-content: flex-start !important;
+      padding: 12px 16px !important;
+    }
+  }
+
+  /* Tablet & Desktop Site Mode (769px - 1024px) */
+  @media (min-width: 769px) and (max-width: 1024px) {
+    .sidebar {
+      width: 72px !important;
+      transform: translateX(0) !important;
     }
 
     .logo,
@@ -177,31 +212,31 @@
     .profile-info,
     .sidebar-menu a span,
     .logout-section a span {
-      display: none;
+      display: none !important;
     }
 
     .sidebar-profile {
-      justify-content: center;
-      margin: 16px 12px;
-      padding: 12px;
+      justify-content: center !important;
+      margin: 16px 10px !important;
+      padding: 10px !important;
     }
 
     .sidebar-menu a {
-      justify-content: center;
-      padding: 12px;
+      justify-content: center !important;
+      padding: 12px 10px !important;
     }
 
     .sidebar-menu a svg {
-      margin: 0;
+      margin: 0 !important;
     }
 
     .logout-section {
-      margin: 16px 12px;
-      padding: 12px;
+      margin: 16px 10px !important;
+      padding: 10px !important;
     }
 
     .logout-section a {
-      justify-content: center;
+      justify-content: center !important;
     }
   }
 

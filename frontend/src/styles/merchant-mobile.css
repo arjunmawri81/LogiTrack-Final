@@ -383,3 +383,215 @@
     padding: 10px !important;
   }
 }
+
+/* ============================================================
+   TABLET & MOBILE DESKTOP SITE MODE (769px - 1024px)
+   When a mobile phone user turns on "Desktop Site", the browser
+   simulates a 980px or 1024px desktop viewport.
+   This section guarantees that ALL pages cleanly align with
+   the 72px collapsed sidebar with zero blank gaps or overflow!
+   ============================================================ */
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* Ensure ALL sidebar wrappers match the 72px sidebar */
+  .merchant-scope .dashboard-sidebar,
+  .merchant-scope .orders-sidebar,
+  .merchant-scope .sidebar-wrapper,
+  .merchant-scope .warehouse-sidebar,
+  .merchant-scope .wallet-sidebar-wrapper,
+  .merchant-scope .billing-sidebar,
+  .merchant-scope .rate-sidebar,
+  .merchant-scope .channels-sidebar,
+  .merchant-scope .serviceability-sidebar,
+  .merchant-scope .tickets-sidebar,
+  .merchant-scope .reports-sidebar,
+  .merchant-scope .invoices-sidebar,
+  .merchant-scope .merchant-sidebar-wrapper,
+  .merchant-scope .merchant-sidebar-container,
+  .merchant-scope div[style*="width: 280px"],
+  .merchant-scope div[style*="width:280px"] {
+    width: 72px !important;
+    min-width: 72px !important;
+    max-width: 72px !important;
+    flex: 0 0 72px !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    height: 100vh !important;
+    overflow: hidden !important;
+    z-index: 50 !important;
+  }
+
+  /* Ensure ALL main content containers have margin-left: 72px */
+  .merchant-scope .dashboard-main,
+  .merchant-scope .orders-main,
+  .merchant-scope .shipments-main,
+  .merchant-scope .warehouse-main,
+  .merchant-scope .wallet-main,
+  .merchant-scope .tracking-main,
+  .merchant-scope .tickets-content,
+  .merchant-scope .settings-page-content,
+  .merchant-scope .serviceability-main,
+  .merchant-scope .reports-main,
+  .merchant-scope .profile-main,
+  .merchant-scope .rate-content,
+  .merchant-scope .rto-main,
+  .merchant-scope .invoices-main,
+  .merchant-scope .ndr-main,
+  .merchant-scope .create-shipment-main,
+  .merchant-scope .channels-main-content,
+  .merchant-scope .billing-content,
+  .merchant-scope .orders-loading-spinner,
+  .merchant-scope .merchant-main-content,
+  .merchant-scope .merchant-main-container {
+    margin-left: 72px !important;
+    width: calc(100% - 72px) !important;
+    max-width: calc(100% - 72px) !important;
+    padding: 24px 20px !important;
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+  }
+
+  /* Page layout flex row */
+  .merchant-scope .dashboard-page,
+  .merchant-scope .orders-container,
+  .merchant-scope .shipments-container,
+  .merchant-scope .warehouse-container,
+  .merchant-scope .wallet-container,
+  .merchant-scope .tracking-container,
+  .merchant-scope .tickets-container,
+  .merchant-scope .settings-page-container,
+  .merchant-scope .serviceability-container,
+  .merchant-scope .reports-container,
+  .merchant-scope .profile-container,
+  .merchant-scope .rate-container,
+  .merchant-scope .rto-container,
+  .merchant-scope .invoices-container,
+  .merchant-scope .ndr-container,
+  .merchant-scope .create-shipment-container,
+  .merchant-scope .channels-page-container,
+  .merchant-scope .billing-container,
+  .merchant-scope .merchant-page-container,
+  .merchant-scope .merchant-layout-container {
+    display: flex !important;
+    flex-direction: row !important;
+    width: 100% !important;
+  }
+
+  /* 2-column grids for cards */
+  .merchant-scope .dashboard-grid,
+  .merchant-scope .shipments-stats-grid,
+  .merchant-scope .billing-stats-grid,
+  .merchant-scope .ndr-stats-grid,
+  .merchant-scope .rto-stats-grid,
+  .merchant-scope .dashboard-summary-grid,
+  .merchant-scope [class*="-stats-grid"],
+  .merchant-scope [class*="-summary-grid"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 14px !important;
+  }
+
+  /* Horizontal swipeable tables */
+  .merchant-scope .orders-table-container,
+  .merchant-scope .shipments-table-container,
+  .merchant-scope .billing-table-container,
+  .merchant-scope .invoices-table-container,
+  .merchant-scope .ndr-table-container,
+  .merchant-scope .rto-table-container,
+  .merchant-scope .warehouse-table-container,
+  .merchant-scope .tickets-table-container,
+  .merchant-scope .reports-table-container,
+  .merchant-scope [class*="-table-container"],
+  .merchant-scope .table-responsive {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+}
+
+/* ============================================================
+   LAPTOP & FULL DESKTOP SCREENS (1025px and wider)
+   Ensures 100% consistent 280px sidebar across ALL pages!
+   ============================================================ */
+
+@media (min-width: 1025px) {
+  .merchant-scope .dashboard-sidebar,
+  .merchant-scope .orders-sidebar,
+  .merchant-scope .sidebar-wrapper,
+  .merchant-scope .warehouse-sidebar,
+  .merchant-scope .wallet-sidebar-wrapper,
+  .merchant-scope .billing-sidebar,
+  .merchant-scope .rate-sidebar,
+  .merchant-scope .channels-sidebar,
+  .merchant-scope .serviceability-sidebar,
+  .merchant-scope .tickets-sidebar,
+  .merchant-scope .reports-sidebar,
+  .merchant-scope .invoices-sidebar,
+  .merchant-scope .merchant-sidebar-wrapper,
+  .merchant-scope .merchant-sidebar-container {
+    width: 280px !important;
+    min-width: 280px !important;
+    max-width: 280px !important;
+    flex: 0 0 280px !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    height: 100vh !important;
+    z-index: 50 !important;
+  }
+
+  .merchant-scope .dashboard-main,
+  .merchant-scope .orders-main,
+  .merchant-scope .shipments-main,
+  .merchant-scope .warehouse-main,
+  .merchant-scope .wallet-main,
+  .merchant-scope .tracking-main,
+  .merchant-scope .tickets-content,
+  .merchant-scope .settings-page-content,
+  .merchant-scope .serviceability-main,
+  .merchant-scope .reports-main,
+  .merchant-scope .profile-main,
+  .merchant-scope .rate-content,
+  .merchant-scope .rto-main,
+  .merchant-scope .invoices-main,
+  .merchant-scope .ndr-main,
+  .merchant-scope .create-shipment-main,
+  .merchant-scope .channels-main-content,
+  .merchant-scope .billing-content,
+  .merchant-scope .orders-loading-spinner,
+  .merchant-scope .merchant-main-content,
+  .merchant-scope .merchant-main-container {
+    margin-left: 280px !important;
+    width: calc(100% - 280px) !important;
+    max-width: calc(100% - 280px) !important;
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+  }
+
+  .merchant-scope .dashboard-page,
+  .merchant-scope .orders-container,
+  .merchant-scope .shipments-container,
+  .merchant-scope .warehouse-container,
+  .merchant-scope .wallet-container,
+  .merchant-scope .tracking-container,
+  .merchant-scope .tickets-container,
+  .merchant-scope .settings-page-container,
+  .merchant-scope .serviceability-container,
+  .merchant-scope .reports-container,
+  .merchant-scope .profile-container,
+  .merchant-scope .rate-container,
+  .merchant-scope .rto-container,
+  .merchant-scope .invoices-container,
+  .merchant-scope .ndr-container,
+  .merchant-scope .create-shipment-container,
+  .merchant-scope .channels-page-container,
+  .merchant-scope .billing-container,
+  .merchant-scope .merchant-page-container,
+  .merchant-scope .merchant-layout-container {
+    display: flex !important;
+    flex-direction: row !important;
+    width: 100% !important;
+  }
+}
+

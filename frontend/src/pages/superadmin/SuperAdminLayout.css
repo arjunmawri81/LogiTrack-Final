@@ -20,18 +20,25 @@
   margin: 0 auto;
 }
 
-@media (max-width: 1024px) {
+@media (min-width: 769px) and (max-width: 1024px) {
   .superadmin-main {
-    margin-left: 280px;
-    width: calc(100% - 280px);
+    margin-left: 72px;
+    width: calc(100% - 72px);
     padding: 24px 16px;
   }
 }
 
 @media (max-width: 768px) {
+  .superadmin-layout {
+    flex-direction: column;
+    width: 100%;
+    max-width: 100vw;
+  }
+
   .superadmin-main {
-    margin-left: 72px;
-    width: calc(100% - 72px);
-    padding: 16px 10px;
+    margin-left: 0;
+    width: 100%;
+    max-width: 100vw;
+    padding: 68px 14px 28px;
   }
 }
