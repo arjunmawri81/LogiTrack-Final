@@ -42,10 +42,11 @@ app.use(
       const allowedOrigins = process.env.ALLOWED_ORIGINS
         ? process.env.ALLOWED_ORIGINS.split(",")
         : ["http://localhost:5173", "http://localhost:5174", "http://localhost:3000"];
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      if (process.env.NODE_ENV !== "production" && origin.startsWith("http://localhost:")) {
+      if (
+        allowedOrigins.includes(origin) ||
+        origin.endsWith(".vercel.app") ||
+        (process.env.NODE_ENV !== "production" && origin.startsWith("http://localhost:"))
+      ) {
         return callback(null, true);
       }
       return callback(new Error("Not allowed by CORS"));
@@ -85,6 +86,17 @@ app.use(express.urlencoded({ limit: "2mb", extended: true }));
 
 // Serve Uploaded Files Statically (KYC Documents, Labels, etc.)
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// Ensure database connection for requests (vital for Vercel serverless functions)
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error("DB connection error in middleware:", err);
+    next(err);
+  }
+});
 
 // ====================================
 // HEALTH CHECK
@@ -187,7 +199,9 @@ const startServer = async () => {
   }
 };
 
-startServer();
+if (!process.env.VERCEL) {
+  startServer();
+}
 
 // ====================================
 // PROCESS CRASH GUARDS

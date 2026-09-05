@@ -247,6 +247,9 @@ const Dashboard = () => {
             }}
           >
             <FaTags size={13} color="#f97316" /> My Rate Cards
+          </button>
+        </div>
+
         {/* DATE FILTER BAR */}
         <DateFilterBar
           onFilterChange={(f) => {
